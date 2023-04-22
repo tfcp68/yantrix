@@ -1,3 +1,11 @@
+# IDE configs
+.idea
+.vscode
+
+#Precompiled files
+cache
+dist
+
 # Logs
 logs
 *.log
