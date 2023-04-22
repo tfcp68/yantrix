@@ -1,4 +1,5 @@
 import mermaid from 'mermaid';
+import { DiagramDb } from "mermaid/dist/diagram-api/types.js";
 
 const diagramText = `stateDiagram-v2
     [*] --> IDLE: RESET
@@ -43,11 +44,8 @@ const flowDiagram = 'flowchart TD\n' +
 	'    C -->|Three| F[fa:fa-car Car]';
 
 (async () => {
-	mermaid.mermaidAPI.setConfig(mermaid.mermaidAPI.defaultConfig);
-	const diagram = await mermaid.mermaidAPI.getDiagramFromText('sequenceDiagram\n' +
-		'    Alice->>+John: Hello John, how are you?\n' +
-		'    Alice->>+John: John, can you hear me?\n' +
-		'    John-->>-Alice: Hi Alice, I can hear you!\n' +
-		'    John-->>-Alice: I feel great!');
-	console.warn(diagram);
+	mermaid.mermaidAPI.setConfig({...mermaid.mermaidAPI.defaultConfig});
+	await mermaid.mermaidAPI.initialize();
+	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+	console.warn(diagram.db.getRootDoc());
 })();

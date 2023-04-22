@@ -4,13 +4,14 @@
 	"description": "EDFSM Framework",
 	"main": "index.js",
 	"scripts": {
-		"test": "npm test"
+		"build": "tsc",
+		"start": "npm run build && node ./dist/diagramParser.js",
+		"test": "jest"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
-	"type": "module",
 	"keywords": [
 		"fsm",
 		"typescript",
@@ -20,6 +21,7 @@
 		"uml",
 		"mermaidjs"
 	],
+	"type": "module",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"license": "MIT",
 	"bugs": {
