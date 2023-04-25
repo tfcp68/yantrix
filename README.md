@@ -1,4 +1,4 @@
-# Yantrix - FSM Framework on steroids
+# Yantrix - Opinionated FSM Framework
 
 Yantrix is a TypeScript framework that provides a set of tools to create a code-generated state management, using
 event-driven finite state machines and anemic data model. It represents an application state as a flock of independent
@@ -20,7 +20,18 @@ or
 yarn add yantrix
 ```
 
-## Concepts
+## Core Concepts
+
+Yantrix suggests the following application model:
+- Responsibility layers are built in accordance with slightly adapted [MVC approach](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller)
+- an [Event-Driven Architecture](https://en.wikipedia.org/wiki/Event-driven_architecture) is used to communicate between layers of "Contoller" part, with a globally available dictionary of `Events`, specific for the Application
+- _"Controller"_ is comprised of `Slices`, which are sets of interconnected `FSM`s (finite state machines), which communicate with `Events` and produce `Effects` to update the _"Model"_
+- _"View"_ part (including UI and external I/O) is updated asynchronously with a **Render Loop**
+- I/O streams are non-duplex and are separated into `Sources`, which generate `Events` for "Controller", and `Destinations`, which are updated when the _"Model"_ has changed
+- _"Model"_ component is an anemic data structure (`Data Model`), being a single global store for the whole application, though it can and should be built with composition of `Slices`. It can be propagated to external `Storages` in a asynchronous **Sync Loop**
+- the **Main Loop** is taking `Events` from UI and I/O and repeatedly updates the `Data Model` and `Slices` internal states based on their internal rules
+
+The basic building block of state logic is a `FSM` (more specifically - a [Mealy Machine](https://en.wikipedia.org/wiki/Mealy_machine)), which exposes two predefined sets: `Actions` and `States`, with `Transition Matrix` describing the relations between those. Every `Action` type can have a derived `Payload` type, while every `State` has a dependent `Context`, and the latter two represent the current internal state of the machine. 
 
 ```mermaid
 erDiagram
@@ -37,7 +48,7 @@ erDiagram
     FSM ||--|{ TransitionMatrix: defines
     FSM ||--|{ EventAdapter: defines
     Slice ||--|{ EventDictionary: defines
-    Slice ||--|{ FSM: contains
+    Slice ||--o{ FSM: contains
     Slice ||--|{ EffectMatrix: defines
     Slice ||--|{ DataModel: defines
     Effects ||..o{ DataModel: updates
@@ -50,6 +61,8 @@ erDiagram
     EventAdapter ||..|{ EventStack: "translates Events"
     Sources ||..|{ EventStack: "emits Events"
 ```
+
+### EDA Loop
 
 ```mermaid
 sequenceDiagram
