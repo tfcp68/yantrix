@@ -32,30 +32,31 @@ Yantrix suggests the following application model:
 ### Onthology
 ```mermaid
 erDiagram
-    DataModel ||..o{ Storage: "is synced to"    
+    DataModel ||..o{ Storage: "updates"    
     DataModel ||..o{ UIComponent: "updates"
     UIComponent ||..|{ EventStack: "emits Events"
     StateDictionary ||--|{ StateContextType: "is mapped to"
     ActionDictionary ||--|{ ActionPayloadType: "is mapped to"
     EventDictionary ||--|{ EventMetaType: "is mapped to"
-    TransitionMatrix ||--o{ StateDictionary: defines
-    TransitionMatrix ||--o{ ActionDictionary: defines
-    TransitionMatrix ||..|{ EventAdapter : "observed by"
+    TransitionMatrix ||..o{ StateDictionary: references
+    TransitionMatrix ||..o{ ActionDictionary: references
+    TransitionMatrix ||--|{ EventAdapter : "is declared by"
     EventStack ||..o{ EventDictionary: "maps to"
-    FSM ||--|{ TransitionMatrix: defines
-    FSM ||--|{ EventAdapter: defines
+    FSM ||--|{ TransitionMatrix: declares
+    FSM ||..|{ EventAdapter: references
     Slice ||..o{ EventDictionary: references
-    Slice ||--o{ FSM: contains
-    Slice ||--|{ EffectMatrix: defines
+    Slice ||--o{ FSM: "consists of"
+    Slice ||--|{ EffectMatrix: declares
     Effect ||..|{ DataModel: updates
-    EffectMatrix ||--o{ Effect: contains
+    EffectMatrix ||--o{ Effect: declares
     Application ||--|{ Slice: "consists of"
-    Application ||--|{ DataModel: defines
     Application ||--o{ UIComponent: "is represented by"       
+    Application ||--|{ DataModel: declares
+    DataModel ||..o{ Destinations: updates
+    Application ||--o{ Destinations: declares
     EventAdapter ||..|{ EventStack: "translates Events"
     Sources ||..|{ EventStack: "emits Events"
-    Application ||..o{ Sources: "can get data from"
-    
+    Application ||..o{ Sources: "declares"
 ```
 
 #### Data Model
