@@ -23,6 +23,35 @@ yarn add yantrix
 ## Concepts
 
 ```mermaid
+erDiagram
+    DataModel ||..o{ Storage: "is synced to"    
+    DataModel ||..o{ UIComponent: "updates"
+    UIComponent ||..|{ EventStack: "emits Events"
+    StateDictionary ||--o{ StateContextType: "is mapped to"
+    ActionDictionary ||--o{ ActionPayloadType: "is mapped to"
+    EventDictionary ||--o{ EventMetaType: "is mapped to"
+    TransitionMatrix ||--|{ StateDictionary: defines
+    TransitionMatrix ||--|{ ActionDictionary: defines
+    TransitionMatrix ||..|{ EventAdapter : "observed by"
+    EventStack ||..o{ EventDictionary: "maps to"
+    FSM ||--|{ TransitionMatrix: defines
+    FSM ||--|{ EventAdapter: defines
+    Slice ||--|{ EventDictionary: defines
+    Slice ||--|{ FSM: contains
+    Slice ||--|{ EffectMatrix: defines
+    Slice ||--|{ DataModel: defines
+    Effects ||..o{ DataModel: updates
+    EffectMatrix ||--o{ Effects: contains
+    Application ||--|{ Slice: "consists of"
+    Application ||..|{ Storage: "is bootstrapped from"    
+    Application ||..o{ Sources: "can get data from"
+    Application ||..o{ Destinations: "can send data to"
+    Application ||--o{ UIComponent: "is represented by"       
+    EventAdapter ||..|{ EventStack: "translates Events"
+    Sources ||..|{ EventStack: "emits Events"
+```
+
+```mermaid
 sequenceDiagram
 box rgba(25,0,25,0.25) [Representation Layer]<br/>~~~</br>UIs, APIs, Sockets, Timers
 participant DST as Destinations
