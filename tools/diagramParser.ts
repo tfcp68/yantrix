@@ -49,3 +49,13 @@ const flowDiagram = 'flowchart TD\n' +
 	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 	console.warn(diagram.db.getRootDoc());
 })();
+
+
+export async function diagramParser(diagramText: string) {
+	mermaid.mermaidAPI.setConfig({...mermaid.mermaidAPI.defaultConfig});
+	await mermaid.mermaidAPI.initialize();
+	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+    const parsedDiagram = diagram.db.getRootDoc();
+
+    return parsedDiagram
+}
