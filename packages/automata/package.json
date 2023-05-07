@@ -1,0 +1,29 @@
+{
+	"name": "@yantrix/automata",
+	"version": "0.1.0",
+	"description": "Miely Machine representation with bus adapters",
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
+	"license": "ISC",
+	"main": "lib/index.js",
+	"directories": {
+		"test": "__tests__"
+	},
+	"files": [
+		"lib"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git"
+	},
+	"scripts": {
+		"test": "jest"
+	},
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
+	}
+}
