@@ -1,6 +1,23 @@
-import {diagramParser} from './../../../tools/diagramParser'
+import mermaid from 'mermaid';
+//import { DiagramDb } from "mermaid/dist/diagram-api/types.js";
 
 type DirectionsArray = string[][]
+
+
+async function diagramParser(diagramText: string) {
+    /**
+     * @brief Функция, которая парсит диаграмму
+     * @param diagramText: строка диаграммы
+     * @returns Возвращает promise словаря, который спарсили
+     */
+	mermaid.mermaidAPI.setConfig({...mermaid.mermaidAPI.defaultConfig});
+	await mermaid.mermaidAPI.initialize();
+	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+    const parsedDiagram = diagram.db.getRootDoc();
+
+    return parsedDiagram
+}
+
 
 function take_directions(parsed_diargam: any): DirectionsArray {
     /**
@@ -250,16 +267,16 @@ function mark_choices(parsed_diargam: any, directions: DirectionsArray, mermaid_
 }
 
 
-export function make_mermaid_graph(diagramText: string) {
+export async function parse_state_diagram(diagramText: string) {
     /**
      * @brief Построение словаря связей
      * @param diagramText: строка, state диаграмма мермаид
-     * @returns Возвращает словарь связей
+     * @returns Возвращает promise словаря связей
      */
-    const parsed_diargam = diagramParser(diagramText)
+    const parsed_diargam = await diagramParser(diagramText)
     const directions = take_directions(parsed_diargam)
     const all_elements = get_all_elements(directions)
-    let mermaid_graph = mark_graph(parsed_diargam, directions, all_elements)
-    mermaid_graph = mark_choices(parsed_diargam, directions, mermaid_graph)
-    return mermaid_graph
+    let state_mermaid_graph = mark_graph(parsed_diargam, directions, all_elements)
+    state_mermaid_graph = mark_choices(parsed_diargam, directions, state_mermaid_graph)
+    return state_mermaid_graph
 }
