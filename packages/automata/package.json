@@ -9,21 +9,29 @@
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
 	"license": "ISC",
-	"main": "lib/index.js",
+	"main": "./dist/index.js",
+	"typings": "./dist/index.d.ts",
 	"directories": {
+		"lib": "src",
 		"test": "__tests__"
 	},
 	"files": [
-		"lib"
+		"dist"
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git"
+		"url": "git+https://github.com/octaharon/yantrix.git",
+		"directory": "packages/automata"
 	},
 	"scripts": {
-		"test": "jest"
+		"test": "jest",
+		"build": "tsc"
 	},
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
+	},
+	"devDependencies": {
+		"ts-node": "^10.9.1",
+		"tslib": "^2.5.0"
 	}
 }

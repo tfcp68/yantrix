@@ -4,9 +4,8 @@
 	"description": "EDFSM Framework",
 	"main": "index.js",
 	"scripts": {
-		"build": "tsc",
-		"start": "npm run build && node ./dist/diagramParser.js",
-		"test": "jest"
+		"build": "lerna run --parallel build",
+		"test": "lerna run test"
 	},
 	"repository": {
 		"type": "git",

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import AutomataEventAdapter from '../src/EventAdapter';
-import { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../types';
-import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index';
-import Utils from '../utils';
+import { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../src/types';
+import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures';
+import Utils from '../src/utils';
 
 const { pickFromArray, sampleArray, sampleRange } = Utils;
 
