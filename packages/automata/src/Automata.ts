@@ -8,10 +8,10 @@ import {
 	TAutomataQueue,
 	TAutomataReducer,
 	TAutomataStateContext,
-} from '../types';
+} from './types';
 
-import { IAutomata, IAutomataEventAdapter } from '../types/interfaces';
-import Utils from '../utils';
+import { IAutomata, IAutomataEventAdapter } from './types/interfaces';
+import Utils from './utils';
 
 const { isPositiveInteger } = Utils;
 

@@ -8,10 +8,10 @@ import {
 	TAutomataEventMetaType,
 	TAutomataStateContext,
 	TValidator,
-} from '../types';
+} from './types';
 
-import { IAutomataEventAdapter } from '../types/interfaces';
-import Utils from '../utils';
+import { IAutomataEventAdapter } from './types/interfaces';
+import Utils from './utils';
 
 const { unifyObjectKey } = Utils;
 

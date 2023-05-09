@@ -1,7 +1,7 @@
-import { TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType, TValidator } from '../types';
+import { TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType, TValidator } from './types';
 
-import { IAutomataValidatorContainer } from '../types/interfaces';
-import Utils from '../utils';
+import { IAutomataValidatorContainer } from './types/interfaces';
+import Utils from './utils';
 
 const { isPositiveInteger } = Utils;
 
@@ -36,7 +36,7 @@ export abstract class AutomataValidatorContainer<
 	}
 
 	setEventValidator(eventValidator: TValidator<EventType> | null = null) {
-		if (eventValidator == null) {
+		if (eventValidator === null) {
 			this.#eventValidator = undefined;
 			return this;
 		}
@@ -46,7 +46,7 @@ export abstract class AutomataValidatorContainer<
 	}
 
 	setActionValidator(actionValidator: TValidator<ActionType> | null = null) {
-		if (actionValidator == null) {
+		if (actionValidator === null) {
 			this.#actionValidator = undefined;
 			return this;
 		}
@@ -56,7 +56,7 @@ export abstract class AutomataValidatorContainer<
 	}
 
 	setStateValidator(stateValidator: TValidator<StateType> | null = null) {
-		if (stateValidator == null) {
+		if (stateValidator === null) {
 			this.#stateValidator = undefined;
 			return this;
 		}

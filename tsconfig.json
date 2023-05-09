@@ -1,43 +1,36 @@
 {
 	"compilerOptions": {
-		"outDir": "./dist",
-		"sourceMap": true,
-		"noImplicitAny": true,
-		"target": "es2022",
-		"allowJs": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
+		// Type Checking
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
 		"strict": true,
-		"useUnknownInCatchVariables": false,
-		"module": "node16",
-		"moduleResolution": "node16",
+		"useUnknownInCatchVariables": true,
+
+		// Modules
+		"module": "ESNext",
+		"moduleResolution": "Node16",
 		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"jsx": "react",
-		"downlevelIteration": true,
+
+		// Emit
+		"declaration": true,
+		"declarationMap": true,
+		"importHelpers": true,
+		"inlineSources": true,
+		"newLine": "lf",
+		"noEmitHelpers": true,
+		"outDir": "dist",
+		"removeComments": false,
+		"sourceMap": true,
+		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"esnext",
-			"es2016"
-		],
-		"baseUrl": "./",
-		"paths": {
-			"~/src/*": [
-				"src/*"
-			]
-		}
-	},
-	"include": [
-		"./src/**/*",
-		"./tools/**/*",
-		"./tests/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"dist",
-		"src/**/*.js"
-	]
+
+		// Language and Environment
+		"experimentalDecorators": true,
+		"lib": ["ESNext", "ES2015"],
+		"target": "ES2021",
+		"useDefineForClassFields": true
+	}
 }

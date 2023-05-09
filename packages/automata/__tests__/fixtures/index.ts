@@ -1,7 +1,7 @@
-import { TAutomataReducer } from '../../types';
+import { TAutomataReducer } from '../../src/types';
 
-import { IAutomata, IAutomataEventAdapter } from '../../types/interfaces';
-import Utils from '../../utils';
+import { IAutomata, IAutomataEventAdapter } from '../../src/types/interfaces';
+import Utils from '../../src/utils';
 
 const { isPositiveInteger } = Utils;
 
