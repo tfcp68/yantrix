@@ -10,7 +10,7 @@
 	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
 	"license": "ISC",
 	"main": "./dist/index.js",
-	"typings": "./dist/index.d.ts",
+	"typings": "./dist/types/index.d.ts",
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
