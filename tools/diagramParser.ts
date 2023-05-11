@@ -1,4 +1,4 @@
-import { parse_state_diagram } from '../packages/mermaid-parser/state/state-parser.js'
+import { parseStateDiagram } from '../packages/MermaidParser/State/StateParser.js'
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
@@ -194,5 +194,5 @@ const flowDiagram = 'flowchart TD\n' +
 
 
 
-const a = await parse_state_diagram(input4)
+const a = await parseStateDiagram(input4)
 console.log(a)
