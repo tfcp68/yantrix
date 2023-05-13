@@ -11,7 +11,7 @@ import {
 } from './types';
 
 import { IAutomata, IAutomataEventAdapter } from './types/interfaces';
-import Utils from './utils';
+import Utils from '@yantrix/utils';
 
 const { isPositiveInteger } = Utils;
 
