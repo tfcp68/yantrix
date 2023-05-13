@@ -1,7 +1,7 @@
 import { TAutomataReducer } from '../../src/types';
 
 import { IAutomata, IAutomataEventAdapter } from '../../src/types/interfaces';
-import Utils from '../../src/utils';
+import Utils from '@yantrix/utils';
 
 const { isPositiveInteger } = Utils;
 

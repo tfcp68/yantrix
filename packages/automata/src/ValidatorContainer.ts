@@ -1,7 +1,7 @@
 import { TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType, TValidator } from './types';
 
 import { IAutomataValidatorContainer } from './types/interfaces';
-import Utils from './utils';
+import Utils from '@yantrix/utils';
 
 const { isPositiveInteger } = Utils;
 

@@ -4,7 +4,7 @@ import { GenericAutomata } from '../src/Automata';
 import AutomataEventAdapter from '../src/EventAdapter';
 import { TAutomataActionPayload, TAutomataEvent, TValidator } from '../src/types';
 import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures';
-import Utils from '../src/utils';
+import Utils from '@yantrix/utils';
 
 const { sampleRange } = Utils;
 

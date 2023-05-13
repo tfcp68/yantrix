@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 import AutomataEventAdapter from '../src/EventAdapter';
 import { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../src/types';
 import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures';
-import Utils from '../src/utils';
+import Utils from '@yantrix/utils';
 
 const { pickFromArray, sampleArray, sampleRange } = Utils;
 
