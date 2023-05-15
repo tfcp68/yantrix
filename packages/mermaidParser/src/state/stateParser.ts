@@ -1,6 +1,5 @@
 import mermaid from 'mermaid';
-
-type DirectionsArray = string[][]
+import { DirectionsArray } from './types/index.js';
 
 
 /**

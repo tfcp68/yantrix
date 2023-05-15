@@ -1,4 +1,4 @@
-import { parseStateDiagram } from '../packages/MermaidParser/State/StateParser.js'
+//import { parseStateDiagram } from '@yantrix/mermaid-parser'
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
@@ -194,5 +194,5 @@ const flowDiagram = 'flowchart TD\n' +
 
 
 
-const a = await parseStateDiagram(input4)
-console.log(a)
+//const a = await parseStateDiagram(input4)
+//console.log(a)

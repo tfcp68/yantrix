@@ -1,0 +1,54 @@
+{
+	"name": "@yantrix/mermaid-parser",
+	"version": "0.0.1",
+	"description": "Mermaid Parser Framework",
+	"keywords": [
+		"fsm",
+		"typescript",
+		"state",
+		"management",
+		"eda",
+		"uml",
+		"mermaidjs"
+	],
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"homepage": "https://github.com/octaharon/yantrix#readme",
+	"license": "MIT",
+	"main": "index.js",
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git"
+	},
+	"scripts": {
+		"build": "tsc",
+		"test": "jest"
+	},
+	"type": "module",
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^5.59.0",
+		"@typescript-eslint/parser": "^5.59.0",
+		"cross-env": "^7.0.3",
+		"eslint": "^8.38.0",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-prettier": "^4.2.1",
+		"husky": "^8.0.3",
+		"jest": "^29.5.0",
+		"mermaid": "^10.1.0",
+		"prettier": "^2.8.7",
+		"ts-jest": "^29.1.0",
+		"typescript": "^5.0.4"
+	},
+	"workspaces": [
+		"packages/*"
+	]
+}
