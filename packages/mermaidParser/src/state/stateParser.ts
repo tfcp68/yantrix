@@ -1,5 +1,5 @@
 import mermaid from 'mermaid';
-import { DirectionsArray } from './types/index.js';
+import {directionsArray, diagramElementsArray, parsedDiagramArray, mermaidGraphDict, actionDict, noteDict} from './types/index.js';
 
 
 /**
@@ -7,7 +7,7 @@ import { DirectionsArray } from './types/index.js';
  * @param diagramText - diagram [string];
  * @returns Returns parsed diagram dictionary.
  */
-async function diagramParser(diagramText: string) {
+async function diagramParser(diagramText: string) : Promise<any> {
 	mermaid.mermaidAPI.setConfig({...mermaid.mermaidAPI.defaultConfig});
 	await mermaid.mermaidAPI.initialize();
 	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
@@ -20,10 +20,10 @@ async function diagramParser(diagramText: string) {
 /**
  * @brief This function collects directions from a diagram;
  * @param parsedDiargam - a primary diagram dictionary;
- * @returns Returns the directions from the diagram and their descriptions [DirectionsArray].
+ * @returns Returns the directions from the diagram and their descriptions [directionsArray].
  */
-function getDirections(parsedDiargam: any): DirectionsArray {
-    const directions: DirectionsArray = []
+function getDirections(parsedDiargam: any): directionsArray {
+    const directions: directionsArray = []
 
     for(let i = 0; i < parsedDiargam.length; i++) {
         if(parsedDiargam[i].stmt === 'relation') {
@@ -68,10 +68,10 @@ function getDirections(parsedDiargam: any): DirectionsArray {
 /**
  * @brief This function collects the elements that are in the mermaid state diagram;
  * @param directions - array of directions [DirectionsArray];
- * @returns Returns an array of diagram elements [string[]].
+ * @returns Returns an array of diagram elements [diagramElementsArray].
  */
-function getDiagramElements(directions: DirectionsArray): string[] {
-    const diagramElements: string[] = []
+function getDiagramElements(directions: directionsArray): diagramElementsArray {
+    const diagramElements: diagramElementsArray = []
 
     for(let i = 0; i < directions.length; i++) {
         for(let j = 0; j < 2; j++) {
@@ -89,11 +89,11 @@ function getDiagramElements(directions: DirectionsArray): string[] {
 /**
  * @brief This function creates a dictionary of action links;
  * @param directions - array of directions [DirectionsArray];
- * @param diagramElements - array of diagram elements [string[]];
- * @returns Returns a dictionary of action links.
+ * @param diagramElements - array of diagram elements [diagramElementsArray];
+ * @returns Returns a dictionary of action links [actionDict].
  */
-function getActions(directions: DirectionsArray, diagramElements: string[]) {
-    const actions: any = {}
+function getActions(directions: directionsArray, diagramElements: diagramElementsArray) : actionDict {
+    const actions : actionDict  = {}
 
     for (let i = 0; i < diagramElements.length; i++) {
         const elementI = diagramElements[i]
@@ -115,6 +115,7 @@ function getActions(directions: DirectionsArray, diagramElements: string[]) {
 
         }
         else {
+            //@ts-ignore
             actions[from][to].push(description)
         }
     }
@@ -127,10 +128,10 @@ function getActions(directions: DirectionsArray, diagramElements: string[]) {
  * @brief A function that extracts notes from the state diagram;
  * @param parsedDiargam - a primary diagram dictionary;
  * @param diagramElements - array of diagram elements [string[]];
- * @returns Returns a dictionary of notes from the state diagram.
+ * @returns Returns a dictionary of notes from the state diagram [noteDict].
  */
-function getNotes(parsedDiargam: any, diagramElements: string[]) {
-    const notes: any = {}
+function getNotes(parsedDiargam: any, diagramElements: diagramElementsArray) : noteDict {
+    const notes: noteDict = {}
 
     for(let i = 0; i < diagramElements.length; i++) {
         const elementI = diagramElements[i]
@@ -152,6 +153,7 @@ function getNotes(parsedDiargam: any, diagramElements: string[]) {
                         notes[from] = [noteText]
                     }
                     else {
+                        //@ts-ignore
                         notes[from].push(noteText)
                     }
                 }
@@ -165,11 +167,11 @@ function getNotes(parsedDiargam: any, diagramElements: string[]) {
 
 /**
  * @brief A function that collects suspicious action links without description;
- * @param directions - array of directions [DirectionsArray];
+ * @param directions - array of directions [directionsArray];
  * @returns Returns array with suspicious action links without description [any[]];
  */
-function findSusDirections(directions: DirectionsArray) {
-    const susDirections: any[] = []
+function findSusDirections(directions: directionsArray) : directionsArray {
+    const susDirections: directionsArray = []
 
     for(let i = 0; i < directions.length; i++) {
         if(directions[i][2] === '') {
@@ -213,7 +215,7 @@ function findChoices(parsedDiargam: any): string[] {
  * @param mermaidGraph - main dictionary with information from the diagram;
  * @returns Returns updated "mermaid-graph".
  */
-function markChoices(parsedDiargam: any, directions: DirectionsArray, mermaidGraph: any) {
+function markChoices(parsedDiargam: any, directions: directionsArray, mermaidGraph: mermaidGraphDict)  {
     const choices = findChoices(parsedDiargam)
 
     for(let k = 0; k < choices.length; k++) {
@@ -235,6 +237,7 @@ function markChoices(parsedDiargam: any, directions: DirectionsArray, mermaidGra
                         }
                         else {
                             //mermaidGraph['actions'][from][to] = mermaidGraph['actions'][from][to].concat(branch[to])
+                            //@ts-ignore
                             mermaidGraph['actions'][from][to].push(choiceDescription)
                         }
                     }
@@ -251,15 +254,16 @@ function markChoices(parsedDiargam: any, directions: DirectionsArray, mermaidGra
  * @brief A function that builds a dictionary with information from the diagram;
  * @param parsedDiargam - a primary diagram dictionary;
  * @param directions - array of directions [DirectionsArray];
- * @param diagramElements - array of diagram elements [string[]];
- * @returns Returns dictionary with information from the diagram.
+ * @param diagramElements - array of diagram elements [diagramElementsArray];
+ * @returns Returns dictionary with information from the diagram [mermaidGraphDict].
  */
-function markGraph(parsedDiargam: any, directions: DirectionsArray, diagramElements: string[]) {
-    const mermaidGraph: any = {}
-    mermaidGraph['states'] = diagramElements
-    mermaidGraph['actions'] = getActions(directions, diagramElements)
-    mermaidGraph['notes'] = getNotes(parsedDiargam, diagramElements)
-    mermaidGraph['susDirections'] = findSusDirections(directions)
+function markGraph(parsedDiargam: any, directions: directionsArray, diagramElements: diagramElementsArray) : mermaidGraphDict {
+    const mermaidGraph: mermaidGraphDict = {
+        actions: getActions(directions, diagramElements),
+        notes: getNotes(parsedDiargam, diagramElements),
+        states: diagramElements,
+        susDirections: findSusDirections(directions)
+    }
 
     return mermaidGraph
 }
@@ -270,11 +274,11 @@ function markGraph(parsedDiargam: any, directions: DirectionsArray, diagramEleme
  * @param diagramText - diagram [string];
  * @returns Returns dictionary with information from the diagram.
  */
-export async function parseStateDiagram(diagramText: string) {
-    const parsedDiargam = await diagramParser(diagramText)
-    const directions = getDirections(parsedDiargam)
-    const diagramElements = getDiagramElements(directions)
-    let stateMermaidGraph = markGraph(parsedDiargam, directions, diagramElements)
+export async function parseStateDiagram(diagramText: string) : Promise<mermaidGraphDict> {
+    const parsedDiargam: parsedDiagramArray = await diagramParser(diagramText)
+    const directions: directionsArray = getDirections(parsedDiargam)
+    const diagramElements: diagramElementsArray = getDiagramElements(directions)
+    let stateMermaidGraph: mermaidGraphDict = markGraph(parsedDiargam, directions, diagramElements)
     stateMermaidGraph = markChoices(parsedDiargam, directions, stateMermaidGraph)
     return stateMermaidGraph
 }

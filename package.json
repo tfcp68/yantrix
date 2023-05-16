@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "lerna run --parallel build",
-		"test": "lerna run test"
+		"test": "lerna run test",
+		"test2": "tsc && node ./dist/diagramParser.js"
 	},
 	"repository": {
 		"type": "git",
