@@ -13,7 +13,6 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"resolveJsonModule": true,
-		"types": ["jest"],
 		"allowJs": true,
 
 		// Emit
