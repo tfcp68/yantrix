@@ -1,2 +1,3 @@
-export { default as FSM } from './Automata';
-export { default as EventAdapter } from './EventAdapter';
+export * from './Automata.js';
+export * from './EventAdapter.js'
+

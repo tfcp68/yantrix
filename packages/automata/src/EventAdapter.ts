@@ -1,4 +1,4 @@
-import { AutomataValidatorContainer } from './ValidatorContainer';
+import { AutomataValidatorContainer } from './ValidatorContainer.js';
 import {
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
@@ -8,12 +8,10 @@ import {
 	TAutomataEventMetaType,
 	TAutomataStateContext,
 	TValidator,
-} from './types';
+} from './types/index.js';
 
-import { IAutomataEventAdapter } from './types/interfaces';
-import Utils from '@yantrix/utils';
-
-const { unifyObjectKey } = Utils;
+import { IAutomataEventAdapter } from './types/interfaces.js';
+import { unifyObjectKey } from '@yantrix/utils';
 
 export abstract class AutomataEventAdapter<
 		StateType extends TAutomataBaseStateType,
