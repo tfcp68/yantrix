@@ -2,6 +2,9 @@
 	"name": "@yantrix/mermaid-parser",
 	"version": "0.0.1",
 	"description": "Mermaid Parser Framework",
+	"type": "module",
+	"types": "./dist/index.d.ts",
+	"main": "./dist/index.js",
 	"keywords": [
 		"fsm",
 		"typescript",
@@ -14,7 +17,6 @@
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"homepage": "https://github.com/octaharon/yantrix#readme",
 	"license": "MIT",
-	"main": "index.js",
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
@@ -30,7 +32,6 @@
 		"build": "tsc",
 		"test": "jest"
 	},
-	"type": "module",
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
 	},

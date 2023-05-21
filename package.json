@@ -4,9 +4,9 @@
 	"description": "EDFSM Framework",
 	"main": "index.js",
 	"scripts": {
-		"build": "lerna run --parallel build",
+		"build": "lerna run",
 		"test": "lerna run test",
-		"test2": "tsc && node ./dist/diagramParser.js"
+		"test2": "ts-node ./tools/diagramParser.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -40,6 +40,7 @@
 		"lerna": "^6.6.2",
 		"mermaid": "^10.1.0",
 		"prettier": "^2.8.8",
+		"@yantrix/mermaid-parser": "*",
 		"ts-jest": "^29.1.0",
 		"ts-node": "^10.9.1",
 		"tslib": "^2.5.0",

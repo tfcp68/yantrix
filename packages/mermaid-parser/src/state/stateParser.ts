@@ -1,5 +1,5 @@
 import mermaid from 'mermaid';
-import {directionsArray, diagramElementsArray, parsedDiagramArray, mermaidGraphDict, actionDict, noteDict} from './types/index.js';
+import {directionsArray, diagramElementsArray, mermaidGraphDict, actionDict, noteDict} from './types/index.js';
 
 
 /**
@@ -275,7 +275,7 @@ function markGraph(parsedDiargam: any, directions: directionsArray, diagramEleme
  * @returns Returns dictionary with information from the diagram.
  */
 export async function parseStateDiagram(diagramText: string) : Promise<mermaidGraphDict> {
-    const parsedDiargam: parsedDiagramArray = await diagramParser(diagramText)
+    const parsedDiargam: any = await diagramParser(diagramText)
     const directions: directionsArray = getDirections(parsedDiargam)
     const diagramElements: diagramElementsArray = getDiagramElements(directions)
     let stateMermaidGraph: mermaidGraphDict = markGraph(parsedDiargam, directions, diagramElements)

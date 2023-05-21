@@ -5,13 +5,14 @@
 		"allowUnusedLabels": false,
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitOverride": true,
+
 		"noImplicitReturns": true,
 		"strict": true,
 		"useUnknownInCatchVariables": true,
 
 		// Modules
-		"module": "ESNext",
-		"moduleResolution": "Node16",
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
 		"resolveJsonModule": true,
 
 		// Emit
@@ -33,4 +34,6 @@
 		"target": "ES2021",
 		"useDefineForClassFields": true
 	}
+
+	//"ts-node": { "esm": true }
 }
