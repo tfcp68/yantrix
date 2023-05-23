@@ -15,7 +15,7 @@ import {
 	TAutomataStateContext,
 	TSubscriptionCancelFunction,
 	TValidator,
-} from './index';
+} from './index.js';
 
 export interface TAutomataEventContainer<EventType extends TAutomataBaseEventType> {
 	validateEvent?: TValidator<EventType>;

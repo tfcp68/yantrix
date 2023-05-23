@@ -1,9 +1,3 @@
-import * as fixtures from './fixtures';
-import * as predicates from './predicates';
-import * as casts from './casts';
-
-export default {
-	...fixtures,
-	...predicates,
-	...casts,
-};
+export * from './fixtures.js';
+export * from './predicates.js';
+export * from './casts.js';

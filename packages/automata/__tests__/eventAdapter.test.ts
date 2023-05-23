@@ -1,11 +1,9 @@
-import { beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { describe, test, expect, beforeEach, vitest } from 'vitest';
 
-import AutomataEventAdapter from '../src/EventAdapter';
-import { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../src/types';
-import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures';
-import Utils from '@yantrix/utils';
-
-const { pickFromArray, sampleArray, sampleRange } = Utils;
+import { pickFromArray, sampleArray, sampleRange } from '@yantrix/utils';
+import { AutomataEventAdapter } from '../src/index.js';
+import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index.js';
+import { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../src/types/index.js';
 
 class EventAdapterTest extends AutomataEventAdapter<
 	TTestState,
@@ -39,8 +37,8 @@ class EventAdapterTest extends AutomataEventAdapter<
 describe(`EventAdapter`, () => {
 	let sampleInstance: EventAdapterTest = new EventAdapterTest();
 	beforeEach(() => {
-		jest.restoreAllMocks();
-		jest.clearAllTimers();
+		vitest.restoreAllMocks();
+		vitest.clearAllTimers();
 		sampleInstance = new EventAdapterTest();
 	});
 	describe('constructor', () => {

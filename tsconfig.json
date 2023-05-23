@@ -10,9 +10,10 @@
 		"useUnknownInCatchVariables": true,
 
 		// Modules
-		"module": "ESNext",
-		"moduleResolution": "Node16",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
 		"resolveJsonModule": true,
+		"allowJs": true,
 
 		// Emit
 		"declaration": true,
@@ -25,12 +26,13 @@
 		"removeComments": false,
 		"sourceMap": true,
 		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": true,
 
 		// Language and Environment
 		"experimentalDecorators": true,
 		"lib": ["ESNext", "ES2015"],
-		"target": "ES2021",
-		"useDefineForClassFields": true
+		"target": "ES2018",
+		"useDefineForClassFields": true,
 	}
 }
