@@ -1,9 +1,9 @@
-import { TAutomataReducer } from '../../src/types';
-
-import { IAutomata, IAutomataEventAdapter } from '../../src/types/interfaces';
-import Utils from '../../src/utils';
-
-const { isPositiveInteger } = Utils;
+import { isPositiveInteger } from '@yantrix/utils';
+import {
+	IAutomata,
+	IAutomataEventAdapter,
+} from '../../src/types/interfaces.js';
+import { TAutomataReducer } from '../../src/types/index.js';
 
 export type TTestEvent = number;
 export type TTestAction = number;
@@ -35,9 +35,12 @@ export type TTestAutomata = IAutomata<
 	TTestEventMeta<TTestEvent>
 >;
 
-export const testStateValidator = (x: any): x is TTestState => isPositiveInteger(x);
-export const testActionValidator = (x: any): x is TTestAction => isPositiveInteger(x);
-export const testEventValidator = (x: any): x is TTestEvent => isPositiveInteger(x);
+export const testStateValidator = (x: any): x is TTestState =>
+	isPositiveInteger(x);
+export const testActionValidator = (x: any): x is TTestAction =>
+	isPositiveInteger(x);
+export const testEventValidator = (x: any): x is TTestEvent =>
+	isPositiveInteger(x);
 
 /**
  * Sample reducer that adds numbers

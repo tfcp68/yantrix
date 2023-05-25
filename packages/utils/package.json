@@ -1,7 +1,7 @@
 {
-	"name": "@yantrix/automata",
+	"name": "@yantrix/utils",
 	"version": "0.1.0",
-	"description": "Miely Machine representation with bus adapters",
+	"description": "Utils for Miely Machine representation with bus adapters",
 	"keywords": [
 		"FSM",
 		"Miely Machine"
@@ -25,13 +25,9 @@
 		"directory": "packages/automata"
 	},
 	"scripts": {
-		"test": "vitest run",
 		"build": "tsc"
 	},
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
-	},
-	"dependencies": {
-		"@yantrix/utils": "*"
 	}
 }

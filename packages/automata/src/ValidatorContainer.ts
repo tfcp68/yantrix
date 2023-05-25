@@ -1,9 +1,12 @@
-import { TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType, TValidator } from './types';
+import {
+	TAutomataBaseActionType,
+	TAutomataBaseEventType,
+	TAutomataBaseStateType,
+	TValidator,
+} from './types/index.js';
 
-import { IAutomataValidatorContainer } from './types/interfaces';
-import Utils from './utils';
-
-const { isPositiveInteger } = Utils;
+import { IAutomataValidatorContainer } from './types/interfaces.js';
+import { isPositiveInteger } from '@yantrix/utils';
 
 export abstract class AutomataValidatorContainer<
 	StateType extends TAutomataBaseStateType,
@@ -14,9 +17,12 @@ export abstract class AutomataValidatorContainer<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
 > implements IAutomataValidatorContainer<StateType, ActionType, EventType>
 {
-	protected defaultEventValidator = isPositiveInteger as TValidator<EventType>;
-	protected defaultStateValidator = isPositiveInteger as TValidator<StateType>;
-	protected defaultActionValidator = isPositiveInteger as TValidator<ActionType>;
+	protected defaultEventValidator =
+		isPositiveInteger as TValidator<EventType>;
+	protected defaultStateValidator =
+		isPositiveInteger as TValidator<StateType>;
+	protected defaultActionValidator =
+		isPositiveInteger as TValidator<ActionType>;
 	#eventValidator?: TValidator<EventType>;
 	#stateValidator?: TValidator<StateType>;
 	#actionValidator?: TValidator<ActionType>;
@@ -40,7 +46,8 @@ export abstract class AutomataValidatorContainer<
 			this.#eventValidator = undefined;
 			return this;
 		}
-		if (typeof eventValidator !== 'function') throw new Error(`passed Event Validator is not a function`);
+		if (typeof eventValidator !== 'function')
+			throw new Error(`passed Event Validator is not a function`);
 		this.#eventValidator = eventValidator;
 		return this;
 	}
@@ -50,7 +57,8 @@ export abstract class AutomataValidatorContainer<
 			this.#actionValidator = undefined;
 			return this;
 		}
-		if (typeof actionValidator !== 'function') throw new Error(`passed Action Validator is not a function`);
+		if (typeof actionValidator !== 'function')
+			throw new Error(`passed Action Validator is not a function`);
 		this.#actionValidator = actionValidator;
 		return this;
 	}
@@ -60,7 +68,8 @@ export abstract class AutomataValidatorContainer<
 			this.#stateValidator = undefined;
 			return this;
 		}
-		if (typeof stateValidator !== 'function') throw new Error(`passed State Validator is not a function`);
+		if (typeof stateValidator !== 'function')
+			throw new Error(`passed State Validator is not a function`);
 		this.#stateValidator = stateValidator;
 		return this;
 	}
