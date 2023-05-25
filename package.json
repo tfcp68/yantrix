@@ -7,9 +7,9 @@
 		"bootstrap": "lerna bootstrap",
 		"clean": "lerna clean -y",
 		"build": "lerna run build",
-		"build:affected": "lerna run build --since origin/main",
+		"build:affected": "lerna run build --since main",
 		"test": "lerna run test --parallel",
-		"test:affected": "lerna run test --since origin/main --parallel",
+		"test:affected": "lerna run test --since main --parallel",
 		"postinstall": "is-ci || husky install"
 	},
 	"repository": {
@@ -33,6 +33,7 @@
 	"homepage": "https://github.com/octaharon/yantrix#readme",
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.3",
+		"@commitlint/config-conventional": "^17.6.3",
 		"@typescript-eslint/eslint-plugin": "^5.59.2",
 		"@typescript-eslint/parser": "^5.59.2",
 		"@vitest/coverage-c8": "^0.31.1",
@@ -51,8 +52,5 @@
 	},
 	"workspaces": [
 		"packages/*"
-	],
-	"dependencies": {
-		"@commitlint/config-conventional": "^17.6.3"
-	}
+	]
 }
