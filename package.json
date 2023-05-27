@@ -1,7 +1,7 @@
 {
 	"name": "yantrix",
 	"version": "0.0.1",
-	"description": "EDFSM Framework",
+	"description": "Event-Driven FSM Framework",
 	"type": "module",
 	"scripts": {
 		"bootstrap": "lerna bootstrap",
@@ -34,18 +34,17 @@
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.3",
 		"@commitlint/config-conventional": "^17.6.3",
-		"@typescript-eslint/eslint-plugin": "^5.59.2",
-		"@typescript-eslint/parser": "^5.59.2",
+		"@typescript-eslint/eslint-plugin": "^5.59.7",
+		"@typescript-eslint/parser": "^5.59.7",
 		"@vitest/coverage-c8": "^0.31.1",
 		"cross-env": "^7.0.3",
-		"eslint": "^8.40.0",
+		"eslint": "^8.41.0",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-prettier": "^4.2.1",
 		"husky": "^8.0.3",
 		"is-ci": "^3.0.1",
 		"lerna": "^6.6.2",
 		"lint-staged": "^13.2.2",
-		"mermaid": "^10.1.0",
 		"prettier": "^2.8.8",
 		"typescript": "^5.0.4",
 		"vitest": "^0.31.1"

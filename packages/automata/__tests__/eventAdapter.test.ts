@@ -1,6 +1,11 @@
-import { describe, test, expect, beforeEach, vitest } from 'vitest';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
 
-import { pickFromArray, sampleArray, sampleRange } from '@yantrix/utils';
+import {
+	isPositiveInteger,
+	pickFromArray,
+	sampleArray,
+	sampleRange,
+} from '@yantrix/utils';
 import { AutomataEventAdapter } from '../src/index.js';
 import {
 	TTestAction,
@@ -269,6 +274,11 @@ describe(`EventAdapter`, () => {
 				expect(result).toEqual(null);
 			});
 			test('ignores invalid Events and returns Null', () => {
+				sampleInstance.setEventValidator(
+					((ev) =>
+						isPositiveInteger(ev) &&
+						ev % 2 === 0) as TValidator<TTestEvent>
+				);
 				const listenedEvents = sampleInstance.getObservedEvents();
 				const results = [
 					sampleInstance.addEventListener(
@@ -279,14 +289,12 @@ describe(`EventAdapter`, () => {
 						2.33,
 						fakeListener(sampleAction, sampleEvent)
 					),
-					// @ts-ignore
 					sampleInstance.addEventListener(
-						null,
+						3,
 						fakeListener(sampleAction, sampleEvent)
 					),
-					// @ts-ignore
 					sampleInstance.addEventListener(
-						undefined,
+						NaN,
 						fakeListener(sampleAction, sampleEvent)
 					),
 				];

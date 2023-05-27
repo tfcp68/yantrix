@@ -1,13 +1,15 @@
 {
-	"name": "@yantrix/automata",
+	"name": "@yantrix/mermaid-parser",
 	"version": "0.1.0",
-	"description": "Miely Machine representation with bus adapters",
+	"description": "Provides Yantrix abstractions from MermaidJS State and Sequence diagrams",
 	"keywords": [
 		"FSM",
-		"Miely Machine"
+		"MermaidJS",
+		"diagrams",
+		"parser"
 	],
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"homepage": "https://github.com/octaharon/yantrix",
+	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
 	"license": "ISC",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -22,16 +24,18 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git",
-		"directory": "packages/automata"
+		"directory": "packages/mermaid-parser"
 	},
 	"scripts": {
-		"test": "vitest run",
 		"build": "tsc"
 	},
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
 	},
-	"dependencies": {
-		"@yantrix/utils": "*"
+	"devDependencies": {
+		"@types/d3": "^7.4.0",
+		"@types/dompurify": "^3.0.2",
+		"@yantrix/utils": "*",
+		"mermaid": "^10.2.0"
 	}
 }
