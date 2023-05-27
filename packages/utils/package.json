@@ -1,13 +1,13 @@
 {
 	"name": "@yantrix/utils",
 	"version": "0.1.0",
-	"description": "Utils for Miely Machine representation with bus adapters",
+	"description": "Utils for Yantrix components",
 	"keywords": [
 		"FSM",
 		"Miely Machine"
 	],
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
+	"homepage": "https://github.com/octaharon/yantrix",
 	"license": "ISC",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -22,7 +22,7 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git",
-		"directory": "packages/automata"
+		"directory": "packages/utils"
 	},
 	"scripts": {
 		"build": "tsc"

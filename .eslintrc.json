@@ -5,6 +5,7 @@
 		"browser": true,
 		"es6": true
 	},
+	"ignorePatterns": ["**/dist/*.js", "**/dist/*.d.ts"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"ecmaVersion": 2022,
@@ -18,10 +19,7 @@
 		"plugin:@typescript-eslint/recommended",
 		"prettier"
 	],
-	"plugins": [
-		"prettier",
-		"@typescript-eslint"
-	],
+	"plugins": ["prettier", "@typescript-eslint"],
 	"rules": {
 		"no-unused-vars": "off",
 		"@typescript-eslint/no-loss-of-precision": "off",
@@ -102,14 +100,8 @@
 		"@typescript-eslint/prefer-for-of": "off",
 		"@typescript-eslint/prefer-function-type": "error",
 		"@typescript-eslint/prefer-namespace-keyword": "error",
-		"@typescript-eslint/quotes": [
-			"off",
-			"double"
-		],
-		"@typescript-eslint/semi": [
-			"off",
-			null
-		],
+		"@typescript-eslint/quotes": ["off", "double"],
+		"@typescript-eslint/semi": ["off", null],
 		"@typescript-eslint/triple-slash-reference": [
 			"error",
 			{
@@ -120,20 +112,14 @@
 		],
 		"@typescript-eslint/unified-signatures": "error",
 		"arrow-body-style": "off",
-		"arrow-parens": [
-			"off",
-			"always"
-		],
+		"arrow-parens": ["off", "always"],
 		"camelcase": "off",
 		"comma-dangle": "off",
 		"complexity": "off",
 		"constructor-super": "error",
 		"curly": "off",
 		"default-case": "error",
-		"eqeqeq": [
-			"error",
-			"always"
-		],
+		"eqeqeq": ["warn", "always"],
 		"guard-for-in": "error",
 		"id-blacklist": [
 			"warn",
@@ -149,15 +135,9 @@
 		"import/no-extraneous-dependencies": "off",
 		"import/no-internal-modules": "off",
 		"import/order": "off",
-		"max-classes-per-file": [
-			"error",
-			2
-		],
+		"max-classes-per-file": ["error", 2],
 		"max-len": "off",
-		"max-lines": [
-			"error",
-			1500
-		],
+		"max-lines": ["error", 1500],
 		"new-parens": "error",
 		"no-bitwise": "off",
 		"no-caller": "error",
@@ -223,28 +203,19 @@
 		"no-var": "error",
 		"no-void": "off",
 		"object-shorthand": "error",
-		"one-var": [
-			"error",
-			"never"
-		],
+		"one-var": ["error", "never"],
 		"prefer-const": "error",
 		"prefer-spread": "off",
 		"prefer-object-spread": "off",
 		"quote-props": "off",
 		"radix": "off",
-		"space-in-parens": [
-			"error",
-			"never"
-		],
+		"space-in-parens": ["error", "never"],
 		"use-isnan": "error",
 		"valid-typeof": "off"
 	},
 	"overrides": [
 		{
-			"files": [
-				"*.test.js",
-				"*.test.ts"
-			],
+			"files": ["*.test.js", "*.test.ts"],
 			"rules": {
 				"@typescript-eslint/ban-ts-comment": "off"
 			}

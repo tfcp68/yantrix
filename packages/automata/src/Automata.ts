@@ -1,4 +1,3 @@
-import { AutomataValidatorContainer } from './ValidatorContainer.js';
 import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
@@ -12,6 +11,7 @@ import {
 
 import { IAutomata, IAutomataEventAdapter } from './types/interfaces.js';
 import { isPositiveInteger } from '@yantrix/utils';
+import { AutomataValidatorContainer } from './ValidatorContainer.js';
 
 export abstract class GenericAutomata<
 		StateType extends TAutomataBaseStateType,
@@ -20,11 +20,22 @@ export abstract class GenericAutomata<
 		ContextType extends {
 			[K in StateType]: any;
 		} = Record<StateType, any>,
-		PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
+		PayloadType extends { [K in ActionType]: any } = Record<
+			ActionType,
+			any
+		>,
 		EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
 	>
-	extends AutomataValidatorContainer<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>
-	implements IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>
+	extends AutomataValidatorContainer<StateType, ActionType, EventType>
+	implements
+		IAutomata<
+			StateType,
+			ActionType,
+			EventType,
+			ContextType,
+			PayloadType,
+			EventMetaType
+		>
 {
 	public eventAdapter: IAutomataEventAdapter<
 		StateType,
@@ -40,7 +51,12 @@ export abstract class GenericAutomata<
 	#actionQueue: TAutomataQueue<ActionType, PayloadType> = [];
 	#enabled = true;
 	#paused = false;
-	private rootReducer: TAutomataReducer<StateType, ActionType, ContextType, PayloadType> | null = null;
+	private rootReducer: TAutomataReducer<
+		StateType,
+		ActionType,
+		ContextType,
+		PayloadType
+	> | null = null;
 
 	protected constructor(
 		eventAdapter: IAutomataEventAdapter<
@@ -115,7 +131,16 @@ export abstract class GenericAutomata<
 		return this;
 	}
 
-	init(params: TAutomataParams<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>) {
+	init(
+		params: TAutomataParams<
+			StateType,
+			ActionType,
+			EventType,
+			ContextType,
+			PayloadType,
+			EventMetaType
+		>
+	) {
 		const {
 			state = null,
 			context,
@@ -127,9 +152,11 @@ export abstract class GenericAutomata<
 			actionValidator,
 		} = params;
 		if (rootReducer == null) this.rootReducer = null;
-		else if (rootReducer instanceof Function) this.rootReducer = rootReducer;
+		else if (rootReducer instanceof Function)
+			this.rootReducer = rootReducer;
 		else throw new Error(`Invalid Root Reducer supplied: ${rootReducer}`);
-		if (!this.validateState(state)) throw new Error(`Invalid initial State: ${state}`);
+		if (!this.validateState(state))
+			throw new Error(`Invalid initial State: ${state}`);
 		this.#actionQueue = [];
 		this.#enabled = enabled;
 		this.#paused = paused;
@@ -140,8 +167,11 @@ export abstract class GenericAutomata<
 		return this;
 	}
 
-	dispatch(action: TAutomataActionPayload<ActionType, PayloadType>): TAutomataStateContext<StateType, ContextType> {
-		if (!this.validateAction(action?.action)) throw new Error(`Invalid Action: ${JSON.stringify(action)}`);
+	dispatch(
+		action: TAutomataActionPayload<ActionType, PayloadType>
+	): TAutomataStateContext<StateType, ContextType> {
+		if (!this.validateAction(action?.action))
+			throw new Error(`Invalid Action: ${JSON.stringify(action)}`);
 		if (!this.rootReducer)
 			throw new Error(
 				`Root Reducer is not defined. Please init the Instance with a rootReducer. Dispatched Action: ${JSON.stringify(
@@ -163,7 +193,10 @@ export abstract class GenericAutomata<
 		return reducedValue;
 	}
 
-	getContext<K extends StateType = StateType>(): TAutomataStateContext<K, ContextType> {
+	getContext<K extends StateType = StateType>(): TAutomataStateContext<
+		K,
+		ContextType
+	> {
 		return {
 			state: this.state as K,
 			context: this.context,
@@ -179,28 +212,53 @@ export abstract class GenericAutomata<
 	}
 
 	consumeAction(count = 1) {
-		if (!isPositiveInteger(count)) throw new Error(`Invalid Action Count: ${count}`);
+		if (!isPositiveInteger(count))
+			throw new Error(`Invalid Action Count: ${count}`);
 		let currentResponse: ReturnType<
-			IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>['consumeAction']
+			IAutomata<
+				StateType,
+				ActionType,
+				EventType,
+				ContextType,
+				PayloadType,
+				EventMetaType
+			>['consumeAction']
 		> = {
 			action: null,
 			newState: this.getContext(),
 		};
 		const queue = this.getActionQueue().slice(0, count);
 		while (queue.length) {
-			currentResponse = this.reduceQueueItem(queue, currentResponse.newState);
+			currentResponse = this.reduceQueueItem(
+				queue,
+				currentResponse.newState
+			);
 		}
 		if (this.isEnabled()) {
-			this.setActionQueue(this.getActionQueue().slice(count)).setContext(currentResponse.newState);
+			this.setActionQueue(this.getActionQueue().slice(count)).setContext(
+				currentResponse.newState
+			);
 		}
 		return currentResponse;
 	}
 
-	protected reduceQueueItem(queue = this.getActionQueue(), newState = this.getContext()) {
+	protected reduceQueueItem(
+		queue = this.getActionQueue(),
+		newState = this.getContext()
+	) {
 		if (!this.rootReducer)
-			throw new Error(`Root Reducer is not defined. Please init the Instance with a rootReducer.`);
+			throw new Error(
+				`Root Reducer is not defined. Please init the Instance with a rootReducer.`
+			);
 		const currentResponse: ReturnType<
-			IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>['consumeAction']
+			IAutomata<
+				StateType,
+				ActionType,
+				EventType,
+				ContextType,
+				PayloadType,
+				EventMetaType
+			>['consumeAction']
 		> = {
 			action: null,
 			newState: newState || this.getContext(),
@@ -208,7 +266,8 @@ export abstract class GenericAutomata<
 		if (!queue?.length) return currentResponse;
 		const currentAction = queue.shift();
 		if (!currentAction) return currentResponse;
-		if (!this.validateAction(currentAction?.action)) throw new Error(`Invalid Action: ${currentAction}`);
+		if (!this.validateAction(currentAction?.action))
+			throw new Error(`Invalid Action: ${currentAction}`);
 		currentResponse.newState = this.rootReducer({
 			...currentResponse.newState,
 			...currentAction,
@@ -217,26 +276,37 @@ export abstract class GenericAutomata<
 		return currentResponse;
 	}
 
-	protected reduceQueue: () => TAutomataStateContext<StateType, ContextType> = () => {
-		let reducedValue = this.getContext();
-		if (!this.rootReducer)
-			throw new Error(`Root Reducer is not defined. Please init the Instance with a rootReducer`);
-		const queue = this.getActionQueue();
-		while (queue?.length) reducedValue = this.reduceQueueItem(queue, reducedValue).newState;
-		return reducedValue;
-	};
+	protected reduceQueue: () => TAutomataStateContext<StateType, ContextType> =
+		() => {
+			let reducedValue = this.getContext();
+			if (!this.rootReducer)
+				throw new Error(
+					`Root Reducer is not defined. Please init the Instance with a rootReducer`
+				);
+			const queue = this.getActionQueue();
+			while (queue?.length)
+				reducedValue = this.reduceQueueItem(
+					queue,
+					reducedValue
+				).newState;
+			return reducedValue;
+		};
 
-	protected setContext: (context?: TAutomataStateContext<StateType, ContextType> | null) => this = (
-		context = null
-	) => {
-		if (!context || !this.validateState(context?.state)) throw new Error(`Invalid Context: ${context}`);
+	protected setContext: (
+		context?: TAutomataStateContext<StateType, ContextType> | null
+	) => this = (context = null) => {
+		if (!context || !this.validateState(context?.state))
+			throw new Error(`Invalid Context: ${context}`);
 		this.#state = context.state;
 		this.#context = context.context ?? null;
 		return this;
 	};
 
-	protected setActionQueue: (queue?: TAutomataQueue<ActionType, PayloadType> | null) => this = (queue) => {
-		if (!Array.isArray(queue)) throw new Error(`Invalid Action Queue: ${queue}`);
+	protected setActionQueue: (
+		queue?: TAutomataQueue<ActionType, PayloadType> | null
+	) => this = (queue) => {
+		if (!Array.isArray(queue))
+			throw new Error(`Invalid Action Queue: ${queue}`);
 		this.#actionQueue = queue;
 		return this;
 	};

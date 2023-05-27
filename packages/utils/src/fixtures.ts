@@ -8,11 +8,27 @@ export function pickFromArray<T>(arr: T[], n = 1): T[] {
 	const acc: T[] = [];
 	if (!arr?.length || n <= 0) return acc;
 	const a = JSON.parse(JSON.stringify(arr));
-	while (acc.length < n) acc.push(...a.splice(Math.floor(Math.random() * a.length), 1));
+	while (acc.length < n)
+		acc.push(...a.splice(Math.floor(Math.random() * a.length), 1));
 	return acc;
 }
 
-export function sampleArray<T = number, N extends number = number>(item: null | ((index?: number) => T) | T, n: N) {
+export function popFromArray<T>(arr: T[], n = 1): T[] {
+	const acc: T[] = [];
+	if (!arr?.length || n <= 0) return acc;
+	let i = 0;
+	while (i++ < n) {
+		const v = arr.pop();
+		if (v == null) break;
+		acc.push(v);
+	}
+	return acc;
+}
+
+export function sampleArray<T = number, N extends number = number>(
+	item: null | ((index?: number) => T) | T,
+	n: N
+) {
 	if (item === null)
 		return Array(n)
 			.fill(null)
