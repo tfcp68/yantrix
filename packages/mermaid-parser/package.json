@@ -36,6 +36,6 @@
 		"@types/d3": "^7.4.0",
 		"@types/dompurify": "^3.0.2",
 		"@yantrix/utils": "*",
-		"mermaid": "^10.2.0"
+		"mermaid": "^10.1.0"
 	}
 }

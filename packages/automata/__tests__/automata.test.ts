@@ -6,13 +6,13 @@ import {
 	TTestEventMeta,
 	TTestPayload,
 	TTestState,
-} from './fixtures/index.js';
+} from './fixtures';
 import {
 	TAutomataActionPayload,
 	TAutomataEvent,
 	TValidator,
-} from '../src/types/index.js';
-import { describe, test, expect, beforeEach, vitest } from 'vitest';
+} from '../src/types';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
 import { AutomataEventAdapter, GenericAutomata } from '../src/index.js';
 
 class EventAdapterTest extends AutomataEventAdapter<

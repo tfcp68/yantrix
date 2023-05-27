@@ -6,7 +6,7 @@ import {
 	sampleArray,
 	sampleRange,
 } from '@yantrix/utils';
-import { AutomataEventAdapter } from '../src/index.js';
+import { AutomataEventAdapter } from '../src';
 import {
 	TTestAction,
 	TTestContext,
@@ -14,12 +14,12 @@ import {
 	TTestEventMeta,
 	TTestPayload,
 	TTestState,
-} from './fixtures/index.js';
+} from './fixtures';
 import {
 	TAutomataEventEmitter,
 	TAutomataEventHandler,
 	TValidator,
-} from '../src/types/index.js';
+} from '../src/types';
 
 class EventAdapterTest extends AutomataEventAdapter<
 	TTestState,
