@@ -11,10 +11,7 @@ import { isPositiveInteger } from '@yantrix/utils';
 export abstract class AutomataValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
-	EventType extends TAutomataBaseEventType,
-	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
-	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventType extends TAutomataBaseEventType
 > implements IAutomataValidatorContainer<StateType, ActionType, EventType>
 {
 	protected defaultEventValidator =

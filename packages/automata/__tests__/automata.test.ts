@@ -51,18 +51,6 @@ class AutomataTest extends GenericAutomata<
 	getDefaultStateValidator() {
 		return this.defaultStateValidator;
 	}
-
-	getEventValidator() {
-		return this.validateEvent;
-	}
-
-	getStateValidator() {
-		return this.validateState;
-	}
-
-	getActionValidator() {
-		return this.validateAction;
-	}
 }
 
 const testReducer =
@@ -113,12 +101,12 @@ describe(`Automata`, () => {
 			a % 2 === 0) as TValidator<TTestEvent>;
 		test('accepts a function to overwrite default Event Validator', () => {
 			sampleInstance.setEventValidator(testValidator);
-			expect(sampleInstance.getEventValidator()).toBe(testValidator);
+			expect(sampleInstance.validateEvent).toBe(testValidator);
 		});
 		test('resets the Event Validator to default when called with null', () => {
 			sampleInstance.setEventValidator(testValidator);
 			sampleInstance.setEventValidator(null);
-			expect(sampleInstance.getEventValidator()).toBe(
+			expect(sampleInstance.validateEvent).toBe(
 				sampleInstance.getDefaultEventValidator()
 			);
 		});
@@ -134,12 +122,12 @@ describe(`Automata`, () => {
 			a % 15 === 0) as TValidator<TTestAction>;
 		test('accepts a function to overwrite default Action Validator', () => {
 			sampleInstance.setActionValidator(testValidator);
-			expect(sampleInstance.getActionValidator()).toBe(testValidator);
+			expect(sampleInstance.validateAction).toBe(testValidator);
 		});
 		test('resets the Action Validator to default when called with null', () => {
 			sampleInstance.setActionValidator(testValidator);
 			sampleInstance.setActionValidator(null);
-			expect(sampleInstance.getActionValidator()).toBe(
+			expect(sampleInstance.validateAction).toBe(
 				sampleInstance.getDefaultActionValidator()
 			);
 		});
@@ -155,12 +143,12 @@ describe(`Automata`, () => {
 			a % 15 === 0) as TValidator<TTestState>;
 		test('accepts a function to overwrite default State Validator', () => {
 			sampleInstance.setStateValidator(testValidator);
-			expect(sampleInstance.getStateValidator()).toBe(testValidator);
+			expect(sampleInstance.validateState).toBe(testValidator);
 		});
 		test('resets the State Validator to default when called with null', () => {
 			sampleInstance.setStateValidator(testValidator);
 			sampleInstance.setStateValidator(null);
-			expect(sampleInstance.getStateValidator()).toBe(
+			expect(sampleInstance.validateState).toBe(
 				sampleInstance.getDefaultStateValidator()
 			);
 		});

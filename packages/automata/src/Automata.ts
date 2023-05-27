@@ -1,4 +1,3 @@
-import { AutomataValidatorContainer } from './ValidatorContainer.js';
 import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
@@ -12,6 +11,7 @@ import {
 
 import { IAutomata, IAutomataEventAdapter } from './types/interfaces.js';
 import { isPositiveInteger } from '@yantrix/utils';
+import { AutomataValidatorContainer } from './ValidatorContainer';
 
 export abstract class GenericAutomata<
 		StateType extends TAutomataBaseStateType,

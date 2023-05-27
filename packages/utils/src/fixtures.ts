@@ -13,6 +13,18 @@ export function pickFromArray<T>(arr: T[], n = 1): T[] {
 	return acc;
 }
 
+export function popFromArray<T>(arr: T[], n = 1): T[] {
+	const acc: T[] = [];
+	if (!arr?.length || n <= 0) return acc;
+	let i = 0;
+	while (i++ < n) {
+		const v = arr.pop();
+		if (v == null) break;
+		acc.push(v);
+	}
+	return acc;
+}
+
 export function sampleArray<T = number, N extends number = number>(
 	item: null | ((index?: number) => T) | T,
 	n: N
