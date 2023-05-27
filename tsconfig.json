@@ -33,6 +33,6 @@
 		"experimentalDecorators": true,
 		"lib": ["ESNext", "ES2015"],
 		"target": "ES2018",
-		"useDefineForClassFields": true,
+		"useDefineForClassFields": true
 	}
 }
