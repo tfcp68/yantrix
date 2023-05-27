@@ -7,7 +7,7 @@ import {
 	TStateKeysCollection,
 	TStateLookupParams,
 	TStateValuesCollection,
-} from './dictionaries';
+} from './dictionaries.js';
 import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,

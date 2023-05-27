@@ -11,7 +11,7 @@ import {
 
 import { IAutomata, IAutomataEventAdapter } from './types/interfaces.js';
 import { isPositiveInteger } from '@yantrix/utils';
-import { AutomataValidatorContainer } from './ValidatorContainer';
+import { AutomataValidatorContainer } from './ValidatorContainer.js';
 
 export abstract class GenericAutomata<
 		StateType extends TAutomataBaseStateType,
@@ -26,14 +26,7 @@ export abstract class GenericAutomata<
 		>,
 		EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
 	>
-	extends AutomataValidatorContainer<
-		StateType,
-		ActionType,
-		EventType,
-		ContextType,
-		PayloadType,
-		EventMetaType
-	>
+	extends AutomataValidatorContainer<StateType, ActionType, EventType>
 	implements
 		IAutomata<
 			StateType,

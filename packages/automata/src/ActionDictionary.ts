@@ -2,15 +2,15 @@ import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
 	TValidator,
-} from './types';
+} from './types/index.js';
 import {
 	TActionKeysCollection,
 	TActionLookupParams,
 	TActionValuesCollection,
-} from './types/dictionaries';
-import { IActionDictionary } from './types/interfaces';
-import Utils from './utils';
-import AbstractDictionaryContainer from './DictionaryContainer';
+} from './types/dictionaries.js';
+import { IActionDictionary } from './types/interfaces.js';
+import AbstractDictionaryContainer from './DictionaryContainer.js';
+import { isPositiveInteger } from '@yantrix/utils';
 
 export default abstract class GenericActionDictionary<
 		ActionType extends TAutomataBaseActionType,
@@ -24,7 +24,7 @@ export default abstract class GenericActionDictionary<
 		TAutomataActionPayload<ActionType, PayloadType>
 	>;
 	protected defaultActionValidator =
-		Utils.isPositiveInteger as TValidator<ActionType>;
+		isPositiveInteger as TValidator<ActionType>;
 	protected defaultPayloadValidator = ((actionPayload) =>
 		this.validateAction(actionPayload?.action) &&
 		typeof actionPayload?.payload === 'object') as TValidator<

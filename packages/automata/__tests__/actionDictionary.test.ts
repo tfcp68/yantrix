@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
 import GenericActionDictionary from '../src/ActionDictionary';
 import { TTestAction, TTestPayload } from './fixtures';
 import { TValidator } from '../src/types';
@@ -7,7 +7,7 @@ import {
 	popFromArray,
 	sampleArray,
 	sampleRange,
-} from '../src/utils/fixtures';
+} from '@yantrix/utils';
 import * as _ from 'underscore';
 
 class ActionDictionaryTest extends GenericActionDictionary<
@@ -64,8 +64,8 @@ const sampleAction = () =>
 
 describe('ActionDictionary', () => {
 	beforeEach(() => {
-		jest.restoreAllMocks();
-		jest.clearAllTimers();
+		vitest.restoreAllMocks();
+		vitest.clearAllTimers();
 		sampleInstance = new ActionDictionaryTest();
 	});
 	describe('constructor', () => {
