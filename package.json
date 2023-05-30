@@ -4,12 +4,11 @@
 	"description": "Event-Driven FSM Framework",
 	"type": "module",
 	"scripts": {
-		"bootstrap": "lerna bootstrap",
 		"clean": "lerna clean -y",
 		"build": "lerna run build",
-		"build:affected": "lerna run build --since main",
-		"test": "lerna run test --parallel",
-		"test:affected": "lerna run test --since main --parallel",
+		"build:affected": "lerna run build --since=origin/main",
+		"test": "lerna run test",
+		"test:affected": "lerna run test --since=origin/main",
 		"postinstall": "is-ci || husky install"
 	},
 	"repository": {
