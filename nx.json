@@ -1,0 +1,25 @@
+{
+	"tasksRunnerOptions": {
+		"default": {
+			"runner": "nx/tasks-runners/default"
+		}
+	},
+	"targetDefaults": {
+		"build": {
+			"dependsOn": ["^build"],
+			"inputs": ["{workspaceRoot}/src/**/*.ts"],
+			"outputs": ["{workspaceRoot}/dist/**"],
+			"outputMode": "errors-only"
+		},
+		"test": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"{projectRoot}/vitest.config.ts",
+				"{workspaceRoot}/__tests__/**/*.ts",
+				"{workspaceRoot}/src/**/*.ts"
+			],
+			"outputs": ["coverage/**"],
+			"outputMode": "new-only"
+		}
+	}
+}
