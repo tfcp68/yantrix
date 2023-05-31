@@ -1,16 +1,16 @@
 {
 	"name": "yantrix",
+	"private": true,
 	"version": "0.0.1",
 	"description": "Event-Driven FSM Framework",
 	"type": "module",
 	"scripts": {
-		"bootstrap": "lerna bootstrap",
-		"clean": "lerna clean -y",
+		"clean": "lerna exec rimraf dist coverage",
 		"build": "lerna run build",
-		"build:affected": "lerna run build --since main",
-		"test": "lerna run test --parallel",
-		"test:affected": "lerna run test --since main --parallel",
-		"postinstall": "is-ci || husky install"
+		"build:affected": "lerna run build --since=origin/main",
+		"test": "lerna run test",
+		"test:affected": "lerna run test --since=origin/main",
+		"prepare": "is-ci || husky install"
 	},
 	"repository": {
 		"type": "git",
@@ -46,6 +46,7 @@
 		"lerna": "^6.6.2",
 		"lint-staged": "^13.2.2",
 		"prettier": "^2.8.8",
+		"rimraf": "^5.0.1",
 		"typescript": "^5.0.4",
 		"vitest": "^0.31.1"
 	},
