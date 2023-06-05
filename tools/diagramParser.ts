@@ -293,7 +293,7 @@ Note over F,H: test20
 
 A-->>I: Hello!`
 
-const b = await parseSequenceDiagram(seqDiagram4)
+const b = await parseSequenceDiagram(seqDiagram5)
 console.log(b)
 /*
 const a = await parseStateDiagram(input2)
