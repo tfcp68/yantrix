@@ -1,23 +1,32 @@
-export type notesDict = Record<string, null | string[]>
-export type actorsArray = string[]
-export type messagesDict = Record<string, Record<string, null | string[]>>
+export type TNotesDict = Record<string, null | string[]>
+export type TActorsArray = string[]
+export type TMessagesDict = Record<string, Record<string, null | string[]>>
 
-type parsedMessagesDict = {
-    from: string | Record<string, string> | undefined,
+type TParsedMessagesDict = {
+    from: string,
+    message: string,
+    to: string,
+    type: number,
+    wrap: boolean
+}
+
+type TParsedOtherElementsDict = {
+    from: string | undefined,
     message: string | undefined,
     to: string | undefined,
     type: number,
     wrap: boolean
 }
 
-export type parsedMessagesArray = parsedMessagesDict[]
+export type TParsedMessagesArray = TParsedMessagesDict[]
+export type TParsedNotesArray = TParsedMessagesDict[]
+export type TParsedOtherElementsArray = TParsedOtherElementsDict[]
 
-export type parsedDiagramTuple = [parsedMessagesArray, actorsArray]
+export type TParsedDiagramTuple = [TParsedMessagesArray, TActorsArray, TParsedNotesArray, TParsedOtherElementsArray]
 
 
-export type sequenceMermaidGraphDict = {
-    messages: messagesDict
-    notes: notesDict
-    actors: actorsArray
-    susDirections: string[][];
+export type TSequenceMermaidGraphDict = {
+    messages: TMessagesDict
+    notes: TNotesDict
+    actors: TActorsArray
 }

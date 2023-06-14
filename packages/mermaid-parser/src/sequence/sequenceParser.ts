@@ -1,13 +1,14 @@
 import mermaid from 'mermaid';
 import {
-	messagesDict,
-	actorsArray,
-	sequenceMermaidGraphDict,
-	notesDict,
-    parsedMessagesArray,
-    parsedDiagramTuple
+	TMessagesDict,
+	TActorsArray,
+	TSequenceMermaidGraphDict,
+	TNotesDict,
+    TParsedMessagesArray,
+    TParsedDiagramTuple,
+    TParsedNotesArray,
+    TParsedOtherElementsArray
 } from './types/index.js';
-
 
 
 /**
@@ -15,99 +16,100 @@ import {
  * @param diagramText - diagram;
  * @returns Returns parsed diagram dictionary.
  */
-async function diagramParser(diagramText: string): Promise<parsedDiagramTuple> {
+async function diagramParser(diagramText: string): Promise<TParsedDiagramTuple> {
     mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
     await mermaid.mermaidAPI.initialize();
     const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 
-    const parsedMessages: parsedMessagesArray = diagram.db.getMessages();
-    const parsedActors: actorsArray = diagram.db.getActorKeys();
+    const parsedArray: any = diagram.db.getMessages();
 
-    //const actors = diagram.db.getActors();
-    //const boxes = diagram.db.getBoxes();
-    //const title = diagram.db.getDiagramTitle();
-    //const hasBoxes = diagram.db.hasAtLeastOneBox();
-    //const hasBoxTitles = diagram.db.hasAtLeastOneBoxWithTitle();
-    //const accTitle = diagram.db.getAccTitle();
-    //const description = diagram.db.getAccDescription();
-    //const seqNumbers = diagram.db.showSequenceNumbers();
-    //const cnf = diagram.db.getConfig();
+    const parsedMessages: TParsedMessagesArray = []
+    const parsedActors: TActorsArray = diagram.db.getActorKeys();
+    const parsedNotes: TParsedNotesArray = []
+    const parsedOtherElements: TParsedOtherElementsArray = []
 
-    const parsedDiagram: parsedDiagramTuple = [parsedMessages, parsedActors]
+    const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];
+    for (let i = 0; i < parsedArray.length; i++) {
+        if(arrowTypes.indexOf(parsedArray[i].type) !== -1) {
+            parsedMessages.push(parsedArray[i])
+        }
+        else if(parsedArray[i].type === 2) {
+            parsedNotes.push(parsedArray[i])
+        }
+        else {
+            if(parsedArray[i].from !== undefined) {
+                parsedArray[i].from = parsedArray[i].from?.actor
+            }
+            parsedOtherElements.push(parsedArray[i])
+        }
+    }
+
+
+    const parsedDiagram: TParsedDiagramTuple = [parsedMessages, parsedActors, parsedNotes, parsedOtherElements]
     return parsedDiagram;
 }
 
 /**
  * @brief This function creates a dictionary of messages links;
- * @param messages - array of sequence messages;
+ * @param parsedMessages - array of sequence messages;
  * @param actors - array of diagram actors and participants;
  * @returns Returns a dictionary of messages links.
  */
-function getMessages(messages: parsedMessagesArray, actors: actorsArray): messagesDict {
-    const actions: messagesDict = {};
+function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray): TMessagesDict {
+    const messages: TMessagesDict = {};
 
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
-		actions[elementI] = {};
+		messages[elementI] = {};
 		for (let j = 0; j < actors.length; j++) {
 			const elementJ = actors[j];
-			actions[elementI][elementJ] = null;
+			messages[elementI][elementJ] = null;
 		}
 	}
 
-    const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];
-    for (let i = 0; i < messages.length; i++) {
-        if(arrowTypes.indexOf(messages[i].type) !== -1) {
-            const arrowMessage = messages[i].message as string;
+    for (let i = 0; i < parsedMessages.length; i++) {
+        const arrowMessage = parsedMessages[i].message;
+        const from = parsedMessages[i].from;
+        const to = parsedMessages[i].to;
 
-            const from = messages[i].from as string;
-            const to = messages[i].to as string;
-
-
-            if (actions[from][to] === null) {
-                actions[from][to] = [arrowMessage];
-            } else {
-                actions[from][to]?.push(arrowMessage);
-            }
+        if (messages[from][to] === null) {
+            messages[from][to] = [arrowMessage];
+        } else {
+            messages[from][to]?.push(arrowMessage);
         }
     }
-
-    return actions
+    return messages
 }
 
 /**
  * @brief A function that extracts notes from the sequence diagram;
- * @param messages - array of sequence messages;
+ * @param parsedMessages - array of sequence messages;
  * @param actors - array of diagram actors and participants;
  * @returns Returns a dictionary of notes from the sequence diagram.
  */
-function getNotes(messages: parsedMessagesArray, actors: actorsArray): notesDict {
-    const notes: notesDict = {};
+function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): TNotesDict {
+    const notes: TNotesDict = {};
 
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
 		notes[elementI] = null;
 	}
 
-    for (let i = 0; i < messages.length; i++) {
-        if(messages[i].type === 2) {
-            const recievedMessage = messages[i].message as string;
+    for (let i = 0; i < parsedMessages.length; i++) {
+        const recievedMessage = parsedMessages[i].message;
+        let from_index = actors.indexOf(parsedMessages[i].from);
+        const to_index = actors.indexOf(parsedMessages[i].to);
 
-            let from_index = actors.indexOf(messages[i].from as string);
-            const to_index = actors.indexOf(messages[i].to as string);
+        while(from_index !== to_index + 1) {
+            const from = actors[from_index];
 
-            while(from_index !== to_index + 1) {
-                const from = actors[from_index];
-
-                if(notes[from] === null) {
-                    notes[from] = [recievedMessage];
-                }
-                else {
-                    notes[from]?.push(recievedMessage);
-                }
-
-                from_index++;
+            if(notes[from] === null) {
+                notes[from] = [recievedMessage];
             }
+            else {
+                notes[from]?.push(recievedMessage);
+            }
+            from_index++;
         }
     }
     return notes
@@ -118,15 +120,16 @@ function getNotes(messages: parsedMessagesArray, actors: actorsArray): notesDict
  * @param parsedDiagram - a primary diagram dictionary;
  * @returns Returns dictionary with information from the diagram.
  */
-function markGraph(parsedDiagram: parsedDiagramTuple): sequenceMermaidGraphDict {
-    const messages: parsedMessagesArray = parsedDiagram[0];
-    const actorsArray: actorsArray = parsedDiagram[1];
+function markGraph(parsedDiagram: TParsedDiagramTuple): TSequenceMermaidGraphDict {
+    const messagesArray: TParsedMessagesArray = parsedDiagram[0];
+    const actorsArray: TActorsArray = parsedDiagram[1];
+    const notesArray: TParsedNotesArray = parsedDiagram[2];
+    const othersElementsArray: TParsedOtherElementsArray = parsedDiagram[3];
 
-    const mermaidGraph: sequenceMermaidGraphDict = {
-        messages: getMessages(messages, actorsArray),
-        notes: getNotes(messages, actorsArray),
-        actors: actorsArray,
-        susDirections: []
+    const mermaidGraph: TSequenceMermaidGraphDict = {
+        messages: getMessages(messagesArray, actorsArray),
+        notes: getNotes(notesArray, actorsArray),
+        actors: actorsArray
     }
 
     return mermaidGraph
@@ -139,9 +142,9 @@ function markGraph(parsedDiagram: parsedDiagramTuple): sequenceMermaidGraphDict 
  */
 export async function parseSequenceDiagram(
 	diagramText: string
-): Promise<sequenceMermaidGraphDict> {
-	const parsedDiagram: parsedDiagramTuple = await diagramParser(diagramText);
-    const sequenceMermaidGraph: sequenceMermaidGraphDict = markGraph(parsedDiagram);
+): Promise<TSequenceMermaidGraphDict> {
+	const parsedDiagram: TParsedDiagramTuple = await diagramParser(diagramText);
+    const sequenceMermaidGraph: TSequenceMermaidGraphDict = markGraph(parsedDiagram);
 
 	return sequenceMermaidGraph;
 }
