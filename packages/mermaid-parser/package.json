@@ -14,9 +14,12 @@
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
 	"directories": {
-		"lib": "src",
-		"test": "__tests__"
+		"lib": "src"
 	},
 	"files": [
 		"dist"
@@ -27,7 +30,10 @@
 		"directory": "packages/mermaid-parser"
 	},
 	"scripts": {
-		"build": "tsc"
+		"build": "tsc",
+		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
+		"format": "prettier --write .",
+		"prepack": "yarn lint && yarn build"
 	},
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
@@ -36,6 +42,6 @@
 		"@types/d3": "^7.4.0",
 		"@types/dompurify": "^3.0.2",
 		"@yantrix/utils": "*",
-		"mermaid": "^10.1.0"
+		"mermaid": "10.1.0"
 	}
 }

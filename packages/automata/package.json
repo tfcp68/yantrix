@@ -12,6 +12,10 @@
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
@@ -26,7 +30,10 @@
 	},
 	"scripts": {
 		"test": "vitest run",
-		"build": "tsc"
+		"build": "tsc",
+		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
+		"format": "prettier --write .",
+		"prepack": "yarn lint && yarn test && yarn build"
 	},
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
