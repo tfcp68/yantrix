@@ -1,7 +1,3 @@
-import { beforeEach, describe, expect, test, vitest } from 'vitest';
-import GenericActionDictionary from '../src/ActionDictionary';
-import { TTestAction, TTestPayload } from './fixtures';
-import { TValidator } from '../src/types';
 import {
 	pickFromArray,
 	popFromArray,
@@ -9,11 +5,15 @@ import {
 	sampleRange,
 } from '@yantrix/utils';
 import * as _ from 'underscore';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
+import GenericActionDictionary from '../src/ActionDictionary';
+import { TValidator } from '../src/types';
+import { TTestAction, TTestPayload } from './fixtures';
 
 class ActionDictionaryTest extends GenericActionDictionary<
 	TTestAction,
 	TTestPayload<TTestAction>
-> {
+>() {
 	constructor() {
 		super();
 	}
