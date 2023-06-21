@@ -7,7 +7,8 @@ import {
     TParsedMessagesArray,
     TParsedDiagramTuple,
     TParsedNotesArray,
-    TParsedOtherElementsArray
+    TParsedOtherElementsArray,
+    TActivateDict
 } from './types/index.js';
 
 
@@ -44,8 +45,9 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramTuple> 
         }
     }
 
+    const parsedActivations: TActivateDict = getActivations(parsedArray, parsedActors)
 
-    const parsedDiagram: TParsedDiagramTuple = [parsedMessages, parsedActors, parsedNotes, parsedOtherElements]
+    const parsedDiagram: TParsedDiagramTuple = [parsedMessages, parsedActors, parsedNotes, parsedOtherElements, parsedActivations]
     return parsedDiagram;
 }
 
@@ -105,8 +107,7 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 
             if(notes[from] === null) {
                 notes[from] = [recievedMessage];
-            }
-            else {
+            } else {
                 notes[from]?.push(recievedMessage);
             }
             from_index++;
@@ -115,6 +116,32 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
     return notes
 }
 
+function getActivations(parsedArray: any, actors: TActorsArray) {
+    const activate: TActivateDict = {}
+    for (let i = 0; i < actors.length; i++) {
+		const elementI = actors[i];
+		activate[elementI] = [];
+	}
+    const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];
+
+    for(let i = 0; i < parsedArray.length; i++) {
+        if(parsedArray[i].type === 17) {
+            const currentActor: string = parsedArray[i].from
+            activate[currentActor].push([])
+            const len = activate[currentActor].length - 1;
+            for(let j = i-1; j < parsedArray.length; j++) {
+                if(arrowTypes.indexOf(parsedArray[j].type) !== -1 && parsedArray[j].from === currentActor) {
+                    activate[currentActor][len].push(parsedArray[j].message);
+                }
+                else if(parsedArray[j].type === 18 && parsedArray[j].from === currentActor) {
+                    break;
+                }
+            }
+        }
+    }
+
+    return activate
+}
 /**
  * @brief A function that builds a dictionary with information from the diagram;
  * @param parsedDiagram - a primary diagram dictionary;
@@ -125,11 +152,13 @@ function markGraph(parsedDiagram: TParsedDiagramTuple): TSequenceMermaidGraphDic
     const actorsArray: TActorsArray = parsedDiagram[1];
     const notesArray: TParsedNotesArray = parsedDiagram[2];
     const othersElementsArray: TParsedOtherElementsArray = parsedDiagram[3];
+    const activateDict: TActivateDict = parsedDiagram[4];
 
     const mermaidGraph: TSequenceMermaidGraphDict = {
         messages: getMessages(messagesArray, actorsArray),
         notes: getNotes(notesArray, actorsArray),
-        actors: actorsArray
+        actors: actorsArray,
+        activate: activateDict
     }
 
     return mermaidGraph

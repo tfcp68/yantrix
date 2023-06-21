@@ -21,12 +21,14 @@ type TParsedOtherElementsDict = {
 export type TParsedMessagesArray = TParsedMessagesDict[]
 export type TParsedNotesArray = TParsedMessagesDict[]
 export type TParsedOtherElementsArray = TParsedOtherElementsDict[]
+export type TActivateDict = Record<string, string[][]>
 
-export type TParsedDiagramTuple = [TParsedMessagesArray, TActorsArray, TParsedNotesArray, TParsedOtherElementsArray]
+export type TParsedDiagramTuple = [TParsedMessagesArray, TActorsArray, TParsedNotesArray, TParsedOtherElementsArray, TActivateDict]
 
 
 export type TSequenceMermaidGraphDict = {
     messages: TMessagesDict
     notes: TNotesDict
     actors: TActorsArray
+    activate: TActivateDict
 }

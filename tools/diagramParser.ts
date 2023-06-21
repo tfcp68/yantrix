@@ -250,14 +250,16 @@ end`
 const seqDiagram4 = `sequenceDiagram
 participant Alice
 participant Bob
-Alice->>John: Hello John, how are you?
+
+Alice->>+John: Hello John, how are you?
 loop Healthcheck
     John->>John: Fight against hypochondria
 end
 Note right of John: Rational thoughts<br/>prevail...
-John-->>Alice: Great!
-John->>Bob: How about you?
-Bob-->>John: Jolly good!`
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!
+`
 
 const seqDiagram5 = `sequenceDiagram
 participant A as Alice
@@ -293,7 +295,39 @@ Note over F,H: test20
 
 A-->>I: Hello!`
 
-const b = await parseSequenceDiagram(seqDiagram5)
+const seqDiagram6 = `sequenceDiagram
+participant Alice
+participant Bob
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!`
+
+
+const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 /*
 const a = await parseStateDiagram(input2)
