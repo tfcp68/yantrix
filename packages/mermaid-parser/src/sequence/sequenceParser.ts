@@ -116,6 +116,12 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
     return notes
 }
 
+/**
+ * @brief A function that extracts activations from the sequence diagram;
+ * @param parsedArray - parsed diagram array;
+ * @param actors - array of diagram actors and participants;
+ * @returns Returns a dictionary of activation messages from the sequence diagram.
+ */
 function getActivations(parsedArray: any, actors: TActorsArray) {
     const activate: TActivateDict = {}
     for (let i = 0; i < actors.length; i++) {
