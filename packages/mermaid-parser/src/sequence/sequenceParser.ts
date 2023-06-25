@@ -8,7 +8,8 @@ import {
     TParsedDiagramTuple,
     TParsedNotesArray,
     TParsedOtherElementsArray,
-    TActivateDict
+    TActivateDict,
+    TSeqTypes
 } from './types/index.js';
 
 
@@ -34,7 +35,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramTuple> 
         if(arrowTypes.indexOf(parsedArray[i].type) !== -1) {
             parsedMessages.push(parsedArray[i])
         }
-        else if(parsedArray[i].type === 2) {
+        else if(parsedArray[i].type === TSeqTypes.Note) {
             parsedNotes.push(parsedArray[i])
         }
         else {
@@ -131,7 +132,7 @@ function getActivations(parsedArray: any, actors: TActorsArray) {
     const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];
 
     for(let i = 0; i < parsedArray.length; i++) {
-        if(parsedArray[i].type === 17) {
+        if(parsedArray[i].type === TSeqTypes.Activate) {
             const currentActor: string = parsedArray[i].from
             activate[currentActor].push([])
             const len = activate[currentActor].length - 1;
@@ -139,7 +140,7 @@ function getActivations(parsedArray: any, actors: TActorsArray) {
                 if(arrowTypes.indexOf(parsedArray[j].type) !== -1 && parsedArray[j].from === currentActor) {
                     activate[currentActor][len].push(parsedArray[j].message);
                 }
-                else if(parsedArray[j].type === 18 && parsedArray[j].from === currentActor) {
+                else if(parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
                     break;
                 }
             }

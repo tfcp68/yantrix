@@ -32,3 +32,9 @@ export type TSequenceMermaidGraphDict = {
     actors: TActorsArray
     activate: TActivateDict
 }
+
+export enum TSeqTypes{
+    Note =  2,
+    Activate = 17,
+    Deactivate = 18
+}
