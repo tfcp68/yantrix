@@ -1,4 +1,5 @@
 import { parseStateDiagram } from '@yantrix/mermaid-parser'
+import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js'
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
@@ -192,7 +193,143 @@ const flowDiagram = 'flowchart TD\n' +
 
 
 
+const seqDiagram1 = `sequenceDiagram
+actor V as Vladimir
+actor P as Petr
+V->>P: Hello John, how are you?
+activate P
+P->V: Great 1!
+P-->V: Great 2!
+P->>V: Great 3!
+P-->>V: Great 4!
+P-xV: Great 5!
+P--xV: Great 6!
+P-)V: Great 7!
+P--)V: Great 8!
+deactivate P
+Note over V,P: Friends
+Note over V: Grade 8
+Note over P: 1st year student`
+
+const seqDiagram2 = `sequenceDiagram
+Alice->>+John: Hello John, how are you?
+Alice->>+John: John, can you hear me?
+John-->>-Alice: Hi Alice, I can hear you!
+John-->>-Alice: I feel great!`
+
+const seqDiagram3 = `sequenceDiagram
+participant web as Web Browser
+participant blog as Blog Service
+participant account as Account Service
+participant mail as Mail Service
+participant db as Storage
 
 
+Note over web,db: The user must be logged in to submit blog posts
+web->>+account: Logs in using credentials
+account->>db: Query stored accounts
+db->>account: Respond with query result
+
+alt Credentials not found
+    account->>web: Invalid credentials
+else Credentials found
+    account->>-web: Successfully logged in
+
+    Note over web,db: When the user is authenticated, they can now submit new posts
+    web->>+blog: Submit new post
+    blog->>db: Store post data
+
+    par Notifications
+        blog--)mail: Send mail to blog subscribers
+        blog--)db: Store in-site notifications
+    and Response
+        blog-->>-web: Successfully posted
+    end
+end`
+
+const seqDiagram4 = `sequenceDiagram
+participant Alice
+participant Bob
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!
+`
+
+const seqDiagram5 = `sequenceDiagram
+participant A as Alice
+participant B as Bob
+participant C as Centaur
+participant D as Doctor
+participant E as Emelya
+participant F as Fedor
+participant G as George
+participant H as Harry Potter
+participant I as Ivan
+
+Note over A,A: test01
+Note over A,B: test02
+Note over A,C: test03
+Note over A,D: test04
+Note over A,E: test05
+Note over A,F: test06
+Note over A,G: test07
+Note over A,H: test08
+Note over A,I: test09
+Note over B,B: test10
+Note over B,C: test11
+Note over B,D: test12
+Note over B,E: test13
+Note over B,F: test14
+Note over B,G: test15
+Note over B,H: test16
+Note over B,I: test17
+Note over C,C: test18
+Note over C,D: test19
+Note over F,H: test20
+
+A-->>I: Hello!`
+
+const seqDiagram6 = `sequenceDiagram
+participant Alice
+participant Bob
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!
+
+Alice->>+John: Hello John, how are you?
+loop Healthcheck
+    John->>John: Fight against hypochondria
+end
+Note right of John: Rational thoughts<br/>prevail...
+John-->>-Alice: Great!
+John->>+Bob: How about you?
+Bob-->>-John: Jolly good!`
+
+
+const b = await parseSequenceDiagram(seqDiagram3)
+console.log(b)
+/*
 const a = await parseStateDiagram(input2)
 console.log(a)
+*/
