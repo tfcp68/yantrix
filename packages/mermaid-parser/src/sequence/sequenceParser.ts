@@ -9,7 +9,8 @@ import {
     TParsedNotesArray,
     TParsedOtherElementsArray,
     TActivateDict,
-    TSeqTypes
+    TSeqTypes,
+    arrowTypes
 } from './types/index.js';
 
 
@@ -22,7 +23,6 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramTuple> 
     mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
     await mermaid.mermaidAPI.initialize();
     const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
-
     const parsedArray: any = diagram.db.getMessages();
 
     const parsedMessages: TParsedMessagesArray = []
@@ -30,7 +30,6 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramTuple> 
     const parsedNotes: TParsedNotesArray = []
     const parsedOtherElements: TParsedOtherElementsArray = []
 
-    const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];
     for (let i = 0; i < parsedArray.length; i++) {
         if(arrowTypes.indexOf(parsedArray[i].type) !== -1) {
             parsedMessages.push(parsedArray[i])
@@ -118,18 +117,17 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 }
 
 /**
- * @brief A function that extracts activations from the sequence diagram;
+ * @brief A function that collect messages that are located in the activation interval;
  * @param parsedArray - parsed diagram array;
  * @param actors - array of diagram actors and participants;
  * @returns Returns a dictionary of activation messages from the sequence diagram.
  */
-function getActivations(parsedArray: any, actors: TActorsArray) {
+function getActivations(parsedArray: any, actors: TActorsArray): TActivateDict {
     const activate: TActivateDict = {}
     for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
 		activate[elementI] = [];
 	}
-    const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];
 
     for(let i = 0; i < parsedArray.length; i++) {
         if(parsedArray[i].type === TSeqTypes.Activate) {

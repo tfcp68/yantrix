@@ -1,18 +1,44 @@
-export type stringDict = Record<string, string | Record<string, string>>
+/**
+ * Dict type that is responsible for collecting parsed diagram. Parser from mermaid library;
+ */
+export type TStringDict = Record<string, string | Record<string, string>>
 
-export type parsedDiagramArray =  stringDict[]
+/**
+ * Array type that is responsible for collecting parsed diafram elements;
+ */
+export type TParsedDiagramArray =  TStringDict[]
 
-export type diagramStatesArray = string[]
+/**
+ * Array type that is responsible for collecting states;
+ */
+export type TDiagramStatesArray = string[]
 
-export type transitionsArray = string[][]
+/**
+ * Array type that is responsible for collecting transitions;
+ */
+export type TTransitionsArray = string[][]
 
-export type actionDict = Record<string, Record<string, null | string[]>>
+/**
+ * Dict type that is responsible for collecting transitions action;
+ */
+export type TActionDict = Record<string, Record<string, null | string[]>>
 
-export type noteDict = Record<string, null | string[]>
+/**
+ * Dict type that is responsible for collecting notes;
+ */
+export type TNoteDict = Record<string, null | string[]>
 
-export type stateMermaidGraphDict = {
-    actions: actionDict
-    notes: noteDict
-    states: diagramStatesArray
-    susTransitions: transitionsArray;
+/**
+ * Dict type that is responsible for collecting actions, notes, states and transitions without action;
+ */
+export type TStateMermaidGraphDict = {
+    actions: TActionDict
+    notes: TNoteDict
+    states: TDiagramStatesArray
+    susTransitions: TTransitionsArray;
 }
+
+/**
+ * Array type that is responsible for collecting choices;
+ */
+export type TChoices = string[]
