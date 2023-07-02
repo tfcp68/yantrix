@@ -36,6 +36,41 @@
 				"default": "array-simple"
 			}
 		],
+		"@typescript-eslint/naming-convention": [
+			"error",
+			{
+				"selector": "typeLike",
+				"format": ["PascalCase"]
+			},
+			{
+				"selector": "typeAlias",
+				"format": ["PascalCase"],
+				"custom": {
+					"regex": "^T[A-Z].*$",
+					"match": true
+				}
+			},
+			{
+				"selector": "interface",
+				"format": ["PascalCase"],
+				"custom": {
+					"regex": "^I[A-Z].*$",
+					"match": true
+				}
+			},
+			{
+				"selector": "variable",
+				"modifiers": ["const"],
+				"types": ["array"],
+				"format": null
+			},
+			{
+				"selector": "variable",
+				"types": ["array"],
+				"format": ["PascalCase"],
+				"prefix": ["Array"]
+			}
+		],
 		"@typescript-eslint/ban-types": [
 			"error",
 			{

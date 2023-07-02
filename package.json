@@ -39,7 +39,7 @@
 	},
 	"homepage": "https://github.com/octaharon/yantrix#readme",
 	"peerDependencies": {
-		"yalc": "^1.0.0"
+		"yalc": "1.0.0-pre.53"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.3",
