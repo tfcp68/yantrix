@@ -39,8 +39,8 @@
 		"url": "https://github.com/octaharon/yantrix/issues"
 	},
 	"devDependencies": {
-		"@yantrix/utils": "*",
 		"@types/underscore": "^1.11.4",
+		"@yantrix/utils": "*",
 		"underscore": "^1.13.6"
 	}
 }
