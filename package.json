@@ -17,7 +17,8 @@
 		"format:affected": "lerna run format --since=origin/main",
 		"yalc:all": "lerna exec -- yalc push --replace",
 		"publish:local": "yarn build:clean && yarn yalc:all",
-		"postinstall": "is-ci || husky install"
+		"postinstall": "is-ci || husky install",
+		"update": "yarn upgrade-interactive"
 	},
 	"repository": {
 		"type": "git",
@@ -63,5 +64,5 @@
 	"workspaces": [
 		"packages/*"
 	],
-	"packageManager": "yarn@3.5.1"
+	"packageManager": "yarn@3.6.0"
 }
