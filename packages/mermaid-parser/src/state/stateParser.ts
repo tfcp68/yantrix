@@ -169,19 +169,19 @@ function getNotes(
 }
 
 /**
- * @brief A function that collects suspicious transitions without actions;
+ * @brief A function that collects anonymous transitions without actions;
  * @param transitions - array of transitions;
- * @returns Returns array with suspicious transitions without actions;
+ * @returns Returns array with anonymous transitions without actions;
  */
-function findSusTransitions(transitions: TTransitionsArray): TTransitionsArray {
-	const susTransitions: TTransitionsArray = [];
+function findAnonymousTransitions(transitions: TTransitionsArray): TTransitionsArray {
+	const anonymousTransitions: TTransitionsArray = [];
 
 	for (let i = 0; i < transitions.length; i++) {
 		if (transitions[i][2] === '') {
-			susTransitions.push(transitions[i]);
+			anonymousTransitions.push(transitions[i]);
 		}
 	}
-	return susTransitions;
+	return anonymousTransitions;
 }
 
 /**
@@ -270,7 +270,7 @@ function markGraph(
 		actions: getActions(transitions, diagramStates),
 		notes: getNotes(parsedDiagram, diagramStates),
 		states: diagramStates,
-		susTransitions: findSusTransitions(transitions),
+		anonymousTransitions: findAnonymousTransitions(transitions),
 	};
 
 	return mermaidGraph;

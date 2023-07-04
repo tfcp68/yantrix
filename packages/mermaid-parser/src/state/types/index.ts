@@ -1,44 +1,43 @@
 /**
- * Dict type that is responsible for collecting parsed diagram. Parser from mermaid library;
+ * Dict type for mermaid parsed diagram. Parser from mermaid library;
+ * https://github.com/mermaid-js/mermaid/tree/develop/packages/mermaid/src/diagrams/state
  */
 export type TStringDict = Record<string, string | Record<string, string>>
 
-/**
- * Array type that is responsible for collecting parsed diafram elements;
- */
+//Array type for mermaid parsed diafram elements;
 export type TParsedDiagramArray =  TStringDict[]
 
 /**
- * Array type that is responsible for collecting states;
+ * Array type for states;
+ * https://mermaid.js.org/syntax/stateDiagram.html#states
  */
 export type TDiagramStatesArray = string[]
 
 /**
- * Array type that is responsible for collecting transitions;
+ * Array type for transitions;
+ * https://mermaid.js.org/syntax/stateDiagram.html#transitions
  */
 export type TTransitionsArray = string[][]
 
-/**
- * Dict type that is responsible for collecting transitions action;
- */
+//Dict type for transitions action;
 export type TActionDict = Record<string, Record<string, null | string[]>>
 
 /**
- * Dict type that is responsible for collecting notes;
+ * Dict type for notes;
+ * https://mermaid.js.org/syntax/stateDiagram.html#notes
  */
 export type TNoteDict = Record<string, null | string[]>
 
 /**
- * Dict type that is responsible for collecting actions, notes, states and transitions without action;
+ * Array type for choices;
+ * https://mermaid.js.org/syntax/stateDiagram.html#choice
  */
+export type TChoices = string[]
+
+//Dict type for actions, notes, states and transitions without action;
 export type TStateMermaidGraphDict = {
     actions: TActionDict
     notes: TNoteDict
     states: TDiagramStatesArray
-    susTransitions: TTransitionsArray;
+    anonymousTransitions: TTransitionsArray;
 }
-
-/**
- * Array type that is responsible for collecting choices;
- */
-export type TChoices = string[]
