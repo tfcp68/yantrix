@@ -223,27 +223,45 @@ function markChoices(
 ): TStateMermaidGraphDict {
 	const choices: TChoices = findChoices(parsedDiagram);
 
-	for (let k = 0; k < choices.length; k++) {
-		const choice: string = choices[k];
+	for (const choice of choices) {
+		const delIndex = stateMermaidGraph['states'].indexOf(choice);
+		stateMermaidGraph['states'].splice(delIndex, 1)
 
-		const branch = stateMermaidGraph['actions'][choice];
-		for (let i = 0; i < transitions.length; i++) {
-			const toChoice = transitions[i][1];
+		const fromChoice: Record<string, string[]> = {}
+		const toChoice: Record<string, string[]> = {}
 
-			if (toChoice === choice) {
-				const from = transitions[i][0];
-				const choiceDescription = transitions[i][2];
+		// find fromChoice
+		const fromChoiceStates = stateMermaidGraph['actions'][choice]
+		for (const fromChoiceKey in fromChoiceStates) {
+			if(fromChoiceStates[fromChoiceKey] !== null) {
+				fromChoice[fromChoiceKey] = fromChoiceStates[fromChoiceKey] as string[]
+			}
+		}
+		delete stateMermaidGraph['actions'][choice]
 
-				for (const to in stateMermaidGraph['actions'][from]) {
-					if (branch[to] !== null) {
+		// find toChoice
+		// eslint-disable-next-line guard-for-in
+		for (const key in stateMermaidGraph['actions']) {
+			const value = stateMermaidGraph['actions'][key][choice]
+			if (value !== null) {
+				toChoice[key] = value
+			}
+			delete stateMermaidGraph['actions'][key][choice]
+		}
+		// eslint-disable-next-line guard-for-in
+		for	(const from in toChoice) {
+			// eslint-disable-next-line guard-for-in
+			for (const to in fromChoice) {
+				const fromValue: string = toChoice[from][0]
+				const toValue: string = fromChoice[to][0]
+				for (const fromValueI of fromValue) {
+					for (const toValueI of toValue) {
+						const value = (fromValueI+" "+ toValueI).trim()
 						if (stateMermaidGraph['actions'][from][to] === null) {
-							stateMermaidGraph['actions'][from][to] = [
-								choiceDescription,
-							];
-						} else {
-							stateMermaidGraph['actions'][from][to] = (
-								stateMermaidGraph['actions'][from][to] || []
-							).concat(choiceDescription);
+							stateMermaidGraph['actions'][from][to] = [value]
+						}
+						else {
+							stateMermaidGraph['actions'][from][to]?.push(value)
 						}
 					}
 				}

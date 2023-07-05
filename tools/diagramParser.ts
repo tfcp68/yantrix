@@ -327,9 +327,18 @@ John-->>-Alice: Great!
 John->>+Bob: How about you?
 Bob-->>-John: Jolly good!`
 
+const stateInput1 = `stateDiagram-v2
+state hasMoney <<choice>>
+Jack --> hasMoney: Does Jack have money?
+hasMoney --> SHOP: yes
+hasMoney --> WORK: no
+state goHome <<choice>>
+SHOP --> goHome
+WORK --> goHome
+goHome --> [*]: Сome back home`
 /*
 const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 */
-const a = await parseStateDiagram(input4)
+const a = await parseStateDiagram(stateInput1)
 console.log(a)
