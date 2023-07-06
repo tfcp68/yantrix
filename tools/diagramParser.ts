@@ -1,4 +1,5 @@
-import { parseStateDiagram } from '@yantrix/mermaid-parser'
+//import { parseStateDiagram } from '@yantrix/mermaid-parser'
+import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js'
 import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js'
 
 const input1 = `stateDiagram-v2
@@ -326,10 +327,44 @@ John-->>-Alice: Great!
 John->>+Bob: How about you?
 Bob-->>-John: Jolly good!`
 
+const stateInput1 = `stateDiagram-v2
+state hasMoney <<choice>>
+Jack --> hasMoney: Does Jack have money?
+hasMoney --> SHOP: yes
+hasMoney --> WORK: no
+state goHome <<choice>>
+note right of hasMoney
+        What should Jack do?
+end note
+SHOP --> goHome
+WORK --> goHome
+goHome --> [*]: Сome back home`
 
+const stateInput2 = `stateDiagram-v2
+state c1 <<choice>>
+note right of c1
+        note123
+end note
+[*] --> s1
+[*] --> s2
+[*] --> s3
+[*] --> s4
+s1 --> c1: t1
+s2 --> c1: t2
+s3 --> c1: t3
+s4 --> c1: t4
+
+c1 --> s5: t5
+c1 --> s5: t55
+c1 --> s6: t6
+c1 --> s7: t7
+
+s5 --> [*]
+s6 --> [*]
+s7 --> [*]`
+/*
 const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
-/*
-const a = await parseStateDiagram(input2)
-console.log(a)
 */
+const a = await parseStateDiagram(stateInput2)
+console.log(a)
