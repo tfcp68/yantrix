@@ -48,10 +48,10 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
     const parsedActivations: TActivationsDict = getActivations(parsedArray, parsedActors)
 
     const parsedDiagram: TParsedDiagramDict = {
-        messages: parsedMessages, 
-        actors: parsedActors, 
-        notes: parsedNotes, 
-        others: parsedOtherElements, 
+        messages: parsedMessages,
+        actors: parsedActors,
+        notes: parsedNotes,
+        others: parsedOtherElements,
         activations: parsedActivations
     }
     return parsedDiagram;

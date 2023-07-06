@@ -240,20 +240,24 @@ function markChoices(
 		delete stateMermaidGraph['actions'][choice]
 
 		// find toChoice
-		// eslint-disable-next-line guard-for-in
-		for (const key in stateMermaidGraph['actions']) {
+		const actionKeys = Object.keys(stateMermaidGraph['actions'])
+		for (let i = 0; i < actionKeys.length; i++) {
+			const key = actionKeys[i]
 			const value = stateMermaidGraph['actions'][key][choice]
 			if (value !== null) {
 				toChoice[key] = value
 			}
 			delete stateMermaidGraph['actions'][key][choice]
 		}
-		// eslint-disable-next-line guard-for-in
-		for	(const from in toChoice) {
-			// eslint-disable-next-line guard-for-in
-			for (const to in fromChoice) {
-				const fromValue: string = toChoice[from][0]
-				const toValue: string = fromChoice[to][0]
+
+		const toChoiceKeys = Object.keys(toChoice)
+		for	(let i = 0; i < toChoiceKeys.length; i++) {
+			const from = toChoiceKeys[i]
+			const fromChoiceKeys = Object.keys(fromChoice)
+			for (let j = 0; j < fromChoiceKeys.length; j++) {
+				const to = fromChoiceKeys[j]
+				const fromValue: string[] = toChoice[from]
+				const toValue: string[] = fromChoice[to]
 				for (const fromValueI of fromValue) {
 					for (const toValueI of toValue) {
 						const value = (fromValueI+" "+ toValueI).trim()
