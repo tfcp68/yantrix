@@ -28,29 +28,45 @@ Lends itself perfectly to [Architecture-as-Code](https://jondavid-black.github.i
 
 ## Installation
 
-To install Yantrix, you can use NPM or Yarn:
+To install Yantrix, you can use NPM, Yarn or PNPM:
 
-```
+```bash
 npm install yantrix
-```
-
-or
-
-```
+# or
 yarn add yantrix
+# or
+pnpm install yantrix
 ```
 
 ## Contributing
 
-To work with the current version, you need Lerna. After cloning the repo, run
+This project uses [**Yarn**](https://yarnpkg.com/), so make sure you have it installed globally. If not, install it using your package manager.
 
-```shell
-npm install
-lerna bootstrap
-npm build
+To get started, first clone the repository using:
+
+```bash
+git clone https://github.com/tfcp68/yantrix.git
 ```
 
-That will produce Javascript module files along with `d.ts` type definitions
+Navigate to the project folder:
+
+```bash
+cd ./yantrix
+```
+
+Install all dependencies:
+
+```bash
+yarn
+```
+
+Build all packages using:
+
+```bash
+yarn build
+```
+
+That will produce Javascript module files along with `d.ts` type definitions.
 
 Always create a new branch from `main` with `git checkout -b <your_contribution_name>`. Make the changes you want and then create a PR with them.
 
