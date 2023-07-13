@@ -19,14 +19,26 @@ export type TDiagramStatesArray = string[]
  */
 export type TTransitionsArray = string[][]
 
+type TAnonymousTransitionsDict = {
+	from: string,
+	to: string
+}
+
+// Array type for anonymous transitions;
+export type TAnonymousTransitionsArray = TAnonymousTransitionsDict[]
+
 //Dict type for transitions action;
-export type TActionDict = Record<string, Record<string, null | string[]>>
+type TAction = {
+	note: string[],
+	transition: []
+}
+export type TActionDict = Record<string, Record<string, TAction>>
 
 /**
  * Dict type for notes;
  * https://mermaid.js.org/syntax/stateDiagram.html#notes
  */
-export type TNoteDict = Record<string, null | string[]>
+export type TNoteDict = Record<string, string[]>
 
 /**
  * Array type for choices;
@@ -35,9 +47,23 @@ export type TNoteDict = Record<string, null | string[]>
 export type TChoices = string[]
 
 //Dict type for actions, notes, states and transitions without action;
-export type TStateMermaidGraphDict = {
-    actions: TActionDict
-    notes: TNoteDict
-    states: TDiagramStatesArray
-    anonymousTransitions: TTransitionsArray;
+export type TStateGraph = {
+    actions: TActionDict,
+    notes: TNoteDict,
+    states: TDiagramStatesArray,
+    anonymousTransitions: TAnonymousTransitionsArray
+}
+
+
+
+type TStateDiagram = {
+	actions: TActionDict,
+	notes: {
+		state: string[]
+	},
+	states: string[],
+	anonymousTransitions: {
+		from: string,
+		to: string
+	}
 }
