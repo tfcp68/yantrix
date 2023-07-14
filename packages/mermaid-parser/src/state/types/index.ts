@@ -53,17 +53,3 @@ export type TStateGraph = {
     states: TDiagramStatesArray,
     anonymousTransitions: TAnonymousTransitionsArray
 }
-
-
-
-type TStateDiagram = {
-	actions: TActionDict,
-	notes: {
-		state: string[]
-	},
-	states: string[],
-	anonymousTransitions: {
-		from: string,
-		to: string
-	}
-}
