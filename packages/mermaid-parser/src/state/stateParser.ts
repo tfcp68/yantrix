@@ -3,6 +3,7 @@ import {
 	TActionDict,
 	TDiagramStatesArray,
 	TTransitionsArray,
+	TAction,
 	TAnonymousTransitionsArray,
 	TStateGraph,
 	TNoteDict,
@@ -189,7 +190,6 @@ function findAnonymousTransitions(transitions: TTransitionsArray): TAnonymousTra
  * @param parsedDiagram - a primary diagram dictionary;
  * @returns Returns array with "fork (choice) elements";
  */
-/*
 function findChoices(parsedDiagram: TParsedDiagramArray): TChoices {
 	const choices: TChoices = [];
 
@@ -209,47 +209,42 @@ function findChoices(parsedDiagram: TParsedDiagramArray): TChoices {
 
 	return choices;
 }
-*/
+
 /**
  * @brief A function that complements the action links with descriptions from the "fork elements";
  * @param parsedDiagram - a primary diagram dictionary;
  * @param transitions - array of transitions;
- * @param stateMermaidGraph - main dictionary with information from the diagram;
- * @returns Returns updated "mermaid-graph".
+ * @param stateGraph - main dictionary with information from the diagram;
+ * @returns Returns updated "stateGraph".
  */
-/*
 function markChoices(
 	parsedDiagram: TParsedDiagramArray,
 	transitions: TTransitionsArray,
-	stateMermaidGraph: TStateMermaidGraphDict
-): TStateMermaidGraphDict {
+	stateGraph: TStateGraph
+): TStateGraph {
 	const choices: TChoices = findChoices(parsedDiagram);
 
 	for (const choice of choices) {
-		const delIndex = stateMermaidGraph['states'].indexOf(choice);
-		stateMermaidGraph['states'].splice(delIndex, 1)
+		const delIndex = stateGraph['states'].indexOf(choice);
+		stateGraph['states'].splice(delIndex, 1)
 
-		const fromChoice: Record<string, string[]> = {}
-		const toChoice: Record<string, string[]> = {}
+
+		const toChoice: Record<string, TAction> = {}
 
 		// find fromChoice
-		const fromChoiceStates = stateMermaidGraph['actions'][choice]
-		for (const fromChoiceKey in fromChoiceStates) {
-			if(fromChoiceStates[fromChoiceKey] !== null) {
-				fromChoice[fromChoiceKey] = fromChoiceStates[fromChoiceKey] as string[]
-			}
-		}
-		delete stateMermaidGraph['actions'][choice]
+		const fromChoice: Record<string, TAction> = stateGraph['actions'][choice]
+		delete stateGraph['actions'][choice]
 
 		// find toChoice
-		const actionKeys = Object.keys(stateMermaidGraph['actions'])
+		const actionKeys = Object.keys(stateGraph['actions'])
 		for (let i = 0; i < actionKeys.length; i++) {
 			const key = actionKeys[i]
-			const value = stateMermaidGraph['actions'][key][choice]
-			if (value !== null) {
-				toChoice[key] = value
-			}
-			delete stateMermaidGraph['actions'][key][choice]
+
+			const value = stateGraph['actions'][key]
+			if(Object.keys(value).includes(choice)) {
+				toChoice[key] = value[choice]
+				delete stateGraph['actions'][key][choice]
+			}	
 		}
 
 		const toChoiceKeys = Object.keys(toChoice)
@@ -258,26 +253,32 @@ function markChoices(
 			const fromChoiceKeys = Object.keys(fromChoice)
 			for (let j = 0; j < fromChoiceKeys.length; j++) {
 				const to = fromChoiceKeys[j]
-				const fromValue: string[] = toChoice[from]
-				const toValue: string[] = fromChoice[to]
-				for (const fromValueI of fromValue) {
-					for (const toValueI of toValue) {
+				const fromValue: TAction = toChoice[from]
+				const toValue: TAction = fromChoice[to]
+				
+				for (const fromValueI of fromValue.note) {
+					for (const toValueI of toValue.note) {
 						const value = (fromValueI+" "+ toValueI).trim()
-						if (stateMermaidGraph['actions'][from][to] === null) {
-							stateMermaidGraph['actions'][from][to] = [value]
+						
+						if (!Object.keys(stateGraph['actions'][from]).includes(to)) {
+							stateGraph['actions'][from][to] = {
+								note: [value],
+								transition: []
+							}
 						}
 						else {
-							stateMermaidGraph['actions'][from][to]?.push(value)
+							stateGraph['actions'][from][to].note.push(value)
 						}
 					}
 				}
+				
 			}
 		}
 	}
 
-	return stateMermaidGraph;
+	return stateGraph;
 }
-*/
+
 /**
  * @brief A function that builds a dictionary with information from the diagram;
  * @param parsedDiagram - a primary diagram dictionary;
@@ -310,12 +311,12 @@ export async function parseStateDiagram(diagramText: string): Promise<TStateGrap
 	const transitions: TTransitionsArray = getTransitions(parsedDiagram);
 	const diagramStates: TDiagramStatesArray = getStates(transitions);
 	let stateGraph: TStateGraph = markGraph(parsedDiagram, transitions, diagramStates);
-	/*
-	stateMermaidGraph = markChoices(
+	
+	stateGraph = markChoices(
 		parsedDiagram,
 		transitions,
-		stateMermaidGraph
+		stateGraph
 	);
-	*/
+	
 	return stateGraph;
 }

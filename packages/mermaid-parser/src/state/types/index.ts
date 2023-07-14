@@ -28,7 +28,7 @@ type TAnonymousTransitionsDict = {
 export type TAnonymousTransitionsArray = TAnonymousTransitionsDict[]
 
 //Dict type for transitions action;
-type TAction = {
+export type TAction = {
 	note: string[],
 	transition: []
 }
