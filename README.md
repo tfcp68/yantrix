@@ -8,21 +8,26 @@ Lends itself perfectly to [Architecture-as-Code](https://jondavid-black.github.i
 
 <!-- TOC -->
 
--   [Installation](#installation)
--   [Core Concepts](#core-concepts)
-    -   [Ontology](#ontology)
-        -   [Data Model](#data-model)
-        -   [Events](#events)
-        -   [Slices](#slices)
-        -   [FSM](#fsm)
-        -   [Event Adapter](#event-adapter)
-        -   [Predicates](#predicates)
-        -   [Transformers](#transformers)
-        -   [Effects](#effects)
-        -   [Sources and Destinations](#sources-and-destinations)
-        -   [Storage](#storage)
-    -   [Event Stack](#event-stack)
-        -   [Data Flow](#data-flow)
+-   [Yantrix—Opinionated FSM Framework](#yantrixopinionated-fsm-framework)
+    -   [Installation](#installation)
+    -   [Contributing](#contributing)
+    -   [Core Concepts](#core-concepts)
+        -   [Ontology](#ontology)
+            -   [Data Model](#data-model)
+            -   [Events](#events)
+            -   [Slices](#slices)
+            -   [FSM](#fsm)
+            -   [Event Adapter](#event-adapter)
+            -   [Predicates](#predicates)
+            -   [Effects](#effects)
+            -   [Transformers](#transformers)
+            -   [Sources and Destinations](#sources-and-destinations)
+            -   [Storage](#storage)
+        -   [Event Stack](#event-stack)
+            -   [Data Flow](#data-flow)
+    -   [Sample Automata Diagrams](#sample-automata-diagrams)
+        -   [Dropdown UI](#dropdown-ui)
+            -   [Syntax explanation](#syntax-explanation)
 
 <!-- TOC -->
 
@@ -86,35 +91,35 @@ Yantrix suggests the following application model:
 
 ```mermaid
 erDiagram
-    DataModel ||..o{ Storage: "updates"
-    DataModel ||--o{ ModelPredicates: declares
-    DataModel ||..o{ UIComponent: "updates"
-    UIComponent ||..|{ EventStack: "emits Events"
-    EventDictionary ||--|{ EventMetaType: "is mapped to"
-    EventStack ||..o{ EventDictionary: "maps to"
-    FSM ||..|{ EventAdapter: references
-    FSM ||..o{ ActionPayloadType: references
-    FSM ||..o{ StateContextType: references
-    StorageAdapter ||..|{ Storage: "syncs with"
-    Slice ||..o{ EventDictionary: references
-    Slice ||--o{ ActionDictionary: declares
-    Slice ||--o{ FSM: "consists of"
-    Slice ||--o{ StateDictionary: declares
-    Slice ||--o{ StorageAdapter: declares
-    Slice ||--|{ EffectMatrix: declares
-    StateDictionary ||--o{ StateContextType: "is mapped to"
-    StateDictionary ||..|{ ContextPredicates: "declares"
-    ActionDictionary ||--o{ ActionPayloadType: "is mapped to"
-    Effect ||..|{ DataModel: updates
-    EffectMatrix ||--o{ Effect: declares
-    Application ||--|{ Slice: "consists of"
-    Application ||--o{ UIComponent: "is represented by"
-    Application ||--|{ DataModel: declares
-    DataModel ||..o{ Destinations: updates
-    Application ||--o{ Destinations: declares
-    EventAdapter ||..|{ EventStack: "translates Events"
-    Sources ||..|{ EventStack: "emits Events"
-    Application ||..o{ Sources: "declares"
+	DataModel ||..o{ Storage: "updates"
+	DataModel ||--o{ ModelPredicates: declares
+	DataModel ||..o{ UIComponent: "updates"
+	UIComponent ||..|{ EventStack: "emits Events"
+	EventDictionary ||--|{ EventMetaType: "is mapped to"
+	EventStack ||..o{ EventDictionary: "maps to"
+	FSM ||..|{ EventAdapter: references
+	FSM ||..o{ ActionPayloadType: references
+	FSM ||..o{ StateContextType: references
+	StorageAdapter ||..|{ Storage: "syncs with"
+	Slice ||..o{ EventDictionary: references
+	Slice ||--o{ ActionDictionary: declares
+	Slice ||--o{ FSM: "consists of"
+	Slice ||--o{ StateDictionary: declares
+	Slice ||--o{ StorageAdapter: declares
+	Slice ||--|{ EffectMatrix: declares
+	StateDictionary ||--o{ StateContextType: "is mapped to"
+	StateDictionary ||..|{ ContextPredicates: "declares"
+	ActionDictionary ||--o{ ActionPayloadType: "is mapped to"
+	Effect ||..|{ DataModel: updates
+	EffectMatrix ||--o{ Effect: declares
+	Application ||--|{ Slice: "consists of"
+	Application ||--o{ UIComponent: "is represented by"
+	Application ||--|{ DataModel: declares
+	DataModel ||..o{ Destinations: updates
+	Application ||--o{ Destinations: declares
+	EventAdapter ||..|{ EventStack: "translates Events"
+	Sources ||..|{ EventStack: "emits Events"
+	Application ||..o{ Sources: "declares"
 ```
 
 #### Data Model
@@ -211,56 +216,103 @@ Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, 
 
 ```mermaid
 sequenceDiagram
-    box rgba(25,0,25,0.25) [Representation Layer]<br/>~~~</br>UIs, APIs, Sockets, Timers
-    participant DST as Destinations
-    participant SRC as Sources
-    participant VL as UI
-    actor User as I/O
-    end
-    box rgba(0,25,0,0.25) [Business Logic Layer]<br/>~~~</br>Declarative Code, Language Models, GUI Editor
-    participant MT as Main Loop (Event Model)
-    participant EA as Event Adapter (Mapping Matrix)
-    participant FSM as FSM (Transition Matrix)
-    participant ED as Effect Dictionary(Reduction Matrix)
-    end
-    box rgba(50,0,0,0.25) [Data Model Layer]<br/>~~~</br>Memory, DBs, Cloud Storage,<br/> File System, Blockchain
-    participant MDL as Store (Anemic Data)
-    participant DB as Storages (Persistent)
-    end
-    User -->> VL: User input
-    DB -->> MDL: Sync application state on launch
-    Note over SRC, User: Events are emitted by Sources
-    VL -->> MT: TAutomataEventMetaType<eventId>
-    SRC -->> MT: TAutomataEventMetaType<eventId>
-    Note over MT: Incoming Events are pushed to Event Stack
-    loop Process Event Stack every 1/60s
-        Note over MT, ED: Pop Event from Event Stack
-        activate MT
-        MT ->>+ EA: TAutomataEventMetaType<eventId>
-        rect rgba(25,25,25,0.5)
-            Note over EA, FSM: Translates Events to Actions, as defined by Event Adapter
-            EA ->> FSM: TAutomataEventMetaType<eventId> => TAutomataActionPayload<actionId>
-            Note over FSM: Declarative Pure Function (Mealy Machine)<br/>Derives new Context based on incoming Actions and current Context
-            FSM ->> FSM: TAutomataStateContext<stateId>, TAutomataActionPayload<actionId> => TAutomataStateContext<stateId>
-            Note over EA, FSM: Translates Context to Event, as defined by Event Adapter
-            FSM ->> EA: TAutomataStateContext<stateId>
-        end
-        Note over EA, MT: Emits Events based on resolved local Context
-        EA ->>- MT: TAutomataStateContext<stateId> => TAutomataEventMetaType<eventId>
-        note over MT: Push Event to Event Stack
-        MT ->> MT: TAutomataEventMetaType<eventId>
-        rect rgba(25,25,25,0.5)
-            Note over MT, ED: Generate Effects as defined by Effect Matrix
-            MT ->> ED: TAutomataEventMetaType<eventId>
-            Note over ED, MDL: Update Model based on its current state and generated Events
-            ED ->> MDL: TAutomataEventMetaType<eventId>, Store => Store
-            MDL -->> DB: Sync to Storages
-            MDL ->> MT: Proceed to the newest Event in Event Stack
-        end
-    end
-    Note over MT: Store subscribers are updated
-    MT -->>+ DST: Update Destinations based on Model changes
-    MT -->>+ VL: Update UI based on Model changes
-    VL -->>- User: Render
-    DST -->>- User: API Calls
+	box rgba(25,0,25,0.25) [Representation Layer]<br/>~~~</br>UIs, APIs, Sockets, Timers
+		participant DST as Destinations
+		participant SRC as Sources
+		participant VL as UI
+		actor User as I/O
+	end
+	box rgba(0,25,0,0.25) [Business Logic Layer]<br/>~~~</br>Declarative Code, Language Models, GUI Editor
+		participant MT as Main Loop (Event Model)
+		participant EA as Event Adapter (Mapping Matrix)
+		participant FSM as FSM (Transition Matrix)
+		participant ED as Effect Dictionary(Reduction Matrix)
+	end
+	box rgba(50,0,0,0.25) [Data Model Layer]<br/>~~~</br>Memory, DBs, Cloud Storage,<br/> File System, Blockchain
+		participant MDL as Store (Anemic Data)
+		participant DB as Storages (Persistent)
+	end
+	User -->> VL: User input
+	DB -->> MDL: Sync application state on launch
+	Note over SRC, User: Events are emitted by Sources
+	VL -->> MT: TAutomataEventMetaType<eventId>
+	SRC -->> MT: TAutomataEventMetaType<eventId>
+	Note over MT: Incoming Events are pushed to Event Stack
+	loop Process Event Stack every 1/60s
+		Note over MT, ED: Pop Event from Event Stack
+		activate MT
+		MT ->>+ EA: TAutomataEventMetaType<eventId>
+		rect rgba(25,25,25,0.5)
+			Note over EA, FSM: Translates Events to Actions, as defined by Event Adapter
+			EA ->> FSM: TAutomataEventMetaType<eventId> => TAutomataActionPayload<actionId>
+			Note over FSM: Declarative Pure Function (Mealy Machine)<br/>Derives new Context based on incoming Actions and current Context
+			FSM ->> FSM: TAutomataStateContext<stateId>, TAutomataActionPayload<actionId> => TAutomataStateContext<stateId>
+			Note over EA, FSM: Translates Context to Event, as defined by Event Adapter
+			FSM ->> EA: TAutomataStateContext<stateId>
+		end
+		Note over EA, MT: Emits Events based on resolved local Context
+		EA ->>- MT: TAutomataStateContext<stateId> => TAutomataEventMetaType<eventId>
+		note over MT: Push Event to Event Stack
+		MT ->> MT: TAutomataEventMetaType<eventId>
+		rect rgba(25,25,25,0.5)
+			Note over MT, ED: Generate Effects as defined by Effect Matrix
+			MT ->> ED: TAutomataEventMetaType<eventId>
+			Note over ED, MDL: Update Model based on its current state and generated Events
+			ED ->> MDL: TAutomataEventMetaType<eventId>, Store => Store
+			MDL -->> DB: Sync to Storages
+			MDL ->> MT: Proceed to the newest Event in Event Stack
+		end
+	end
+	Note over MT: Store subscribers are updated
+	MT -->>+ DST: Update Destinations based on Model changes
+	MT -->>+ VL: Update UI based on Model changes
+	VL -->>- User: Render
+	DST -->>- User: API Calls
 ```
+
+## Sample Automata Diagrams
+
+### Dropdown UI
+
+```mermaid
+stateDiagram-v2
+    [*] --> CLOSED: RESET (list)
+    CLOSED --> OPEN: OPEN
+    OPEN --> CLOSED: CLOSE
+    OPEN --> SELECTED: SELECT (index)
+    SELECTED --> CLOSED: CLOSE
+    note left of CLOSED
+    *DEFAULT
+    ::{ items } <= (list)
+    ::{ selectedIndex | 0 } <= {index}
+    subscribe/click => OPEN
+    emit/dropdownClose
+    end note
+    note left of SELECTED
+    ::{ items }
+    ::{ selectedIndex} <= (index)
+    emit/selected <= (index)
+    subscribe/selected => CLOSE
+    end note
+    note right of OPEN
+    ::{ items }
+    ::{ selectedIndex }
+    emit/dropdownOpen
+    subscribe/click => SELECT (index)
+    subscribe/clickOutside => CLOSE
+    end note
+```
+
+#### Syntax explanation
+
+-   `*DEFAULT` marks that `CLOSED` is the initial state of the `FSM`
+-   `::{items}` describes a list of dropdown values, stored in `Context` of a given `State`. Without extra expressions the value is copied from the preceding `Context`
+-   `::{items} <= (list)` fills the `items` `Context` from the `Payload` property named `list`, if present
+-   `::{selectedIndex}` is another `Context` value that stores currently highlighted element in the list, that is also copied from the preceding `Context` by default
+-   `::{selectedIndex|0}` sets the initial value for that `Context`
+-   altogether, `::{selectedIndex|0} <= (index)` sets the value of `selectedIndex` contextual value equal to `index` value of the incoming `Payload`, or to `0` if the corresponding `Action` does not have a `Payload`, i.e., it is `RESET`
+-   `subscribe/click => OPEN` in `CLOSED` state produces `OPEN` `Action` on incoming `click` `Event`, which transitions the `FSM` into `OPEN` state
+-   likewise, `subscribe/click => SELECT (index)` produces `SELECT` `Action` and passes `index` property in `Payload` to the `SELECTED` state
+-   `subscribe/clickOutside => CLOSE` produces a `CLOSE` `Action` to return the dropdown to the original `State` (`CLOSED`)
+-   Both `CLOSED` and `OPEN` `States` emit corresponding `Events`, that are pipelined into `Event Bus` and connect the component to others.
+-   `SELECTED` is a transitional `State`: while `emit/selected <= (index)` lets the `Event Bus` know which item was selected, at the same time `subscribe/selected => CLOSE` transitions the `FSM` back to `CLOSED` `State` via `CLOSE` `Action`.
