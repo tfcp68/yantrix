@@ -1,14 +1,19 @@
 import mermaid from 'mermaid';
 import {
-	TActionDict,
-	TDiagramStatesArray,
+	TStateDiagramStructure,
 	TTransitionsArray,
+	TParsedStringDict,
+	TParsedDiagramArray,
+	TChoice,
+	TChoicesStructure,
+	TFork,
+	TForksStructure,
+	TNote,
+	TNotesStructure,
+	TState,
+	TStatesStructure,
 	TAction,
-	TAnonymousTransitionsArray,
-	TStateGraph,
-	TNoteDict,
-	TChoices,
-	TParsedDiagramArray
+	TActionsStructure
 } from './types/index.js';
 
 /**
@@ -72,18 +77,52 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 }
 
 /**
+ * @brief This function collects the state captions(descriptions);
+ * @param diagramStates - array of diagram elements;
+ * @returns Returns an dictionary of state captions.
+ */
+function getStatesCaption(parsedDiagram: TParsedDiagramArray): Record<string, string> {
+	const stateCaptions: Record<string, string> = {}
+
+	for(let i = 0; i < parsedDiagram.length; i++) {
+		if(parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i])
+			if (keys.includes('type')) {
+				if(parsedDiagram[i].type === 'default') {
+					const state_id: string = parsedDiagram[i].id as string
+					const state_desc: string = parsedDiagram[i].description as string
+					stateCaptions[state_id] = state_desc
+				}
+			}
+		}
+	}
+
+	return stateCaptions
+}
+
+/**
  * @brief This function collects the elements that are in the mermaid state diagram;
  * @param transitions - array of transitions;
  * @returns Returns an array of diagram elements.
  */
-function getStates(transitions: TTransitionsArray): TDiagramStatesArray {
-	const diagramStates: TDiagramStatesArray = [];
-
+function getStates(parsedDiagram: TParsedDiagramArray, transitions: TTransitionsArray): TStatesStructure {
+	const diagramStates: TStatesStructure = []
+	const stateCaptions: Record<string, string> = getStatesCaption(parsedDiagram)
+	const stateCaptionKeys = Object.keys(stateCaptions)
+	const visited: string[] = []
 	for (let i = 0; i < transitions.length; i++) {
 		for (let j = 0; j < 2; j++) {
-			const element = transitions[i][j];
-			if (!diagramStates.includes(element)) {
-				diagramStates.push(element);
+			const element = transitions[i][j]
+			if (!visited.includes(element)) {
+				const state: TState = {
+					id: element,
+					caption: element
+				}
+				if (stateCaptionKeys.includes(element)) {
+					state.caption = stateCaptions[element]
+				}
+				diagramStates.push(state);
+				visited.push(element)
 			}
 		}
 	}
@@ -92,38 +131,59 @@ function getStates(transitions: TTransitionsArray): TDiagramStatesArray {
 }
 
 /**
- * @brief This function creates a dictionary of transitions action;
- * @param transitions - array of transitions;
- * @param diagramStates - array of diagram elements;
- * @returns Returns a dictionary of transitions action.
+ * @brief A function that finds choice elements;
+ * @param parsedDiagram - a primary diagram dictionary;
+ * @returns Returns array with choice elements;
  */
-function getActions(
-	transitions: TTransitionsArray,
-	diagramStates: TDiagramStatesArray
-): TActionDict {
-	const actions: TActionDict = {};
+function getChoices(parsedDiagram: TParsedDiagramArray): TChoicesStructure  {
+	const choices: TChoicesStructure  = [];
 
-	for (let i = 0; i < transitions.length; i++) {
-		const pairOfElements = transitions[i];
-		const from = pairOfElements[0];
-		const to = pairOfElements[1];
-		const action = pairOfElements[2];
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				const stateType = parsedDiagram[i].type;
 
-		if (!Object.keys(actions).includes(from)) {
-			actions[from] = {}
-		}
-		if (!Object.keys(actions[from]).includes(to)) {
-			actions[from][to] = {
-				note: [action],
-				transition: []
+				if (stateType === 'choice') {
+					const choiceElement = parsedDiagram[i].id as string;
+					const choice: TChoice = {
+						id: choiceElement
+					}
+					choices.push(choice)
+				}
 			}
-		}
-		else {
-			actions[from][to].note.push(action)
 		}
 	}
 
-	return actions;
+	return choices;
+}
+
+/**
+ * @brief A function that finds fork and join elements;
+ * @param parsedDiagram - a primary diagram dictionary;
+ * @returns Returns array with fork and join elements;
+ */
+function getForks(parsedDiagram: TParsedDiagramArray): TForksStructure  {
+	const forks: TForksStructure  = [];
+
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				const stateType = parsedDiagram[i].type;
+
+				if (stateType === 'fork' || stateType === 'join') {
+					const forkElement = parsedDiagram[i].id as string;
+					const fork: TFork = {
+						id: forkElement
+					}
+					forks.push(fork)
+				}
+			}
+		}
+	}
+
+	return forks;
 }
 
 /**
@@ -132,12 +192,10 @@ function getActions(
  * @param diagramStates - array of diagram elements;
  * @returns Returns a dictionary of notes from the state diagram.
  */
-function getNotes(
-	parsedDiagram: TParsedDiagramArray,
-	diagramStates: TDiagramStatesArray
-): TNoteDict {
-	const notes: TNoteDict = {};
-
+function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
+	const notes: TNotesStructure = []
+	const visited: Record<string, number> = {}
+	let visited_count: number = 0
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
 			const keys = Object.keys(parsedDiagram[i]);
@@ -149,12 +207,27 @@ function getNotes(
 					const from: string = parsedDiagram[i].id as string;
 					const parsedDiagramNote: Record<string, string> = parsedDiagram[i].note as Record<string, string>
 					const noteText: string = parsedDiagramNote.text;
-
-					if (!Object.keys(notes).includes(from)) {
-						notes[from] = [noteText];
-					} else {
-						notes[from].push(noteText);
+					
+					const noteTextArray: string[] = noteText.split('\n')
+					for(let j = 0; j < noteTextArray.length; j++) {
+						noteTextArray[j] = noteTextArray[j].trim()
 					}
+					const visitedKeys = Object.keys(visited)
+					if (visitedKeys.includes(from)) {
+						for (let j = 0; j < noteTextArray.length; j++) {
+							notes[visited[from]].text.push(noteTextArray[j])
+						}
+					}
+					else {
+						const note: TNote = {
+							text: noteTextArray,
+							over: from
+						}
+						notes.push(note)
+						visited[from] = visited_count
+						visited_count++
+					} 
+					
 				}
 			}
 		}
@@ -164,141 +237,28 @@ function getNotes(
 }
 
 /**
- * @brief A function that collects anonymous transitions without actions;
+ * @brief This function creates a dictionary of transitions action;
  * @param transitions - array of transitions;
- * @returns Returns array with anonymous transitions without actions;
+ * @returns Returns a dictionary of transitions action.
  */
-function findAnonymousTransitions(transitions: TTransitionsArray): TAnonymousTransitionsArray {
-	const anonymousTransitions: TAnonymousTransitionsArray = [];
+function getActions(transitions: TTransitionsArray): TActionsStructure {
+	const actions: TActionsStructure = []
 
-	for (let i = 0; i < transitions.length; i++) {
-		if (transitions[i][2] === '') {
-			const from_i = transitions[i][0]
-			const to_i = transitions[i][1]
-			const anonymousTransition = {
-				from: from_i,
-				to: to_i
-			}
-			anonymousTransitions.push(anonymousTransition);
+	for(let i = 0; i < transitions.length; i++) {
+		const from = transitions[i][0]
+		const to = transitions[i][1]
+		let id = transitions[i][2]
+		if (id === '') {
+			id = from + ', ' + to + ', ' + String(i)
 		}
+		const action: TAction = {
+			from: from,
+			to: to,
+			id:  id
+		}
+		actions.push(action)
 	}
-	return anonymousTransitions;
-}
-
-/**
- * @brief A function that finds "fork (choice) elements";
- * @param parsedDiagram - a primary diagram dictionary;
- * @returns Returns array with "fork (choice) elements";
- */
-function findChoices(parsedDiagram: TParsedDiagramArray): TChoices {
-	const choices: TChoices = [];
-
-	for (let i = 0; i < parsedDiagram.length; i++) {
-		if (parsedDiagram[i].stmt === 'state') {
-			const keys = Object.keys(parsedDiagram[i]);
-			if (keys.includes('type')) {
-				const stateType = parsedDiagram[i].type;
-
-				if (stateType === 'choice') {
-					const choiceElement = parsedDiagram[i].id as string;
-					choices.push(choiceElement);
-				}
-			}
-		}
-	}
-
-	return choices;
-}
-
-/**
- * @brief A function that complements the action links with descriptions from the "fork elements";
- * @param parsedDiagram - a primary diagram dictionary;
- * @param transitions - array of transitions;
- * @param stateGraph - main dictionary with information from the diagram;
- * @returns Returns updated "stateGraph".
- */
-function markChoices(
-	parsedDiagram: TParsedDiagramArray,
-	transitions: TTransitionsArray,
-	stateGraph: TStateGraph
-): TStateGraph {
-	const choices: TChoices = findChoices(parsedDiagram);
-
-	for (const choice of choices) {
-		const delIndex = stateGraph['states'].indexOf(choice);
-		stateGraph['states'].splice(delIndex, 1)
-
-
-		const toChoice: Record<string, TAction> = {}
-
-		// find fromChoice
-		const fromChoice: Record<string, TAction> = stateGraph['actions'][choice]
-		delete stateGraph['actions'][choice]
-
-		// find toChoice
-		const actionKeys = Object.keys(stateGraph['actions'])
-		for (let i = 0; i < actionKeys.length; i++) {
-			const key = actionKeys[i]
-
-			const value = stateGraph['actions'][key]
-			if(Object.keys(value).includes(choice)) {
-				toChoice[key] = value[choice]
-				delete stateGraph['actions'][key][choice]
-			}	
-		}
-
-		const toChoiceKeys = Object.keys(toChoice)
-		for	(let i = 0; i < toChoiceKeys.length; i++) {
-			const from = toChoiceKeys[i]
-			const fromChoiceKeys = Object.keys(fromChoice)
-			for (let j = 0; j < fromChoiceKeys.length; j++) {
-				const to = fromChoiceKeys[j]
-				const fromValue: TAction = toChoice[from]
-				const toValue: TAction = fromChoice[to]
-				
-				for (const fromValueI of fromValue.note) {
-					for (const toValueI of toValue.note) {
-						const value = (fromValueI+" "+ toValueI).trim()
-						
-						if (!Object.keys(stateGraph['actions'][from]).includes(to)) {
-							stateGraph['actions'][from][to] = {
-								note: [value],
-								transition: []
-							}
-						}
-						else {
-							stateGraph['actions'][from][to].note.push(value)
-						}
-					}
-				}
-				
-			}
-		}
-	}
-
-	return stateGraph;
-}
-
-/**
- * @brief A function that builds a dictionary with information from the diagram;
- * @param parsedDiagram - a primary diagram dictionary;
- * @param transitions - array of transitions;
- * @param diagramStates - array of diagram elements;
- * @returns Returns dictionary with information from the diagram.
- */
-function markGraph(
-	parsedDiagram: TParsedDiagramArray,
-	transitions: TTransitionsArray,
-	diagramStates: TDiagramStatesArray
-): TStateGraph {
-	const stateGraph: TStateGraph = {
-		actions: getActions(transitions, diagramStates),
-		notes: getNotes(parsedDiagram, diagramStates),
-		states: diagramStates,
-		anonymousTransitions: findAnonymousTransitions(transitions),
-	};
-
-	return stateGraph;
+	return actions
 }
 
 /**
@@ -306,17 +266,16 @@ function markGraph(
  * @param diagramText - diagram [string];
  * @returns Returns dictionary with information from the diagram.
  */
-export async function parseStateDiagram(diagramText: string): Promise<TStateGraph> {
+export async function parseStateDiagram(diagramText: string): Promise<TStateDiagramStructure> {
 	const parsedDiagram: TParsedDiagramArray = await diagramParser(diagramText);
 	const transitions: TTransitionsArray = getTransitions(parsedDiagram);
-	const diagramStates: TDiagramStatesArray = getStates(transitions);
-	let stateGraph: TStateGraph = markGraph(parsedDiagram, transitions, diagramStates);
-	
-	stateGraph = markChoices(
-		parsedDiagram,
-		transitions,
-		stateGraph
-	);
-	
-	return stateGraph;
+
+	const stateDiagramStructure: TStateDiagramStructure = {
+		states: getStates(parsedDiagram, transitions),
+		actions: getActions(transitions),
+		notes: getNotes(parsedDiagram),
+		choices: getChoices(parsedDiagram),
+		forks: getForks(parsedDiagram)
+	}
+	return stateDiagramStructure;
 }
