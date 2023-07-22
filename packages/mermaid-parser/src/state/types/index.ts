@@ -2,16 +2,10 @@
  * Dict type for mermaid parsed diagram. Parser from mermaid library;
  * https://github.com/mermaid-js/mermaid/tree/develop/packages/mermaid/src/diagrams/state
  */
-export type TStringDict = Record<string, string | Record<string, string>>
+export type TParsedStringDict = Record<string, string | Record<string, string>>
 
-//Array type for mermaid parsed diafram elements;
-export type TParsedDiagramArray =  TStringDict[]
-
-/**
- * Array type for states;
- * https://mermaid.js.org/syntax/stateDiagram.html#states
- */
-export type TDiagramStatesArray = string[]
+//Array type for mermaid parsed diagram elements;
+export type TParsedDiagramArray =  TParsedStringDict[]
 
 /**
  * Array type for transitions;
@@ -19,25 +13,64 @@ export type TDiagramStatesArray = string[]
  */
 export type TTransitionsArray = string[][]
 
-//Dict type for transitions action;
-export type TActionDict = Record<string, Record<string, null | string[]>>
+export type TState = {
+    id: string,
+    caption:string, // === `name` если не указано
+    subtree?:TStateDiagramStructure
+}
 
 /**
- * Dict type for notes;
- * https://mermaid.js.org/syntax/stateDiagram.html#notes
+ * Array type for states;
+ * https://mermaid.js.org/syntax/stateDiagram.html#states
  */
-export type TNoteDict = Record<string, null | string[]>
+export type TStatesStructure = TState[]
+
+export type TChoice = {
+    id: string,
+}
 
 /**
  * Array type for choices;
  * https://mermaid.js.org/syntax/stateDiagram.html#choice
  */
-export type TChoices = string[]
+export type TChoicesStructure = TChoice[]
 
-//Dict type for actions, notes, states and transitions without action;
-export type TStateMermaidGraphDict = {
-    actions: TActionDict
-    notes: TNoteDict
-    states: TDiagramStatesArray
-    anonymousTransitions: TTransitionsArray;
+//Dict type for transitions action;
+export type TAction = {
+    id:string, // ""
+    from: string,
+    to: string
+}
+
+/**
+ * Array type for transitions action;
+ * https://mermaid.js.org/syntax/stateDiagram.html#transitions
+ */
+export type TActionsStructure = TAction[]
+
+//Dict type for note;
+export type TNote = {
+    text: string[],
+    over: string
+}
+export type TNotesStructure = TNote[]
+
+//Dict type for fork;
+export type TFork = {
+    id: string,
+}
+
+/**
+ * Array type for forks;
+ * https://mermaid.js.org/syntax/stateDiagram.html#forks
+ */
+export type TForksStructure = TFork[]
+
+//Dict type for states, actions, notes, choice, forks
+export type TStateDiagramStructure = {
+    states: TStatesStructure,
+    actions: TActionsStructure,
+    notes: TNotesStructure,
+    choices: TChoicesStructure,
+    forks: TForksStructure
 }

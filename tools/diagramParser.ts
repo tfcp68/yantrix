@@ -342,6 +342,10 @@ goHome --> [*]: Сome back home`
 
 const stateInput2 = `stateDiagram-v2
 state c1 <<choice>>
+state "Tiger" as s1
+state "Lion" as s2
+state "Panthera" as s3
+state "Cat" as s4
 note right of c1
         note123
 end note
@@ -362,9 +366,21 @@ c1 --> s7: t7
 s5 --> [*]
 s6 --> [*]
 s7 --> [*]`
+
+const stateInput3 = `stateDiagram-v2
+state test01 <<fork>>
+  [*] --> test01
+  test01 --> State2
+  test01 --> State3
+
+  state test02 <<join>>
+  State2 --> test02
+  State3 --> test02
+  test02 --> State4
+  State4 --> [*]`
 /*
 const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 */
-const a = await parseStateDiagram(stateInput2)
+const a = await parseStateDiagram(diagramText)
 console.log(a)
