@@ -15,16 +15,13 @@ import {
  */
 function getTransitions(
     stateDiagramStructure: TBaseTypes.TStateDiagramStructure): TProcTransitions {
-
-    const transitions: TProcTransitions = {}
-
-    const stateDiagramActions = stateDiagramStructure.actions
+    const transitions: TProcTransitions = {};
+    const stateDiagramActions = stateDiagramStructure.actions;
     for (let i = 0; i < stateDiagramActions.length; i++) {
 		const pairOfElements = stateDiagramActions[i];
 		const from = pairOfElements.from;
 		const to = pairOfElements.to;
 		const action = pairOfElements.id;
-
 		if (!Object.keys(transitions).includes(from)) {
 			transitions[from] = {};
 		}
@@ -32,14 +29,13 @@ function getTransitions(
             const ProcAction: TProcActions = {
                 id: [action],
                 notes: []
-            }
-			transitions[from][to] = ProcAction
+            };
+			transitions[from][to] = ProcAction;
 		}
 		else {
-			transitions[from][to].id.push(action)
+			transitions[from][to].id.push(action);
 		}
 	}
-
     return transitions
 }
 
@@ -82,7 +78,6 @@ function markChoices(
 				for (const fromValueI of fromValue.id) {
 					for (const toValueI of toValue.id) {
 						const value = (fromValueI+" "+ toValueI).trim();
-						
 						if (!Object.keys(transitions[from]).includes(to)) {
 							transitions[from][to] = {
 								id: [value],
@@ -97,7 +92,6 @@ function markChoices(
 			}
 		}
 	}
-
 	return transitions;
 }
 
