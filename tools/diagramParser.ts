@@ -1,5 +1,6 @@
 //import { parseStateDiagram } from '@yantrix/mermaid-parser'
 import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js'
+import { stateProcessor } from '../packages/mermaid-parser/src/state/stateProcessor.js'
 import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js'
 
 const input1 = `stateDiagram-v2
@@ -382,5 +383,10 @@ state test01 <<fork>>
 const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 */
-const a = await parseStateDiagram(diagramText)
+/*
+const a = await parseStateDiagram(stateInput2)
 console.log(a)
+*/
+const a = await stateProcessor(stateInput2)
+console.log(a)
+
