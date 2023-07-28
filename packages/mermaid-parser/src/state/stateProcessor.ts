@@ -56,27 +56,21 @@ function markChoices(
     transitions: TProcTransitions
 ): TProcTransitions {
 	const choices: TBaseTypes.TChoicesStructure = stateDiagramStructure.choices
-
 	for (const choice of choices) {
-
 		const toChoice: Record<string, TProcActions> = {}
-
 		// find fromChoice
 		const fromChoice: Record<string, TProcActions> = transitions[choice.id];
 		delete transitions[choice.id];
-
 		// find toChoice
 		const actionKeys = Object.keys(transitions);
 		for (let i = 0; i < actionKeys.length; i++) {
 			const key: string = actionKeys[i];
-
 			const value = transitions[key];
 			if(Object.keys(value).includes(choice.id)) {
 				toChoice[key] = value[choice.id];
 				delete transitions[key][choice.id];
 			}	
 		}
-
 		const toChoiceKeys = Object.keys(toChoice);
 		for	(let i = 0; i < toChoiceKeys.length; i++) {
 			const from = toChoiceKeys[i];
@@ -85,7 +79,6 @@ function markChoices(
 				const to = fromChoiceKeys[j];
 				const fromValue: TProcActions = toChoice[from];
 				const toValue: TProcActions = fromChoice[to];
-				
 				for (const fromValueI of fromValue.id) {
 					for (const toValueI of toValue.id) {
 						const value = (fromValueI+" "+ toValueI).trim();
@@ -101,7 +94,6 @@ function markChoices(
 						}
 					}
 				}
-				
 			}
 		}
 	}
@@ -110,12 +102,16 @@ function markChoices(
 }
 
 
-export async function stateProcessor(diagramText: string) {
+export async function stateProcessor(
+    diagramText: string): Promise<TStateProcessor> {
     const stateDiagramStructure: TBaseTypes.TStateDiagramStructure = 
     await parseStateDiagram(diagramText);
 
-    let processor_transitions: TProcTransitions = getTransitions(stateDiagramStructure);
-    processor_transitions = markChoices(stateDiagramStructure, processor_transitions);
+    let processor_transitions: TProcTransitions = 
+    getTransitions(stateDiagramStructure);
+
+    processor_transitions = 
+    markChoices(stateDiagramStructure, processor_transitions);
 
     const stateProcessor: TStateProcessor = {
         transitions: processor_transitions,
