@@ -6,9 +6,7 @@ export interface IBaseClass {
 	next?: () => this;
 }
 
-export type TAbstractConstructor<T extends IBaseClass = IBaseClass> = new (
-	...args: any[]
-) => T;
+export type TAbstractConstructor<T = {}> = new (...args: any[]) => T;
 export type TAbstractFunction<T = any> = (...args: any[]) => T;
 export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;
 

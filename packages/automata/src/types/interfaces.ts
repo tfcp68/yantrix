@@ -48,7 +48,7 @@ export interface IAutomataStateContainer<
 export interface IAutomataActionContainer<
 	ActionType extends TAutomataBaseActionType
 > {
-	validateAction?: TValidator<ActionType>;
+	validateAction: TValidator<ActionType>;
 
 	setActionValidator(actionValidator?: TValidator<ActionType>): this;
 }

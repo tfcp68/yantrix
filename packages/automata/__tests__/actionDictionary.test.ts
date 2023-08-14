@@ -6,20 +6,26 @@ import {
 } from '@yantrix/utils';
 import * as _ from 'underscore';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
-import GenericActionDictionary from '../src/ActionDictionary';
+import { ActionDictionary } from '../src/ActionDictionary';
+import { AbstractBaseClass } from '../src/mixins/BaseClass';
 import { TValidator } from '../src/types';
 import { TTestAction, TTestPayload } from './fixtures';
 
-class ActionDictionaryTest extends GenericActionDictionary<
+const testConstructor = ActionDictionary<
 	TTestAction,
 	TTestPayload<TTestAction>
->() {
+>()(AbstractBaseClass);
+
+class ActionDictionaryTest extends testConstructor {
+	_defaultActionValidator: TValidator<TTestAction> | null = null;
+
 	constructor() {
 		super();
+		this._defaultActionValidator = this.validateAction;
 	}
 
 	getDefaultActionValidator() {
-		return this.defaultActionValidator;
+		return this._defaultActionValidator;
 	}
 }
 
@@ -70,7 +76,7 @@ describe('ActionDictionary', () => {
 	});
 	describe('constructor', () => {
 		test('returns an instance of GenericActionDictionary', () => {
-			expect(sampleInstance).toBeInstanceOf(GenericActionDictionary);
+			expect(sampleInstance).toBeInstanceOf(testConstructor);
 		});
 		test('is empty by default', () => {
 			expect(sampleInstance.getDictionary()).toEqual({});
