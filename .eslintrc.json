@@ -12,7 +12,8 @@
 		"sourceType": "module",
 		"ecmaFeatures": {
 			"jsx": true
-		}
+		},
+		"project": true
 	},
 	"extends": [
 		"eslint:recommended",
@@ -34,6 +35,42 @@
 			"error",
 			{
 				"default": "array-simple"
+			}
+		],
+		"@typescript-eslint/naming-convention": [
+			"error",
+			{
+				"selector": "typeLike",
+				"format": ["PascalCase"]
+			},
+			{
+				"selector": "typeAlias",
+				"format": ["PascalCase"],
+				"custom": {
+					"regex": "^T[A-Z].*$",
+					"match": true
+				}
+			},
+			{
+				"selector": "interface",
+				"format": ["PascalCase"],
+				"custom": {
+					"regex": "^I[A-Z].*$",
+					"match": true
+				}
+			},
+			{
+				"selector": "variable",
+				"format": ["camelCase", "PascalCase"],
+				"trailingUnderscore": "forbid"
+			},
+			{
+				"selector": "variable",
+				"types": ["array"],
+				"modifiers": ["const", "exported"],
+				"format": ["PascalCase", "UPPER_CASE"],
+				"suffix": ["Array", "List"],
+				"trailingUnderscore": "forbid"
 			}
 		],
 		"@typescript-eslint/ban-types": [

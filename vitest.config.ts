@@ -2,7 +2,15 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
-		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
+		exclude: [
+			'**/node_modules',
+			'**/dist',
+			'.idea',
+			'.git',
+			'.cache',
+			'.yarn',
+			'**/fixtures',
+		],
 		passWithNoTests: true,
 		coverage: {
 			enabled: true,

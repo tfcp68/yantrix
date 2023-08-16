@@ -4,39 +4,38 @@ import {
 	TAutomataBaseActionType,
 	TValidator,
 } from '../types/index.js';
-import { IAutomataActionContainer } from '../types/interfaces.js';
 
-export function BasicActionContainer<
+export default function BasicActionContainer<
 	ActionType extends TAutomataBaseActionType
 >() {
-	return <T extends TAbstractConstructor>(
-		Base: T
-	): TAbstractConstructor<IAutomataActionContainer<ActionType>> =>
+	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicActionContainer extends Base {
-			#defaultActionValidator =
+			#_defaultActionValidator =
 				isPositiveInteger as TValidator<ActionType>;
 
-			#actionValidator?: TValidator<ActionType>;
+			#_actionValidator?: TValidator<ActionType>;
+
+			constructor(...args: any[]) {
+				super(args);
+			}
 
 			get validateAction() {
-				return this.#actionValidator ?? this.#defaultActionValidator;
+				return this.#_actionValidator ?? this.#_defaultActionValidator;
 			}
 
 			setActionValidator(
 				actionValidator: TValidator<ActionType> | null = null
 			) {
 				if (actionValidator === null) {
-					this.#actionValidator = undefined;
+					this.#_actionValidator = undefined;
 					return this;
 				}
 				if (typeof actionValidator !== 'function')
 					throw new Error(
 						`passed Action Validator is not a function`
 					);
-				this.#actionValidator = actionValidator.bind(this);
+				this.#_actionValidator = actionValidator.bind(this);
 				return this;
 			}
 		};
 }
-
-export default BasicActionContainer;

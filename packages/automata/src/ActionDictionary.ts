@@ -1,5 +1,6 @@
-import { DictionaryContainer } from './mixins/DictionaryContainer.js';
-import { ExtendedActionContainer } from './mixins/ExtendedActionContainer.js';
+import { AbstractBaseClass } from './mixins/BaseClass.js';
+import DictionaryContainer from './mixins/DictionaryContainer.js';
+import ExtendedActionContainer from './mixins/ExtendedActionContainer.js';
 import {
 	TActionKeysCollection,
 	TActionLookupParams,
@@ -11,15 +12,15 @@ import {
 } from './types/index.js';
 import { IActionDictionary } from './types/interfaces.js';
 
-export function ActionDictionary<
+export function createActionDictionary<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any }
 >() {
-	return <TBase extends TAbstractConstructor>(
-		Proto: TBase
-	): TAbstractConstructor<IActionDictionary<ActionType, PayloadType>> =>
+	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(
+		Base: BaseType
+	) =>
 		class AbstractActionDictionary extends DictionaryContainer<ActionType>()(
-			ExtendedActionContainer<ActionType, PayloadType>()(Proto)
+			ExtendedActionContainer<ActionType, PayloadType>()(Base)
 		) {
 			getActionKeys({
 				actions = [],
@@ -81,3 +82,21 @@ export function ActionDictionary<
 			}
 		};
 }
+
+export class BasicActionDictionary
+	extends createActionDictionary<
+		TAutomataBaseActionType,
+		Record<TAutomataBaseActionType, any>
+	>()(AbstractBaseClass)
+	implements
+		IActionDictionary<
+			TAutomataBaseActionType,
+			Record<TAutomataBaseActionType, any>
+		>
+{
+	constructor() {
+		super();
+	}
+}
+
+export default BasicActionDictionary;

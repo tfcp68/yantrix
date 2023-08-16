@@ -5,7 +5,7 @@
  */
 import { TAbstractConstructor } from '../types/index.js';
 
-export function DictionaryContainer<ItemType>() {
+export default function DictionaryContainer<ItemType>() {
 	return <TBase extends TAbstractConstructor = TAbstractConstructor>(
 		base: TBase
 	) =>

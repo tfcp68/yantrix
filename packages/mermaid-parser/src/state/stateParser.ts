@@ -1,39 +1,45 @@
 import mermaid from 'mermaid';
-import {
-	actionDict,
-	diagramElementsArray,
-	directionsArray,
-	mermaidGraphDict,
-	noteDict,
-} from './types/index.js';
+import * as TBaseTypes from './types/index.js';
 
 /**
  * @brief Function that parses a diagram;
  * @param diagramText - diagram [string];
  * @returns Returns parsed diagram dictionary.
  */
-async function diagramParser(diagramText: string): Promise<any> {
+async function diagramParser(
+	diagramText: string
+): Promise<TBaseTypes.TParsedDiagramArray> {
 	mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
 	await mermaid.mermaidAPI.initialize();
 	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
-	const parsedDiagram = diagram.db.getRootDoc();
+	const parsedDiagram: TBaseTypes.TParsedDiagramArray =
+		diagram.db.getRootDoc();
 
 	return parsedDiagram;
 }
 
 /**
- * @brief This function collects directions from a diagram;
- * @param parsedDiargam - a primary diagram dictionary;
- * @returns Returns the directions from the diagram and their descriptions [directionsArray].
+ * @brief This function collects transitions from a diagram;
+ * @param parsedDiagram - a primary diagram dictionary;
+ * @returns Returns the transitions from the diagram and their descriptions.
  */
-function getDirections(parsedDiargam: any): directionsArray {
-	const directions: directionsArray = [];
+function getTransitions(
+	parsedDiagram: TBaseTypes.TParsedDiagramArray
+): TBaseTypes.TTransitionsArray {
+	const transitions: TBaseTypes.TTransitionsArray = [];
 
-	for (let i = 0; i < parsedDiargam.length; i++) {
-		if (parsedDiargam[i].stmt === 'relation') {
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'relation') {
 			const directionI: string[] = [];
-			const st1 = parsedDiargam[i].state1.id;
-			const st2 = parsedDiargam[i].state2.id;
+
+			const temp_st1: Record<string, string> = parsedDiagram[i]
+				.state1 as Record<string, string>;
+
+			const temp_st2: Record<string, string> = parsedDiagram[i]
+				.state2 as Record<string, string>;
+
+			const st1: string = temp_st1.id;
+			const st2: string = temp_st2.id;
 
 			if (st1 === '[*]' && st2 === '[*]') {
 				directionI.push('~~~START~~~');
@@ -50,112 +56,184 @@ function getDirections(parsedDiargam: any): directionsArray {
 				directionI.push(st2);
 			}
 
-			const keys = Object.keys(parsedDiargam[i]);
+			const keys = Object.keys(parsedDiagram[i]);
 			if (keys.includes('description')) {
-				const descr = parsedDiargam[i].description;
+				const descr: string = parsedDiagram[i].description as string;
 				directionI.push(descr);
 			} else {
 				directionI.push('');
 			}
 
-			directions.push(directionI);
+			transitions.push(directionI);
 		}
 	}
 
-	return directions;
+	return transitions;
 }
 
 /**
- * @brief This function collects the elements that are in the mermaid state diagram;
- * @param directions - array of directions [DirectionsArray];
- * @returns Returns an array of diagram elements [diagramElementsArray].
+ * @brief This function collects the state captions(descriptions);
+ * @param diagramStates - array of diagram elements;
+ * @returns Returns an dictionary of state captions.
  */
-function getDiagramElements(directions: directionsArray): diagramElementsArray {
-	const diagramElements: diagramElementsArray = [];
+function getStatesCaption(
+	parsedDiagram: TBaseTypes.TParsedDiagramArray
+): Record<string, string> {
+	const stateCaptions: Record<string, string> = {};
 
-	for (let i = 0; i < directions.length; i++) {
-		for (let j = 0; j < 2; j++) {
-			const element = directions[i][j];
-			if (!diagramElements.includes(element)) {
-				diagramElements.push(element);
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				if (parsedDiagram[i].type === 'default') {
+					const state_id: string = parsedDiagram[i].id as string;
+
+					const state_desc: string = parsedDiagram[i]
+						.description as string;
+
+					stateCaptions[state_id] = state_desc;
+				}
 			}
 		}
 	}
 
-	return diagramElements;
+	return stateCaptions;
 }
 
 /**
- * @brief This function creates a dictionary of action links;
- * @param directions - array of directions [DirectionsArray];
- * @param diagramElements - array of diagram elements [diagramElementsArray];
- * @returns Returns a dictionary of action links [actionDict].
+ * @brief This function collects the elements that are in the mermaid state diagram;
+ * @param transitions - array of transitions;
+ * @returns Returns an array of diagram elements.
  */
-function getActions(
-	directions: directionsArray,
-	diagramElements: diagramElementsArray
-): actionDict {
-	const actions: actionDict = {};
+function getStates(
+	parsedDiagram: TBaseTypes.TParsedDiagramArray,
+	transitions: TBaseTypes.TTransitionsArray
+): TBaseTypes.TStatesStructure {
+	const diagramStates: TBaseTypes.TStatesStructure = [];
 
-	for (let i = 0; i < diagramElements.length; i++) {
-		const elementI = diagramElements[i];
-		actions[elementI] = {};
-		for (let j = 0; j < diagramElements.length; j++) {
-			const elementJ = diagramElements[j];
-			actions[elementI][elementJ] = null;
+	const stateCaptions: Record<string, string> =
+		getStatesCaption(parsedDiagram);
+
+	const stateCaptionKeys = Object.keys(stateCaptions);
+	const visited: string[] = [];
+	for (let i = 0; i < transitions.length; i++) {
+		for (let j = 0; j < 2; j++) {
+			const element = transitions[i][j];
+			if (!visited.includes(element)) {
+				const state: TBaseTypes.TState = {
+					id: element,
+					caption: element,
+				};
+				if (stateCaptionKeys.includes(element)) {
+					state.caption = stateCaptions[element];
+				}
+				diagramStates.push(state);
+				visited.push(element);
+			}
 		}
 	}
 
-	for (let i = 0; i < directions.length; i++) {
-		const pairOfElements = directions[i];
-		const from = pairOfElements[0];
-		const to = pairOfElements[1];
-		const description = pairOfElements[2];
+	return diagramStates;
+}
 
-		if (actions[from][to] === null) {
-			actions[from][to] = [description];
-		} else {
-			//@ts-ignore
-			actions[from][to].push(description);
+/**
+ * @brief A function that finds choice elements;
+ * @param parsedDiagram - a primary diagram dictionary;
+ * @returns Returns array with choice elements;
+ */
+function getChoices(
+	parsedDiagram: TBaseTypes.TParsedDiagramArray
+): TBaseTypes.TChoicesStructure {
+	const choices: TBaseTypes.TChoicesStructure = [];
+
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				const stateType = parsedDiagram[i].type;
+
+				if (stateType === 'choice') {
+					const choiceElement = parsedDiagram[i].id as string;
+					const choice: TBaseTypes.TChoice = {
+						id: choiceElement,
+					};
+					choices.push(choice);
+				}
+			}
 		}
 	}
 
-	return actions;
+	return choices;
+}
+
+/**
+ * @brief A function that finds fork and join elements;
+ * @param parsedDiagram - a primary diagram dictionary;
+ * @returns Returns array with fork and join elements;
+ */
+function getForks(
+	parsedDiagram: TBaseTypes.TParsedDiagramArray
+): TBaseTypes.TForksStructure {
+	const forks: TBaseTypes.TForksStructure = [];
+
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				const stateType = parsedDiagram[i].type;
+
+				if (stateType === 'fork' || stateType === 'join') {
+					const forkElement = parsedDiagram[i].id as string;
+					const fork: TBaseTypes.TFork = {
+						id: forkElement,
+					};
+					forks.push(fork);
+				}
+			}
+		}
+	}
+
+	return forks;
 }
 
 /**
  * @brief A function that extracts notes from the state diagram;
- * @param parsedDiargam - a primary diagram dictionary;
- * @param diagramElements - array of diagram elements [string[]];
- * @returns Returns a dictionary of notes from the state diagram [noteDict].
+ * @param parsedDiagram - a primary diagram dictionary;
+ * @param diagramStates - array of diagram elements;
+ * @returns Returns a dictionary of notes from the state diagram.
  */
 function getNotes(
-	parsedDiargam: any,
-	diagramElements: diagramElementsArray
-): noteDict {
-	const notes: noteDict = {};
-
-	for (let i = 0; i < diagramElements.length; i++) {
-		const elementI = diagramElements[i];
-		notes[elementI] = null;
-	}
-
-	for (let i = 0; i < parsedDiargam.length; i++) {
-		if (parsedDiargam[i].stmt === 'state') {
-			const keys = Object.keys(parsedDiargam[i]);
+	parsedDiagram: TBaseTypes.TParsedDiagramArray
+): TBaseTypes.TNotesStructure {
+	const notes: TBaseTypes.TNotesStructure = [];
+	const visited: Record<string, number> = {};
+	let visited_count = 0;
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
 
 			if (keys.includes('note')) {
-				const noteKeys = Object.keys(parsedDiargam[i].note);
+				const noteKeys = Object.keys(parsedDiagram[i].note);
 
 				if (noteKeys.includes('text')) {
-					const from: string = parsedDiargam[i].id;
-					const noteText: string = parsedDiargam[i].note.text;
+					const from: string = parsedDiagram[i].id as string;
 
-					if (notes[from] === null) {
-						notes[from] = [noteText];
+					const parsedDiagramNote: Record<string, string> =
+						parsedDiagram[i].note as Record<string, string>;
+
+					const noteText: string = parsedDiagramNote.text;
+
+					const visitedKeys = Object.keys(visited);
+					if (visitedKeys.includes(from)) {
+						notes[visited[from]].text.push(noteText);
 					} else {
-						//@ts-ignore
-						notes[from].push(noteText);
+						const note: TBaseTypes.TNote = {
+							text: [noteText],
+							over: from,
+						};
+						notes.push(note);
+						visited[from] = visited_count;
+						visited_count++;
 					}
 				}
 			}
@@ -166,112 +244,30 @@ function getNotes(
 }
 
 /**
- * @brief A function that collects suspicious action links without description;
- * @param directions - array of directions [directionsArray];
- * @returns Returns array with suspicious action links without description [any[]];
+ * @brief This function creates a dictionary of transitions action;
+ * @param transitions - array of transitions;
+ * @returns Returns a dictionary of transitions action.
  */
-function findSusDirections(directions: directionsArray): directionsArray {
-	const susDirections: directionsArray = [];
+function getActions(
+	transitions: TBaseTypes.TTransitionsArray
+): TBaseTypes.TActionsStructure {
+	const actions: TBaseTypes.TActionsStructure = [];
 
-	for (let i = 0; i < directions.length; i++) {
-		if (directions[i][2] === '') {
-			susDirections.push(directions[i]);
+	for (let i = 0; i < transitions.length; i++) {
+		const from = transitions[i][0];
+		const to = transitions[i][1];
+		let id = transitions[i][2];
+		if (id === '') {
+			id = from + ', ' + to + ', ' + String(i);
 		}
+		const action: TBaseTypes.TAction = {
+			from: from,
+			to: to,
+			id: id,
+		};
+		actions.push(action);
 	}
-	return susDirections;
-}
-
-/**
- * @brief A function that finds "fork (choice) elements";
- * @param parsedDiargam - a primary diagram dictionary;
- * @returns Returns array with "fork (choice) elements" [string[]];
- */
-function findChoices(parsedDiargam: any): string[] {
-	const choices: string[] = [];
-
-	for (let i = 0; i < parsedDiargam.length; i++) {
-		if (parsedDiargam[i].stmt === 'state') {
-			const keys = Object.keys(parsedDiargam[i]);
-			if (keys.includes('type')) {
-				const stateType = parsedDiargam[i].type;
-
-				if (stateType === 'choice') {
-					const choiceElement = parsedDiargam[i].id;
-					choices.push(choiceElement);
-				}
-			}
-		}
-	}
-
-	return choices;
-}
-
-/**
- * @brief A function that complements the action links with descriptions from the "fork elements";
- * @param parsedDiargam - a primary diagram dictionary;
- * @param directions - array of directions [DirectionsArray];
- * @param mermaidGraph - main dictionary with information from the diagram;
- * @returns Returns updated "mermaid-graph".
- */
-function markChoices(
-	parsedDiargam: any,
-	directions: directionsArray,
-	mermaidGraph: mermaidGraphDict
-) {
-	const choices = findChoices(parsedDiargam);
-
-	for (let k = 0; k < choices.length; k++) {
-		const choice: string = choices[k];
-
-		const branch = mermaidGraph['actions'][choice];
-		for (let i = 0; i < directions.length; i++) {
-			const toChoice = directions[i][1];
-
-			if (toChoice === choice) {
-				const from = directions[i][0];
-				const choiceDescription = directions[i][2];
-
-				for (const to in mermaidGraph['actions'][from]) {
-					if (branch[to] !== null) {
-						if (mermaidGraph['actions'][from][to] === null) {
-							//mermaidGraph['actions'][from][to] = branch[to]
-							mermaidGraph['actions'][from][to] = [
-								choiceDescription,
-							];
-						} else {
-							mermaidGraph['actions'][from][to] = (
-								mermaidGraph['actions'][from][to] || []
-							).concat(choiceDescription);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return mermaidGraph;
-}
-
-/**
- * @brief A function that builds a dictionary with information from the diagram;
- * @param parsedDiargam - a primary diagram dictionary;
- * @param directions - array of directions [DirectionsArray];
- * @param diagramElements - array of diagram elements [diagramElementsArray];
- * @returns Returns dictionary with information from the diagram [mermaidGraphDict].
- */
-function markGraph(
-	parsedDiargam: any,
-	directions: directionsArray,
-	diagramElements: diagramElementsArray
-): mermaidGraphDict {
-	const mermaidGraph: mermaidGraphDict = {
-		actions: getActions(directions, diagramElements),
-		notes: getNotes(parsedDiargam, diagramElements),
-		states: diagramElements,
-		susDirections: findSusDirections(directions),
-	};
-
-	return mermaidGraph;
+	return actions;
 }
 
 /**
@@ -281,20 +277,20 @@ function markGraph(
  */
 export async function parseStateDiagram(
 	diagramText: string
-): Promise<mermaidGraphDict> {
-	const parsedDiargam: any = await diagramParser(diagramText);
-	const directions: directionsArray = getDirections(parsedDiargam);
-	const diagramElements: diagramElementsArray =
-		getDiagramElements(directions);
-	let stateMermaidGraph: mermaidGraphDict = markGraph(
-		parsedDiargam,
-		directions,
-		diagramElements
+): Promise<TBaseTypes.TStateDiagramStructure> {
+	const parsedDiagram: TBaseTypes.TParsedDiagramArray = await diagramParser(
+		diagramText
 	);
-	stateMermaidGraph = markChoices(
-		parsedDiargam,
-		directions,
-		stateMermaidGraph
-	);
-	return stateMermaidGraph;
+
+	const transitions: TBaseTypes.TTransitionsArray =
+		getTransitions(parsedDiagram);
+
+	const stateDiagramStructure: TBaseTypes.TStateDiagramStructure = {
+		states: getStates(parsedDiagram, transitions),
+		actions: getActions(transitions),
+		notes: getNotes(parsedDiagram),
+		choices: getChoices(parsedDiagram),
+		forks: getForks(parsedDiagram),
+	};
+	return stateDiagramStructure;
 }

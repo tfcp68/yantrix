@@ -32,7 +32,7 @@ import {
 export interface IAutomataEventContainer<
 	EventType extends TAutomataBaseEventType
 > {
-	validateEvent?: TValidator<EventType>;
+	validateEvent: TValidator<EventType>;
 
 	setEventValidator(eventValidator?: TValidator<EventType>): this;
 }
@@ -40,7 +40,7 @@ export interface IAutomataEventContainer<
 export interface IAutomataStateContainer<
 	StateType extends TAutomataBaseStateType
 > {
-	validateState?: TValidator<StateType>;
+	validateState: TValidator<StateType>;
 
 	setStateValidator(stateValidator?: TValidator<StateType>): this;
 }
@@ -50,7 +50,7 @@ export interface IAutomataActionContainer<
 > {
 	validateAction: TValidator<ActionType>;
 
-	setActionValidator(actionValidator?: TValidator<ActionType>): this;
+	setActionValidator(actionValidator?: TValidator<ActionType> | null): this;
 }
 
 export interface IAutomataValidatorContainer<

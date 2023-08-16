@@ -4,6 +4,7 @@ export type TAutomataBaseEventType = number;
 
 export interface IBaseClass {
 	next?: () => this;
+	correlationId: string;
 }
 
 export type TAbstractConstructor<T = {}> = new (...args: any[]) => T;

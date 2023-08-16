@@ -4,27 +4,22 @@ import {
 	TAutomataBaseActionType,
 	TValidator,
 } from '../types/index.js';
-import { IAutomataExtendedActionContainer } from '../types/interfaces.js';
-import { BasicActionContainer } from './BasicActionContainer.js';
+import BasicActionContainer from './BasicActionContainer.js';
 
-export function ExtendedActionContainer<
+export default function ExtendedActionContainer<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any }
 >() {
-	return <TBase extends TAbstractConstructor>(
-		Proto: TBase
-	): TAbstractConstructor<
-		IAutomataExtendedActionContainer<ActionType, PayloadType>
-	> =>
+	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractExtendedActionContainer extends BasicActionContainer<ActionType>()(
 			Proto
 		) {
-			#payloadValidator?: TValidator<
+			_payloadValidator?: TValidator<
 				TAutomataActionPayload<ActionType, PayloadType>
 			>;
 
 			get validateActionPayload() {
-				return this.#payloadValidator ?? this.#defaultPayloadValidator;
+				return this._payloadValidator ?? this._defaultPayloadValidator;
 			}
 
 			setActionPayloadValidator(
@@ -33,18 +28,18 @@ export function ExtendedActionContainer<
 				>
 			): this {
 				if (payloadValidator === null) {
-					this.#payloadValidator = undefined;
+					this._payloadValidator = undefined;
 					return this;
 				}
 				if (typeof payloadValidator !== 'function')
 					throw new Error(
 						`passed Payload Validator is not a function`
 					);
-				this.#payloadValidator = payloadValidator.bind(this);
+				this._payloadValidator = payloadValidator.bind(this);
 				return this;
 			}
 
-			#defaultPayloadValidator = (
+			_defaultPayloadValidator = (
 				p: any
 			): p is TAutomataActionPayload<ActionType, PayloadType> =>
 				!!this.validateAction &&
@@ -53,5 +48,3 @@ export function ExtendedActionContainer<
 				typeof p.payload === 'object';
 		};
 }
-
-export default ExtendedActionContainer;
