@@ -24,46 +24,47 @@ import {
 	TAutomataReducer,
 	TAutomataStateContext,
 	TContextTransformer,
+	TEventBusHandler,
 	TSubscriptionCancelFunction,
 	TValidator,
 } from './index.js';
 
-export interface TAutomataEventContainer<
+export interface IAutomataEventContainer<
 	EventType extends TAutomataBaseEventType
 > {
-	validateEvent?: TValidator<EventType>;
+	validateEvent: TValidator<EventType>;
 
 	setEventValidator(eventValidator?: TValidator<EventType>): this;
 }
 
-export interface TAutomataStateContainer<
+export interface IAutomataStateContainer<
 	StateType extends TAutomataBaseStateType
 > {
-	validateState?: TValidator<StateType>;
+	validateState: TValidator<StateType>;
 
 	setStateValidator(stateValidator?: TValidator<StateType>): this;
 }
 
-export interface TAutomataActionContainer<
+export interface IAutomataActionContainer<
 	ActionType extends TAutomataBaseActionType
 > {
-	validateAction?: TValidator<ActionType>;
+	validateAction: TValidator<ActionType>;
 
-	setActionValidator(actionValidator?: TValidator<ActionType>): this;
+	setActionValidator(actionValidator?: TValidator<ActionType> | null): this;
 }
 
 export interface IAutomataValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
 	EventType extends TAutomataBaseEventType
-> extends TAutomataEventContainer<EventType>,
-		TAutomataStateContainer<StateType>,
-		TAutomataActionContainer<ActionType> {}
+> extends IAutomataEventContainer<EventType>,
+		IAutomataStateContainer<StateType>,
+		IAutomataActionContainer<ActionType> {}
 
 export interface IAutomataExtendedActionContainer<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any }
-> extends TAutomataActionContainer<ActionType> {
+> extends IAutomataActionContainer<ActionType> {
 	validateActionPayload: TValidator<
 		TAutomataActionPayload<ActionType, PayloadType>
 	>;
@@ -78,7 +79,7 @@ export interface IAutomataExtendedActionContainer<
 export interface IAutomataExtendedStateContainer<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends { [K in StateType]: any }
-> extends TAutomataStateContainer<StateType> {
+> extends IAutomataStateContainer<StateType> {
 	validateContext: TValidator<TAutomataStateContext<StateType, ContextType>>;
 
 	setContextValidator(
@@ -91,7 +92,7 @@ export interface IAutomataExtendedStateContainer<
 export interface IAutomataExtendedEventContainer<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any }
-> extends TAutomataEventContainer<EventType> {
+> extends IAutomataEventContainer<EventType> {
 	validateEventMeta: TValidator<
 		TAutomataEventMetaType<EventType, EventMetaType>
 	>;
@@ -427,7 +428,7 @@ export interface IAutomataSlice<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 	ModelType extends object = Record<string, any>
-> extends TAutomataEventContainer<EventType> {
+> extends IAutomataEventContainer<EventType> {
 	getMachines: Record<string, IAutomata<any, any, EventType>>;
 	addMachine: <
 		StateType extends TAutomataBaseStateType,
@@ -447,10 +448,15 @@ export interface IAutomataSlice<
 	) => this;
 	removeMachine: (machineId: string) => this;
 	getCompositeState: Record<string, TAutomataStateContext<any, any>>;
-	restoreState: (
+
+	restoreState: <
+		StateType extends TAutomataBaseStateType,
+		ContextType extends { [K in StateType]: any } = Record<StateType, any>
+	>(
 		machineId: string,
-		state: TAutomataStateContext<any, any>
+		state: TAutomataStateContext<StateType, ContextType>
 	) => this;
+
 	restoreCompositeState: (
 		compositeState: Record<string, TAutomataStateContext<any, any>>
 	) => this;
@@ -473,4 +479,27 @@ export interface IAutomataSlice<
 	getEventEffects: (
 		event: EventType
 	) => Array<TAutomataEffect<ModelType, EventType>>;
+}
+
+export interface IAutomataEventBus<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+> extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
+	subscribe: (
+		event: EventType,
+		callback: TEventBusHandler<EventType, EventMetaType>
+	) => this;
+	unsubscribe: (
+		event: EventType,
+		callback: null | TEventBusHandler<EventType, EventMetaType>
+	) => this;
+	dispatch: (
+		...events: TAutomataEventStack<EventType, EventMetaType>
+	) => this;
+	getEventStack: () => TAutomataEventStack<EventType, EventMetaType>;
+	clearEventStack: () => this;
+	pause: () => this;
+	resume: () => this;
+	isRunning: () => boolean;
+	processEvents: () => TAutomataEventStack<EventType, EventMetaType>;
 }

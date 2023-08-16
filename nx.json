@@ -18,7 +18,7 @@
 				"{workspaceRoot}/__tests__/**/*.ts",
 				"{workspaceRoot}/src/**/*.ts"
 			],
-			"outputs": ["coverage/**"],
+			"outputs": ["{projectRoot}/docs/coverage/**"],
 			"outputMode": "new-only"
 		}
 	}

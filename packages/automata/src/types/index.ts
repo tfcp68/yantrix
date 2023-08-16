@@ -2,6 +2,23 @@ export type TAutomataBaseStateType = number;
 export type TAutomataBaseActionType = number;
 export type TAutomataBaseEventType = number;
 
+export interface IBaseClass {
+	next?: () => this;
+	correlationId: string;
+}
+
+export type TAbstractConstructor<T = {}> = new (...args: any[]) => T;
+export type TAbstractFunction<T = any> = (...args: any[]) => T;
+export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;
+
+export type TMergeClassTrait<
+	TTrait extends TAbstractConstructor,
+	TTarget extends TAbstractConstructor
+> = (new (...a: ConstructorParameters<TTarget>) => InstanceType<TTrait> &
+	InstanceType<TTarget>) &
+	Pick<TTarget, keyof TTarget> &
+	Pick<TTrait, keyof TTrait>;
+
 export type TAutomataStateContainer<StateType extends TAutomataBaseStateType> =
 	{
 		state: StateType | null;
@@ -154,12 +171,27 @@ export type TContextPredicate<
 	} = Record<StateType, any>
 > = (
 	context: TAutomataStateContext<StateType, ContextType>
-) => (predicate: (...args: any[]) => boolean) => boolean;
+) => THighOrderPredicate;
 
 export type TModelPredicate<ModelType extends object = Record<string, any>> = (
 	model: ModelType
-) => (predicate: (...args: any[]) => boolean) => boolean;
+) => THighOrderPredicate;
 
-export type TGenericPredicate = (
+export type THighOrderPredicate = (
 	...predicates: Array<(...args: any[]) => boolean>
 ) => boolean;
+
+export type TEventBusTask<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+> = TAutomataEventMetaType<EventType, EventMetaType> & {
+	task_id: string;
+	result: Promise<TAutomataEventStack<EventType, EventMetaType>>;
+};
+
+export type TEventBusHandler<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+> = (
+	event: TAutomataEventMetaType<EventType, EventMetaType>
+) => TEventBusTask<EventType, EventMetaType>;

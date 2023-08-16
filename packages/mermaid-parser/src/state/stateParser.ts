@@ -1,6 +1,5 @@
 import mermaid from 'mermaid';
-import * as TBaseTypes from "./types/index.js"
-
+import * as TBaseTypes from './types/index.js';
 
 /**
  * @brief Function that parses a diagram;
@@ -9,12 +8,12 @@ import * as TBaseTypes from "./types/index.js"
  */
 async function diagramParser(
 	diagramText: string
-	): Promise<TBaseTypes.TParsedDiagramArray> {
-
+): Promise<TBaseTypes.TParsedDiagramArray> {
 	mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
 	await mermaid.mermaidAPI.initialize();
 	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
-	const parsedDiagram: TBaseTypes.TParsedDiagramArray = diagram.db.getRootDoc();
+	const parsedDiagram: TBaseTypes.TParsedDiagramArray =
+		diagram.db.getRootDoc();
 
 	return parsedDiagram;
 }
@@ -26,19 +25,18 @@ async function diagramParser(
  */
 function getTransitions(
 	parsedDiagram: TBaseTypes.TParsedDiagramArray
-	): TBaseTypes.TTransitionsArray {
-
+): TBaseTypes.TTransitionsArray {
 	const transitions: TBaseTypes.TTransitionsArray = [];
 
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'relation') {
 			const directionI: string[] = [];
 
-			const temp_st1: Record<string, string> = 
-			parsedDiagram[i].state1 as Record<string, string>;
+			const temp_st1: Record<string, string> = parsedDiagram[i]
+				.state1 as Record<string, string>;
 
-			const temp_st2: Record<string, string> = 
-			parsedDiagram[i].state2 as Record<string, string>;
+			const temp_st2: Record<string, string> = parsedDiagram[i]
+				.state2 as Record<string, string>;
 
 			const st1: string = temp_st1.id;
 			const st2: string = temp_st2.id;
@@ -80,20 +78,18 @@ function getTransitions(
  */
 function getStatesCaption(
 	parsedDiagram: TBaseTypes.TParsedDiagramArray
-	): Record<string, string> {
-
+): Record<string, string> {
 	const stateCaptions: Record<string, string> = {};
 
-	for(let i = 0; i < parsedDiagram.length; i++) {
-		if(parsedDiagram[i].stmt === 'state') {
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
 			const keys = Object.keys(parsedDiagram[i]);
 			if (keys.includes('type')) {
-				if(parsedDiagram[i].type === 'default') {
-					const state_id: string = 
-					parsedDiagram[i].id as string;
+				if (parsedDiagram[i].type === 'default') {
+					const state_id: string = parsedDiagram[i].id as string;
 
-					const state_desc: string = 
-					parsedDiagram[i].description as string;
+					const state_desc: string = parsedDiagram[i]
+						.description as string;
 
 					stateCaptions[state_id] = state_desc;
 				}
@@ -110,14 +106,13 @@ function getStatesCaption(
  * @returns Returns an array of diagram elements.
  */
 function getStates(
-	parsedDiagram: TBaseTypes.TParsedDiagramArray, 
+	parsedDiagram: TBaseTypes.TParsedDiagramArray,
 	transitions: TBaseTypes.TTransitionsArray
-	): TBaseTypes.TStatesStructure {
-
+): TBaseTypes.TStatesStructure {
 	const diagramStates: TBaseTypes.TStatesStructure = [];
 
-	const stateCaptions: Record<string, string> = 
-	getStatesCaption(parsedDiagram);
+	const stateCaptions: Record<string, string> =
+		getStatesCaption(parsedDiagram);
 
 	const stateCaptionKeys = Object.keys(stateCaptions);
 	const visited: string[] = [];
@@ -127,7 +122,7 @@ function getStates(
 			if (!visited.includes(element)) {
 				const state: TBaseTypes.TState = {
 					id: element,
-					caption: element
+					caption: element,
 				};
 				if (stateCaptionKeys.includes(element)) {
 					state.caption = stateCaptions[element];
@@ -148,9 +143,8 @@ function getStates(
  */
 function getChoices(
 	parsedDiagram: TBaseTypes.TParsedDiagramArray
-	): TBaseTypes.TChoicesStructure  {
-
-	const choices: TBaseTypes.TChoicesStructure  = [];
+): TBaseTypes.TChoicesStructure {
+	const choices: TBaseTypes.TChoicesStructure = [];
 
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
@@ -161,7 +155,7 @@ function getChoices(
 				if (stateType === 'choice') {
 					const choiceElement = parsedDiagram[i].id as string;
 					const choice: TBaseTypes.TChoice = {
-						id: choiceElement
+						id: choiceElement,
 					};
 					choices.push(choice);
 				}
@@ -179,9 +173,8 @@ function getChoices(
  */
 function getForks(
 	parsedDiagram: TBaseTypes.TParsedDiagramArray
-	): TBaseTypes.TForksStructure  {
-
-	const forks: TBaseTypes.TForksStructure  = [];
+): TBaseTypes.TForksStructure {
+	const forks: TBaseTypes.TForksStructure = [];
 
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
@@ -192,8 +185,8 @@ function getForks(
 				if (stateType === 'fork' || stateType === 'join') {
 					const forkElement = parsedDiagram[i].id as string;
 					const fork: TBaseTypes.TFork = {
-						id: forkElement
-					}
+						id: forkElement,
+					};
 					forks.push(fork);
 				}
 			}
@@ -211,8 +204,7 @@ function getForks(
  */
 function getNotes(
 	parsedDiagram: TBaseTypes.TParsedDiagramArray
-	): TBaseTypes.TNotesStructure {
-
+): TBaseTypes.TNotesStructure {
 	const notes: TBaseTypes.TNotesStructure = [];
 	const visited: Record<string, number> = {};
 	let visited_count = 0;
@@ -226,25 +218,23 @@ function getNotes(
 				if (noteKeys.includes('text')) {
 					const from: string = parsedDiagram[i].id as string;
 
-					const parsedDiagramNote: Record<string, string> = 
-					parsedDiagram[i].note as Record<string, string>;
+					const parsedDiagramNote: Record<string, string> =
+						parsedDiagram[i].note as Record<string, string>;
 
 					const noteText: string = parsedDiagramNote.text;
-					
+
 					const visitedKeys = Object.keys(visited);
 					if (visitedKeys.includes(from)) {
 						notes[visited[from]].text.push(noteText);
-					}
-					else {
+					} else {
 						const note: TBaseTypes.TNote = {
 							text: [noteText],
-							over: from
+							over: from,
 						};
 						notes.push(note);
 						visited[from] = visited_count;
 						visited_count++;
-					} 
-					
+					}
 				}
 			}
 		}
@@ -260,11 +250,10 @@ function getNotes(
  */
 function getActions(
 	transitions: TBaseTypes.TTransitionsArray
-	): TBaseTypes.TActionsStructure {
-
+): TBaseTypes.TActionsStructure {
 	const actions: TBaseTypes.TActionsStructure = [];
 
-	for(let i = 0; i < transitions.length; i++) {
+	for (let i = 0; i < transitions.length; i++) {
 		const from = transitions[i][0];
 		const to = transitions[i][1];
 		let id = transitions[i][2];
@@ -274,7 +263,7 @@ function getActions(
 		const action: TBaseTypes.TAction = {
 			from: from,
 			to: to,
-			id:  id
+			id: id,
 		};
 		actions.push(action);
 	}
@@ -288,20 +277,20 @@ function getActions(
  */
 export async function parseStateDiagram(
 	diagramText: string
-	): Promise<TBaseTypes.TStateDiagramStructure> {
+): Promise<TBaseTypes.TStateDiagramStructure> {
+	const parsedDiagram: TBaseTypes.TParsedDiagramArray = await diagramParser(
+		diagramText
+	);
 
-	const parsedDiagram: TBaseTypes.TParsedDiagramArray = 
-	await diagramParser(diagramText);
-	
-	const transitions: TBaseTypes.TTransitionsArray = 
-	getTransitions(parsedDiagram);
+	const transitions: TBaseTypes.TTransitionsArray =
+		getTransitions(parsedDiagram);
 
 	const stateDiagramStructure: TBaseTypes.TStateDiagramStructure = {
 		states: getStates(parsedDiagram, transitions),
 		actions: getActions(transitions),
 		notes: getNotes(parsedDiagram),
 		choices: getChoices(parsedDiagram),
-		forks: getForks(parsedDiagram)
+		forks: getForks(parsedDiagram),
 	};
 	return stateDiagramStructure;
 }

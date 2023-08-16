@@ -32,5 +32,5 @@
 		"target": "ES2021",
 		"useDefineForClassFields": true
 	},
-	"exclude": ["node_modules", "**/*.test.ts"]
+	"exclude": ["node_modules"]
 }

@@ -1,6 +1,6 @@
 //import { parseStateDiagram } from '@yantrix/mermaid-parser'
-import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js'
-import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js'
+import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js';
+import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js';
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
@@ -18,7 +18,7 @@ IN_GAME --> [*]: EXIT
 IN_GAME --> SCORE_SCREEN: END_GAME
 IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
-SCORE_SCREEN --> [*]: EXIT`
+SCORE_SCREEN --> [*]: EXIT`;
 
 const input2 = `stateDiagram-v2
 direction LR
@@ -75,7 +75,7 @@ CROP_COLOR --> FINISHED: CHOOSE_COLOR (color)
 CROP_COLOR --> CROP_COLOR: HOVER (index)
 CROP_COLOR --> [*]: QUIT
 FINISHED --> [*]
-end`
+end`;
 
 const input3 = `stateDiagram-v2
 [*] --> PLANNED: RESET
@@ -95,7 +95,7 @@ isLimitReached --> LAST_TURN: Coin Limit Reached
 LAST_TURN --> LAST_TURN: TURN_START
 LAST_TURN --> LAST_TURN: TURN_PHASE_START
 LAST_TURN --> LAST_TURN: TURN_PHASE_END
-LAST_TURN --> FINISHED: TURN_END`
+LAST_TURN --> FINISHED: TURN_END`;
 
 const input4 = `stateDiagram-v2
 direction LR
@@ -147,7 +147,7 @@ note right of EFFECT_APPLIED
     listen/applyEffect => APPLY_EFFECT
 end note
 EFFECT_APPLIED --> IDLE: APPLY_EFFECT
-FINISHED --> [*]`
+FINISHED --> [*]`;
 
 const diagramText = `stateDiagram-v2
     [*] --> IDLE: RESET
@@ -184,15 +184,13 @@ const diagramText = `stateDiagram-v2
     EFFECT_APPLIANCE --> IDLE: EFFECT_APPLIED
     EFFECT_TARGETING --> IDLE: SKIP`;
 
-const flowDiagram = 'flowchart TD\n' +
+const flowDiagram =
+	'flowchart TD\n' +
 	'    A[Christmas] -->|Get money| B(Go shopping)\n' +
 	'    B --> C{Let me think}\n' +
 	'    C -->|One| D[Laptop]\n' +
 	'    C -->|Two| E[iPhone]\n' +
 	'    C -->|Three| F[fa:fa-car Car]';
-
-
-
 
 const seqDiagram1 = `sequenceDiagram
 actor V as Vladimir
@@ -210,13 +208,13 @@ P--)V: Great 8!
 deactivate P
 Note over V,P: Friends
 Note over V: Grade 8
-Note over P: 1st year student`
+Note over P: 1st year student`;
 
 const seqDiagram2 = `sequenceDiagram
 Alice->>+John: Hello John, how are you?
 Alice->>+John: John, can you hear me?
 John-->>-Alice: Hi Alice, I can hear you!
-John-->>-Alice: I feel great!`
+John-->>-Alice: I feel great!`;
 
 const seqDiagram3 = `sequenceDiagram
 participant web as Web Browser
@@ -246,7 +244,7 @@ else Credentials found
     and Response
         blog-->>-web: Successfully posted
     end
-end`
+end`;
 
 const seqDiagram4 = `sequenceDiagram
 participant Alice
@@ -260,7 +258,7 @@ Note right of John: Rational thoughts<br/>prevail...
 John-->>-Alice: Great!
 John->>+Bob: How about you?
 Bob-->>-John: Jolly good!
-`
+`;
 
 const seqDiagram5 = `sequenceDiagram
 participant A as Alice
@@ -294,7 +292,7 @@ Note over C,C: test18
 Note over C,D: test19
 Note over F,H: test20
 
-A-->>I: Hello!`
+A-->>I: Hello!`;
 
 const seqDiagram6 = `sequenceDiagram
 participant Alice
@@ -325,7 +323,7 @@ end
 Note right of John: Rational thoughts<br/>prevail...
 John-->>-Alice: Great!
 John->>+Bob: How about you?
-Bob-->>-John: Jolly good!`
+Bob-->>-John: Jolly good!`;
 
 const stateInput1 = `stateDiagram-v2
 state hasMoney <<choice>>
@@ -338,7 +336,7 @@ note right of hasMoney
 end note
 SHOP --> goHome
 WORK --> goHome
-goHome --> [*]: Сome back home`
+goHome --> [*]: Сome back home`;
 
 const stateInput2 = `stateDiagram-v2
 state c1 <<choice>>
@@ -365,7 +363,7 @@ c1 --> s7: t7
 
 s5 --> [*]
 s6 --> [*]
-s7 --> [*]`
+s7 --> [*]`;
 
 const stateInput3 = `stateDiagram-v2
 state test01 <<fork>>
@@ -377,10 +375,10 @@ state test01 <<fork>>
   State2 --> test02
   State3 --> test02
   test02 --> State4
-  State4 --> [*]`
+  State4 --> [*]`;
 /*
 const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 */
-const a = await parseStateDiagram(diagramText)
-console.log(a)
+const a = await parseStateDiagram(diagramText);
+console.log(a);
