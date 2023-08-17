@@ -30,7 +30,7 @@ import {
 } from './index.js';
 
 export interface IAutomataEventContainer<
-	EventType extends TAutomataBaseEventType
+	EventType extends TAutomataBaseEventType,
 > {
 	validateEvent: TValidator<EventType>;
 
@@ -38,7 +38,7 @@ export interface IAutomataEventContainer<
 }
 
 export interface IAutomataStateContainer<
-	StateType extends TAutomataBaseStateType
+	StateType extends TAutomataBaseStateType,
 > {
 	validateState: TValidator<StateType>;
 
@@ -46,7 +46,7 @@ export interface IAutomataStateContainer<
 }
 
 export interface IAutomataActionContainer<
-	ActionType extends TAutomataBaseActionType
+	ActionType extends TAutomataBaseActionType,
 > {
 	validateAction: TValidator<ActionType>;
 
@@ -56,14 +56,14 @@ export interface IAutomataActionContainer<
 export interface IAutomataValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
-	EventType extends TAutomataBaseEventType
+	EventType extends TAutomataBaseEventType,
 > extends IAutomataEventContainer<EventType>,
 		IAutomataStateContainer<StateType>,
 		IAutomataActionContainer<ActionType> {}
 
 export interface IAutomataExtendedActionContainer<
 	ActionType extends TAutomataBaseActionType,
-	PayloadType extends { [K in ActionType]: any }
+	PayloadType extends { [K in ActionType]: any },
 > extends IAutomataActionContainer<ActionType> {
 	validateActionPayload: TValidator<
 		TAutomataActionPayload<ActionType, PayloadType>
@@ -72,26 +72,26 @@ export interface IAutomataExtendedActionContainer<
 	setActionPayloadValidator(
 		actionPayloadValidator?: TValidator<
 			TAutomataActionPayload<ActionType, PayloadType>
-		>
+		>,
 	): this;
 }
 
 export interface IAutomataExtendedStateContainer<
 	StateType extends TAutomataBaseStateType,
-	ContextType extends { [K in StateType]: any }
+	ContextType extends { [K in StateType]: any },
 > extends IAutomataStateContainer<StateType> {
 	validateContext: TValidator<TAutomataStateContext<StateType, ContextType>>;
 
 	setContextValidator(
 		contextValidator?: TValidator<
 			TAutomataStateContext<StateType, ContextType>
-		>
+		>,
 	): this;
 }
 
 export interface IAutomataExtendedEventContainer<
 	EventType extends TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any }
+	EventMetaType extends { [K in EventType]: any },
 > extends IAutomataEventContainer<EventType> {
 	validateEventMeta: TValidator<
 		TAutomataEventMetaType<EventType, EventMetaType>
@@ -100,7 +100,7 @@ export interface IAutomataExtendedEventContainer<
 	setEventMetaValidator(
 		eventMetaValidator?: TValidator<
 			TAutomataEventMetaType<EventType, EventMetaType>
-		>
+		>,
 	): this;
 }
 
@@ -110,7 +110,7 @@ export interface IAutomataExtendedValidatorContainer<
 	EventType extends TAutomataBaseEventType,
 	ContextType extends { [K in StateType]: any },
 	PayloadType extends { [K in ActionType]: any },
-	EventMetaType extends { [K in EventType]: any }
+	EventMetaType extends { [K in EventType]: any },
 > extends IAutomataValidatorContainer<StateType, ActionType, EventType>,
 		IAutomataExtendedActionContainer<ActionType, PayloadType>,
 		IAutomataExtendedEventContainer<EventType, EventMetaType>,
@@ -122,7 +122,7 @@ export interface IAutomataEventAdapter<
 	EventType extends TAutomataBaseEventType,
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends IAutomataValidatorContainer<StateType, ActionType, EventType> {
 	addEventListener: <T extends EventType>(
 		type: T,
@@ -131,21 +131,26 @@ export interface IAutomataEventAdapter<
 			ActionType,
 			EventMetaType,
 			PayloadType
-		>
+		>,
 	) => null | TSubscriptionCancelFunction;
 	addEventEmitter: <T extends StateType>(
 		on: T,
-		emitter: TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>
+		emitter: TAutomataEventEmitter<
+			EventType,
+			T,
+			EventMetaType,
+			ContextType
+		>,
 	) => null | TSubscriptionCancelFunction;
 	handleEvent: <T extends EventType>(
-		event: TAutomataEventMetaType<T, EventMetaType>
+		event: TAutomataEventMetaType<T, EventMetaType>,
 	) => Array<
 		ReturnType<
 			TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>
 		>
 	>;
 	handleTransition: <T extends StateType>(
-		newState: TAutomataStateContext<T, ContextType>
+		newState: TAutomataStateContext<T, ContextType>,
 	) => Array<
 		ReturnType<
 			TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>
@@ -165,7 +170,7 @@ export interface IAutomata<
 		[K in StateType]: any;
 	} = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends TAutomataStateContext<StateType, ContextType>,
 		IAutomataValidatorContainer<StateType, ActionType, EventType> {
 	eventAdapter: IAutomataEventAdapter<
@@ -188,7 +193,7 @@ export interface IAutomata<
 			ContextType,
 			PayloadType,
 			EventMetaType
-		>
+		>,
 	) => this;
 
 	/**
@@ -272,15 +277,15 @@ export interface IStateDictionary<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends {
 		[K in StateType]: any;
-	} = Record<StateType, any>
+	} = Record<StateType, any>,
 > extends IAutomataExtendedStateContainer<StateType, ContextType> {
 	/**
-	 * Get Keys of selected States, possibly scoped to namespace
+	 * Get Keys for selected States, possibly scoped to namespace
 	 * @param {states:StateType[],namespace?:string} states
 	 * @return {string[]}
 	 */
 	getStateKeys: (
-		states: TStateValuesCollection<StateType>
+		states: TStateValuesCollection<StateType>,
 	) => Array<string | null>;
 
 	/**
@@ -289,14 +294,14 @@ export interface IStateDictionary<
 	 * @return {string[]}
 	 */
 	getStateValues: (
-		states: TStateKeysCollection<StateType>
+		states: TStateKeysCollection<StateType>,
 	) => Array<StateType | null>;
 	/**
-	 * add new States to the Dictionary, possibly scoping them to namespace
-	 * @param {states:StateType[],namespace?:string} states
-	 * @return new States' Keys
+	 * add new string States to the Dictionary, possibly within namespace
+	 * @param {states:string[],namespace?:string} states
+	 * @return new States' values
 	 */
-	addStates: (params: TStateValuesCollection<StateType>) => StateType[];
+	addStates: (params: TStateKeysCollection<StateType>) => StateType[];
 	/**
 	 * remove States from the Dictionary, possibly scoping them to namespace.
 	 * @param {TStateLookupParams<StateType>} Search states: Namespace and States or Keys to remove
@@ -305,7 +310,7 @@ export interface IStateDictionary<
 	 */
 	removeStates: (
 		params: TStateLookupParams<StateType>,
-		removeContextTransformers?: boolean
+		removeContextTransformers?: boolean,
 	) => this;
 
 	/**
@@ -321,15 +326,15 @@ export interface IStateDictionary<
 	getDictionary: (namespace?: string) => TStateDictionaryMapping<StateType>;
 
 	/**
-	 * add a Context Transformer to a particular State, possibly scoped to namespace
+	 * add a Context Transformer for a particular State, possibly scoped to namespace
 	 * @param {TContextTransformer} transformer to add
 	 * @param [string] namespace
-	 * @return {string} transformer ID
+	 * @returns {string} transformer ID
 	 */
 	addContextTransformer: <T extends StateType>(
 		state: T,
 		transformer: TContextTransformer<T, ContextType>,
-		namespace?: string
+		namespace?: string,
 	) => string;
 
 	/**
@@ -342,7 +347,7 @@ export interface IStateDictionary<
 	removeContextTransformer: <T extends StateType>(
 		state: T,
 		transformer: TContextTransformer<T, ContextType>,
-		namespace?: string
+		namespace?: string,
 	) => this;
 
 	/**
@@ -369,13 +374,13 @@ export interface IStateDictionary<
 	 */
 	runContextTransformers: <T extends StateType>(
 		id: string,
-		context: TAutomataStateContext<T, ContextType>
+		context: TAutomataStateContext<T, ContextType>,
 	) => TAutomataStateContext<StateType, ContextType>;
 }
 
 export interface IActionDictionary<
 	ActionType extends TAutomataBaseActionType,
-	PayloadType extends { [K in ActionType]: any }
+	PayloadType extends { [K in ActionType]: any },
 > extends IAutomataExtendedActionContainer<ActionType, PayloadType> {
 	/**
 	 * Add new Actions to the dictionary, possibly scope them to namespace
@@ -390,7 +395,7 @@ export interface IActionDictionary<
 	 * @return {string[], null if not found}
 	 */
 	getActionKeys: (
-		actions: TActionValuesCollection<ActionType>
+		actions: TActionValuesCollection<ActionType>,
 	) => Array<string | null>;
 
 	/**
@@ -399,7 +404,7 @@ export interface IActionDictionary<
 	 * @return {Action[]}
 	 */
 	getActionValues: (
-		actions: TActionKeysCollection<ActionType>
+		actions: TActionKeysCollection<ActionType>,
 	) => Array<ActionType | null>;
 
 	/**
@@ -427,14 +432,17 @@ export interface IActionDictionary<
 export interface IAutomataSlice<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-	ModelType extends object = Record<string, any>
+	ModelType extends object = Record<string, any>,
 > extends IAutomataEventContainer<EventType> {
 	getMachines: Record<string, IAutomata<any, any, EventType>>;
 	addMachine: <
 		StateType extends TAutomataBaseStateType,
 		ActionType extends TAutomataBaseActionType,
 		ContextType extends { [K in StateType]: any } = Record<StateType, any>,
-		PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>
+		PayloadType extends { [K in ActionType]: any } = Record<
+			ActionType,
+			any
+		>,
 	>(
 		machineId: string,
 		automata: IAutomata<
@@ -444,28 +452,28 @@ export interface IAutomataSlice<
 			ContextType,
 			PayloadType,
 			EventMetaType
-		>
+		>,
 	) => this;
 	removeMachine: (machineId: string) => this;
 	getCompositeState: Record<string, TAutomataStateContext<any, any>>;
 
 	restoreState: <
 		StateType extends TAutomataBaseStateType,
-		ContextType extends { [K in StateType]: any } = Record<StateType, any>
+		ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 	>(
 		machineId: string,
-		state: TAutomataStateContext<StateType, ContextType>
+		state: TAutomataStateContext<StateType, ContextType>,
 	) => this;
 
 	restoreCompositeState: (
-		compositeState: Record<string, TAutomataStateContext<any, any>>
+		compositeState: Record<string, TAutomataStateContext<any, any>>,
 	) => this;
 	getEventMatrix: () => Record<
 		EventType,
 		Array<TAutomataEffect<ModelType, EventType>>
 	>;
 	dispatchEvent: (
-		event: TAutomataEventMetaType<EventType, EventMetaType>
+		event: TAutomataEventMetaType<EventType, EventMetaType>,
 	) => this;
 	start: () => this;
 	stop: (clearStack: boolean) => this;
@@ -477,21 +485,21 @@ export interface IAutomataSlice<
 		effects: Array<TAutomataEffect<ModelType, EventType>>;
 	};
 	getEventEffects: (
-		event: EventType
+		event: EventType,
 	) => Array<TAutomataEffect<ModelType, EventType>>;
 }
 
 export interface IAutomataEventBus<
 	EventType extends TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
 	subscribe: (
 		event: EventType,
-		callback: TEventBusHandler<EventType, EventMetaType>
+		callback: TEventBusHandler<EventType, EventMetaType>,
 	) => this;
 	unsubscribe: (
 		event: EventType,
-		callback: null | TEventBusHandler<EventType, EventMetaType>
+		callback: null | TEventBusHandler<EventType, EventMetaType>,
 	) => this;
 	dispatch: (
 		...events: TAutomataEventStack<EventType, EventMetaType>

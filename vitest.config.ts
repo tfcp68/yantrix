@@ -13,10 +13,9 @@ export default defineConfig({
 		],
 		passWithNoTests: true,
 		coverage: {
-			enabled: false,
+			enabled: true,
 			all: true,
-			reporter: ['text', 'lcov', 'cobertura'],
-			provider: 'v8',
+			reporter: ['html-spa', 'clover', 'text', 'text-summary'],
 			include: ['src'],
 			exclude: [
 				// All ts files that only contain types, due to ALL
