@@ -32,7 +32,7 @@ import {
 function markStates(
 	stateDiagramStructure: TStateDiagramStructure
 ): TDiagramStatesArray {
-	let states: TDiagramStatesArray = [];
+	const states: TDiagramStatesArray = [];
 	const stateDiagramNotes = stateDiagramStructure.notes;
 	const stateDiagramNotesKeys: Record<string, number> = {};
 	for (let i = 0; i < stateDiagramNotes.length; i++) {
@@ -46,7 +46,7 @@ function markStates(
 		if (Object.keys(stateDiagramNotesKeys).includes(id)) {
 			notes = stateDiagramNotes[stateDiagramNotesKeys[id]].text;
 		}
-		let actions: string[] = [];
+		const actions: string[] = [];
 		for (let j = 0; j < stateDiagramStructure.actions.length; j++) {
 			if (stateDiagramStructure.actions[j].from === id) {
 				actions.push(stateDiagramStructure.actions[j].to);
@@ -110,8 +110,8 @@ function markChoicesInMatrix(
 	for (let i = 0; i < actions.length; i++) {
 		const choice = actions[i].to;
 		if (choicesId.includes(actions[i].to)) {
-			let choiceAction: TFromChoice = {
-				choice: choice,
+			const choiceAction: TFromChoice = {
+				choice,
 				from: actions[i].from,
 				action: [[actions[i].id]],
 				note: [],
@@ -136,11 +136,13 @@ function markChoicesInMatrix(
 		const note = fromChoice.note;
 		const toChoice = matrix[choice];
 		delete matrix[from][choice];
-		for (let to in toChoice) {
+		const toChoiceKeys = Object.keys(toChoice);
+		for (let i = 0; i < toChoiceKeys.length; i++) {
+			const to = toChoiceKeys[i];
 			const toActionId = toChoice[to].id;
 			const toActionNotes = toChoice[to].notes;
 			const concatActions: string[][] = concatArrays(action, toActionId);
-			let concatNotes: string[][] = [];
+			const concatNotes: string[][] = [];
 			for (let i = 0; i < toActionNotes.length; i++) {
 				concatNotes.push(toActionNotes[i]);
 			}
