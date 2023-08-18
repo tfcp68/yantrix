@@ -1,8 +1,8 @@
 export type TDiagramState = {
 	id: string;
 	caption: string;
-	notes: string[]; // построчно
-	actions: string[]; // выходящие переходы (ссылки на стейты)
+	notes: string[][];
+	actions: string[][]; // выходящие переходы (ссылки на стейты)
 	subtree?: TStateDiagram;
 };
 
@@ -22,8 +22,6 @@ export type TStateDiagram = {
 	states: TDiagramStatesArray;
 	transitions: TDiagramTransitions;
 };
-
-export type TStateMatrix = Record<string, Record<string, string[][]>>;
 
 export type TFromChoice = {
 	choice: string;

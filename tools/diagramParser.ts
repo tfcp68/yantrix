@@ -385,6 +385,9 @@ state "Tiger" as s1
 state "Lion" as s2
 state "Panthera" as s3
 state "Cat" as s4
+note right of s1
+        meow
+end note
 note right of c1
         note123
 end note
@@ -415,7 +418,7 @@ const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 */
 
-const a = await parseStateDiagram(stateInput4);
+const a = await parseStateDiagram(input4);
 //console.log(a)
 
 const b = await createStateDiagram(a);

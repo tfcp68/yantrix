@@ -1,67 +1,12 @@
-import { parseStateDiagram } from './stateParser.js';
-import {
-	TStateDiagramStructure,
-	TTransitionsArray,
-	TParsedDiagramArray,
-	TChoice,
-	TChoicesStructure,
-	TFork,
-	TForksStructure,
-	TNote,
-	TNotesStructure,
-	TState,
-	TStatesStructure,
-	TAction,
-	TActionsStructure,
-} from './types/index.js';
+import { TStateDiagramStructure, TActionsStructure } from './types/index.js';
 import {
 	TDiagramState,
 	TDiagramAction,
 	TDiagramTransitions,
 	TStateDiagram,
 	TDiagramStatesArray,
-	TStateMatrix,
 	TFromChoice,
 } from './types/stateDiagramTypes.js';
-
-/**
- * @brief This function creates a dictionary of states;
- * @param stateDiagramStructure - base state diagram;
- * @returns Returns a dictionary of states.
- */
-function markStates(
-	stateDiagramStructure: TStateDiagramStructure
-): TDiagramStatesArray {
-	const states: TDiagramStatesArray = [];
-	const stateDiagramNotes = stateDiagramStructure.notes;
-	const stateDiagramNotesKeys: Record<string, number> = {};
-	for (let i = 0; i < stateDiagramNotes.length; i++) {
-		const id: string = stateDiagramNotes[i].over;
-		stateDiagramNotesKeys[id] = i;
-	}
-	for (let i = 0; i < stateDiagramStructure.states.length; i++) {
-		const id = stateDiagramStructure.states[i].id;
-		const caption = stateDiagramStructure.states[i].caption;
-		let notes: string[] = [];
-		if (Object.keys(stateDiagramNotesKeys).includes(id)) {
-			notes = stateDiagramNotes[stateDiagramNotesKeys[id]].text;
-		}
-		const actions: string[] = [];
-		for (let j = 0; j < stateDiagramStructure.actions.length; j++) {
-			if (stateDiagramStructure.actions[j].from === id) {
-				actions.push(stateDiagramStructure.actions[j].to);
-			}
-		}
-		const state: TDiagramState = {
-			id,
-			caption,
-			notes,
-			actions,
-		};
-		states.push(state);
-	}
-	return states;
-}
 
 /**
  * @brief A function that concat two matrices;
@@ -81,18 +26,13 @@ function concatArrays(array1: string[][], array2: string[][]): string[][] {
 }
 
 /**
- * @brief A function that unravel choices in transitions;
- * @param matrix Matrix of transitions
+ * @brief A function that collect notes id;
  * @param stateDiagramStructure - base state diagram;
- * @returns Returns updated transitions.
+ * @returns Returns dict with notes.
  */
-function markChoicesInMatrix(
-	matrix: TDiagramTransitions,
+function getNotesId(
 	stateDiagramStructure: TStateDiagramStructure
-): TDiagramTransitions {
-	const actions = stateDiagramStructure.actions;
-	const choices = stateDiagramStructure.choices;
-	const choicesId: string[] = [];
+): Record<string, string[][]> {
 	const notes = stateDiagramStructure.notes;
 	const notesId: Record<string, string[][]> = {};
 
@@ -103,10 +43,36 @@ function markChoicesInMatrix(
 		}
 		notesId[note.over].push(note.text);
 	}
-	const fromChoices: TFromChoice[] = [];
+	return notesId;
+}
+
+/**
+ * @brief A function that collect choices id;
+ * @param stateDiagramStructure - base state diagram;
+ * @returns Returns array with choices.
+ */
+function getChoicesId(stateDiagramStructure: TStateDiagramStructure): string[] {
+	const choices = stateDiagramStructure.choices;
+	const choicesId: string[] = [];
 	for (let i = 0; i < choices.length; i++) {
 		choicesId.push(choices[i].id);
 	}
+	return choicesId;
+}
+
+/**
+ * @brief A function that create from choices array;
+ * @param actions - actions from stateDiagramStructure;
+ * @param choicesId - array with choices;
+ * @param notesId - dict with notes;
+ * @returns Returns from choices array.
+ */
+function getFromChoices(
+	actions: TActionsStructure,
+	choicesId: string[],
+	notesId: Record<string, string[][]>
+): TFromChoice[] {
+	const fromChoices: TFromChoice[] = [];
 	for (let i = 0; i < actions.length; i++) {
 		const choice = actions[i].to;
 		if (choicesId.includes(actions[i].to)) {
@@ -126,6 +92,23 @@ function markChoicesInMatrix(
 			fromChoices.push(choiceAction);
 		}
 	}
+	return fromChoices;
+}
+
+/**
+ * @brief A function that unravel choices in transitions;
+ * @param transitions - matrix of transitions;
+ * @param stateDiagramStructure - base state diagram;
+ * @returns Returns updated transitions.
+ */
+function markChoicesInTransitions(
+	transitions: TDiagramTransitions,
+	stateDiagramStructure: TStateDiagramStructure
+): TDiagramTransitions {
+	const actions = stateDiagramStructure.actions;
+	const notesId = getNotesId(stateDiagramStructure);
+	const choicesId = getChoicesId(stateDiagramStructure);
+	const fromChoices = getFromChoices(actions, choicesId, notesId);
 
 	while (fromChoices.length) {
 		const fromChoice = fromChoices[fromChoices.length - 1];
@@ -134,8 +117,8 @@ function markChoicesInMatrix(
 		const from = fromChoice.from;
 		const action = fromChoice.action;
 		const note = fromChoice.note;
-		const toChoice = matrix[choice];
-		delete matrix[from][choice];
+		const toChoice = transitions[choice];
+		delete transitions[from][choice];
 		const toChoiceKeys = Object.keys(toChoice);
 		for (let i = 0; i < toChoiceKeys.length; i++) {
 			const to = toChoiceKeys[i];
@@ -166,22 +149,24 @@ function markChoicesInMatrix(
 					note: concatNotes,
 				});
 			} else {
-				if (!Object.keys(matrix[from]).includes(to)) {
-					matrix[from][to] = {
+				if (!Object.keys(transitions[from]).includes(to)) {
+					transitions[from][to] = {
 						id: [],
 						notes: [],
 					};
 				}
-				matrix[from][to].id = matrix[from][to].id.concat(concatActions);
-				matrix[from][to].notes =
-					matrix[from][to].notes.concat(concatNotes);
+				transitions[from][to].id =
+					transitions[from][to].id.concat(concatActions);
+				transitions[from][to].notes =
+					transitions[from][to].notes.concat(concatNotes);
 			}
 		}
 	}
+	const choices = stateDiagramStructure.choices;
 	for (let i = 0; i < choices.length; i++) {
-		delete matrix[choices[i].id];
+		delete transitions[choices[i].id];
 	}
-	return matrix;
+	return transitions;
 }
 
 /**
@@ -189,10 +174,10 @@ function markChoicesInMatrix(
  * @param stateDiagramStructure - base state diagram;
  * @returns Returns matrix of transitions.
  */
-function createMatrix(
+function getTransitions(
 	stateDiagramStructure: TStateDiagramStructure
 ): TDiagramTransitions {
-	let matrix: TDiagramTransitions = {};
+	let transitions: TDiagramTransitions = {};
 	const actions = stateDiagramStructure.actions;
 
 	for (let i = 0; i < actions.length; i++) {
@@ -205,74 +190,90 @@ function createMatrix(
 			notes: [],
 		};
 
-		if (!Object.keys(matrix).includes(from)) {
-			matrix[from] = {};
+		if (!Object.keys(transitions).includes(from)) {
+			transitions[from] = {};
 		}
-		if (!Object.keys(matrix[from]).includes(to)) {
-			matrix[from][to] = action;
+		if (!Object.keys(transitions[from]).includes(to)) {
+			transitions[from][to] = action;
 		}
-		matrix[from][to].id.push([actionId]);
+		transitions[from][to].id.push([actionId]);
 	}
 
-	matrix = markChoicesInMatrix(matrix, stateDiagramStructure);
-	return matrix;
+	transitions = markChoicesInTransitions(transitions, stateDiagramStructure);
+	return transitions;
 }
 
 /**
- * @brief A function that unravel choices in states;
- * @param stateDiagramStructure - base state diagram;
- * @param states - array of states;
- * @returns Returns updated states.
+ * @brief This function get action from matrix of transitions;
+ * @param transitions - matrix of transitions;
+ * @param stateId - The state for which action is being sought;
+ * @returns Returns states.
  */
-function markChoicesInStates(
-	stateDiagramStructure: TStateDiagramStructure,
-	states: TDiagramStatesArray
-): TDiagramStatesArray {
-	const choices = stateDiagramStructure.choices;
-
-	for (let i = 0; i < choices.length; i++) {
-		const choiceId: string = choices[i].id;
-		let choiceState: TDiagramState = {
-			id: choiceId,
-			caption: choiceId,
-			actions: [],
-			notes: [],
-		};
-		for (let j = 0; j < states.length; j++) {
-			if (states[j].id === choiceId) {
-				choiceState = states[j];
-				break;
-			}
-		}
-		for (let j = 0; j < states.length; j++) {
-			if (states[j].actions.includes(choiceId)) {
-				states[j].notes = states[j].notes.concat(choiceState.notes);
-				const deleteIndex = states[j].actions.indexOf(choiceId);
-				states[j].actions.splice(deleteIndex, 1);
-				states[j].actions = states[j].actions.concat(
-					choiceState.actions
-				);
-			}
+function getActionsForStates(
+	transitions: TDiagramTransitions,
+	stateId: string
+): string[][] {
+	const actions: string[][] = [];
+	if (!Object.keys(transitions).includes(stateId)) {
+		return [];
+	}
+	const transitionsTo = transitions[stateId];
+	const transitionsToKeys = Object.keys(transitionsTo);
+	for (let i = 0; i < transitionsToKeys.length; i++) {
+		const to = transitionsToKeys[i];
+		const actionsToId: string[][] = transitionsTo[to].id;
+		for (let j = 0; j < actionsToId.length; j++) {
+			actions.push(actionsToId[j]);
 		}
 	}
+	return actions;
+}
 
+/**
+ * @brief This function get states from transitions and stateDiagramStructure;
+ * @param stateDiagramStructure - state diagram structure;
+ * @param transitions - matrix of transitions;
+ * @returns Returns states.
+ */
+function getStates(
+	stateDiagramStructure: TStateDiagramStructure,
+	transitions: TDiagramTransitions
+): TDiagramStatesArray {
+	const states: TDiagramStatesArray = [];
+	const notesId = getNotesId(stateDiagramStructure);
+	const notesIdKeys = Object.keys(notesId);
+	const choicesId = getChoicesId(stateDiagramStructure);
+	for (let i = 0; i < stateDiagramStructure.states.length; i++) {
+		const stateId = stateDiagramStructure.states[i].id;
+		if (choicesId.includes(stateId)) {
+			continue;
+		}
+		let notes: string[][] = [];
+		if (notesIdKeys.includes(stateId)) {
+			notes = notesId[stateId];
+		}
+		const actions: string[][] = getActionsForStates(transitions, stateId);
+		const state: TDiagramState = {
+			id: stateId,
+			caption: stateDiagramStructure.states[i].caption,
+			notes,
+			actions,
+		};
+		states.push(state);
+	}
 	return states;
 }
 
 /**
  * @brief This function creates a state diagram;
- * @param diagramText - state diagram string;
+ * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
  */
 export async function createStateDiagram(
 	stateDiagramStructure: TStateDiagramStructure
 ): Promise<TStateDiagram> {
-	const transitions = createMatrix(stateDiagramStructure);
-
-	const states = markChoicesInStates(
-		stateDiagramStructure,
-		markStates(stateDiagramStructure)
-	);
+	const transitions = getTransitions(stateDiagramStructure);
+	const states = getStates(stateDiagramStructure, transitions);
 
 	return {
 		transitions,
