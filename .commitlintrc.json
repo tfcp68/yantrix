@@ -17,7 +17,8 @@
 				"style",
 				"test",
 				"types",
-				"typings"
+				"typings",
+				"merge"
 			]
 		],
 		"scope-case": [0]

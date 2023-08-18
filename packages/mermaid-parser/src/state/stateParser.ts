@@ -40,12 +40,12 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'relation') {
 			const directionI: string[] = [];
-			const temp_st1: Record<string, string> = parsedDiagram[i]
+			const tempSt1: Record<string, string> = parsedDiagram[i]
 				.state1 as Record<string, string>;
-			const temp_st2: Record<string, string> = parsedDiagram[i]
+			const tempSt2: Record<string, string> = parsedDiagram[i]
 				.state2 as Record<string, string>;
-			const st1: string = temp_st1.id;
-			const st2: string = temp_st2.id;
+			const st1: string = tempSt1.id;
+			const st2: string = tempSt2.id;
 			if (st1 === '[*]' && st2 === '[*]') {
 				directionI.push('~~~START~~~');
 				directionI.push('~~~END~~~');
@@ -87,10 +87,10 @@ function getStatesCaption(
 			const keys = Object.keys(parsedDiagram[i]);
 			if (keys.includes('type')) {
 				if (parsedDiagram[i].type === 'default') {
-					const state_id: string = parsedDiagram[i].id as string;
-					const state_desc: string = parsedDiagram[i]
+					const stateId: string = parsedDiagram[i].id as string;
+					const stateDesc: string = parsedDiagram[i]
 						.description as string;
-					stateCaptions[state_id] = state_desc;
+					stateCaptions[stateId] = stateDesc;
 				}
 			}
 		}
@@ -190,7 +190,7 @@ function getForks(parsedDiagram: TParsedDiagramArray): TForksStructure {
 function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 	const notes: TNotesStructure = [];
 	const visited: Record<string, number> = {};
-	let visited_count = 0;
+	let visitedCount = 0;
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
 			const keys = Object.keys(parsedDiagram[i]);
@@ -210,8 +210,8 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 							over: from,
 						};
 						notes.push(note);
-						visited[from] = visited_count;
-						visited_count++;
+						visited[from] = visitedCount;
+						visitedCount++;
 					}
 				}
 			}
@@ -235,9 +235,9 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
 			id = from + ', ' + to + ', ' + String(i);
 		}
 		const action: TAction = {
-			from: from,
-			to: to,
-			id: id,
+			from,
+			to,
+			id,
 		};
 		actions.push(action);
 	}

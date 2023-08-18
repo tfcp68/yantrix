@@ -1,4 +1,12 @@
 import { sampleRange } from '@yantrix/utils';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
+import { createAutomata, createEventAdapter } from '../src/index.js';
+import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
+import {
+	TAutomataActionPayload,
+	TAutomataEvent,
+	TValidator,
+} from '../src/types/index.js';
 import {
 	TTestAction,
 	TTestContext,
@@ -6,50 +14,46 @@ import {
 	TTestEventMeta,
 	TTestPayload,
 	TTestState,
-} from './fixtures';
-import {
-	TAutomataActionPayload,
-	TAutomataEvent,
-	TValidator,
-} from '../src/types';
-import { beforeEach, describe, expect, test, vitest } from 'vitest';
-import { AutomataEventAdapter, GenericAutomata } from '../src/index.js';
+} from './fixtures/index.js';
 
-class EventAdapterTest extends AutomataEventAdapter<
+const EventAdapterTest = createEventAdapter<
 	TTestState,
 	TTestAction,
 	TTestEvent,
 	TTestContext<TTestState>,
 	TTestPayload<TTestAction>,
 	TTestEventMeta<TTestEvent>
-> {
-	constructor() {
-		super();
-	}
-}
+>()(AbstractBaseClass);
 
-class AutomataTest extends GenericAutomata<
+class AutomataTest extends createAutomata<
 	TTestState,
 	TTestAction,
 	TTestEvent,
 	TTestContext<TTestState>,
 	TTestPayload<TTestAction>,
 	TTestEventMeta<TTestEvent>
-> {
+>()(AbstractBaseClass) {
+	#__defaultEventValidator;
+	#__defaultStateValidator;
+	#__defaultActionValidator;
+
 	constructor() {
 		super(new EventAdapterTest());
+		this.#__defaultEventValidator = this.validateEvent;
+		this.#__defaultStateValidator = this.validateState;
+		this.#__defaultActionValidator = this.validateState;
 	}
 
 	getDefaultEventValidator() {
-		return this.defaultEventValidator;
+		return this.#__defaultEventValidator;
 	}
 
 	getDefaultActionValidator() {
-		return this.defaultActionValidator;
+		return this.#__defaultActionValidator;
 	}
 
 	getDefaultStateValidator() {
-		return this.defaultStateValidator;
+		return this.#__defaultStateValidator;
 	}
 }
 
@@ -86,8 +90,11 @@ describe(`Automata`, () => {
 		sampleInstance = new AutomataTest();
 	});
 	describe('constructor', () => {
-		test('returns an instance of GenericAutomata', () => {
-			expect(sampleInstance).toBeInstanceOf(GenericAutomata);
+		test('returns an instance of AutomataTest', () => {
+			expect(sampleInstance).toBeInstanceOf(AutomataTest);
+		});
+		test('returns an instance of AbstractBaseClass', () => {
+			expect(sampleInstance).toBeInstanceOf(AbstractBaseClass);
 		});
 		test('sets the EventAdapter', () => {
 			expect(sampleInstance.eventAdapter).toBeInstanceOf(
@@ -101,7 +108,12 @@ describe(`Automata`, () => {
 			a % 2 === 0) as TValidator<TTestEvent>;
 		test('accepts a function to overwrite default Event Validator', () => {
 			sampleInstance.setEventValidator(testValidator);
-			expect(sampleInstance.validateEvent).toBe(testValidator);
+			for (let i = 0; i < 100; i++) {
+				const sampleValue = sampleRange(-1e6, 1e6);
+				expect(sampleInstance.validateEvent(sampleValue)).toBe(
+					testValidator(sampleValue)
+				);
+			}
 		});
 		test('resets the Event Validator to default when called with null', () => {
 			sampleInstance.setEventValidator(testValidator);
@@ -122,7 +134,12 @@ describe(`Automata`, () => {
 			a % 15 === 0) as TValidator<TTestAction>;
 		test('accepts a function to overwrite default Action Validator', () => {
 			sampleInstance.setActionValidator(testValidator);
-			expect(sampleInstance.validateAction).toBe(testValidator);
+			for (let i = 0; i < 100; i++) {
+				const sampleValue = sampleRange(-1e6, 1e6);
+				expect(sampleInstance.validateAction(sampleValue)).toBe(
+					testValidator(sampleValue)
+				);
+			}
 		});
 		test('resets the Action Validator to default when called with null', () => {
 			sampleInstance.setActionValidator(testValidator);
@@ -143,7 +160,12 @@ describe(`Automata`, () => {
 			a % 15 === 0) as TValidator<TTestState>;
 		test('accepts a function to overwrite default State Validator', () => {
 			sampleInstance.setStateValidator(testValidator);
-			expect(sampleInstance.validateState).toBe(testValidator);
+			for (let i = 0; i < 100; i++) {
+				const sampleValue = sampleRange(-1e6, 1e6);
+				expect(sampleInstance.validateState(sampleValue)).toBe(
+					testValidator(sampleValue)
+				);
+			}
 		});
 		test('resets the State Validator to default when called with null', () => {
 			sampleInstance.setStateValidator(testValidator);

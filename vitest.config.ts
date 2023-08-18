@@ -2,13 +2,20 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
-		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
+		exclude: [
+			'**/node_modules',
+			'**/dist',
+			'.idea',
+			'.git',
+			'.cache',
+			'.yarn',
+			'**/fixtures',
+		],
 		passWithNoTests: true,
 		coverage: {
 			enabled: true,
 			all: true,
-			reporter: ['text', 'lcov', 'cobertura'],
-			provider: 'c8',
+			reporter: ['html-spa', 'clover', 'text', 'text-summary'],
 			include: ['src'],
 			exclude: [
 				// All ts files that only contain types, due to ALL
