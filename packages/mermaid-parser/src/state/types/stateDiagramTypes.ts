@@ -9,7 +9,7 @@ export type TDiagramState = {
 export type TDiagramStatesArray = TDiagramState[];
 
 export type TDiagramAction = {
-	id: string[];
+	id: string[][];
 	notes: string[][];
 };
 
@@ -24,3 +24,10 @@ export type TStateDiagram = {
 };
 
 export type TStateMatrix = Record<string, Record<string, string[][]>>;
+
+export type TFromChoice = {
+	choice: string;
+	from: string;
+	action: string[][];
+	note: string[][];
+};

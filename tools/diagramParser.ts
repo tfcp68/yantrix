@@ -415,7 +415,7 @@ const b = await parseSequenceDiagram(seqDiagram3)
 console.log(b)
 */
 
-const a = await parseStateDiagram(stateInput2);
+const a = await parseStateDiagram(stateInput4);
 //console.log(a)
 
 const b = await createStateDiagram(a);
