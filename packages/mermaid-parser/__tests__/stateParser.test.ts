@@ -3,15 +3,14 @@ import { parseStateDiagram } from '../src/index.js';
 
 describe('State Diagram Parser', () => {
 	describe('Common', () => {
-		test('Empty Input', async () => {
+		test('Empty Input Error', async () => {
 			const diagramText = '';
+			await expect(parseStateDiagram(diagramText)).rejects.toThrowError();
+		});
 
-			try {
-				await parseStateDiagram(diagramText);
-				expect(true).toEqual(false);
-			} catch (e) {
-				expect(e).instanceof(Error);
-			}
+		test('Invalid Diagram Type', async () => {
+			const diagramText = 'invalidDiagram';
+			await expect(parseStateDiagram(diagramText)).rejects.toThrowError();
 		});
 
 		test('Empty Diagram', async () => {
@@ -27,14 +26,14 @@ describe('State Diagram Parser', () => {
 
 		test('Basic State Diagram', async () => {
 			const diagramText = `
-				stateDiagram-v2
-				
-				[*] --> State1
-				State1 --> State2 : Transition 1
-				State1 --> State3 : Transition 2
-				State2 --> State4 : Transition 3 
-				State3 --> [*]
-				`;
+			stateDiagram-v2
+			
+			[*] --> State1: Initial
+			State1 --> State2 : Action 1
+			State1 --> State3 : Action 2
+			State2 --> State4 : Action 3 
+			State3 --> [*]: End
+			`;
 
 			const parsedDiagram = await parseStateDiagram(diagramText);
 
@@ -47,20 +46,20 @@ describe('State Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			];
 
-			const expectedTransitions = [
+			const expectedActions = [
 				{
 					from: '~~~START~~~',
 					to: 'State1',
-					id: '~~~START~~~, State1, 0',
+					id: 'Initial',
 				},
-				{ from: 'State1', to: 'State2', id: 'Transition 1' },
-				{ from: 'State1', to: 'State3', id: 'Transition 2' },
-				{ from: 'State2', to: 'State4', id: 'Transition 3' },
-				{ from: 'State3', to: '~~~END~~~', id: 'State3, ~~~END~~~, 4' },
+				{ from: 'State1', to: 'State2', id: 'Action 1' },
+				{ from: 'State1', to: 'State3', id: 'Action 2' },
+				{ from: 'State2', to: 'State4', id: 'Action 3' },
+				{ from: 'State3', to: '~~~END~~~', id: 'End' },
 			];
 
 			expect(parsedDiagram.states).toEqual(expectedStates);
-			expect(parsedDiagram.actions).toEqual(expectedTransitions);
+			expect(parsedDiagram.actions).toEqual(expectedActions);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
 			expect(parsedDiagram.forks).toEqual([]);
@@ -70,14 +69,14 @@ describe('State Diagram Parser', () => {
 	describe('Notes', () => {
 		test('One Line', async () => {
 			const diagramText = `
-			  	stateDiagram-v2
-			  
-			  	[*] --> State1 : Initial
-			  	State1 --> State2 : Transition 1
-			  	note left of State2: This is a note over State2
-			  	State1 --> State3 : Transition 2
-			  	note right of State3: This is a note over State3
-			  	`;
+			stateDiagram-v2
+			
+			[*] --> State1 : Initial
+			State1 --> State2 : Transition 1
+			note left of State2: This is a note over State2
+			State1 --> State3 : Transition 2
+			note right of State3: This is a note over State3
+			`;
 
 			const { notes } = await parseStateDiagram(diagramText);
 
@@ -90,22 +89,22 @@ describe('State Diagram Parser', () => {
 
 		test('Multiline', async () => {
 			const diagramText = `
-			  	stateDiagram-v2
+			stateDiagram-v2
 
-			  	[*] --> State1
-			  	State1 --> State2
-			  	State2 --> State3
-			  	Note left of State2
-					This is a multiline
-					note left of State2
-					in the state diagram
-			  	End note
-			  	Note right of State3
-					This is another multiline
-					note right of State3
-					in the same state diagram
-			  	End note
-			  	`;
+			[*] --> State1
+			State1 --> State2
+			State2 --> State3
+			Note left of State2
+				This is a multiline
+				note left of State2
+				in the state diagram
+			End note
+			Note right of State3
+				This is another multiline
+				note right of State3
+				in the same state diagram
+			End note
+			`;
 
 			const { notes } = await parseStateDiagram(diagramText);
 			const untab = (str: string) => str.replaceAll('\t', '');
@@ -128,5 +127,171 @@ describe('State Diagram Parser', () => {
 			expect(untab(notes[0].text[0])).toEqual(expectedFirstNote);
 			expect(untab(notes[1].text[0])).toEqual(expectedSecondNote);
 		});
+
+		test('Empty Note', async () => {
+			const diagramText = `
+			stateDiagram-v2
+
+			[*] --> State1
+			State1 --> State2 
+			State2 --> State3
+			Note left of State2
+			End note
+			`;
+
+			const { notes } = await parseStateDiagram(diagramText);
+
+			expect(notes.length).toEqual(1);
+			expect(notes[0].over).toEqual('State2');
+			expect(notes[0].text[0]).toEqual('');
+		});
 	});
+
+	describe('States And Actions', () => {
+		test('Single State', async () => {
+			const diagramText = `
+				stateDiagram-v2
+				[*] --> State1
+				`;
+
+			const result = await parseStateDiagram(diagramText);
+
+			expect(result.states).toEqual([
+				{ id: '~~~START~~~', caption: '~~~START~~~' },
+				{ id: 'State1', caption: 'State1' },
+			]);
+
+			expect(result.actions).toEqual([
+				{
+					from: '~~~START~~~',
+					to: 'State1',
+					id: '~~~START~~~, State1, 0',
+				},
+			]);
+
+			expect(result.notes).toEqual([]);
+			expect(result.choices).toEqual([]);
+			expect(result.forks).toEqual([]);
+		});
+
+		test('Multiple States', async () => {
+			const diagramText = `
+			stateDiagram-v2
+			[*] --> State1
+			State1 --> State2
+			State2 --> [*]
+			`;
+
+			const result = await parseStateDiagram(diagramText);
+
+			expect(result.states).toEqual([
+				{ id: '~~~START~~~', caption: '~~~START~~~' },
+				{ id: 'State1', caption: 'State1' },
+				{ id: 'State2', caption: 'State2' },
+				{ id: '~~~END~~~', caption: '~~~END~~~' },
+			]);
+
+			expect(result.actions).toEqual([
+				{
+					from: '~~~START~~~',
+					to: 'State1',
+					id: '~~~START~~~, State1, 0',
+				},
+				{ from: 'State1', to: 'State2', id: 'State1, State2, 1' },
+				{ from: 'State2', to: '~~~END~~~', id: 'State2, ~~~END~~~, 2' },
+			]);
+
+			expect(result.notes).toEqual([]);
+			expect(result.choices).toEqual([]);
+			expect(result.forks).toEqual([]);
+		});
+
+		test('All To End', async () => {
+			const diagramText = `
+			stateDiagram-v2
+
+			[*] --> State1
+			State1 --> State2
+			State1 --> [*]
+			State2 --> [*]
+			[*] --> [*]
+			`;
+
+			const result = await parseStateDiagram(diagramText);
+
+			expect(result.states).toEqual([
+				{ id: '~~~START~~~', caption: '~~~START~~~' },
+				{ id: 'State1', caption: 'State1' },
+				{ id: 'State2', caption: 'State2' },
+				{ id: '~~~END~~~', caption: '~~~END~~~' },
+			]);
+
+			expect(result.actions).toEqual([
+				{
+					from: '~~~START~~~',
+					to: 'State1',
+					id: '~~~START~~~, State1, 0',
+				},
+				{ from: 'State1', to: 'State2', id: 'State1, State2, 1' },
+				{ from: 'State1', to: '~~~END~~~', id: 'State1, ~~~END~~~, 2' },
+				{ from: 'State2', to: '~~~END~~~', id: 'State2, ~~~END~~~, 3' },
+				{
+					from: '~~~START~~~',
+					to: '~~~END~~~',
+					id: '~~~START~~~',
+				},
+			]);
+		});
+
+		test('Doubled Transitions', async () => {
+			const diagramText = `
+			stateDiagram-v2
+
+			[*] --> State1
+			[*] --> State1
+			State1 --> State2
+			State1 --> State2
+			State2 --> [*]
+			State2 --> [*]
+			`;
+
+			const result = await parseStateDiagram(diagramText);
+
+			expect(result.actions).toEqual([
+				{
+					from: '~~~START~~~',
+					id: '~~~START~~~, State1, 0',
+					to: 'State1',
+				},
+				{
+					from: '~~~START~~~',
+					id: '~~~START~~~, State1, 1',
+					to: 'State1',
+				},
+				{
+					from: 'State1',
+					id: 'State1, State2, 2',
+					to: 'State2',
+				},
+				{
+					from: 'State1',
+					id: 'State1, State2, 3',
+					to: 'State2',
+				},
+				{
+					from: 'State2',
+					id: 'State2, ~~~END~~~, 4',
+					to: '~~~END~~~',
+				},
+				{
+					from: 'State2',
+					id: 'State2, ~~~END~~~, 5',
+					to: '~~~END~~~',
+				},
+			]);
+		});
+	});
+
+	describe.todo('Forks', () => {});
+	describe.todo('Choices', () => {});
 });
