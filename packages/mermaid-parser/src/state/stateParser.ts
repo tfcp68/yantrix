@@ -221,6 +221,16 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 }
 
 /**
+ * @brief This function generate unique id for anonymous action;
+ * @param from - state, where the action is coming from;
+ * @param to - state, where the action is coming to;
+ * @param i - order number;
+ * @returns Returns unique id for anonymous action.
+ */
+function generateIdForAnonymousAction(from: string, to: string, num: number) {
+	return from + ', ' + to + ', ' + String(num);
+}
+/**
  * @brief This function creates a dictionary of transitions action;
  * @param transitions - array of transitions;
  * @returns Returns a dictionary of transitions action.
@@ -232,10 +242,7 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
 		const to = transitions[i][1];
 		let id = transitions[i][2];
 		if (id === '') {
-			/**
-			 * @TODO Вынести в отдельную функцию
-			 */
-			id = from + ', ' + to + ', ' + String(i);
+			id = generateIdForAnonymousAction(from, to, i);
 		}
 		const action: TAction = {
 			from,

@@ -109,6 +109,16 @@ function getFromChoices(
 	return fromChoices;
 }
 
+/**
+ * @brief A function unravel choice;
+ * @param choicesId - array with choices;
+ * @param fromChoices - array with states, where the action is coming from;
+ * @param concatActions - array with actions;
+ * @param from - state, where the action is coming from;
+ * @param to - state, where the action is coming to;
+ * @param transitions - matrix of transitions;
+ * @returns Returns updated transitions.
+ */
 function unravelChoices(
 	choicesId: string[],
 	fromChoices: TFromChoice[],
@@ -137,6 +147,12 @@ function unravelChoices(
 	return transitions;
 }
 
+/**
+ * @brief A function delete rows of choices;
+ * @param transitions - matrix of transitions;
+ * @param stateDiagramStructure - base state diagram;
+ * @returns Returns updated transitions.
+ */
 function deleteRowChoices(
 	transitions: TDiagramTransitions,
 	stateDiagramStructure: TStateDiagramStructure
@@ -189,9 +205,15 @@ function markChoicesInTransitions(
 	return transitions;
 }
 
+/**
+ * @brief A function mark choice notes in transitions;
+ * @param transitions - matrix of transitions;
+ * @param stateDiagramStructure - base state diagram;
+ * @returns Returns updated transitions.
+ */
 function getChoiceNotes(
-	stateDiagramStructure: TStateDiagramStructure,
-	transitions: TDiagramTransitions
+	transitions: TDiagramTransitions,
+	stateDiagramStructure: TStateDiagramStructure
 ): TDiagramTransitions {
 	const actionsId = getActionsId(stateDiagramStructure);
 	const choicesId = getChoicesId(stateDiagramStructure);
@@ -208,7 +230,7 @@ function getChoiceNotes(
 			fromChoice.push(from);
 		}
 	}
-	//не работает, когда одинаковые action
+	//todo не работает, когда одинаковые action
 	for (let i = 0; i < fromChoice.length; i++) {
 		const from = fromChoice[i];
 		const transitionsFromKeys = Object.keys(transitions[from]);
@@ -270,7 +292,7 @@ function getTransitions(
 	}
 
 	transitions = markChoicesInTransitions(transitions, stateDiagramStructure);
-	transitions = getChoiceNotes(stateDiagramStructure, transitions);
+	transitions = getChoiceNotes(transitions, stateDiagramStructure);
 	return transitions;
 }
 
