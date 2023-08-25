@@ -31,7 +31,7 @@
 	},
 	"scripts": {
 		"build": "tsc",
-		"test": "vitest run",
+		"test": "vitest run --coverage",
 		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
 		"format": "prettier --write .",
 		"prepack": "yarn lint && yarn build"

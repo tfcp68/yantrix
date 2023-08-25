@@ -107,7 +107,7 @@ describe('State Diagram Parser', () => {
 			`;
 
 			const { notes } = await parseStateDiagram(diagramText);
-			const untab = (str: string) => str.replaceAll('\t', '');
+			const untab = (str: string) => str.replace(/\t/g, '');
 
 			const expectedFirstNote =
 				'This is a multiline\n' +
@@ -292,6 +292,120 @@ describe('State Diagram Parser', () => {
 		});
 	});
 
-	describe.todo('Forks', () => {});
-	describe.todo('Choices', () => {});
+	describe('Forks', () => {
+		test('Simple', async () => {
+			const diagramText = `
+			stateDiagram-v2
+			
+			state ForkState <<fork>>
+			state JoinState <<join>>
+			
+		  	[*] --> ForkState
+		  	ForkState --> State2
+		  	ForkState --> State3
+	
+		  	State2 --> JoinState
+		  	State3 --> JoinState
+		  	JoinState --> [*]
+			`;
+
+			const { forks } = await parseStateDiagram(diagramText);
+
+			expect(forks.length).toEqual(2);
+
+			expect(forks[0]).not.toEqual(forks[1]);
+
+			expect(forks[0].id).toEqual('ForkState');
+			expect(forks[1].id).toEqual('JoinState');
+		});
+
+		test('Two Triple', async () => {
+			const diagramText = `
+			stateDiagram-v2
+
+			state ForkState1 <<fork>>
+			state JoinState1 <<join>>
+			
+			state ForkState2 <<fork>>
+			state JoinState2 <<join>>
+			
+			[*] --> ForkState1
+			ForkState1 --> StateA
+			ForkState1 --> StateB
+			ForkState1 --> StateC
+			StateA --> JoinState1
+			StateB --> JoinState1
+			StateC --> JoinState1
+			JoinState1 --> MiddleState
+			MiddleState --> ForkState2
+			
+			ForkState2 --> StateX
+			ForkState2 --> StateY
+			ForkState2 --> StateZ
+			StateX --> JoinState2
+			StateY --> JoinState2
+			StateZ --> JoinState2
+			
+			JoinState2 --> [*]
+			`;
+
+			const { forks } = await parseStateDiagram(diagramText);
+
+			expect(forks.length).toEqual(4);
+
+			expect(forks[0]).not.toEqual(forks[1]);
+			expect(forks[0]).not.toEqual(forks[2]);
+			expect(forks[0]).not.toEqual(forks[3]);
+
+			expect(forks[1]).not.toEqual(forks[2]);
+			expect(forks[1]).not.toEqual(forks[3]);
+
+			expect(forks[2]).not.toEqual(forks[3]);
+
+			expect(forks[0].id).toEqual('ForkState1');
+			expect(forks[1].id).toEqual('JoinState1');
+			expect(forks[2].id).toEqual('ForkState2');
+			expect(forks[3].id).toEqual('JoinState2');
+		});
+	});
+
+	describe('Choices', () => {
+		test('Common', async () => {
+			const diagramText = `
+			stateDiagram-v2
+
+			state IfState <<choice>>
+			
+			[*] --> IsPositive
+			IsPositive --> IfState
+			IfState --> False: if n < 0
+			IfState --> True : if n >= 0
+			`;
+
+			const { choices } = await parseStateDiagram(diagramText);
+
+			expect(choices.length).toEqual(1);
+			expect(choices[0].id).toEqual('IfState');
+		});
+
+		test('Three Choice Paths', async () => {
+			const diagramText = `
+			stateDiagram-v2
+			state CheckValue <<choice>>
+		
+			[*] --> CheckValue
+			CheckValue --> LessThanTen: if value < 10
+			CheckValue --> BetweenTenAndTwenty: if value >= 10 and value <= 20
+			CheckValue --> GreaterThanTwenty: if value > 20
+			LessThanTen --> [*]
+			BetweenTenAndTwenty --> [*]
+			GreaterThanTwenty --> [*]
+			`;
+
+			const { choices } = await parseStateDiagram(diagramText);
+
+			expect(choices.length).toEqual(1);
+			expect(choices[0].id).toEqual('CheckValue');
+		});
+	});
 });
