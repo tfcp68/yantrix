@@ -188,6 +188,15 @@ function markChoicesInTransitions(
 
 	while (fromChoices.length) {
 		const fromChoice = fromChoices[fromChoices.length - 1];
+		if (
+			choicesId.includes(fromChoice.from) &&
+			choicesId.includes(fromChoice.choice) &&
+			fromChoice.from === fromChoice.choice
+		) {
+			throw new ChoiceCycleError(
+				fromChoice.from + '-->' + fromChoice.choice
+			);
+		}
 		fromChoices.pop();
 		const { action, choice, from } = fromChoice;
 		const toChoice = transitions[choice];
@@ -195,13 +204,6 @@ function markChoicesInTransitions(
 		const toChoiceKeys = Object.keys(toChoice);
 		for (let i = 0; i < toChoiceKeys.length; i++) {
 			const to = toChoiceKeys[i];
-			if (
-				choicesId.includes(from) &&
-				choicesId.includes(to) &&
-				from === to
-			) {
-				throw new ChoiceCycleError();
-			}
 			const toActionId = toChoice[to].id;
 			const concatActions = concatArrays(action, toActionId);
 			transitions = unravelChoices(
