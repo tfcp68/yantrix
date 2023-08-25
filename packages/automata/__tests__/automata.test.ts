@@ -1,4 +1,12 @@
 import { sampleRange } from '@yantrix/utils';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
+import { createAutomata, createEventAdapter } from '../src/index.js';
+import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
+import {
+	TAutomataActionPayload,
+	TAutomataEvent,
+	TValidator,
+} from '../src/types/index.js';
 import {
 	TTestAction,
 	TTestContext,
@@ -6,50 +14,46 @@ import {
 	TTestEventMeta,
 	TTestPayload,
 	TTestState,
-} from './fixtures';
-import {
-	TAutomataActionPayload,
-	TAutomataEvent,
-	TValidator,
-} from '../src/types';
-import { beforeEach, describe, expect, test, vitest } from 'vitest';
-import { AutomataEventAdapter, GenericAutomata } from '../src/index.js';
+} from './fixtures/index.js';
 
-class EventAdapterTest extends AutomataEventAdapter<
+const EventAdapterTest = createEventAdapter<
 	TTestState,
 	TTestAction,
 	TTestEvent,
 	TTestContext<TTestState>,
 	TTestPayload<TTestAction>,
 	TTestEventMeta<TTestEvent>
-> {
-	constructor() {
-		super();
-	}
-}
+>()(AbstractBaseClass);
 
-class AutomataTest extends GenericAutomata<
+class AutomataTest extends createAutomata<
 	TTestState,
 	TTestAction,
 	TTestEvent,
 	TTestContext<TTestState>,
 	TTestPayload<TTestAction>,
 	TTestEventMeta<TTestEvent>
-> {
+>()(AbstractBaseClass) {
+	#__defaultEventValidator;
+	#__defaultStateValidator;
+	#__defaultActionValidator;
+
 	constructor() {
 		super(new EventAdapterTest());
+		this.#__defaultEventValidator = this.validateEvent;
+		this.#__defaultStateValidator = this.validateState;
+		this.#__defaultActionValidator = this.validateState;
 	}
 
 	getDefaultEventValidator() {
-		return this.defaultEventValidator;
+		return this.#__defaultEventValidator;
 	}
 
 	getDefaultActionValidator() {
-		return this.defaultActionValidator;
+		return this.#__defaultActionValidator;
 	}
 
 	getDefaultStateValidator() {
-		return this.defaultStateValidator;
+		return this.#__defaultStateValidator;
 	}
 }
 
@@ -61,12 +65,12 @@ const testReducer =
 			TTestAction,
 			TTestContext<TTestState>,
 			TTestPayload<TTestAction>
-		>
+		>,
 	) => ({
 		context: {
 			context: Object.values(params?.payload ?? {}).reduce(
 				(a, b) => a + b,
-				0
+				0,
 			),
 		},
 		state: (params?.action ?? 0) + sampleState,
@@ -86,12 +90,15 @@ describe(`Automata`, () => {
 		sampleInstance = new AutomataTest();
 	});
 	describe('constructor', () => {
-		test('returns an instance of GenericAutomata', () => {
-			expect(sampleInstance).toBeInstanceOf(GenericAutomata);
+		test('returns an instance of AutomataTest', () => {
+			expect(sampleInstance).toBeInstanceOf(AutomataTest);
+		});
+		test('returns an instance of AbstractBaseClass', () => {
+			expect(sampleInstance).toBeInstanceOf(AbstractBaseClass);
 		});
 		test('sets the EventAdapter', () => {
 			expect(sampleInstance.eventAdapter).toBeInstanceOf(
-				EventAdapterTest
+				EventAdapterTest,
 			);
 		});
 	});
@@ -101,18 +108,23 @@ describe(`Automata`, () => {
 			a % 2 === 0) as TValidator<TTestEvent>;
 		test('accepts a function to overwrite default Event Validator', () => {
 			sampleInstance.setEventValidator(testValidator);
-			expect(sampleInstance.validateEvent).toBe(testValidator);
+			for (let i = 0; i < 100; i++) {
+				const sampleValue = sampleRange(-1e6, 1e6);
+				expect(sampleInstance.validateEvent(sampleValue)).toBe(
+					testValidator(sampleValue),
+				);
+			}
 		});
 		test('resets the Event Validator to default when called with null', () => {
 			sampleInstance.setEventValidator(testValidator);
 			sampleInstance.setEventValidator(null);
 			expect(sampleInstance.validateEvent).toBe(
-				sampleInstance.getDefaultEventValidator()
+				sampleInstance.getDefaultEventValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setEventValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -122,18 +134,23 @@ describe(`Automata`, () => {
 			a % 15 === 0) as TValidator<TTestAction>;
 		test('accepts a function to overwrite default Action Validator', () => {
 			sampleInstance.setActionValidator(testValidator);
-			expect(sampleInstance.validateAction).toBe(testValidator);
+			for (let i = 0; i < 100; i++) {
+				const sampleValue = sampleRange(-1e6, 1e6);
+				expect(sampleInstance.validateAction(sampleValue)).toBe(
+					testValidator(sampleValue),
+				);
+			}
 		});
 		test('resets the Action Validator to default when called with null', () => {
 			sampleInstance.setActionValidator(testValidator);
 			sampleInstance.setActionValidator(null);
 			expect(sampleInstance.validateAction).toBe(
-				sampleInstance.getDefaultActionValidator()
+				sampleInstance.getDefaultActionValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setActionValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -143,18 +160,23 @@ describe(`Automata`, () => {
 			a % 15 === 0) as TValidator<TTestState>;
 		test('accepts a function to overwrite default State Validator', () => {
 			sampleInstance.setStateValidator(testValidator);
-			expect(sampleInstance.validateState).toBe(testValidator);
+			for (let i = 0; i < 100; i++) {
+				const sampleValue = sampleRange(-1e6, 1e6);
+				expect(sampleInstance.validateState(sampleValue)).toBe(
+					testValidator(sampleValue),
+				);
+			}
 		});
 		test('resets the State Validator to default when called with null', () => {
 			sampleInstance.setStateValidator(testValidator);
 			sampleInstance.setStateValidator(null);
 			expect(sampleInstance.validateState).toBe(
-				sampleInstance.getDefaultStateValidator()
+				sampleInstance.getDefaultStateValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setStateValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -165,7 +187,7 @@ describe(`Automata`, () => {
 				sampleInstance.dispatch({
 					action: sampleRange(0, 100),
 					payload: null,
-				})
+				}),
 			).toThrowError();
 		});
 		test('throws an error when calling `consumeAction`', () => {
@@ -471,7 +493,7 @@ describe(`Automata`, () => {
 				expect(sampleInstance.getContext()).toEqual(newState);
 				// has changed
 				expect(sampleInstance.getActionQueue()).toEqual(
-					aQueue.slice(count)
+					aQueue.slice(count),
 				);
 				expect(sampleInstance.isPaused()).toBe(true);
 				expect(sampleInstance.isEnabled()).toBe(true);
@@ -509,20 +531,20 @@ describe(`Automata`, () => {
 				sampleInstance.dispatch({
 					action: null,
 					payload: null,
-				})
+				}),
 			).toThrowError();
 
 			expect(() =>
 				sampleInstance.dispatch({
 					action: 3.14,
 					payload: null,
-				})
+				}),
 			).toThrowError();
 			expect(() =>
 				sampleInstance.dispatch({
 					action: -2,
 					payload: { payload: 5 },
-				})
+				}),
 			).toThrowError();
 		});
 
@@ -802,7 +824,7 @@ describe(`Automata`, () => {
 					const reducer = sampleInstance.getReducer();
 					if (reducer)
 						expect(sampleInstance.getContext()).toMatchObject(
-							reducer({ ...state, ...sampleAction })
+							reducer({ ...state, ...sampleAction }),
 						);
 					expect(sampleInstance.isPaused()).toBe(false);
 				});
@@ -879,7 +901,7 @@ describe(`Automata`, () => {
 			testContext.state = sampleRange(25, 50);
 			expect(sampleInstance.getContext()).not.toEqual(testContext);
 			expect(sampleInstance.getContext()).not.toBe(
-				sampleInstance.getContext()
+				sampleInstance.getContext(),
 			);
 		});
 	});
@@ -1003,7 +1025,7 @@ describe(`Automata`, () => {
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
 						...extraAction,
-					})
+					}),
 				);
 				expect(actions).toEqual([sampleAction, extraAction]);
 				expect(sampleInstance.getActionQueue()).toEqual([]);
@@ -1030,7 +1052,7 @@ describe(`Automata`, () => {
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
 						...extraAction,
-					})
+					}),
 				);
 				expect(actions).toEqual([sampleAction, extraAction]);
 				expect(sampleInstance.getActionQueue()).toEqual(actions);
@@ -1063,7 +1085,7 @@ describe(`Automata`, () => {
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
 						...extraAction,
-					})
+					}),
 				);
 				expect(actions).toEqual([]);
 				expect(sampleInstance.getActionQueue()).toEqual([]);

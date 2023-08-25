@@ -11,5 +11,5 @@ export {
 	TState,
 	TStatesStructure,
 	TAction,
-	TActionsStructure
-} from "./base_state_types.js";
+	TActionsStructure,
+} from './base_state_types.js';

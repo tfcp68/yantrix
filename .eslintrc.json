@@ -12,7 +12,8 @@
 		"sourceType": "module",
 		"ecmaFeatures": {
 			"jsx": true
-		}
+		},
+		"project": true
 	},
 	"extends": [
 		"eslint:recommended",
@@ -60,15 +61,16 @@
 			},
 			{
 				"selector": "variable",
-				"modifiers": ["const"],
-				"types": ["array"],
-				"format": null
+				"format": ["camelCase", "PascalCase"],
+				"trailingUnderscore": "forbid"
 			},
 			{
 				"selector": "variable",
 				"types": ["array"],
-				"format": ["PascalCase"],
-				"prefix": ["Array"]
+				"modifiers": ["const", "exported"],
+				"format": ["PascalCase", "UPPER_CASE"],
+				"suffix": ["Array", "List"],
+				"trailingUnderscore": "forbid"
 			}
 		],
 		"@typescript-eslint/ban-types": [

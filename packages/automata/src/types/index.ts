@@ -2,13 +2,31 @@ export type TAutomataBaseStateType = number;
 export type TAutomataBaseActionType = number;
 export type TAutomataBaseEventType = number;
 
+export interface IBaseClass {
+	next?: () => this;
+	correlationId: string;
+}
+
+export type TAbstractConstructor<T = {}> = new (...args: any[]) => T;
+export type TAbstractFunction<T = any> = (...args: any[]) => T;
+export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;
+
+export type TMergeClassTrait<
+	TTrait extends TAbstractConstructor,
+	TTarget extends TAbstractConstructor,
+> = (new (
+	...a: ConstructorParameters<TTarget>
+) => InstanceType<TTrait> & InstanceType<TTarget>) &
+	Pick<TTarget, keyof TTarget> &
+	Pick<TTrait, keyof TTrait>;
+
 export type TAutomataStateContainer<StateType extends TAutomataBaseStateType> =
 	{
 		state: StateType | null;
 	};
 
 export type TAutomataActionContainer<
-	ActionType extends TAutomataBaseActionType
+	ActionType extends TAutomataBaseActionType,
 > = {
 	action: ActionType | null;
 };
@@ -20,21 +38,21 @@ export type TAutomataEventContainer<EventType extends TAutomataBaseEventType> =
 
 export type TAutomataStateContext<
 	StateType extends TAutomataBaseStateType,
-	ContextType extends { [K in StateType]: any }
+	ContextType extends { [K in StateType]: any },
 > = TAutomataStateContainer<StateType> & {
 	context: ContextType[StateType] | null;
 };
 
 export type TAutomataActionPayload<
 	ActionType extends TAutomataBaseActionType,
-	PayloadType extends { [K in ActionType]: any }
+	PayloadType extends { [K in ActionType]: any },
 > = TAutomataActionContainer<ActionType> & {
 	payload: PayloadType[ActionType] | null;
 };
 
 export type TAutomataEventMetaType<
 	EventType extends TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = TAutomataEventContainer<EventType> & {
 	meta: EventMetaType[EventType] | null;
 };
@@ -43,25 +61,25 @@ export type TAutomataEventHandler<
 	EventType extends TAutomataBaseEventType,
 	ActionType extends TAutomataBaseActionType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>
+	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 > = (
-	event: TAutomataEventMetaType<EventType, EventMetaType>
+	event: TAutomataEventMetaType<EventType, EventMetaType>,
 ) => TAutomataActionPayload<ActionType, PayloadType>;
 
 export type TAutomataEventEmitter<
 	EventType extends TAutomataBaseEventType,
 	StateType extends TAutomataBaseStateType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-	ContextType extends { [K in StateType]: any } = Record<StateType, any>
+	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 > = (
-	state: TAutomataStateContext<StateType, ContextType>
+	state: TAutomataStateContext<StateType, ContextType>,
 ) => TAutomataEventMetaType<EventType, EventMetaType>;
 
 export type TAutomataEvent<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
-	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>
+	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 > = TAutomataStateContext<StateType, ContextType> &
 	TAutomataActionPayload<ActionType, PayloadType>;
 
@@ -70,9 +88,9 @@ export type TAutomataReducer<
 	ActionType extends TAutomataBaseActionType,
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	NewStateType extends StateType = StateType
+	NewStateType extends StateType = StateType,
 > = (
-	params: TAutomataEvent<StateType, ActionType, ContextType, PayloadType>
+	params: TAutomataEvent<StateType, ActionType, ContextType, PayloadType>,
 ) => TAutomataStateContext<NewStateType, ContextType>;
 
 export type TAutomataDispatch<
@@ -80,9 +98,9 @@ export type TAutomataDispatch<
 	ActionType extends TAutomataBaseActionType,
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	NewStateType extends StateType = StateType
+	NewStateType extends StateType = StateType,
 > = (
-	action: TAutomataActionPayload<ActionType, PayloadType>
+	action: TAutomataActionPayload<ActionType, PayloadType>,
 ) => ReturnType<
 	TAutomataReducer<
 		StateType,
@@ -105,7 +123,7 @@ export type TAutomataParams<
 		[K in StateType]: any;
 	} = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = TAutomataStateContext<StateType, ContextType> & {
 	rootReducer: TAutomataReducer<
 		StateType,
@@ -122,18 +140,18 @@ export type TAutomataParams<
 
 export type TAutomataQueue<
 	ActionType extends TAutomataBaseActionType,
-	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>
+	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 > = Array<TAutomataActionPayload<ActionType, PayloadType>>;
 
 export type TAutomataEventStack<
 	EventType extends TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = Array<TAutomataEventMetaType<EventType, EventMetaType>>;
 
 export type TAutomataEffect<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = (event: EventMetaType, model: ModelType) => ModelType;
 
 export type TGenericTransformer<DataType> = (data: DataType) => DataType;
@@ -142,24 +160,39 @@ export type TContextTransformer<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends {
 		[K in StateType]: any;
-	} = Record<StateType, any>
+	} = Record<StateType, any>,
 > = (
-	context: TAutomataStateContext<StateType, ContextType>
+	context: TAutomataStateContext<StateType, ContextType>,
 ) => TAutomataStateContext<StateType, ContextType>;
 
 export type TContextPredicate<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends {
 		[K in StateType]: any;
-	} = Record<StateType, any>
+	} = Record<StateType, any>,
 > = (
-	context: TAutomataStateContext<StateType, ContextType>
-) => (predicate: (...args: any[]) => boolean) => boolean;
+	context: TAutomataStateContext<StateType, ContextType>,
+) => THighOrderPredicate;
 
 export type TModelPredicate<ModelType extends object = Record<string, any>> = (
-	model: ModelType
-) => (predicate: (...args: any[]) => boolean) => boolean;
+	model: ModelType,
+) => THighOrderPredicate;
 
-export type TGenericPredicate = (
+export type THighOrderPredicate = (
 	...predicates: Array<(...args: any[]) => boolean>
 ) => boolean;
+
+export type TEventBusTask<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = TAutomataEventMetaType<EventType, EventMetaType> & {
+	task_id: string;
+	result: Promise<TAutomataEventStack<EventType, EventMetaType>>;
+};
+
+export type TEventBusHandler<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = (
+	event: TAutomataEventMetaType<EventType, EventMetaType>,
+) => TEventBusTask<EventType, EventMetaType>;
