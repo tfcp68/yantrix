@@ -8,6 +8,7 @@ import {
 	TFromChoice,
 } from './types/stateDiagramTypes.js';
 
+import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
 /**
  * @brief A function that concat two matrices;
  * @param array1 - first matrix;
@@ -60,6 +61,11 @@ function getChoicesId(stateDiagramStructure: TStateDiagramStructure): string[] {
 	return choicesId;
 }
 
+/**
+ * @brief A function that collect actions id, which leads to states 'from' and 'to';
+ * @param stateDiagramStructure - base state diagram;
+ * @returns Returns dict with actions.
+ */
 function getActionsId(
 	stateDiagramStructure: TStateDiagramStructure
 ): Record<string, { from: string; to: string }> {
@@ -189,6 +195,13 @@ function markChoicesInTransitions(
 		const toChoiceKeys = Object.keys(toChoice);
 		for (let i = 0; i < toChoiceKeys.length; i++) {
 			const to = toChoiceKeys[i];
+			if (
+				choicesId.includes(from) &&
+				choicesId.includes(to) &&
+				from === to
+			) {
+				throw new ChoiceCycleError();
+			}
 			const toActionId = toChoice[to].id;
 			const concatActions = concatArrays(action, toActionId);
 			transitions = unravelChoices(

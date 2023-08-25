@@ -15,6 +15,7 @@ import {
 	TActionsStructure,
 } from './types/index.js';
 
+import { InvalidInputError, BlankInputError } from './errors/stateErrors.js';
 /**
  * @brief Function that parses a diagram;
  * @param diagramText - diagram [string];
@@ -23,11 +24,23 @@ import {
 async function diagramParser(
 	diagramText: string
 ): Promise<TParsedDiagramArray> {
-	mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
-	await mermaid.mermaidAPI.initialize();
-	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
-	const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
-	return parsedDiagram;
+	diagramText = diagramText.trim().replace('\t', '');
+	if (diagramText === '') {
+		throw new BlankInputError();
+	}
+	try {
+		mermaid.mermaidAPI.setConfig({
+			...mermaid.mermaidAPI.defaultConfig,
+		});
+		await mermaid.mermaidAPI.initialize();
+		const diagram = await mermaid.mermaidAPI.getDiagramFromText(
+			diagramText
+		);
+		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
+		return parsedDiagram;
+	} catch (e) {
+		throw new InvalidInputError((e as Error).message);
+	}
 }
 
 /**
