@@ -232,6 +232,9 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
 		const to = transitions[i][1];
 		let id = transitions[i][2];
 		if (id === '') {
+			/**
+			 * @TODO Вынести в отдельную функцию
+			 */
 			id = from + ', ' + to + ', ' + String(i);
 		}
 		const action: TAction = {
