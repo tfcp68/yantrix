@@ -24,7 +24,7 @@ import { InvalidInputError, BlankInputError } from './errors/stateErrors.js';
 async function diagramParser(
 	diagramText: string
 ): Promise<TParsedDiagramArray> {
-	diagramText = diagramText.trim().replace('\t', '');
+	diagramText = diagramText.trim().replaceAll('\t', '');
 	if (diagramText === '') {
 		throw new BlankInputError();
 	}
