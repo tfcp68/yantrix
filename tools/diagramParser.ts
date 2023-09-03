@@ -379,46 +379,48 @@ state test01 <<fork>>
   State4 --> [*]`;
 
 const stateInput4 = `stateDiagram-v2
-state c1 <<choice>>
-state c2 <<choice>>
-state "Tiger" as s1
-state "Lion" as s2
-state "Panthera" as s3
-state "Cat" as s4
-note right of s1
-        meow
-end note
-note right of c1
-        note123
-end note
-note right of c2
-        123note
-end note
-[*] --> s1
-[*] --> s2
-[*] --> s3
-[*] --> s4
-s1 --> c2: t1
-s2 --> c1: t2
-s3 --> c1: t3
-s4 --> c1: t4
+    state c1 <<choice>>
+    state c2 <<choice>>
+    state "Tiger" as s1
+    state "Lion" as s2
+    state "Panthera" as s3
+    state "Cat" as s4
+    note right of s1
+            meow01
+    end note
+    note left of s1
+            meow02
+    end note
+    note right of c1
+            note123
+    end note
+    note right of c2
+            123note
+    end note
+    note left of c2
+            1234note
+    end note
+    [*] --> s1
+    [*] --> s2
+    [*] --> s3
+    [*] --> s4
+    s1 --> c2: t1
+    s2 --> c1: t2
+    s3 --> c1: t3
+    s4 --> c1: t4
 
-c1 --> s7: t11
-c1 --> c2: t12
-c1 --> s5: t5
-c1 --> s6: t6
-c2 --> s7: t7
-c2 --> s8: t8
-s5 --> [*]
-s6 --> [*]
-s7 --> [*]
-s8 --> [*]`;
-/*
-const b = await parseSequenceDiagram(seqDiagram3)
-console.log(b)
-*/
+    c1 --> s7: t11
+    c1 --> c2: t12
+    c1 --> s5: t5
+    c1 --> s6: t6
+    c2 --> s7: t7
+    c2 --> s8: t8
+    s5 --> [*]
+    s6 --> [*]
+    s7 --> [*]
+    s8 --> [*]`;
 
-const a = await parseStateDiagram(stateInput4);
+const a = await parseStateDiagram(input3);
 //console.log(a)
 
 const b = await createStateDiagram(a);

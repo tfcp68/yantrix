@@ -1,16 +1,22 @@
+export type TActionPath = {
+	action: string[];
+	note: string[];
+};
+
+export type TActionPathArray = TActionPath[];
+
 export type TDiagramState = {
 	id: string;
 	caption: string;
 	notes: string[][];
-	actions: string[][]; // выходящие переходы (ссылки на стейты)
+	actionsPath: TActionPathArray;
 	subtree?: TStateDiagram;
 };
 
 export type TDiagramStatesArray = TDiagramState[];
 
 export type TDiagramAction = {
-	id: string[][];
-	notes: string[][];
+	actionsPath: TActionPathArray;
 };
 
 export type TDiagramTransitions = Record<
@@ -26,6 +32,5 @@ export type TStateDiagram = {
 export type TFromChoice = {
 	choice: string;
 	from: string;
-	action: string[][];
-	note: string[][];
+	actionsPath: TActionPathArray;
 };
