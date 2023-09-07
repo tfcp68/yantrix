@@ -1,6 +1,6 @@
 export type TActionPath = {
 	action: string[];
-	note: string[];
+	note: string[][];
 };
 
 export type TActionPathArray = TActionPath[];
@@ -34,3 +34,7 @@ export type TFromChoice = {
 	from: string;
 	actionsPath: TActionPathArray;
 };
+
+export type TFromChoiceArray = TFromChoice[];
+export type TNotesId = Record<string, string[][]>;
+export type TChoicesId = string[];

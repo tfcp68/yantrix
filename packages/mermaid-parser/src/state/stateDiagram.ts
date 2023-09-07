@@ -6,8 +6,10 @@ import {
 	TStateDiagram,
 	TDiagramStatesArray,
 	TFromChoice,
-	TActionPath,
 	TActionPathArray,
+	TNotesId,
+	TChoicesId,
+	TFromChoiceArray,
 } from './types/stateDiagramTypes.js';
 
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
@@ -17,11 +19,9 @@ import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
  * @param stateDiagramStructure - base state diagram;
  * @returns Returns dict with notes.
  */
-function getNotesId(
-	stateDiagramStructure: TStateDiagramStructure
-): Record<string, string[][]> {
+function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
 	const notes = stateDiagramStructure.notes;
-	const notesId: Record<string, string[][]> = {};
+	const notesId: TNotesId = {};
 
 	for (let i = 0; i < notes.length; i++) {
 		const note = notes[i];
@@ -38,9 +38,11 @@ function getNotesId(
  * @param stateDiagramStructure - base state diagram;
  * @returns Returns array with choices.
  */
-function getChoicesId(stateDiagramStructure: TStateDiagramStructure): string[] {
+function getChoicesId(
+	stateDiagramStructure: TStateDiagramStructure
+): TChoicesId {
 	const choices = stateDiagramStructure.choices;
-	const choicesId: string[] = [];
+	const choicesId: TChoicesId = [];
 	for (let i = 0; i < choices.length; i++) {
 		choicesId.push(choices[i].id);
 	}
@@ -48,7 +50,33 @@ function getChoicesId(stateDiagramStructure: TStateDiagramStructure): string[] {
 }
 
 /**
- * @brief A function that create from choices array;
+ * @brief A function add notes for choices;
+ * @param notesId - dict with notes;
+ * @param choice - choice state from which notes are collected;
+ * @param choiceAction - the action in which notes are recorded;
+ * @param fromChoices - actions that happens before choice;
+ * @returns Returns updated fromChoices.
+ */
+function addNotesForChoices(
+	notesId: TNotesId,
+	choice: string,
+	choiceAction: TFromChoice,
+	fromChoices: TFromChoiceArray
+): TFromChoiceArray {
+	if (!Object.keys(notesId).includes(choice)) {
+		notesId[choice] = [['']];
+	}
+	for (let j = 0; j < notesId[choice].length; j++) {
+		const noteId: string[] = notesId[choice][j];
+		choiceAction.actionsPath[0].note.push(noteId);
+	}
+	fromChoices.push(choiceAction);
+
+	return fromChoices;
+}
+
+/**
+ * @brief A function collect actions that happens before choice;
  * @param actions - actions from stateDiagramStructure;
  * @param choicesId - array with choices;
  * @param notesId - dict with notes;
@@ -56,10 +84,10 @@ function getChoicesId(stateDiagramStructure: TStateDiagramStructure): string[] {
  */
 function getFromChoices(
 	actions: TActionsStructure,
-	choicesId: string[],
-	notesId: Record<string, string[][]>
-): TFromChoice[] {
-	const fromChoices: TFromChoice[] = [];
+	choicesId: TChoicesId,
+	notesId: TNotesId
+): TFromChoiceArray {
+	let fromChoices: TFromChoiceArray = [];
 	for (let i = 0; i < actions.length; i++) {
 		const choice = actions[i].to;
 		if (choicesId.includes(actions[i].to)) {
@@ -73,15 +101,12 @@ function getFromChoices(
 					},
 				],
 			};
-			if (!Object.keys(notesId).includes(choice)) {
-				notesId[choice] = [['']];
-			}
-			for (let j = 0; j < notesId[choice].length; j++) {
-				const noteId: string[] = notesId[choice][j];
-				choiceAction.actionsPath[0].note =
-					choiceAction.actionsPath[0].note.concat(noteId);
-			}
-			fromChoices.push(choiceAction);
+			fromChoices = addNotesForChoices(
+				notesId,
+				choice,
+				choiceAction,
+				fromChoices
+			);
 		}
 	}
 	return fromChoices;
@@ -118,8 +143,8 @@ function concatActionPathes(
  * @returns Returns updated transitions.
  */
 function unravelChoices(
-	choicesId: string[],
-	fromChoices: TFromChoice[],
+	choicesId: TChoicesId,
+	fromChoices: TFromChoiceArray,
 	from: string,
 	to: string,
 	actionPathes: TActionPathArray,
@@ -196,9 +221,11 @@ function markChoicesInTransitions(
 		const toChoiceKeys = Object.keys(toChoice);
 		for (let i = 0; i < toChoiceKeys.length; i++) {
 			const to = toChoiceKeys[i];
+			const fromChoicePath = fromChoice.actionsPath;
+			const toChoicePath = toChoice[to].actionsPath;
 			const actionPathes: TActionPathArray = concatActionPathes(
-				fromChoice.actionsPath,
-				toChoice[to].actionsPath
+				fromChoicePath,
+				toChoicePath
 			);
 			transitions = unravelChoices(
 				choicesId,

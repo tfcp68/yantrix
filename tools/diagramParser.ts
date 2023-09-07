@@ -420,7 +420,7 @@ const stateInput4 = `stateDiagram-v2
     s7 --> [*]
     s8 --> [*]`;
 
-const a = await parseStateDiagram(input3);
+const a = await parseStateDiagram(stateInput4);
 //console.log(a)
 
 const b = await createStateDiagram(a);
