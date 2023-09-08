@@ -15,7 +15,7 @@ import {
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
 
 /**
- * @brief A function that collect notes id;
+ * @brief A function collect notes from state;
  * @param stateDiagramStructure - base state diagram;
  * @returns Returns dict with notes.
  */
@@ -28,7 +28,14 @@ function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
 		if (!Object.keys(notesId).includes(note.over)) {
 			notesId[note.over] = [];
 		}
-		notesId[note.over].push(note.text);
+		const notesArray: string[] = [];
+		for (let j = 0; j < note.text.length; j++) {
+			const noteArray: string[] = note.text[j].trim().split('\n');
+			for (let k = 0; k < noteArray.length; k++) {
+				notesArray.push(noteArray[k].trim());
+			}
+		}
+		notesId[note.over].push(notesArray);
 	}
 	return notesId;
 }

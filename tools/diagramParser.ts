@@ -390,6 +390,8 @@ const stateInput4 = `stateDiagram-v2
     end note
     note left of s1
             meow02
+            meow03
+            meow04
     end note
     note right of c1
             note123
@@ -399,6 +401,7 @@ const stateInput4 = `stateDiagram-v2
     end note
     note left of c2
             1234note
+            1note2note3note
     end note
     [*] --> s1
     [*] --> s2
@@ -420,7 +423,7 @@ const stateInput4 = `stateDiagram-v2
     s7 --> [*]
     s8 --> [*]`;
 
-const a = await parseStateDiagram(stateInput4);
+const a = await parseStateDiagram(input4);
 //console.log(a)
 
 const b = await createStateDiagram(a);
