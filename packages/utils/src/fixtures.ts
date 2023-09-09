@@ -29,7 +29,7 @@ export function popFromArray<T>(arr: T[], n = 1): T[] {
 
 export function sampleArray<T = number, N extends number = number>(
 	item: null | ((index?: number) => T) | T,
-	n: N
+	n: N,
 ) {
 	if (item === null)
 		return Array(n)

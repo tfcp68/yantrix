@@ -15,6 +15,7 @@ export default defineConfig({
 		coverage: {
 			enabled: true,
 			all: true,
+			provider: 'v8',
 			reporter: ['html-spa', 'clover', 'text', 'text-summary'],
 			include: ['src'],
 			exclude: [
