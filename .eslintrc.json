@@ -8,6 +8,7 @@
 	"ignorePatterns": ["**/dist/*.js", "**/dist/*.d.ts"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
+		"project": "tsconfig.json",
 		"ecmaVersion": 2022,
 		"sourceType": "module",
 		"ecmaFeatures": {

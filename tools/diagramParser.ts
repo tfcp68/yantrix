@@ -1,5 +1,6 @@
 //import { parseStateDiagram } from '@yantrix/mermaid-parser'
 import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js';
+import { createStateDiagram } from '../packages/mermaid-parser/src/state/stateDiagram.js';
 import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js';
 
 const input1 = `stateDiagram-v2
@@ -376,9 +377,54 @@ state test01 <<fork>>
   State3 --> test02
   test02 --> State4
   State4 --> [*]`;
-/*
-const b = await parseSequenceDiagram(seqDiagram3)
-console.log(b)
-*/
-const a = await parseStateDiagram(diagramText);
-console.log(a);
+
+const stateInput4 = `stateDiagram-v2
+    state c1 <<choice>>
+    state c2 <<choice>>
+    state "Tiger" as s1
+    state "Lion" as s2
+    state "Panthera" as s3
+    state "Cat" as s4
+    note right of s1
+            meow01
+    end note
+    note left of s1
+            meow02
+            meow03
+            meow04
+    end note
+    note right of c1
+            note123
+    end note
+    note right of c2
+            123note
+    end note
+    note left of c2
+            1234note
+            1note2note3note
+    end note
+    [*] --> s1
+    [*] --> s2
+    [*] --> s3
+    [*] --> s4
+    s1 --> c2: t1
+    s2 --> c1: t2
+    s3 --> c1: t3
+    s4 --> c1: t4
+
+    c1 --> s7: t11
+    c1 --> c2: t12
+    c1 --> s5: t5
+    c1 --> s6: t6
+    c2 --> s7: t7
+    c2 --> s8: t8
+    s5 --> [*]
+    s6 --> [*]
+    s7 --> [*]
+    s8 --> [*]`;
+
+const a = await parseStateDiagram(input4);
+//console.log(a)
+
+const b = await createStateDiagram(a);
+console.log(b);
