@@ -1,16 +1,24 @@
 import { describe, expect, test } from 'vitest';
 import { parseStateDiagram } from '../src/index.js';
+import {
+	BlankInputError,
+	InvalidInputError,
+} from '../src/state/errors/stateErrors.js';
 
 describe('State Diagram Parser', () => {
 	describe('Common', () => {
 		test('Empty Input Error', async () => {
 			const diagramText = '';
-			await expect(parseStateDiagram(diagramText)).rejects.toThrowError();
+			await expect(parseStateDiagram(diagramText)).rejects.toThrow(
+				BlankInputError,
+			);
 		});
 
 		test('Invalid Diagram Type', async () => {
 			const diagramText = 'invalidDiagram';
-			await expect(parseStateDiagram(diagramText)).rejects.toThrowError();
+			await expect(parseStateDiagram(diagramText)).rejects.toThrow(
+				InvalidInputError,
+			);
 		});
 
 		test('Empty Diagram', async () => {
@@ -31,7 +39,7 @@ describe('State Diagram Parser', () => {
 			[*] --> State1: Initial
 			State1 --> State2 : Action 1
 			State1 --> State3 : Action 2
-			State2 --> State4 : Action 3 
+			State2 --> State4 : Action 3
 			State3 --> [*]: End
 			`;
 
@@ -300,13 +308,13 @@ describe('State Diagram Parser', () => {
 			state ForkState <<fork>>
 			state JoinState <<join>>
 			
-		  	[*] --> ForkState
-		  	ForkState --> State2
-		  	ForkState --> State3
+         [*] --> ForkState
+         ForkState --> State2
+         ForkState --> State3
 	
-		  	State2 --> JoinState
-		  	State3 --> JoinState
-		  	JoinState --> [*]
+         State2 --> JoinState
+         State3 --> JoinState
+         JoinState --> [*]
 			`;
 
 			const { forks } = await parseStateDiagram(diagramText);
