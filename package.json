@@ -17,7 +17,7 @@
 		"format:affected": "lerna run format --since=origin/main",
 		"yalc:all": "lerna exec -- yalc push --replace",
 		"publish:local": "yarn build:clean && yarn yalc:all",
-		"prepare": "is-ci || husky install",
+		"postinstall": "is-ci || husky install",
 		"update": "yarn upgrade-interactive"
 	},
 	"repository": {

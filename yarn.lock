@@ -1988,7 +1988,7 @@ __metadata:
   resolution: "@yantrix/automata@workspace:packages/automata"
   dependencies:
     "@types/underscore": ^1.11.4
-    "@yantrix/utils": "*"
+    "@yantrix/utils": "workspace:^"
     underscore: ^1.13.6
   languageName: unknown
   linkType: soft
@@ -2031,7 +2031,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@yantrix/utils@*, @yantrix/utils@workspace:packages/utils":
+"@yantrix/utils@*, @yantrix/utils@workspace:^, @yantrix/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@yantrix/utils@workspace:packages/utils"
   languageName: unknown
