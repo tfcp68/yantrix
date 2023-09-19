@@ -4,38 +4,19 @@ import {
 	BlankInputError,
 	InvalidInputError,
 } from '../src/state/errors/stateErrors.js';
-import {
-	blankDiagram,
-	emptyStateDiagram,
-	invalidDiagram,
-	stateDiagramAllStatesToEnd,
-	stateDiagramDoublePath,
-	stateDiagramSimpleTransition,
-	stateDiagramSimpleTransitionCompleted,
-	stateDiagramSimpleTransitionWithComments,
-	stateDiagramWitNormalForks,
-	stateDiagramWithDoubleTransitions,
-	stateDiagramWithEmptyNote,
-	stateDiagramWithLeftSideNote,
-	stateDiagramWithLoopChoice,
-	stateDiagramWithMultilineNotes,
-	stateDiagramWithNamedStates,
-	stateDiagramWithOneLineNotes,
-	stateDiagramWithRightSideNote,
-	stateDiagramWithSimpleChoice,
-	stateDiagramWithSimpleFork,
-} from './fixtures/diagramPatterns.js';
 
 describe('State Diagram Parser', () => {
 	describe('Common', () => {
 		test('Empty Input Error', async () => {
-			await expect(parseStateDiagram(blankDiagram)).rejects.toThrow(
+			const diagramText = '';
+			await expect(parseStateDiagram(diagramText)).rejects.toThrow(
 				BlankInputError,
 			);
 		});
 
 		test('Invalid Diagram Type', async () => {
-			await expect(parseStateDiagram(invalidDiagram)).rejects.toThrow(
+			const diagramText = 'invalidDiagram';
+			await expect(parseStateDiagram(diagramText)).rejects.toThrow(
 				InvalidInputError,
 			);
 		});
@@ -48,6 +29,47 @@ describe('State Diagram Parser', () => {
 			expect(parsedDiagram.states).toEqual([]);
 			expect(parsedDiagram.forks).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
+		});
+
+		test('Basic State Diagram', async () => {
+			const diagramText = `
+			stateDiagram-v2
+			
+			[*] --> State1: Initial
+			State1 --> State2 : Action 1
+			State1 --> State3 : Action 2
+			State2 --> State4 : Action 3
+			State3 --> [*]: End
+			`;
+
+			const parsedDiagram = await parseStateDiagram(diagramText);
+
+			const expectedStates = [
+				{ id: '~~~START~~~', caption: '~~~START~~~' },
+				{ id: 'State1', caption: 'State1' },
+				{ id: 'State2', caption: 'State2' },
+				{ id: 'State3', caption: 'State3' },
+				{ id: 'State4', caption: 'State4' },
+				{ id: '~~~END~~~', caption: '~~~END~~~' },
+			];
+
+			const expectedActions = [
+				{
+					from: '~~~START~~~',
+					to: 'State1',
+					id: 'Initial',
+				},
+				{ from: 'State1', to: 'State2', id: 'Action 1' },
+				{ from: 'State1', to: 'State3', id: 'Action 2' },
+				{ from: 'State2', to: 'State4', id: 'Action 3' },
+				{ from: 'State3', to: '~~~END~~~', id: 'End' },
+			];
+
+			expect(parsedDiagram.states).toEqual(expectedStates);
+			expect(parsedDiagram.actions).toEqual(expectedActions);
+			expect(parsedDiagram.notes).toEqual([]);
+			expect(parsedDiagram.choices).toEqual([]);
+			expect(parsedDiagram.forks).toEqual([]);
 		});
 	});
 
@@ -271,9 +293,22 @@ describe('State Diagram Parser', () => {
 
 	describe('Forks', () => {
 		test('Simple', async () => {
-			const { forks } = await parseStateDiagram(
-				stateDiagramWithSimpleFork,
-			);
+			const diagramText = `
+			stateDiagram-v2
+			
+			state ForkState <<fork>>
+			state JoinState <<join>>
+			
+         [*] --> ForkState
+         ForkState --> State2
+         ForkState --> State3
+	
+         State2 --> JoinState
+         State3 --> JoinState
+         JoinState --> [*]
+			`;
+
+			const { forks } = await parseStateDiagram(diagramText);
 
 			expect(forks.length).toEqual(2);
 
