@@ -1,16 +1,16 @@
-export const blankInput = '';
+export const blankDiagram = '';
 
 export const invalidDiagram = 'invalidDiagram';
 
 export const emptyStateDiagram = 'stateDiagram-v2';
 
-export const simpleTransition = `
+export const stateDiagramSimpleTransition = `
    stateDiagram-v2
 
    A --> B
 `;
 
-export const simpleTransitionCompleted = `
+export const stateDiagramSimpleTransitionCompleted = `
    stateDiagram-v2
 
    [*] --> A
@@ -18,7 +18,7 @@ export const simpleTransitionCompleted = `
    B --> [*]
 `;
 
-export const simpleTransitionWithComments = `
+export const stateDiagramSimpleTransitionWithComments = `
    stateDiagram-v2
 
    [*] --> A: Start
@@ -26,42 +26,117 @@ export const simpleTransitionWithComments = `
    B --> [*]: End
 `;
 
-export const stateDiagramWithChoice = `
-   stateDiagram-v2
+export const stateDiagramAllStatesToEnd = `
+	stateDiagram-v2
 
-   state A <<choice>>
-
-   [*] --> A: Start
-   A --> B: Condition 1
-   A --> [*]: Condition 2
-   B --> [*]
+	[*] --> A
+	A --> B
+	A --> [*]
+	B --> [*]
+	[*] --> [*]
 `;
 
-export const stateDiagramWithFork = `
-   stateDiagram-v2
+export const stateDiagramWithDoubleTransitions = `
+	stateDiagram-v2
 
-   state A <<fork>>
-   state D <<join>>
-
-   [*] --> A: Start
-   A --> B: Fork 1
-   A --> C: Fork 2
-   B --> D
-   C --> D
-   D --> [*]: End
+	[*] --> A
+	[*] --> A
+	A --> B
+	A --> B
+	B --> [*]
+	B --> [*]
 `;
 
-export const stateDiagramWithLoopCondition = `
+export const stateDiagramWithSimpleChoice = `
    stateDiagram-v2
 
-   state B <<choice>>
-   state D <<choice>>
+   state ChoiceState <<choice>>
+
+   [*] --> ChoiceState: Start
+   ChoiceState --> A: Condition 1
+   ChoiceState --> [*]: Condition 2
+   A --> [*]
+`;
+
+export const stateDiagramWithSimpleFork = `
+   stateDiagram-v2
+
+   state Fork <<fork>>
+   state Join <<join>>
+
+   [*] --> Fork: Start
+   Fork --> B: Fork 1
+   Fork --> C: Fork 2
+   B --> Join
+   C --> Join
+   Join --> [*]: End
+`;
+
+export const stateDiagramWitNormalForks = `
+	stateDiagram-v2
+
+	state Fork1 <<fork>>
+	state Join1 <<join>>
+
+	state Fork2 <<fork>>
+	state Join2 <<join>>
+
+	[*] --> Fork1: 
+
+	Fork1 --> A: Fork A
+	Fork1 --> B: Fork B
+	Fork1 --> C: Fork C
+	A --> Join1: Join A
+	B --> Join1: Join B
+	C --> Join1: Join C
+
+	Join1 --> Fork2
+
+	Fork2 --> X: Fork x
+	Fork2 --> Y: Fork Y
+	Fork2 --> Z: Fork Z
+	X --> Join2: Join X
+	Y --> Join2: Join y
+	Z --> Join2: Join Z
+
+	Join2 --> [*]
+`;
+
+export const stateDiagramWithLoopChoice = `
+   stateDiagram-v2
+
+   state ChoiceState1 <<choice>>
+   state ChoiceState2 <<choice>>
+
+   [*] --> A
+   A --> ChoiceState1
+   ChoiceState1 --> [*]: Condition 1
+   ChoiceState1 --> ChoiceState2: Condition 2
+   ChoiceState2 --> ChoiceState1
+`;
+
+export const stateDiagramWithOneLineNotes = `
+   stateDiagram-v2
 
    [*] --> A
    A --> B
-   B --> [*]: Condition 1
-   B --> D: Condition 2
-   D --> B
+   B --> [*]
+
+   note left of A: simple note left of A
+   note right of B: simple note right of B
+`;
+
+export const stateDiagramWithEmptyNote = `
+   stateDiagram-v2
+
+   [*] --> A
+   A --> B
+   B --> [*]
+
+   note left of A
+   end note
+   note right of B
+   end note
 `;
 
 export const stateDiagramWithLeftSideNote = `
@@ -72,7 +147,7 @@ export const stateDiagramWithLeftSideNote = `
    B --> [*]
 
    note left of A
-      simple left side note
+		simple left side note
    end note
 `;
 
@@ -84,11 +159,29 @@ export const stateDiagramWithRightSideNote = `
    B --> [*]
 
    note right of A
-      simple right side note
+		simple right side note
    end note
    note left of A
-      another simple left side note
-      in 2 lines
+		another simple left side note
+   end note
+`;
+
+export const stateDiagramWithMultilineNotes = `
+   stateDiagram-v2
+
+   [*] --> A
+   A --> B
+   B --> [*]
+
+   note right of A
+		simple right side note
+		right of A that is
+		longer than 1 line
+   end note
+   note left of A
+		another note left
+		of A that contains
+		more than 1 line
    end note
 `;
 
@@ -104,11 +197,11 @@ export const stateDiagramWithChoiceAndNote = `
    B --> [*]
 
    note right of A
-      simple right side note
+		simple right side note
    end note
    note left of A
-      another simple left side note
-      in 2 lines
+		another simple left side note
+		in 2 lines
    end note
 `;
 
@@ -135,27 +228,27 @@ export const stateDiagramWithNamedStates = `
 export const stateDiagramDoublePath = `
    stateDiagram-v2
 
-   state C1 <<choice>>
-   state C2 <<choice>>
+   state ChoiceState1 <<choice>>
+   state ChoiceState2 <<choice>>
 
    [*] --> A
-   A --> C1
-   C1 --> C2
-   C1 --> B
-   C2 --> B
-   C2 --> D
+   A --> ChoiceState1
+   ChoiceState1 --> ChoiceState2
+   ChoiceState1 --> B
+   ChoiceState2 --> B
+   ChoiceState2 --> D
    B --> [*]
    D --> [*]
 
-   note left of C1
-      this is multiline
-      comment left of
-      first choice
+   note left of ChoiceState1
+		this is multiline
+		comment left of
+		first choice
    end note
 
-   note right of C2
-      this is another
-      multiline comment
-      right of second choice
+   note right of ChoiceState2
+		this is another
+		multiline comment
+		right of second choice
    end note
 `;
