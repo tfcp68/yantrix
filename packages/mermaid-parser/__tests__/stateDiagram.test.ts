@@ -1,15 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import { parseStateDiagram, createStateDiagram } from '../src/index.js';
 import {
-	blankInput,
+	blankDiagram,
 	invalidDiagram,
 	emptyStateDiagram,
-	simpleTransition,
-	simpleTransitionCompleted,
-	simpleTransitionWithComments,
-	stateDiagramWithChoice,
-	stateDiagramWithFork,
-	stateDiagramWithLoopCondition,
+	stateDiagramSimpleTransition,
+	stateDiagramSimpleTransitionCompleted,
+	stateDiagramSimpleTransitionWithComments,
+	stateDiagramWithSimpleChoice,
+	stateDiagramWithSimpleFork,
+	stateDiagramWithLoopChoice,
 	stateDiagramWithLeftSideNote,
 	stateDiagramWithRightSideNote,
 	stateDiagramWithChoiceAndNote,
@@ -37,7 +37,7 @@ import {
 describe('State Diagram Parser', () => {
 	describe('Common', () => {
 		test('blankInput', async () => {
-			const diagramText = blankInput;
+			const diagramText = blankDiagram;
 			await expect(parseStateDiagram(diagramText)).rejects.toThrowError();
 		});
 		test('invalidDiagram', async () => {
@@ -54,7 +54,7 @@ describe('State Diagram Parser', () => {
 			);
 		});
 		test('simpleTransition', async () => {
-			const diagramText = simpleTransition;
+			const diagramText = stateDiagramSimpleTransition;
 			const parsedDiagram = await parseStateDiagram(diagramText);
 			const stateDiagram = await createStateDiagram(parsedDiagram);
 			const expectedResult = simpleTransitionExpectedResult;
@@ -63,7 +63,7 @@ describe('State Diagram Parser', () => {
 			);
 		});
 		test('simpleTransitionCompleted', async () => {
-			const diagramText = simpleTransitionCompleted;
+			const diagramText = stateDiagramSimpleTransitionCompleted;
 			const parsedDiagram = await parseStateDiagram(diagramText);
 			const stateDiagram = await createStateDiagram(parsedDiagram);
 			const expectedResult = simpleTransitionCompletedExpectedResult;
@@ -72,7 +72,7 @@ describe('State Diagram Parser', () => {
 			);
 		});
 		test('simpleTransitionWithComments', async () => {
-			const diagramText = simpleTransitionWithComments;
+			const diagramText = stateDiagramSimpleTransitionWithComments;
 			const parsedDiagram = await parseStateDiagram(diagramText);
 			const stateDiagram = await createStateDiagram(parsedDiagram);
 			const expectedResult = simpleTransitionWithCommentsExpectedResult;
@@ -81,7 +81,7 @@ describe('State Diagram Parser', () => {
 			);
 		});
 		test('stateDiagramWithChoice', async () => {
-			const diagramText = stateDiagramWithChoice;
+			const diagramText = stateDiagramWithSimpleChoice;
 			const parsedDiagram = await parseStateDiagram(diagramText);
 			const stateDiagram = await createStateDiagram(parsedDiagram);
 			const expectedResult = stateDiagramWithChoiceExpectedResult;
@@ -91,7 +91,7 @@ describe('State Diagram Parser', () => {
 		});
 		test('stateDiagramWithFork', async () => {
 			// forks doesnt supported right now
-			const diagramText = stateDiagramWithFork;
+			const diagramText = stateDiagramWithSimpleFork;
 			const parsedDiagram = await parseStateDiagram(diagramText);
 			const stateDiagram = await createStateDiagram(parsedDiagram);
 			const expectedResult = stateDiagramWithForkExpectedResult;
@@ -100,7 +100,7 @@ describe('State Diagram Parser', () => {
 			);
 		});
 		test('stateDiagramWithLoopCondition', async () => {
-			const diagramText = stateDiagramWithLoopCondition;
+			const diagramText = stateDiagramWithLoopChoice;
 			const parsedDiagram = await parseStateDiagram(diagramText);
 			const expectedResult =
 				stateDiagramWithLoopConditionExpectedResultString;
