@@ -423,7 +423,9 @@ const stateInput4 = `stateDiagram-v2
     s7 --> [*]
     s8 --> [*]`;
 
-const a = await parseStateDiagram(input4);
+export const emptyStateDiagram = 'stateDiagram-v2';
+
+const a = await parseStateDiagram(emptyStateDiagram);
 //console.log(a)
 
 const b = await createStateDiagram(a);
