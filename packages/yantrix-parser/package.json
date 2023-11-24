@@ -1,44 +1,46 @@
 {
 	"name": "@yantrix/yantrix-parser",
 	"version": "0.1.0",
-	"description": "Execute jison parser",
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"homepage": "https://github.com/octaharon/yantrix",
-	"license": "ISC",
-	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"directory": "packages/yantrix-parser",
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git"
+	},
+	"scripts": {
+		"build": "tsc && yarn create-parser",
+		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
+		"format": "prettier --write .",
+		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
+		"prepack": "yarn lint && yarn test && yarn build",
+		"test": "vitest run"
+	},
+	"description": "Execute jison parser",
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
 	},
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
 	},
-	"files": [
-		"dist"
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
+	"homepage": "https://github.com/octaharon/yantrix",
+	"keywords": [
+		"FSM",
+		"Miely Machine"
 	],
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git",
-		"directory": "packages/yantrix-parser"
-	},
-	"scripts": {
-		"test": "vitest run",
-		"build": "tsc",
-		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
-		"format": "prettier --write .",
-		"prepack": "yarn lint && yarn test && yarn build"
-	},
-	"bugs": {
-		"url": "https://github.com/octaharon/yantrix/issues"
-	},
+	"license": "ISC",
+	"type": "module",
 	"devDependencies": {
+		"@ts-jison/parser-generator": "^0.4.1-alpha.2",
 		"jison": "0.4.18"
 	}
 }

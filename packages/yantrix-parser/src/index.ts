@@ -1,1 +1,1 @@
-export * from './yantrixParser.js'
+export * from './yantrixParser.js';
