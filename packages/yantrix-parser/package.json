@@ -1,0 +1,44 @@
+{
+	"name": "@yantrix/yantrix-parser",
+	"version": "0.1.0",
+	"description": "Execute jison parser",
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"homepage": "https://github.com/octaharon/yantrix",
+	"license": "ISC",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git",
+		"directory": "packages/yantrix-parser"
+	},
+	"scripts": {
+		"test": "vitest run",
+		"build": "tsc",
+		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
+		"format": "prettier --write .",
+		"prepack": "yarn lint && yarn test && yarn build"
+	},
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
+	},
+	"devDependencies": {
+		"jison": "0.4.18"
+	}
+}
