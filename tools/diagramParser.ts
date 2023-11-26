@@ -431,4 +431,8 @@ const a = await parseStateDiagram(emptyStateDiagram);
 
 const b = await createStateDiagram(a);
 
+const parser = new YantrixParser();
+
+console.log(parser.parse(''));
+
 console.log(b);

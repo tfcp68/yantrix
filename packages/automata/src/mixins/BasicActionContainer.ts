@@ -6,7 +6,7 @@ import {
 } from '../types/index.js';
 
 export default function BasicActionContainer<
-	ActionType extends TAutomataBaseActionType
+	ActionType extends TAutomataBaseActionType,
 >() {
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicActionContainer extends Base {
@@ -24,7 +24,7 @@ export default function BasicActionContainer<
 			}
 
 			setActionValidator(
-				actionValidator: TValidator<ActionType> | null = null
+				actionValidator: TValidator<ActionType> | null = null,
 			) {
 				if (actionValidator === null) {
 					this.#_actionValidator = undefined;
@@ -32,7 +32,7 @@ export default function BasicActionContainer<
 				}
 				if (typeof actionValidator !== 'function')
 					throw new Error(
-						`passed Action Validator is not a function`
+						`passed Action Validator is not a function`,
 					);
 				this.#_actionValidator = actionValidator.bind(this);
 				return this;

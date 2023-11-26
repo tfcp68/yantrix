@@ -12,10 +12,10 @@
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
-		"build": "tsc && yarn create-parser",
+		"build": "rimraf dist && yarn create-parser && tsc",
 		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
-		"format": "prettier --write .",
-		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "yarn lint && yarn test && yarn build",
 		"test": "vitest run"
 	},

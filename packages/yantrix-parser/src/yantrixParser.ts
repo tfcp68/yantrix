@@ -318,6 +318,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 		switch (yystate) {
 			case 1:
 				return $$[$0 - 1];
+				break;
 			case 2:
 				this.$ = [];
 				break;
@@ -387,6 +388,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				break;
 			case 26:
 				return $$[$0 - 1];
+				break;
 			case 39:
 				console.log(this.$);
 				break;
@@ -398,7 +400,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 import { JisonLexer, JisonLexerApi } from '@ts-jison/lexer';
 
 export class YantrixLexer extends JisonLexer implements JisonLexerApi {
-	override options: any = { 'case-insensitive': true, moduleName: 'Yantrix' };
+	options: any = { 'case-insensitive': true, moduleName: 'Yantrix' };
 	constructor(yy = {}) {
 		super(yy);
 	}
@@ -500,98 +502,135 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 		switch ($avoiding_name_collisions) {
 			case 0:
 				return 5;
+				break;
 			case 1:
 				return 7;
+				break;
 			case 2 /* skip all whitespace */:
 				break;
 			case 3:
 				return 19;
+				break;
 			case 4:
 				return 9;
+				break;
 			case 5:
 				return 15;
+				break;
 			case 6:
 				return 16;
+				break;
 			case 7:
 				return 14;
+				break;
 			case 8:
 				this.begin('Note');
 				return 11;
+				break;
 			case 9:
 				this.popState();
 				return 12;
+				break;
 			case 10:
 				this.begin('ActionStatement');
 				return 34;
+				break;
 			case 11:
 				this.popState();
 				return 36;
+				break;
 			case 12:
 				this.begin('SubcribeStatement');
 				return 33;
+				break;
 			case 13:
 				this.popState();
 				return 32;
+				break;
 			case 14:
 				return 24;
+				break;
 			case 15:
 				return 34;
+				break;
 			case 16:
 				this.begin('KeyList');
 				return 40;
+				break;
 			case 17:
 				return 28;
+				break;
 			case 18:
 				return 29;
+				break;
 			case 19:
 				this.begin('EmitStatement');
 				return 31;
+				break;
 			case 20:
 				this.popState();
 				return 32;
+				break;
 			case 21:
 				return 51;
+				break;
 			case 22:
 				return 52;
+				break;
 			case 23:
 				this.begin('Constant');
 				return 53;
+				break;
 			case 24:
 				return 54;
+				break;
 			case 25:
 				this.popState();
 				return 27;
+				break;
 			case 26:
 				return 44;
+				break;
 			case 27:
 				return 45;
+				break;
 			case 28:
 				return 25;
+				break;
 			case 29:
 				return 39;
+				break;
 			case 30:
 				return 27;
+				break;
 			case 31:
 				this.begin('Func');
 				return 47;
+				break;
 			case 32:
 				this.popState();
 				return 50;
+				break;
 			case 33:
 				this.popState();
 				return 43;
+				break;
 			case 34:
 				this.begin('Prop');
 				return 30;
+				break;
 			case 35 /* skip whitespace */:
 				break;
 			case 36:
 				return 44;
+				break;
 			case 37:
 				this.begin('Func');
 				return 47;
+				break;
 			case 38:
 				return 5;
+				break;
 		}
 	}
 }

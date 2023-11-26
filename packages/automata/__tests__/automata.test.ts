@@ -65,12 +65,12 @@ const testReducer =
 			TTestAction,
 			TTestContext<TTestState>,
 			TTestPayload<TTestAction>
-		>
+		>,
 	) => ({
 		context: {
 			context: Object.values(params?.payload ?? {}).reduce(
 				(a, b) => a + b,
-				0
+				0,
 			),
 		},
 		state: (params?.action ?? 0) + sampleState,
@@ -98,7 +98,7 @@ describe(`Automata`, () => {
 		});
 		test('sets the EventAdapter', () => {
 			expect(sampleInstance.eventAdapter).toBeInstanceOf(
-				EventAdapterTest
+				EventAdapterTest,
 			);
 		});
 	});
@@ -111,7 +111,7 @@ describe(`Automata`, () => {
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
 				expect(sampleInstance.validateEvent(sampleValue)).toBe(
-					testValidator(sampleValue)
+					testValidator(sampleValue),
 				);
 			}
 		});
@@ -119,12 +119,12 @@ describe(`Automata`, () => {
 			sampleInstance.setEventValidator(testValidator);
 			sampleInstance.setEventValidator(null);
 			expect(sampleInstance.validateEvent).toBe(
-				sampleInstance.getDefaultEventValidator()
+				sampleInstance.getDefaultEventValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setEventValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -137,7 +137,7 @@ describe(`Automata`, () => {
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
 				expect(sampleInstance.validateAction(sampleValue)).toBe(
-					testValidator(sampleValue)
+					testValidator(sampleValue),
 				);
 			}
 		});
@@ -145,12 +145,12 @@ describe(`Automata`, () => {
 			sampleInstance.setActionValidator(testValidator);
 			sampleInstance.setActionValidator(null);
 			expect(sampleInstance.validateAction).toBe(
-				sampleInstance.getDefaultActionValidator()
+				sampleInstance.getDefaultActionValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setActionValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -163,7 +163,7 @@ describe(`Automata`, () => {
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
 				expect(sampleInstance.validateState(sampleValue)).toBe(
-					testValidator(sampleValue)
+					testValidator(sampleValue),
 				);
 			}
 		});
@@ -171,12 +171,12 @@ describe(`Automata`, () => {
 			sampleInstance.setStateValidator(testValidator);
 			sampleInstance.setStateValidator(null);
 			expect(sampleInstance.validateState).toBe(
-				sampleInstance.getDefaultStateValidator()
+				sampleInstance.getDefaultStateValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setStateValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -187,7 +187,7 @@ describe(`Automata`, () => {
 				sampleInstance.dispatch({
 					action: sampleRange(0, 100),
 					payload: null,
-				})
+				}),
 			).toThrowError();
 		});
 		test('throws an error when calling `consumeAction`', () => {
@@ -493,7 +493,7 @@ describe(`Automata`, () => {
 				expect(sampleInstance.getContext()).toEqual(newState);
 				// has changed
 				expect(sampleInstance.getActionQueue()).toEqual(
-					aQueue.slice(count)
+					aQueue.slice(count),
 				);
 				expect(sampleInstance.isPaused()).toBe(true);
 				expect(sampleInstance.isEnabled()).toBe(true);
@@ -531,20 +531,20 @@ describe(`Automata`, () => {
 				sampleInstance.dispatch({
 					action: null,
 					payload: null,
-				})
+				}),
 			).toThrowError();
 
 			expect(() =>
 				sampleInstance.dispatch({
 					action: 3.14,
 					payload: null,
-				})
+				}),
 			).toThrowError();
 			expect(() =>
 				sampleInstance.dispatch({
 					action: -2,
 					payload: { payload: 5 },
-				})
+				}),
 			).toThrowError();
 		});
 
@@ -824,7 +824,7 @@ describe(`Automata`, () => {
 					const reducer = sampleInstance.getReducer();
 					if (reducer)
 						expect(sampleInstance.getContext()).toMatchObject(
-							reducer({ ...state, ...sampleAction })
+							reducer({ ...state, ...sampleAction }),
 						);
 					expect(sampleInstance.isPaused()).toBe(false);
 				});
@@ -901,7 +901,7 @@ describe(`Automata`, () => {
 			testContext.state = sampleRange(25, 50);
 			expect(sampleInstance.getContext()).not.toEqual(testContext);
 			expect(sampleInstance.getContext()).not.toBe(
-				sampleInstance.getContext()
+				sampleInstance.getContext(),
 			);
 		});
 	});
@@ -1025,7 +1025,7 @@ describe(`Automata`, () => {
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
 						...extraAction,
-					})
+					}),
 				);
 				expect(actions).toEqual([sampleAction, extraAction]);
 				expect(sampleInstance.getActionQueue()).toEqual([]);
@@ -1052,7 +1052,7 @@ describe(`Automata`, () => {
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
 						...extraAction,
-					})
+					}),
 				);
 				expect(actions).toEqual([sampleAction, extraAction]);
 				expect(sampleInstance.getActionQueue()).toEqual(actions);
@@ -1085,7 +1085,7 @@ describe(`Automata`, () => {
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
 						...extraAction,
-					})
+					}),
 				);
 				expect(actions).toEqual([]);
 				expect(sampleInstance.getActionQueue()).toEqual([]);

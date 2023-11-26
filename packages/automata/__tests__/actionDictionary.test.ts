@@ -32,8 +32,8 @@ const testNamespaceExtra = 'extra';
 
 const testValues = _.shuffle(
 	_.range('a'.charCodeAt(0), 'z'.charCodeAt(0)).map((v) =>
-		String.fromCharCode(v)
-	)
+		String.fromCharCode(v),
+	),
 );
 // creating a random sets of letters
 const testSamples = [
@@ -94,7 +94,7 @@ describe('ActionDictionary', () => {
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
 				expect(sampleInstance.validateAction(sampleValue)).toBe(
-					testValidator(sampleValue)
+					testValidator(sampleValue),
 				);
 			}
 		});
@@ -102,12 +102,12 @@ describe('ActionDictionary', () => {
 			sampleInstance.setActionValidator(testValidator);
 			sampleInstance.setActionValidator(null);
 			expect(sampleInstance.validateAction).toBe(
-				sampleInstance.getDefaultActionValidator()
+				sampleInstance.getDefaultActionValidator(),
 			);
 		});
 		test('returns self', () => {
 			expect(sampleInstance.setActionValidator(testValidator)).toBe(
-				sampleInstance
+				sampleInstance,
 			);
 		});
 	});
@@ -129,26 +129,26 @@ describe('ActionDictionary', () => {
 			expect(dictionary).toBeDefined();
 			expect(Object.keys(dictionary)).toHaveLength(
 				Object.values(_.omit(sampleKeys, testNamespaceExtra)).flatMap(
-					(x) => x
-				).length
+					(x) => x,
+				).length,
 			);
 		});
 		test('filters by namespace', () => {
 			const dictionary = sampleInstance.getDictionary(testNamespace);
 			const values = Object.values(dictionary);
 			expect(Object.keys(dictionary)).toHaveLength(
-				sampleKeys[testNamespace].length
+				sampleKeys[testNamespace].length,
 			);
 			expect(values).toEqual(
 				sampleInstance.getActionValues({
 					namespace: testNamespace,
 					keys: sampleKeys[testNamespace],
-				})
+				}),
 			);
 		});
 		test('ignores invalid namespaces', () => {
 			expect(sampleInstance.getDictionary(testNamespaceExtra)).toEqual(
-				{}
+				{},
 			);
 			// @ts-ignore
 			expect(sampleInstance.getDictionary(123.45)).toEqual({});
@@ -186,7 +186,7 @@ describe('ActionDictionary', () => {
 					sampleInstance.getDictionary(testNamespace);
 				sampleInstance.clearActions(testNamespace);
 				expect(sampleInstance.getDictionary()).toEqual(
-					_.omit(dictionary, Object.keys(removedNamespace))
+					_.omit(dictionary, Object.keys(removedNamespace)),
 				);
 			});
 			test('ignores invalid namespaces', () => {
@@ -242,7 +242,7 @@ describe('ActionDictionary', () => {
 				sampleInstance2.getActionValues({
 					namespace: testNamespace,
 					keys: sampleAction,
-				})
+				}),
 			).toEqual(sampleValues);
 		});
 		describe('returns null when namespace and/or action does not match', () => {
@@ -272,7 +272,7 @@ describe('ActionDictionary', () => {
 					sampleInstance.getActionValues({
 						namespace: testNamespaceExtra,
 						keys: sampleArray(() => sampleAction(), sampleLength),
-					})
+					}),
 				).toEqual(new Array(sampleLength).fill(null));
 			});
 		});
@@ -286,7 +286,9 @@ describe('ActionDictionary', () => {
 				});
 				expect(sampleActions).toHaveLength(sampleKeys.default.length);
 				expect(
-					sampleActions.every((x) => sampleInstance.validateAction(x))
+					sampleActions.every((x) =>
+						sampleInstance.validateAction(x),
+					),
 				).toBe(true);
 			});
 			test('is idempotent', () => {
@@ -306,12 +308,14 @@ describe('ActionDictionary', () => {
 					keys: sampleKeys.default,
 				});
 				expect(sampleActions).toEqual(
-					sampleInstance.getActionValues({ keys: sampleKeys.default })
+					sampleInstance.getActionValues({
+						keys: sampleKeys.default,
+					}),
 				);
 				expect(() =>
 					sampleInstance.addActions({
 						keys: pickFromArray(sampleKeys.default),
-					})
+					}),
 				).toThrow();
 			});
 		});
@@ -322,10 +326,12 @@ describe('ActionDictionary', () => {
 					keys: sampleKeys[testNamespaceCross],
 				});
 				expect(sampleActions).toHaveLength(
-					sampleKeys[testNamespaceCross].length
+					sampleKeys[testNamespaceCross].length,
 				);
 				expect(
-					sampleActions.every((x) => sampleInstance.validateAction(x))
+					sampleActions.every((x) =>
+						sampleInstance.validateAction(x),
+					),
 				).toBe(true);
 			});
 			test('is idempotent', () => {
@@ -366,13 +372,13 @@ describe('ActionDictionary', () => {
 					sampleInstance.getActionValues({
 						namespace: testNamespaceCross,
 						keys: sampleKeys[testNamespaceCross],
-					})
+					}),
 				);
 				expect(() =>
 					sampleInstance.addActions({
 						namespace: testNamespaceCross,
 						keys: pickFromArray(sampleKeys[testNamespaceCross]),
-					})
+					}),
 				).toThrow();
 			});
 		});
@@ -472,16 +478,16 @@ describe('ActionDictionary', () => {
 					});
 					expect(
 						Object.values(
-							sampleInstance.getDictionary(testNamespace)
-						)
+							sampleInstance.getDictionary(testNamespace),
+						),
 					).toEqual(
 						sampleInstance.getActionValues({
 							namespace: testNamespace,
 							keys: _.without(
 								sampleKeys[testNamespace],
-								...sampleKey
+								...sampleKey,
 							),
-						})
+						}),
 					);
 				});
 			});
@@ -516,7 +522,7 @@ describe('ActionDictionary', () => {
 						namespace: testNamespaceCross,
 						actions: sampleArray(
 							() => sampleRange(0, 100),
-							sampleRange(5, 8)
+							sampleRange(5, 8),
 						),
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
@@ -529,18 +535,18 @@ describe('ActionDictionary', () => {
 					});
 					expect(
 						Object.values(
-							sampleInstance.getDictionary(testNamespaceCross)
-						)
+							sampleInstance.getDictionary(testNamespaceCross),
+						),
 					).toEqual(_.without(sampleValues, ...sampleAction));
 					expect(
 						Object.keys(
-							sampleInstance.getDictionary(testNamespaceCross)
-						)
+							sampleInstance.getDictionary(testNamespaceCross),
+						),
 					).toEqual(
 						sampleInstance.getActionKeys({
 							namespace: testNamespaceCross,
 							actions: _.without(sampleValues, ...sampleAction),
-						})
+						}),
 					);
 				});
 			});
@@ -567,7 +573,7 @@ describe('ActionDictionary', () => {
 					const sampleAction = pickFromArray(sampleValues, 2);
 					const sampleKey = pickFromArray(
 						sampleKeys[testNamespaceCross],
-						2
+						2,
 					);
 					const actionToRemove = sampleInstance
 						.getActionValues({
@@ -582,35 +588,35 @@ describe('ActionDictionary', () => {
 					});
 					expect(
 						Object.values(
-							sampleInstance.getDictionary(testNamespaceCross)
-						)
+							sampleInstance.getDictionary(testNamespaceCross),
+						),
 					).toEqual(
 						_.without(
 							sampleValues,
 							...sampleAction,
-							...actionToRemove
-						)
+							...actionToRemove,
+						),
 					);
 					expect(
 						Object.keys(
-							sampleInstance.getDictionary(testNamespaceCross)
-						)
+							sampleInstance.getDictionary(testNamespaceCross),
+						),
 					).toEqual(
 						sampleInstance.getActionKeys({
 							namespace: testNamespaceCross,
 							actions: _.without(
 								sampleValues,
 								...sampleAction,
-								...actionToRemove
+								...actionToRemove,
 							),
-						})
+						}),
 					);
 				});
 				test('restricts removed Actions and Keys to the requested namespace', () => {
 					const sampleAction = pickFromArray(sampleValues, 2);
 					const sampleKey = pickFromArray(
 						sampleKeys[testNamespaceCross],
-						2
+						2,
 					);
 					const actionToRemove = sampleInstance
 						.getActionValues({
@@ -625,28 +631,28 @@ describe('ActionDictionary', () => {
 					});
 					expect(
 						Object.values(
-							sampleInstance.getDictionary(testNamespaceCross)
-						)
+							sampleInstance.getDictionary(testNamespaceCross),
+						),
 					).toEqual(
 						_.without(
 							sampleValues,
 							...sampleAction,
-							...actionToRemove
-						)
+							...actionToRemove,
+						),
 					);
 					expect(
 						Object.keys(
-							sampleInstance.getDictionary(testNamespaceCross)
-						)
+							sampleInstance.getDictionary(testNamespaceCross),
+						),
 					).toEqual(
 						sampleInstance.getActionKeys({
 							namespace: testNamespaceCross,
 							actions: _.without(
 								sampleValues,
 								...sampleAction,
-								...actionToRemove
+								...actionToRemove,
 							),
-						})
+						}),
 					);
 				});
 			});
@@ -686,13 +692,13 @@ describe('ActionDictionary', () => {
 						Object.values(
 							_.pick(
 								sampleInstance.getDictionary(),
-								...defaultKeys
-							)
-						)
+								...defaultKeys,
+							),
+						),
 					).toEqual(
 						sampleInstance.getActionValues({
 							keys: _.without(sampleKeys.default, ...sampleKey),
-						})
+						}),
 					);
 				});
 			});
@@ -719,7 +725,7 @@ describe('ActionDictionary', () => {
 					sampleInstance.removeActions({
 						actions: sampleArray(
 							() => sampleRange(1, 50),
-							sampleRange(3, 5)
+							sampleRange(3, 5),
 						),
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
@@ -733,9 +739,9 @@ describe('ActionDictionary', () => {
 						Object.values(
 							_.pick(
 								sampleInstance.getDictionary(),
-								...defaultKeys
-							)
-						)
+								...defaultKeys,
+							),
+						),
 					).toEqual(_.without(defaultValues, ...sampleAction));
 				});
 			});
@@ -764,15 +770,15 @@ describe('ActionDictionary', () => {
 						Object.values(
 							_.pick(
 								sampleInstance.getDictionary(),
-								...defaultKeys
-							)
-						)
+								...defaultKeys,
+							),
+						),
 					).toEqual(
 						_.without(
 							defaultValues,
 							...sampleAction,
-							...actionToRemove
-						)
+							...actionToRemove,
+						),
 					);
 				});
 				test('restricts removed Actions and Keys to the default namespace', () => {
@@ -798,15 +804,15 @@ describe('ActionDictionary', () => {
 						Object.values(
 							_.pick(
 								sampleInstance.getDictionary(),
-								...defaultKeys
-							)
-						)
+								...defaultKeys,
+							),
+						),
 					).toEqual(
 						_.without(
 							defaultValues,
 							...sampleAction,
-							...actionToRemove
-						)
+							...actionToRemove,
+						),
 					);
 				});
 			});
@@ -846,7 +852,7 @@ describe('ActionDictionary', () => {
 				sampleInstance2.getActionKeys({
 					namespace: testNamespaceCross,
 					actions: sampleValues,
-				})
+				}),
 			).toEqual(sampleAction);
 		});
 		test('returns a key without namespace', () => {
@@ -856,7 +862,7 @@ describe('ActionDictionary', () => {
 			});
 			expect(keys).toHaveLength(1);
 			expect(sampleInstance.getDictionary()[keys[0] ?? '']).toEqual(
-				testValues[0]
+				testValues[0],
 			);
 		});
 		test('returns a key with namespace', () => {
@@ -867,7 +873,7 @@ describe('ActionDictionary', () => {
 			});
 			expect(keys).toHaveLength(1);
 			expect(
-				sampleInstance.getDictionary(testNamespaceCross)[keys[0] ?? '']
+				sampleInstance.getDictionary(testNamespaceCross)[keys[0] ?? ''],
 			).toEqual(testValues[0]);
 		});
 		describe('returns null when namespace and/or action does not match', () => {
@@ -894,7 +900,7 @@ describe('ActionDictionary', () => {
 			test('action in default namespace that does not exist', () => {
 				const values = sampleInstance.getActionKeys({
 					actions: pickFromArray(
-						_.without(sampleValues, ...defaultValues)
+						_.without(sampleValues, ...defaultValues),
 					),
 				});
 				expect(values).toEqual([null]);
@@ -906,9 +912,9 @@ describe('ActionDictionary', () => {
 						namespace: testNamespaceExtra,
 						actions: sampleArray(
 							() => sampleRange(0, Number.MAX_SAFE_INTEGER),
-							sampleLength
+							sampleLength,
 						),
-					})
+					}),
 				).toEqual(new Array(sampleLength).fill(null));
 			});
 		});

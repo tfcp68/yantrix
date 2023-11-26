@@ -7,7 +7,7 @@ import { TAbstractConstructor } from '../types/index.js';
 
 export default function DictionaryContainer<ItemType>() {
 	return <TBase extends TAbstractConstructor = TAbstractConstructor>(
-		base: TBase
+		base: TBase,
 	) =>
 		class AbstractDictionaryContainer extends base {
 			_dictionary: Record<string, ItemType> = {};
@@ -24,7 +24,7 @@ export default function DictionaryContainer<ItemType>() {
 						Object.assign(dict, {
 							[itemKey]: this._dictionary[itemKey],
 						}),
-					{} as Record<string, ItemType>
+					{} as Record<string, ItemType>,
 				);
 			}
 
@@ -60,7 +60,7 @@ export default function DictionaryContainer<ItemType>() {
 			_getItemValue(itemKey: string, namespace?: string) {
 				if (!itemKey?.length) throw new Error(`item key is empty`);
 				let value = this._stringHash(
-					this._getItemKey(itemKey, namespace)
+					this._getItemKey(itemKey, namespace),
 				);
 				if (Object.values(this._dictionary).includes(value as ItemType))
 					value =
@@ -94,7 +94,7 @@ export default function DictionaryContainer<ItemType>() {
 							namespace == null
 								? 'default namespace'
 								: `namespace "${namespace}"`
-						}`
+						}`,
 					);
 				const value = this._getItemValue(itemKey, namespace);
 				this._dictionary[k] = value;

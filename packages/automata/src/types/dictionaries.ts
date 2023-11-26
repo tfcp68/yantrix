@@ -3,7 +3,7 @@ import { TAutomataBaseActionType, TAutomataBaseStateType } from './index.js';
 export type TStateDictionaryMapping<StateType extends TAutomataBaseStateType> =
 	Record<string, StateType>;
 export type TActionDictionaryMapping<
-	ActionType extends TAutomataBaseActionType
+	ActionType extends TAutomataBaseActionType,
 > = Record<string, ActionType>;
 
 export type TStateKeysCollection<StateType extends TAutomataBaseStateType> = {
@@ -26,7 +26,7 @@ export type TActionKeysCollection<ActionType extends TAutomataBaseActionType> =
 	};
 
 export type TActionValuesCollection<
-	ActionType extends TAutomataBaseActionType
+	ActionType extends TAutomataBaseActionType,
 > = {
 	actions: Array<null | number>;
 	namespace?: string;

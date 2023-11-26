@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
 		// Type Checking
-		"allowUnreachableCode": false,
+		"allowUnreachableCode": true,
 		"allowUnusedLabels": false,
 		"noFallthroughCasesInSwitch": true,
-		"noImplicitOverride": true,
+		"noImplicitOverride": false,
 		"noImplicitReturns": true,
 		"strict": true,
 		"useUnknownInCatchVariables": true,
@@ -32,5 +32,6 @@
 		"target": "ES2021",
 		"useDefineForClassFields": true
 	},
-	"exclude": ["node_modules"]
+
+	"exclude": ["**/node_modules", "**/dist"]
 }

@@ -6,7 +6,7 @@ import {
 } from '../types/index.js';
 
 export default function BasicStateContainer<
-	StateType extends TAutomataBaseStateType
+	StateType extends TAutomataBaseStateType,
 >() {
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicStateContainer extends Base {
@@ -24,7 +24,7 @@ export default function BasicStateContainer<
 			}
 
 			setStateValidator(
-				stateValidator: TValidator<StateType> | null = null
+				stateValidator: TValidator<StateType> | null = null,
 			) {
 				if (stateValidator === null) {
 					this.#_stateValidator = undefined;

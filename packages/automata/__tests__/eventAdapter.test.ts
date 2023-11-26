@@ -84,22 +84,22 @@ describe(`EventAdapter`, () => {
 		const testValidator = (a: number) => a % 2 === 0;
 		test('accepts a function to overwrite default Event Validator', () => {
 			sampleInstance.setEventValidator(
-				testValidator as TValidator<TTestEvent>
+				testValidator as TValidator<TTestEvent>,
 			);
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
 				expect(sampleInstance.validateEvent(sampleValue)).toBe(
-					testValidator(sampleValue)
+					testValidator(sampleValue),
 				);
 			}
 		});
 		test('resets the Event Validator to default when called with null', () => {
 			sampleInstance.setEventValidator(
-				testValidator as TValidator<TTestEvent>
+				testValidator as TValidator<TTestEvent>,
 			);
 			sampleInstance.setEventValidator(null);
 			expect(sampleInstance.getEventValidator()).toBe(
-				sampleInstance.getDefaultEventValidator()
+				sampleInstance.getDefaultEventValidator(),
 			);
 		});
 	});
@@ -108,22 +108,22 @@ describe(`EventAdapter`, () => {
 		const testValidator = (a: number) => a % 2 === 0;
 		test('accepts a function to overwrite default State Validator', () => {
 			sampleInstance.setStateValidator(
-				testValidator as TValidator<TTestState>
+				testValidator as TValidator<TTestState>,
 			);
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
 				expect(sampleInstance.validateState(sampleValue)).toBe(
-					testValidator(sampleValue)
+					testValidator(sampleValue),
 				);
 			}
 		});
 		test('resets the Event Validator to default when called with null', () => {
 			sampleInstance.setStateValidator(
-				testValidator as TValidator<TTestState>
+				testValidator as TValidator<TTestState>,
 			);
 			sampleInstance.setStateValidator(null);
 			expect(sampleInstance.getStateValidator()).toBe(
-				sampleInstance.getDefaultStateValidator()
+				sampleInstance.getDefaultStateValidator(),
 			);
 		});
 	});
@@ -131,7 +131,7 @@ describe(`EventAdapter`, () => {
 	describe('getObservedEvents', () => {
 		const sampleEvents = pickFromArray(
 			sampleArray<number>(null, 1000),
-			sampleRange(13, 25)
+			sampleRange(13, 25),
 		);
 
 		test('returns an empty array by default', () => {
@@ -142,7 +142,7 @@ describe(`EventAdapter`, () => {
 				sampleInstance.addEventListener(eventId, () => ({
 					action: eventId,
 					payload: null,
-				}))
+				})),
 			);
 
 			const observedEvents = sampleInstance.getObservedEvents();
@@ -156,26 +156,26 @@ describe(`EventAdapter`, () => {
 				sampleInstance.addEventListener(eventId, () => ({
 					action: eventId,
 					payload: null,
-				}))
+				})),
 			);
 
 			const filteredEventsQuantity = 4;
 			const filteredEvents = pickFromArray(
 				sampleEvents,
-				filteredEventsQuantity
+				filteredEventsQuantity,
 			);
 			const eventValidator = (event: number) =>
 				!filteredEvents.includes(event);
 			sampleInstance.setEventValidator(
-				eventValidator as TValidator<TTestEvent>
+				eventValidator as TValidator<TTestEvent>,
 			);
 			sampleEvents.filter(eventValidator).forEach((eventId) => {
 				expect(sampleInstance.getObservedEvents()).toContainEqual(
-					eventId
+					eventId,
 				);
 			});
 			expect(sampleInstance.getObservedEvents()).toHaveLength(
-				sampleEvents.length - filteredEventsQuantity
+				sampleEvents.length - filteredEventsQuantity,
 			);
 		});
 	});
@@ -183,7 +183,7 @@ describe(`EventAdapter`, () => {
 	describe('getObservedStates', () => {
 		const sampleStates = pickFromArray(
 			sampleArray<number>(null, 1000),
-			sampleRange(13, 25)
+			sampleRange(13, 25),
 		);
 
 		test('returns an empty array by default', () => {
@@ -194,7 +194,7 @@ describe(`EventAdapter`, () => {
 				sampleInstance.addEventEmitter(eventId, () => ({
 					event: eventId,
 					meta: null,
-				}))
+				})),
 			);
 
 			const observedStates = sampleInstance.getObservedStates();
@@ -208,25 +208,25 @@ describe(`EventAdapter`, () => {
 				sampleInstance.addEventEmitter(eventId, () => ({
 					event: eventId,
 					meta: null,
-				}))
+				})),
 			);
 			const filteredStateQuantity = 4;
 			const filteredStates = pickFromArray(
 				sampleStates,
-				filteredStateQuantity
+				filteredStateQuantity,
 			);
 			const stateValidator = (event: number) =>
 				!filteredStates.includes(event);
 			sampleInstance.setStateValidator(
-				stateValidator as TValidator<TTestState>
+				stateValidator as TValidator<TTestState>,
 			);
 			sampleStates.filter(stateValidator).forEach((eventId) => {
 				expect(sampleInstance.getObservedStates()).toContainEqual(
-					eventId
+					eventId,
 				);
 			});
 			expect(sampleInstance.getObservedStates()).toHaveLength(
-				sampleStates.length - filteredStateQuantity
+				sampleStates.length - filteredStateQuantity,
 			);
 		});
 	});
@@ -238,7 +238,7 @@ describe(`EventAdapter`, () => {
 		const fakeListener =
 			(
 				action: TTestAction,
-				payload: number
+				payload: number,
 			): TAutomataEventHandler<
 				TTestEvent,
 				TTestAction,
@@ -258,14 +258,14 @@ describe(`EventAdapter`, () => {
 			beforeEach(() => {
 				sampleInstance.addEventListener(
 					sampleEvent,
-					fakeListener(sampleAction, sampleRange(0, 100))
+					fakeListener(sampleAction, sampleRange(0, 100)),
 				);
 			});
 			test('actually adds an observer', () => {
 				const testEvent = sampleRange(100, 200);
 				sampleInstance.addEventListener(
 					testEvent,
-					fakeListener(sampleAction, sampleEvent)
+					fakeListener(sampleAction, sampleEvent),
 				);
 				expect(sampleInstance.getObservedEvents()).toEqual([
 					sampleEvent,
@@ -282,7 +282,7 @@ describe(`EventAdapter`, () => {
 						payload: {
 							payload: sampleRange(0, 100),
 						},
-					})
+					}),
 				);
 				expect(unsubscribe).toBeInstanceOf(Function);
 				if (unsubscribe) unsubscribe();
@@ -296,7 +296,7 @@ describe(`EventAdapter`, () => {
 				// @ts-ignore
 				const result = sampleInstance.addEventListener(testEvent, null);
 				expect(observedEvents).toEqual(
-					sampleInstance.getObservedEvents()
+					sampleInstance.getObservedEvents(),
 				);
 				expect(result).toEqual(null);
 			});
@@ -304,29 +304,29 @@ describe(`EventAdapter`, () => {
 				sampleInstance.setEventValidator(
 					((ev) =>
 						isPositiveInteger(ev) &&
-						ev % 2 === 0) as TValidator<TTestEvent>
+						ev % 2 === 0) as TValidator<TTestEvent>,
 				);
 				const listenedEvents = sampleInstance.getObservedEvents();
 				const results = [
 					sampleInstance.addEventListener(
 						-13,
-						fakeListener(sampleAction, sampleEvent)
+						fakeListener(sampleAction, sampleEvent),
 					),
 					sampleInstance.addEventListener(
 						2.33,
-						fakeListener(sampleAction, sampleEvent)
+						fakeListener(sampleAction, sampleEvent),
 					),
 					sampleInstance.addEventListener(
 						3,
-						fakeListener(sampleAction, sampleEvent)
+						fakeListener(sampleAction, sampleEvent),
 					),
 					sampleInstance.addEventListener(
 						NaN,
-						fakeListener(sampleAction, sampleEvent)
+						fakeListener(sampleAction, sampleEvent),
 					),
 				];
 				expect(listenedEvents).toEqual(
-					sampleInstance.getObservedEvents()
+					sampleInstance.getObservedEvents(),
 				);
 				expect(results).toEqual([null, null, null, null]);
 			});
@@ -336,14 +336,14 @@ describe(`EventAdapter`, () => {
 				const testEvent = sampleRange(101, 200);
 				const eventValidator = (t: TTestEvent) => t <= 100;
 				sampleInstance.setEventValidator(
-					eventValidator as TValidator<TTestEvent>
+					eventValidator as TValidator<TTestEvent>,
 				);
 				sampleInstance.addEventListener(
 					testEvent,
-					fakeListener(sampleAction, sampleEvent)
+					fakeListener(sampleAction, sampleEvent),
 				);
 				expect(listenedEvents).toEqual(
-					sampleInstance.getObservedEvents()
+					sampleInstance.getObservedEvents(),
 				);
 			});
 		});
@@ -359,10 +359,10 @@ describe(`EventAdapter`, () => {
 						payload: {
 							payload: parseInt(
 								meta?.meta ?? defaultMeta.toString(16),
-								16
+								16,
 							),
 						},
-					})
+					}),
 				);
 			});
 			test('ignores invalid Events', () => {
@@ -381,11 +381,11 @@ describe(`EventAdapter`, () => {
 				const testEvent = sampleRange(1000, 2000);
 				sampleInstance.addEventListener(
 					testEvent,
-					fakeListener(sampleAction, sampleRange(0, 1000))
+					fakeListener(sampleAction, sampleRange(0, 1000)),
 				);
 				const eventValidator = (n: number) => n !== testEvent;
 				sampleInstance.setEventValidator(
-					eventValidator as TValidator<TTestEvent>
+					eventValidator as TValidator<TTestEvent>,
 				);
 				const result = sampleInstance.handleEvent({
 					event: testEvent,
@@ -419,7 +419,7 @@ describe(`EventAdapter`, () => {
 					expect(event).toMatchObject(eventCopy); // argument immutability
 				}
 				expect(eventHandlers).toEqual(
-					sampleInstance.getObservedEvents()
+					sampleInstance.getObservedEvents(),
 				);
 			});
 			test('is correctly applied with null EventMeta', () => {
@@ -446,10 +446,10 @@ describe(`EventAdapter`, () => {
 							payload: {
 								payload: parseInt(
 									meta?.meta ?? defaultMeta.toString(12),
-									12
+									12,
 								),
 							},
-						})
+						}),
 					);
 				});
 			});
@@ -461,7 +461,7 @@ describe(`EventAdapter`, () => {
 					meta: { meta: testMeta },
 				});
 				expect(result).toHaveLength(
-					sampleEvents.filter((v) => v === testEvent).length
+					sampleEvents.filter((v) => v === testEvent).length,
 				);
 			});
 			test('applies multiple event handlers to each event in original order', () => {
@@ -492,7 +492,7 @@ describe(`EventAdapter`, () => {
 							payload: {
 								payload: ix,
 							},
-						})
+						}),
 					);
 				});
 			});
@@ -504,10 +504,10 @@ describe(`EventAdapter`, () => {
 				const sampleEvent = pickFromArray(sampleEvents)[0];
 				sampleInstance.removeAllListeners(sampleEvent);
 				expect(sampleInstance.getObservedEvents().sort()).toEqual(
-					sampleEvents.filter((v) => v !== sampleEvent).sort()
+					sampleEvents.filter((v) => v !== sampleEvent).sort(),
 				);
 				expect(sampleInstance.getObservedEvents()).toHaveLength(
-					sampleEvents.length - 1
+					sampleEvents.length - 1,
 				);
 			});
 
@@ -516,7 +516,7 @@ describe(`EventAdapter`, () => {
 				sampleInstance.removeAllListeners(-1);
 				sampleInstance.removeAllListeners(13.37);
 				expect(sampleInstance.getObservedEvents()).toEqual(
-					observedEvents
+					observedEvents,
 				);
 			});
 
@@ -529,7 +529,7 @@ describe(`EventAdapter`, () => {
 					.removeAllListeners(sampleEvent)
 					.setEventValidator(null);
 				expect(sampleInstance.getObservedEvents()).toEqual(
-					observedEvents
+					observedEvents,
 				);
 			});
 		});
@@ -560,7 +560,7 @@ describe(`EventAdapter`, () => {
 						meta: {
 							meta: String(context?.context),
 						},
-					})
+					}),
 				);
 			});
 			test('actually adds an emitter', () => {
@@ -575,7 +575,7 @@ describe(`EventAdapter`, () => {
 				const testState = sampleRange(100, 200);
 				const unsubscribe = sampleInstance.addEventEmitter(
 					testState,
-					fakeEmitter
+					fakeEmitter,
 				);
 				expect(unsubscribe).toBeInstanceOf(Function);
 				if (unsubscribe) unsubscribe();
@@ -590,7 +590,7 @@ describe(`EventAdapter`, () => {
 				// @ts-ignore
 				const result = sampleInstance.addEventEmitter(testState, null);
 				expect(observedStates).toEqual(
-					sampleInstance.getObservedStates()
+					sampleInstance.getObservedStates(),
 				);
 				expect(result).toEqual(null);
 			});
@@ -605,7 +605,7 @@ describe(`EventAdapter`, () => {
 					sampleInstance.addEventEmitter(undefined, fakeEmitter),
 				];
 				expect(listenedStates).toEqual(
-					sampleInstance.getObservedStates()
+					sampleInstance.getObservedStates(),
 				);
 				expect(results).toEqual([null, null, null, null]);
 			});
@@ -615,11 +615,11 @@ describe(`EventAdapter`, () => {
 				const testState = sampleRange(101, 200);
 				const eventValidator = (t: TTestEvent) => t <= 100;
 				sampleInstance.setStateValidator(
-					eventValidator as TValidator<TTestState>
+					eventValidator as TValidator<TTestState>,
 				);
 				sampleInstance.addEventEmitter(testState, fakeEmitter);
 				expect(listenedStates).toEqual(
-					sampleInstance.getObservedStates()
+					sampleInstance.getObservedStates(),
 				);
 			});
 		});
@@ -635,10 +635,10 @@ describe(`EventAdapter`, () => {
 						meta: {
 							meta:
 								(context?.context ?? defaultContext).toString(
-									16
+									16,
 								) || '',
 						},
-					})
+					}),
 				);
 			});
 			test('ignores invalid States', () => {
@@ -658,7 +658,7 @@ describe(`EventAdapter`, () => {
 				sampleInstance.addEventEmitter(testState, fakeEmitter);
 				const stateValidator = (n: number) => n !== testState;
 				sampleInstance.setStateValidator(
-					stateValidator as TValidator<TTestState>
+					stateValidator as TValidator<TTestState>,
 				);
 				const result = sampleInstance.handleTransition({
 					state: testState,
@@ -723,7 +723,7 @@ describe(`EventAdapter`, () => {
 							meta: {
 								meta: [state, context?.context].join('|'),
 							},
-						})
+						}),
 					);
 				});
 			});
@@ -735,7 +735,7 @@ describe(`EventAdapter`, () => {
 					context: { context: testContext },
 				});
 				expect(result).toHaveLength(
-					sampleStates.filter((v) => v === testState).length
+					sampleStates.filter((v) => v === testState).length,
 				);
 			});
 			test('applies multiple event handlers to each event in original order', () => {
@@ -766,7 +766,7 @@ describe(`EventAdapter`, () => {
 							meta: {
 								meta: (context?.context ?? 0).toFixed(2),
 							},
-						})
+						}),
 					);
 				});
 			});
@@ -779,10 +779,10 @@ describe(`EventAdapter`, () => {
 				sampleInstance.removeAllEmitters(sampleState);
 
 				expect(sampleInstance.getObservedStates()).toHaveLength(
-					sampleStates.length - 1
+					sampleStates.length - 1,
 				);
 				expect(sampleInstance.getObservedStates().sort()).toEqual(
-					sampleStates.filter((v) => v !== sampleState).sort()
+					sampleStates.filter((v) => v !== sampleState).sort(),
 				);
 			});
 
@@ -791,7 +791,7 @@ describe(`EventAdapter`, () => {
 				sampleInstance.removeAllEmitters(-100);
 				sampleInstance.removeAllEmitters(Math.PI);
 				expect(sampleInstance.getObservedStates()).toEqual(
-					observedStates
+					observedStates,
 				);
 			});
 
@@ -804,7 +804,7 @@ describe(`EventAdapter`, () => {
 					.removeAllListeners(sampleState)
 					.setEventValidator(null);
 				expect(sampleInstance.getObservedStates()).toEqual(
-					observedStates
+					observedStates,
 				);
 			});
 		});
