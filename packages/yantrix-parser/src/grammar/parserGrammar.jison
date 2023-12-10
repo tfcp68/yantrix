@@ -39,10 +39,10 @@
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
 '=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
 '#{'                                 {this.begin('KeyList');return '#{'}
-<KeyList>[^()=][A-Za-z]+   {return 'TargetProperty'}   
+<KeyList>[^()=][A-Za-z]+   {yytext = yytext.toLowerCase();return 'TargetProperty'}   
 <KeyList>','                         {return ','}
 <KeyList>'='                          {this.begin('operandRight'); return '='}
-<KeyList,operandRight>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.begin('Func');return 'FunctionName';}
+<KeyList,operandRight>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {yytext = yytext.toLowerCase();this.begin('Func');return 'FunctionName';}
 '}'                                  {this.popState();return '}'}
 <ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
@@ -89,24 +89,8 @@
 
 /* $$ is the value of the symbol being evaluated (= what is to the left of the : in the rule */
 start
-	: notesDocument 'EOF' {return $1}
+	: document 'EOF' {return $1}
 	;
-
-
-notesDocument
-	: /* empty */ {$$ = []}
-	| notesDocument noteLine {
-            if($2 !== '\n') $$.push($2)
-        }
-	;
-
-noteLine  
-        : NewLine 
-        | Note 
-        ;
-
-Note    : 'note' direction 'of' StateID document 'end' 'note' {;$$ = {state:$4,description:$5}}  ;
-direction : left | right;
 
 document
 	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
@@ -124,12 +108,12 @@ line
 	;
 statements 
         :  InitialState  {$$ = {initialState:true}}
-        |  ContextDefenitions  
+        |  ContextDefinitions  
         |  EventEmitStatement 
-        |  SubcribeStatement 
+        |  SubscribeStatement 
         ;
                 
-ContextDefenitions
+ContextDefinitions
         : ContextStatement {$$ = {...$1}}
         | ContextStatement '<=' '(' KeyList')' {$$ = {...$1,...$4}}
         ; 
@@ -149,7 +133,7 @@ EventEmitStatement
          payload: $5
          }}
         ;
-SubcribeStatement
+SubscribeStatement
        : 'subscribe/'  EventName  '=>' ActionStatement { $$ =  {
           event:$2,
           action: $4
@@ -165,7 +149,7 @@ ActionStatement
 
 KeyList  : KeyList | KeyItem ',' KeyList | KeyItem ;
 KeyItem  : TargetProperty '=' Expression {$$ = {KeyItemDeclaration: {
-TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1}}};
+TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression 
           : FunctionOperator {console.log($$)}
           | Property {$$ = {Property:$1}}
@@ -175,7 +159,7 @@ Expression
           ;
 FunctionOperator 
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
-      | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguemnts:[...$3]}}}
+      | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguemnts:[...$3]}}}
       ; 
 Arguments 
         : /* empty */ {$$ = []} 
@@ -190,4 +174,4 @@ Ident
    | StringDeclaration  {$$={StringDeclaration:$1}}
    | Constant
    ;
-Constant : '$(' ConstantReference ')';
+Constant : '$(' ConstantReference ')'{ $$ = {ConstantReference: $2}};
