@@ -14,13 +14,13 @@ import { IActionDictionary } from './types/interfaces.js';
 
 export function createActionDictionary<
 	ActionType extends TAutomataBaseActionType,
-	PayloadType extends { [K in ActionType]: any }
+	PayloadType extends { [K in ActionType]: any },
 >() {
 	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(
-		Base: BaseType
+		Base: BaseType,
 	) =>
 		class AbstractActionDictionary extends DictionaryContainer<ActionType>()(
-			ExtendedActionContainer<ActionType, PayloadType>()(Base)
+			ExtendedActionContainer<ActionType, PayloadType>()(Base),
 		) {
 			getActionKeys({
 				actions = [],
@@ -48,7 +48,7 @@ export function createActionDictionary<
 				const actionsToDelete = [
 					...actions.filter(this.validateAction),
 					...keys.map((actionKey) =>
-						this._findItem(actionKey as string, namespace)
+						this._findItem(actionKey as string, namespace),
 					),
 				].filter((v) => v != null) as ActionType[];
 				const actionKeys = actionsToDelete
@@ -56,7 +56,8 @@ export function createActionDictionary<
 					.filter(
 						(data) =>
 							!!data &&
-							(namespace == null || namespace === data?.namespace)
+							(namespace == null ||
+								namespace === data?.namespace),
 					);
 				for (const actionKey of actionKeys)
 					if (actionKey) this._deleteItemKey(actionKey.key);
@@ -68,7 +69,7 @@ export function createActionDictionary<
 				keys = [],
 			}: TActionKeysCollection<ActionType>): Array<ActionType | null> {
 				return (keys ?? []).map((actionKey) =>
-					this._findItem(actionKey as string, namespace)
+					this._findItem(actionKey as string, namespace),
 				);
 			}
 
@@ -77,7 +78,7 @@ export function createActionDictionary<
 				keys,
 			}: TActionKeysCollection<ActionType>): ActionType[] {
 				return (keys || []).map((k) =>
-					this._addItemKey(k as string, namespace)
+					this._addItemKey(k as string, namespace),
 				);
 			}
 		};

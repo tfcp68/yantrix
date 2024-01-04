@@ -8,11 +8,11 @@ import BasicStateContainer from './BasicStateContainer.js';
 
 export default function ExtendedStateContainer<
 	StateType extends TAutomataBaseStateType,
-	ContextType extends { [K in StateType]: any }
+	ContextType extends { [K in StateType]: any },
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractExtendedStateContainer extends BasicStateContainer<StateType>()(
-			Proto
+			Proto,
 		) {
 			#__contextValidator?: TValidator<
 				TAutomataStateContext<StateType, ContextType>
@@ -27,7 +27,7 @@ export default function ExtendedStateContainer<
 			setContextValidator(
 				contextValidator?: TValidator<
 					TAutomataStateContext<StateType, ContextType>
-				>
+				>,
 			): this {
 				if (contextValidator === null) {
 					this.#__contextValidator = undefined;
@@ -35,14 +35,14 @@ export default function ExtendedStateContainer<
 				}
 				if (typeof contextValidator !== 'function')
 					throw new Error(
-						`passed Context Validator is not a function`
+						`passed Context Validator is not a function`,
 					);
 				this.#__contextValidator = contextValidator.bind(this);
 				return this;
 			}
 
 			#__defaultContextValidator = (
-				p: any
+				p: any,
 			): p is TAutomataStateContext<StateType, ContextType> =>
 				this.validateState(p?.state) &&
 				p?.context != null &&

@@ -1,5 +1,5 @@
 {
-	"name": "@yantrix/automata",
+	"name": "@yantrix/yantrix-parser",
 	"version": "0.1.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -7,18 +7,19 @@
 		"dist"
 	],
 	"repository": {
-		"directory": "packages/automata",
+		"directory": "packages/yantrix-parser",
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
-		"build": "tsc",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
+		"build": "rimraf dist && yarn create-parser && tsc",
+		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "yarn lint && yarn test && yarn build",
 		"test": "vitest run"
 	},
-	"description": "Miely Machine representation with bus adapters",
+	"description": "Execute jison parser",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
@@ -39,8 +40,7 @@
 	"license": "ISC",
 	"type": "module",
 	"devDependencies": {
-		"@types/underscore": "^1.11.4",
-		"@yantrix/utils": "workspace:^",
-		"underscore": "^1.13.6"
+		"@ts-jison/parser-generator": "^0.4.1-alpha.2",
+		"jison": "0.4.18"
 	}
 }

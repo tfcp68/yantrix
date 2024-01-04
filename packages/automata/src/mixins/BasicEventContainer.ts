@@ -6,7 +6,7 @@ import {
 } from '../types/index.js';
 
 export default function BasicEventContainer<
-	EventType extends TAutomataBaseEventType
+	EventType extends TAutomataBaseEventType,
 >() {
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicEventContainer extends Base {
@@ -23,7 +23,7 @@ export default function BasicEventContainer<
 			}
 
 			setEventValidator(
-				eventValidator: TValidator<EventType> | null = null
+				eventValidator: TValidator<EventType> | null = null,
 			) {
 				if (eventValidator === null) {
 					this.#_eventValidator = undefined;

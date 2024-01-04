@@ -1,39 +1,39 @@
 {
 	"name": "@yantrix/utils",
 	"version": "0.1.0",
-	"description": "Utils for Yantrix components",
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"homepage": "https://github.com/octaharon/yantrix",
-	"license": "ISC",
-	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
-	},
-	"directories": {
-		"lib": "src"
-	},
 	"files": [
 		"dist"
 	],
 	"repository": {
+		"directory": "packages/utils",
 		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git",
-		"directory": "packages/utils"
+		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
 		"build": "tsc",
-		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
-		"format": "prettier --write .",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "yarn lint && yarn build"
 	},
+	"description": "Utils for Yantrix components",
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
-	}
+	},
+	"directories": {
+		"lib": "src"
+	},
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
+	"homepage": "https://github.com/octaharon/yantrix",
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
+	"license": "ISC",
+	"type": "module"
 }
