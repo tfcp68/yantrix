@@ -18,6 +18,8 @@
 %s Prop
 %s Constant
 %s KeyList
+%s operandRight
+%s leftArrow
 %%
 
 
@@ -32,17 +34,22 @@
 'left'                               {return 'left'}
 'right'                              {return 'right'}
 'end'                                {return 'end'}
+\'[^\n#{()=><"]+\'        {return 'StringDeclaration'}
 'of'\s                                 {this.begin('Note'); return 'of'}
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
 '=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
-<ActionStatement>[^\}\()>\s\n<=]+    {this.popState();return 'ActionName'}
+'#{'                                 {this.begin('KeyList');return '#{'}
+<KeyList>[^()=][A-Za-z]+   {yytext = yytext.toLowerCase();return 'TargetProperty'}   
+<KeyList>','                         {return ','}
+<KeyList>'='                          {this.begin('operandRight'); return '='}
+<KeyList,operandRight>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {yytext = yytext.toLowerCase();this.begin('Func');return 'FunctionName';}
+'}'                                  {this.popState();return '}'}
+<ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
 <SubcribeStatement>[^/=>\s]+         {this.popState(); return 'EventName'}
-'<='[\s]                             {return '<=' }
-'=>'[\s]                             {return '=>' }
-[^(][A-Za-z]+(?=[=,])      {this.begin('KeyList');return 'TargetProperty'}
-'#{'                                 { return '#{'}           
-'}'                                  {return '}'}
+
+'<='[\s]                             {this.begin('leftArrow');return '<=' }
+<leftArrow>'('                       {this.begin('KeyList');return'('}
 
 'emit/'                              {this.begin('EmitStatement'); return 'emit/'}  
 <EmitStatement>[^()=<\n]+            {this.popState(); return 'EventName'}
@@ -54,16 +61,15 @@
 '$('    {this.begin('Constant'); return '$('}
 <Constant>[A-Za-z_]+ { return 'ConstantReference'} 
 <Constant>')'         {this.popState(); return ')'} 
-\'[^\n#{()=><"]+\'        {return 'StringDeclaration'}
 '[]'                   {return 'Array'}
 '('                    {return '('}
 ','                    {return ','}
 ')'                {return ')'}
 
 [A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.begin('Func');return 'FunctionName';}
-<KeyList,Func>[A-Za-z_]+         {this.popState();return 'PropertyArgument'}           
-<Prop>[^($\n,)]+    {this.popState(); return 'Property'}
-'='                    {this.begin('Prop');return '='}
+<Func>[A-Za-z_]+         {this.popState();return 'PropertyArgument'}           
+<operandRight>[^}($\n,)]+    {this.popState(); return 'Property'}
+'='                    {this.begin('operandRight');return '='}
 \s+                   /* skip whitespace */
 \'[^\n#{()=><"]+\'        {return 'StringDeclaration'}
 [A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.begin('Func');return 'FunctionName';}
@@ -83,24 +89,8 @@
 
 /* $$ is the value of the symbol being evaluated (= what is to the left of the : in the rule */
 start
-	: notesDocument 'EOF' {return $1}
+	: document 'EOF' {return $1}
 	;
-
-
-notesDocument
-	: /* empty */ {$$ = []}
-	| notesDocument noteLine {
-            if($2 !== '\n') $$.push($2)
-        }
-	;
-
-noteLine  
-        : NewLine 
-        | Note 
-        ;
-
-Note    : 'note' direction 'of' StateID document 'end' 'note' {console.log($5);$$ = {state:$4,description:$5}}  ;
-direction : left | right;
 
 document
 	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
@@ -118,18 +108,20 @@ line
 	;
 statements 
         :  InitialState  {$$ = {initialState:true}}
-        |  ContextDefenitions  
+        |  ContextDefinitions  
         |  EventEmitStatement 
-        |  SubcribeStatement 
+        |  SubscribeStatement 
         ;
                 
-ContextDefenitions
-        : ContextStatement 
-        | ContextStatement '<=' '(' KeyList')' {$$ = {...$1,payload:$4}}
+ContextDefinitions
+        : ContextStatement {$$ = {...$1}}
+        | ContextStatement '<=' '(' KeyList')' {$$ = {...$1,...$4}}
         ; 
 ContextStatement
         : '#{' KeyList'}' {$$ = { context: $2} }
-        | '#{' KeyList'=' KeyList'}' {$$ = {
+        | '#{' KeyList'=' KeyList'}' {
+console.log($4)
+$$ = {
  context:$2,
  initialValue:$4
 }}
@@ -141,7 +133,7 @@ EventEmitStatement
          payload: $5
          }}
         ;
-SubcribeStatement
+SubscribeStatement
        : 'subscribe/'  EventName  '=>' ActionStatement { $$ =  {
           event:$2,
           action: $4
@@ -155,35 +147,31 @@ ActionStatement
     payload:$3
 }}} ;
 
-expressions
-    : KeyList EOF 
-        {return $1;}
-    ;
-
-.
-KeyList  : KeyList | KeyItem ',' KeyList | KeyItem  ;
-KeyItem  : TargetProperty '=' Expression | TargetProperty;
+KeyList  : KeyList | KeyItem ',' KeyList | KeyItem ;
+KeyItem  : TargetProperty '=' Expression {$$ = {KeyItemDeclaration: {
+TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression 
-          : FunctionOperator 
-          | Property
-          | StringDeclaration
-          | Array
+          : FunctionOperator {console.log($$)}
+          | Property {$$ = {Property:$1}}
+          | StringDeclaration {$$ = {StringDeclaration:$1}}
+          | Array {$$ = {ArrayDeclaration:$1}}
           | Constant
           ;
 FunctionOperator 
-      : FunctionName '(' ')' 
-      | FunctionName '(' Arguments ')' 
+      : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
+      | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguemnts:[...$3]}}}
       ; 
 Arguments 
-        : FunctionOperator {console.log($$)}
-        | Ident 
-        | Arguments ',' Arguments
+        : /* empty */ {$$ = []} 
+        | Ident {$$=[$1]}
+        | FunctionOperator {$$=[$1]}
+        | Arguments ',' Arguments {$$ = [...$1,...$3]}
         ;
 Ident 
-   : PropertyArgument 
-   | decimalLiteral 
-   | integerLiteral 
-   | StringDeclaration
+   : PropertyArgument {$$={FunctionProperty:$1}}
+   | decimalLiteral {$$={decimalLiteral :$1}}
+   | integerLiteral {$$={integerLiteral :$1}}
+   | StringDeclaration  {$$={StringDeclaration:$1}}
    | Constant
    ;
-Constant : '$(' ConstantReference ')';
+Constant : '$(' ConstantReference ')'{ $$ = {ConstantReference: $2}};
