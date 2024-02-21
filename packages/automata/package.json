@@ -15,7 +15,7 @@
 		"build": "tsc",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
-		"prepack": "yarn lint && yarn test && yarn build",
+		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run"
 	},
 	"description": "Miely Machine representation with bus adapters",
