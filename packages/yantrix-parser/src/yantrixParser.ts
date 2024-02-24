@@ -334,7 +334,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				break;
 			case 18:
 				this.$ = {
-					actionWithPayload: {
+					action: {
 						actionName: $$[$0 - 3],
 						payload: $$[$0 - 1],
 					},
@@ -354,9 +354,6 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 						TargetProperty: $$[$0].toLowerCase(),
 					},
 				};
-				break;
-			case 24:
-				console.log(this.$);
 				break;
 			case 25:
 				this.$ = { Property: $$[$0] };
@@ -425,102 +422,98 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 		/^(?:$)/i,
 		/^(?:[\r\n]+)/i,
 		/^(?:[\s]+)/i,
+		/^(?:,)/i,
 		/^(?:\+INITIAL\b)/i,
 		/^(?:note\b)/i,
+		/^(?:\))/i,
+		/^(?:\()/i,
 		/^(?:left\b)/i,
 		/^(?:right\b)/i,
 		/^(?:end\b)/i,
 		/^(?:'[^\n#{()=><"]+')/i,
 		/^(?:of\s)/i,
 		/^(?:[^\n#{()=><]+)/i,
-		/^(?:=>[\s])/i,
-		/^(?:#\{)/i,
-		/^(?:[^()=][A-Za-z]+)/i,
-		/^(?:,)/i,
-		/^(?:=)/i,
-		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
-		/^(?:\})/i,
-		/^(?:[^\}\()>\s\n<=]+)/i,
 		/^(?:subscribe\/)/i,
 		/^(?:[^/=>\s]+)/i,
 		/^(?:<=[\s])/i,
 		/^(?:\()/i,
 		/^(?:emit\/)/i,
 		/^(?:[^()=<\n]+)/i,
+		/^(?:=>[\s])/i,
+		/^(?:#\{)/i,
+		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
+		/^(?:\))/i,
+		/^(?:[^()=,][A-Za-z]+)/i,
+		/^(?:[^()=,][A-Za-z]+)/i,
+		/^(?:=)/i,
+		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
+		/^(?:\))/i,
+		/^(?:[A-Za-z_]+)/i,
+		/^(?:\})/i,
+		/^(?:[^\}\()>\s\n<=]+)/i,
 		/^(?:[0-9]+\.[0-9]+)/i,
 		/^(?:[0-9]+)/i,
 		/^(?:\$\()/i,
 		/^(?:[A-Za-z_]+)/i,
 		/^(?:\))/i,
 		/^(?:\[\])/i,
-		/^(?:\()/i,
-		/^(?:,)/i,
-		/^(?:\))/i,
-		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
-		/^(?:[A-Za-z_]+)/i,
-		/^(?:[^}($\n,)]+)/i,
-		/^(?:=)/i,
-		/^(?:\s+)/i,
-		/^(?:'[^\n#{()=><"]+')/i,
-		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
-		/^(?:$)/i,
 	];
 	conditions: any = {
 		leftArrow: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17, 19, 21, 22, 23, 25,
-				26, 27, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 18, 20,
+				21, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
-		operandRight: {
+		rightSideOperation: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 16, 17, 19, 21, 23, 25,
-				26, 27, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
+				22, 25, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		KeyList: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19,
-				21, 23, 25, 26, 27, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
+				24, 26, 27, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		Constant: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17, 19, 21, 23, 25, 26,
-				27, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
+				30, 32, 33, 34, 35, 36, 37,
 			],
 			inclusive: true,
 		},
 		Prop: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17, 19, 21, 23, 25, 26,
-				27, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
+				30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		Func: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17, 19, 21, 23, 25, 26,
-				27, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
+				23, 28, 29, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
-		Note: { rules: [10], inclusive: false },
+		Note: { rules: [13], inclusive: false },
 		Payload: { rules: [], inclusive: false },
-		SubcribeStatement: { rules: [20], inclusive: false },
-		EmitStatement: { rules: [24], inclusive: false },
-		ActionStatement: { rules: [18], inclusive: false },
+		SubcribeStatement: { rules: [15], inclusive: false },
+		EmitStatement: { rules: [19], inclusive: false },
+		ActionStatement: { rules: [31], inclusive: false },
 		PayloadValue: { rules: [], inclusive: false },
 		PayloadStatement: { rules: [], inclusive: false },
 		ContextInitialValue: { rules: [], inclusive: false },
 		ContextStatement: { rules: [], inclusive: false },
 		INITIAL: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 17, 19, 21, 23, 25, 26,
-				27, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
+				30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
@@ -542,144 +535,134 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 			case 2 /* skip all whitespace */:
 				break;
 			case 3:
-				return 9;
+				return 28;
 				break;
 			case 4:
-				return 'note';
+				return 9;
 				break;
 			case 5:
-				return 'left';
+				return 'note';
 				break;
 			case 6:
-				return 'right';
+				return 17;
 				break;
 			case 7:
-				return 'end';
+				return 15;
 				break;
 			case 8:
-				return 33;
+				return 'left';
 				break;
 			case 9:
+				return 'right';
+				break;
+			case 10:
+				return 'end';
+				break;
+			case 11:
+				return 33;
+				break;
+			case 12:
 				this.begin('Note');
 				return 'of';
 				break;
-			case 10:
+			case 13:
 				this.popState();
 				return 'StateID';
 				break;
-			case 11:
+			case 14:
+				this.begin('SubcribeStatement');
+				return 23;
+				break;
+			case 15:
+				this.popState();
+				return 22;
+				break;
+			case 16:
+				this.begin('leftArrow');
+				return 14;
+				break;
+			case 17:
+				this.begin('KeyList');
+				return '(';
+				break;
+			case 18:
+				this.begin('EmitStatement');
+				return 21;
+				break;
+			case 19:
+				this.popState();
+				return 22;
+				break;
+			case 20:
 				this.begin('ActionStatement');
 				return 24;
 				break;
-			case 12:
+			case 21:
 				this.begin('KeyList');
 				return 18;
 				break;
-			case 13:
+			case 22:
+				this.popState();
+				this.begin('Func');
+				return 36;
+				break;
+			case 23:
+				this.popState();
+				return 17;
+				break;
+			case 24:
 				yy_.yytext = yy_.yytext.toLowerCase();
 				return 29;
 				break;
-			case 14:
-				return 28;
+			case 25:
+				this.popState();
+				return 32;
 				break;
-			case 15:
-				this.begin('operandRight');
+			case 26:
+				this.begin('rightSideOperation');
 				return 20;
 				break;
-			case 16:
+			case 27:
 				yy_.yytext = yy_.yytext.toLowerCase();
 				this.begin('Func');
 				return 36;
 				break;
-			case 17:
+			case 28:
+				this.popState();
+				return 17;
+				break;
+			case 29:
+				this.popState();
+				return 39;
+				break;
+			case 30:
 				this.popState();
 				return 19;
 				break;
-			case 18:
+			case 31:
 				this.popState();
 				this.begin('KeyList');
 				return 26;
 				break;
-			case 19:
-				this.begin('SubcribeStatement');
-				return 23;
-				break;
-			case 20:
-				this.popState();
-				return 22;
-				break;
-			case 21:
-				this.begin('leftArrow');
-				return 14;
-				break;
-			case 22:
-				this.begin('KeyList');
-				return '(';
-				break;
-			case 23:
-				this.begin('EmitStatement');
-				return 21;
-				break;
-			case 24:
-				this.popState();
-				return 22;
-				break;
-			case 25:
+			case 32:
 				return 40;
 				break;
-			case 26:
+			case 33:
 				return 41;
 				break;
-			case 27:
+			case 34:
 				this.begin('Constant');
 				return 42;
 				break;
-			case 28:
-				return 43;
-				break;
-			case 29:
-				this.popState();
-				return 17;
-				break;
-			case 30:
-				return 34;
-				break;
-			case 31:
-				return 15;
-				break;
-			case 32:
-				return 28;
-				break;
-			case 33:
-				return 17;
-				break;
-			case 34:
-				this.begin('Func');
-				return 36;
-				break;
 			case 35:
-				this.popState();
-				return 39;
+				return 43;
 				break;
 			case 36:
 				this.popState();
-				return 32;
+				return 17;
 				break;
 			case 37:
-				this.begin('operandRight');
-				return 20;
-				break;
-			case 38 /* skip whitespace */:
-				break;
-			case 39:
-				return 33;
-				break;
-			case 40:
-				this.begin('Func');
-				return 36;
-				break;
-			case 41:
-				return 5;
+				return 34;
 				break;
 		}
 	}

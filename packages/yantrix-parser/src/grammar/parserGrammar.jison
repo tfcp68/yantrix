@@ -1,7 +1,6 @@
 %lex
 
 %options case-insensitive
-
 // Special states for recognizing aliases
 %token note of statement
 %x ContextStatement
@@ -18,7 +17,7 @@
 %s Prop
 %s Constant
 %s KeyList
-%s operandRight
+%s rightSideOperation
 %s leftArrow
 %%
 
@@ -29,52 +28,47 @@
 <<EOF>>                              return 'EOF';
 [\r\n]+                              return 'NewLine';
 [\s]+                                /* skip all whitespace */
+','                    {return ','}
 '+INITIAL'                           return 'InitialState';
 'note'                               {return 'note'}
+')'                                  {return ')'}
+'('                                  {return '('}
 'left'                               {return 'left'}
 'right'                              {return 'right'}
 'end'                                {return 'end'}
-\'[^\n#{()=><"]+\'        {return 'StringDeclaration'}
-'of'\s                                 {this.begin('Note'); return 'of'}
+\'[^\n#{()=><"]+\'                   {return 'StringDeclaration'}
+'of'\s                               {this.begin('Note'); return 'of'}
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
-'=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
-'#{'                                 {this.begin('KeyList');return '#{'}
-<KeyList>[^()=][A-Za-z]+   {yytext = yytext.toLowerCase();return 'TargetProperty'}   
-<KeyList>','                         {return ','}
-<KeyList>'='                          {this.begin('operandRight'); return '='}
-<KeyList,operandRight>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {yytext = yytext.toLowerCase();this.begin('Func');return 'FunctionName';}
-'}'                                  {this.popState();return '}'}
-<ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
 <SubcribeStatement>[^/=>\s]+         {this.popState(); return 'EventName'}
 
 '<='[\s]                             {this.begin('leftArrow');return '<=' }
 <leftArrow>'('                       {this.begin('KeyList');return'('}
 
-'emit/'                              {this.begin('EmitStatement'); return 'emit/'}  
+'emit/'                              {this.begin('EmitStatement'); return 'emit/'}
 <EmitStatement>[^()=<\n]+            {this.popState(); return 'EventName'}
 
+'=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
+'#{'                                 {this.begin('KeyList');return '#{'}
+<rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.popState();this.begin('Func');return 'FunctionName';}
+<Func>')'                                  {this.popState(); return ')'}
+
+<KeyList>[^()=,][A-Za-z]+             {yytext = yytext.toLowerCase();return 'TargetProperty'}
+<rightSideOperation>[^()=,][A-Za-z]+   {this.popState();return 'Property'}
+<KeyList>'='                          {this.begin('rightSideOperation');return '='}
+<KeyList>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {yytext = yytext.toLowerCase();this.begin('Func');return 'FunctionName';}
+<Func>')'                     {this.popState(); return ')'}
+<Func>[A-Za-z_]+         {this.popState();return 'PropertyArgument'}
+'}'                                  {this.popState();return '}'}
+<ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 
 
 [0-9]+'.'[0-9]+        {return 'decimalLiteral'}
-[0-9]+        {return 'integerLiteral'}
-'$('    {this.begin('Constant'); return '$('}
-<Constant>[A-Za-z_]+ { return 'ConstantReference'} 
-<Constant>')'         {this.popState(); return ')'} 
+[0-9]+                 {return 'integerLiteral'}
+'$('                   {this.begin('Constant'); return '$('}
+<Constant>[A-Za-z_]+   { return 'ConstantReference'}
+<Constant>')'          {this.popState(); return ')'}
 '[]'                   {return 'Array'}
-'('                    {return '('}
-','                    {return ','}
-')'                {return ')'}
-
-[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.begin('Func');return 'FunctionName';}
-<Func>[A-Za-z_]+         {this.popState();return 'PropertyArgument'}           
-<operandRight>[^}($\n,)]+    {this.popState(); return 'Property'}
-'='                    {this.begin('operandRight');return '='}
-\s+                   /* skip whitespace */
-\'[^\n#{()=><"]+\'        {return 'StringDeclaration'}
-[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.begin('Func');return 'FunctionName';}
-<<EOF>>               return 'EOF'
-
 
 
 
@@ -141,8 +135,8 @@ SubscribeStatement
       }
        ;
 ActionStatement
-       : ActionName { $$ = {actionName:$1}}
-       | ActionName '(' KeyList  ')' {$$ = {actionWithPayload: {
+       : ActionName { $$ =  {actionName:$1}} }
+       | ActionName '(' KeyList  ')' {$$ = {action: {
     actionName:$1,
     payload:$3
 }}} ;
@@ -151,7 +145,7 @@ KeyList  : KeyList | KeyItem ',' KeyList | KeyItem ;
 KeyItem  : TargetProperty '=' Expression {$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression 
-          : FunctionOperator {console.log($$)}
+          : FunctionOperator
           | Property {$$ = {Property:$1}}
           | StringDeclaration {$$ = {StringDeclaration:$1}}
           | Array {$$ = {ArrayDeclaration:$1}}
