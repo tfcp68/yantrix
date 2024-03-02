@@ -1,5 +1,5 @@
 export const stateDiagramWithLoopConditionExpectedResultString =
-	'Link to itself from the choice side. D-->D';
+	'Link to itself from the choice side. ChoiceState2-->ChoiceState2';
 
 export const emptyStateDiagramExpectedResult = {
 	transitions: {},
@@ -195,7 +195,7 @@ export const simpleTransitionWithCommentsExpectedResult = {
 export const stateDiagramWithChoiceExpectedResult = {
 	transitions: {
 		'~~~START~~~': {
-			B: {
+			A: {
 				actionsPath: [
 					{
 						action: ['Start', 'Condition 1'],
@@ -212,11 +212,11 @@ export const stateDiagramWithChoiceExpectedResult = {
 				],
 			},
 		},
-		B: {
+		A: {
 			'~~~END~~~': {
 				actionsPath: [
 					{
-						action: ['B, ~~~END~~~, 3'],
+						action: ['A, ~~~END~~~, 3'],
 						note: [],
 					},
 				],
@@ -240,11 +240,11 @@ export const stateDiagramWithChoiceExpectedResult = {
 			notes: [],
 		},
 		{
-			id: 'B',
-			caption: 'B',
+			id: 'A',
+			caption: 'A',
 			actionsPath: [
 				{
-					action: ['B, ~~~END~~~, 3'],
+					action: ['A, ~~~END~~~, 3'],
 					note: [],
 				},
 			],
@@ -262,7 +262,7 @@ export const stateDiagramWithChoiceExpectedResult = {
 export const stateDiagramWithForkExpectedResult = {
 	transitions: {
 		'~~~START~~~': {
-			A: {
+			Fork: {
 				actionsPath: [
 					{
 						action: ['Start'],
@@ -271,7 +271,7 @@ export const stateDiagramWithForkExpectedResult = {
 				],
 			},
 		},
-		A: {
+		Fork: {
 			B: {
 				actionsPath: [
 					{
@@ -290,26 +290,26 @@ export const stateDiagramWithForkExpectedResult = {
 			},
 		},
 		B: {
-			D: {
+			Join: {
 				actionsPath: [
 					{
-						action: ['B, D, 3'],
+						action: ['B, Join, 3'],
 						note: [],
 					},
 				],
 			},
 		},
 		C: {
-			D: {
+			Join: {
 				actionsPath: [
 					{
-						action: ['C, D, 4'],
+						action: ['C, Join, 4'],
 						note: [],
 					},
 				],
 			},
 		},
-		D: {
+		Join: {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -333,8 +333,8 @@ export const stateDiagramWithForkExpectedResult = {
 			notes: [],
 		},
 		{
-			id: 'A',
-			caption: 'A',
+			id: 'Fork',
+			caption: 'Fork',
 			actionsPath: [
 				{
 					action: ['Fork 1'],
@@ -352,7 +352,7 @@ export const stateDiagramWithForkExpectedResult = {
 			caption: 'B',
 			actionsPath: [
 				{
-					action: ['B, D, 3'],
+					action: ['B, Join, 3'],
 					note: [],
 				},
 			],
@@ -363,15 +363,15 @@ export const stateDiagramWithForkExpectedResult = {
 			caption: 'C',
 			actionsPath: [
 				{
-					action: ['C, D, 4'],
+					action: ['C, Join, 4'],
 					note: [],
 				},
 			],
 			notes: [],
 		},
 		{
-			id: 'D',
-			caption: 'D',
+			id: 'Join',
+			caption: 'Join',
 			actionsPath: [
 				{
 					action: ['End'],
@@ -520,11 +520,7 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 				},
 			],
 			notes: [
-				[
-					'simple right side note',
-					'another simple left side note',
-					'in 2 lines',
-				],
+				['simple right side note', 'another simple left side note'],
 			],
 		},
 		{
@@ -860,7 +856,7 @@ export const stateDiagramDoublePathExpectedResult = {
 			B: {
 				actionsPath: [
 					{
-						action: ['A, C1, 1', 'C1, B, 3'],
+						action: ['A, ChoiceState1, 1', 'ChoiceState1, B, 3'],
 						note: [
 							[
 								'this is multiline',
@@ -870,7 +866,11 @@ export const stateDiagramDoublePathExpectedResult = {
 						],
 					},
 					{
-						action: ['A, C1, 1', 'C1, C2, 2', 'C2, B, 4'],
+						action: [
+							'A, ChoiceState1, 1',
+							'ChoiceState1, ChoiceState2, 2',
+							'ChoiceState2, B, 4',
+						],
 						note: [
 							[
 								'this is multiline',
@@ -889,7 +889,11 @@ export const stateDiagramDoublePathExpectedResult = {
 			D: {
 				actionsPath: [
 					{
-						action: ['A, C1, 1', 'C1, C2, 2', 'C2, D, 5'],
+						action: [
+							'A, ChoiceState1, 1',
+							'ChoiceState1, ChoiceState2, 2',
+							'ChoiceState2, D, 5',
+						],
 						note: [
 							[
 								'this is multiline',
@@ -944,7 +948,7 @@ export const stateDiagramDoublePathExpectedResult = {
 			caption: 'A',
 			actionsPath: [
 				{
-					action: ['A, C1, 1', 'C1, B, 3'],
+					action: ['A, ChoiceState1, 1', 'ChoiceState1, B, 3'],
 					note: [
 						[
 							'this is multiline',
@@ -954,7 +958,11 @@ export const stateDiagramDoublePathExpectedResult = {
 					],
 				},
 				{
-					action: ['A, C1, 1', 'C1, C2, 2', 'C2, B, 4'],
+					action: [
+						'A, ChoiceState1, 1',
+						'ChoiceState1, ChoiceState2, 2',
+						'ChoiceState2, B, 4',
+					],
 					note: [
 						[
 							'this is multiline',
@@ -969,7 +977,11 @@ export const stateDiagramDoublePathExpectedResult = {
 					],
 				},
 				{
-					action: ['A, C1, 1', 'C1, C2, 2', 'C2, D, 5'],
+					action: [
+						'A, ChoiceState1, 1',
+						'ChoiceState1, ChoiceState2, 2',
+						'ChoiceState2, D, 5',
+					],
 					note: [
 						[
 							'this is multiline',

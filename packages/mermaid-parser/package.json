@@ -1,44 +1,44 @@
 {
 	"name": "@yantrix/mermaid-parser",
 	"version": "0.1.0",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"directory": "packages/mermaid-parser",
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git"
+	},
+	"scripts": {
+		"build": "tsc",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
+		"prepack": "yarn lint && yarn build",
+		"test": "vitest run"
+	},
 	"description": "Provides Yantrix abstractions from MermaidJS State and Sequence diagrams",
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
+	},
+	"directories": {
+		"lib": "src"
+	},
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
+	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
 	"keywords": [
 		"FSM",
 		"MermaidJS",
 		"diagrams",
 		"parser"
 	],
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"homepage": "https://github.com/octaharon/yantrix/tree/main/packages/automata#readme",
 	"license": "ISC",
 	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
-	},
-	"directories": {
-		"lib": "src"
-	},
-	"files": [
-		"dist"
-	],
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git",
-		"directory": "packages/mermaid-parser"
-	},
-	"scripts": {
-		"build": "tsc",
-		"test": "vitest run",
-		"lint": "cross-env TIMING=1 eslint src --ext .mjs,.js,.ts --format=pretty",
-		"format": "prettier --write .",
-		"prepack": "yarn lint && yarn build"
-	},
-	"bugs": {
-		"url": "https://github.com/octaharon/yantrix/issues"
-	},
 	"devDependencies": {
 		"@types/d3": "^7.4.0",
 		"@types/dompurify": "^3.0.2",

@@ -19,10 +19,10 @@ export function createEventAdapter<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 >() {
 	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(
-		Base: BaseType
+		Base: BaseType,
 	) =>
 		class AbstractAutomataEventAdapter extends ExtendedValidatorContainer<
 			StateType,
@@ -66,7 +66,7 @@ export function createEventAdapter<
 					T,
 					EventMetaType,
 					ContextType
-				>
+				>,
 			) {
 				if (
 					on === null ||
@@ -96,7 +96,7 @@ export function createEventAdapter<
 					ActionType,
 					EventMetaType,
 					PayloadType
-				>
+				>,
 			) {
 				if (
 					type === null ||
@@ -112,7 +112,7 @@ export function createEventAdapter<
 							...(this.#eventListeners?.[type] ?? []),
 							handler,
 						],
-					}
+					},
 				);
 				return () => {
 					if (this.#eventListeners?.[type]) {
@@ -127,7 +127,7 @@ export function createEventAdapter<
 			}
 
 			public handleEvent<T extends EventType>(
-				event: TAutomataEventMetaType<T, EventMetaType>
+				event: TAutomataEventMetaType<T, EventMetaType>,
 			): Array<
 				ReturnType<
 					TAutomataEventHandler<
@@ -145,7 +145,7 @@ export function createEventAdapter<
 			}
 
 			public handleTransition<T extends StateType>(
-				newState: TAutomataStateContext<T, ContextType>
+				newState: TAutomataStateContext<T, ContextType>,
 			): Array<
 				ReturnType<
 					TAutomataEventEmitter<
@@ -163,7 +163,7 @@ export function createEventAdapter<
 			}
 
 			public removeAllListeners<T extends EventType>(
-				type: T | null = null
+				type: T | null = null,
 			) {
 				switch (true) {
 					case type === null:
@@ -180,7 +180,7 @@ export function createEventAdapter<
 			}
 
 			public removeAllEmitters<T extends StateType>(
-				type: T | null = null
+				type: T | null = null,
 			): this {
 				switch (true) {
 					case type === null:

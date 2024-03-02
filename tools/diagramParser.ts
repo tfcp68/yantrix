@@ -2,6 +2,7 @@
 import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js';
 import { createStateDiagram } from '../packages/mermaid-parser/src/state/stateDiagram.js';
 import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js';
+import { YantrixParser } from '../packages/yantrix-parser/src/yantrixParser.js';
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
@@ -429,4 +430,9 @@ const a = await parseStateDiagram(emptyStateDiagram);
 //console.log(a)
 
 const b = await createStateDiagram(a);
+
+const parser = new YantrixParser();
+
+console.log(parser.parse(''));
+
 console.log(b);

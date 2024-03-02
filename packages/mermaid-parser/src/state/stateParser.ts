@@ -22,7 +22,7 @@ import { InvalidInputError, BlankInputError } from './errors/stateErrors.js';
  * @returns Returns parsed diagram dictionary.
  */
 async function diagramParser(
-	diagramText: string
+	diagramText: string,
 ): Promise<TParsedDiagramArray> {
 	diagramText = diagramText.trim().replaceAll('\t', '');
 	if (diagramText === '') {
@@ -33,9 +33,8 @@ async function diagramParser(
 			...mermaid.mermaidAPI.defaultConfig,
 		});
 		await mermaid.mermaidAPI.initialize();
-		const diagram = await mermaid.mermaidAPI.getDiagramFromText(
-			diagramText
-		);
+		const diagram =
+			await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
 		return parsedDiagram;
 	} catch (e) {
@@ -92,7 +91,7 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
  * @returns Returns an dictionary of state captions.
  */
 function getStatesCaption(
-	parsedDiagram: TParsedDiagramArray
+	parsedDiagram: TParsedDiagramArray,
 ): Record<string, string> {
 	const stateCaptions: Record<string, string> = {};
 	for (let i = 0; i < parsedDiagram.length; i++) {
@@ -118,7 +117,7 @@ function getStatesCaption(
  */
 function getStates(
 	parsedDiagram: TParsedDiagramArray,
-	transitions: TTransitionsArray
+	transitions: TTransitionsArray,
 ): TStatesStructure {
 	const diagramStates: TStatesStructure = [];
 	const stateCaptions: Record<string, string> =
@@ -273,7 +272,7 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
  * @returns Returns dictionary with information from the diagram.
  */
 export async function parseStateDiagram(
-	diagramText: string
+	diagramText: string,
 ): Promise<TStateDiagramStructure> {
 	const parsedDiagram: TParsedDiagramArray = await diagramParser(diagramText);
 	const transitions: TTransitionsArray = getTransitions(parsedDiagram);

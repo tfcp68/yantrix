@@ -11,12 +11,12 @@ import BasicStateContainer from './BasicStateContainer.js';
 export default function BasicValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
-	EventType extends TAutomataBaseEventType
+	EventType extends TAutomataBaseEventType,
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractBasicValidatorContainer extends BasicStateContainer<StateType>()(
 			BasicEventContainer<EventType>()(
-				BasicActionContainer<ActionType>()(Proto)
-			)
+				BasicActionContainer<ActionType>()(Proto),
+			),
 		) {};
 }
