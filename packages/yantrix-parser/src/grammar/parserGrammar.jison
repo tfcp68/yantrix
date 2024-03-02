@@ -36,29 +36,31 @@
 'left'                               {return 'left'}
 'right'                              {return 'right'}
 'end'                                {return 'end'}
-\'[^\n#{()=><"]+\'                   {return 'StringDeclaration'}
+\'[^\n#{()=><"]+\'                   {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 'of'\s                               {this.begin('Note'); return 'of'}
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
 <SubcribeStatement>[^/=>\s]+         {this.popState(); return 'EventName'}
 
+'=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
 '<='[\s]                             {this.begin('leftArrow');return '<=' }
-<leftArrow>'('                       {this.begin('KeyList');return'('}
+<leftArrow>'('                       {this.popState(); return '('}
+'='                                  {this.begin('rightSideOperation');return '='}
+
+
 
 'emit/'                              {this.begin('EmitStatement'); return 'emit/'}
 <EmitStatement>[^()=<\n]+            {this.popState(); return 'EventName'}
 
-'=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
-'#{'                                 {this.begin('KeyList');return '#{'}
-<rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.popState();this.begin('Func');return 'FunctionName';}
-<Func>')'                                  {this.popState(); return ')'}
 
-<KeyList>[^()=,][A-Za-z]+             {yytext = yytext.toLowerCase();return 'TargetProperty'}
-<rightSideOperation>[^()=,][A-Za-z]+   {this.popState();return 'Property'}
+'#{'                                 {this.begin('KeyList');return '#{'}
+[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.popState();this.begin('Func');return 'FunctionName';}
+<Func>')'                     {this.popState(); return ')'}
+<Func>[^(',)][A-Za-z_]+         {return 'PropertyArgument'}
+<rightSideOperation>[^()'=,][A-Za-z]+   {this.popState();return 'Property'}
+[^(')=,][A-Za-z]+             {yytext = yytext.toLowerCase();return 'TargetProperty'}
 <KeyList>'='                          {this.begin('rightSideOperation');return '='}
 <KeyList>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {yytext = yytext.toLowerCase();this.begin('Func');return 'FunctionName';}
-<Func>')'                     {this.popState(); return ')'}
-<Func>[A-Za-z_]+         {this.popState();return 'PropertyArgument'}
 '}'                                  {this.popState();return '}'}
 <ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 
@@ -97,20 +99,20 @@ document
         }
 	;
 line
-	: statements 
+	: statements
 	| 'NewLine'
 	;
-statements 
+statements
         :  InitialState  {$$ = {initialState:true}}
-        |  ContextDefinitions  
-        |  EventEmitStatement 
-        |  SubscribeStatement 
+        |  ContextDefinitions
+        |  EventEmitStatement
+        |  SubscribeStatement
         ;
-                
+
 ContextDefinitions
         : ContextStatement {$$ = {...$1}}
         | ContextStatement '<=' '(' KeyList')' {$$ = {...$1,...$4}}
-        ; 
+        ;
 ContextStatement
         : '#{' KeyList'}' {$$ = { context: $2} }
         | '#{' KeyList'=' KeyList'}' {
@@ -144,16 +146,17 @@ ActionStatement
 KeyList  : KeyList | KeyItem ',' KeyList | KeyItem ;
 KeyItem  : TargetProperty '=' Expression {$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
-Expression 
+Expression
           : FunctionOperator
           | Property {$$ = {Property:$1}}
-          | StringDeclaration {$$ = {StringDeclaration:$1}}
-          | Array {$$ = {ArrayDeclaration:$1}}
+          | StringDeclaration {$$ = {StringDeclaration:$1.toString()}}
+          | Array {$$ = {ArrayDeclaration:[]}}
           | Constant
+          | integerLiteral {$$ = {IntegerValue: Number($1)}}
           ;
 FunctionOperator 
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
-      | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguemnts:[...$3]}}}
+      | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguments:[...$3]}}}
       ; 
 Arguments 
         : /* empty */ {$$ = []} 
@@ -164,7 +167,7 @@ Arguments
 Ident 
    : PropertyArgument {$$={FunctionProperty:$1}}
    | decimalLiteral {$$={decimalLiteral :$1}}
-   | integerLiteral {$$={integerLiteral :$1}}
+   | integerLiteral {$$={IntegerValue:Number($1)}}
    | StringDeclaration  {$$={StringDeclaration:$1}}
    | Constant
    ;

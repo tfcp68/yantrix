@@ -47,12 +47,12 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 		StringDeclaration: 33,
 		Array: 34,
 		Constant: 35,
-		FunctionName: 36,
-		Arguments: 37,
-		Ident: 38,
-		PropertyArgument: 39,
-		decimalLiteral: 40,
-		integerLiteral: 41,
+		integerLiteral: 36,
+		FunctionName: 37,
+		Arguments: 38,
+		Ident: 39,
+		PropertyArgument: 40,
+		decimalLiteral: 41,
 		'$(': 42,
 		ConstantReference: 43,
 		$accept: 0,
@@ -79,10 +79,10 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 		32: 'Property',
 		33: 'StringDeclaration',
 		34: 'Array',
-		36: 'FunctionName',
-		39: 'PropertyArgument',
-		40: 'decimalLiteral',
-		41: 'integerLiteral',
+		36: 'integerLiteral',
+		37: 'FunctionName',
+		40: 'PropertyArgument',
+		41: 'decimalLiteral',
 		42: '$(',
 		43: 'ConstantReference',
 	};
@@ -116,17 +116,18 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 		[30, 1],
 		[30, 1],
 		[30, 1],
+		[30, 1],
 		[31, 3],
 		[31, 4],
-		[37, 0],
-		[37, 1],
-		[37, 1],
-		[37, 3],
+		[38, 0],
 		[38, 1],
 		[38, 1],
-		[38, 1],
-		[38, 1],
-		[38, 1],
+		[38, 3],
+		[39, 1],
+		[39, 1],
+		[39, 1],
+		[39, 1],
+		[39, 1],
 		[35, 3],
 	];
 	table: Array<StateType>;
@@ -140,15 +141,15 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			$V1 = [1, 20],
 			$V2 = [17, 19, 20],
 			$V3 = [5, 8, 9, 14, 18, 21, 23],
-			$V4 = [1, 40],
-			$V5 = [1, 41],
+			$V4 = [1, 41],
+			$V5 = [1, 42],
 			$V6 = [17, 19, 20, 28],
-			$V7 = [2, 31],
-			$V8 = [1, 57],
-			$V9 = [1, 54],
+			$V7 = [2, 32],
+			$V8 = [1, 58],
+			$V9 = [1, 57],
 			$Va = [1, 55],
 			$Vb = [1, 56],
-			$Vc = [1, 62],
+			$Vc = [1, 63],
 			$Vd = [17, 28];
 		const o = JisonParser.expandParseTable;
 		this.table = [
@@ -199,14 +200,15 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				33: [1, 37],
 				34: [1, 38],
 				35: 39,
-				36: $V4,
+				36: [1, 40],
+				37: $V4,
 				42: $V5,
 			},
-			{ 17: [1, 42] },
-			{ 16: 43, 27: 19, 29: $V1 },
+			{ 17: [1, 43] },
+			{ 16: 44, 27: 19, 29: $V1 },
 			o($V0, [2, 16]),
-			o($V0, [2, 17], { 15: [1, 44] }),
-			{ 19: [1, 45] },
+			o($V0, [2, 17], { 15: [1, 45] }),
+			{ 19: [1, 46] },
 			o($V2, [2, 20]),
 			o($V6, [2, 22]),
 			o($V6, [2, 24]),
@@ -214,54 +216,55 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			o($V6, [2, 26]),
 			o($V6, [2, 27]),
 			o($V6, [2, 28]),
-			{ 15: [1, 46] },
-			{ 43: [1, 47] },
+			o($V6, [2, 29]),
+			{ 15: [1, 47] },
+			{ 43: [1, 48] },
 			o($V0, [2, 11]),
-			{ 17: [1, 48] },
-			{ 16: 49, 27: 19, 29: $V1 },
+			{ 17: [1, 49] },
+			{ 16: 50, 27: 19, 29: $V1 },
 			o($V3, [2, 13]),
 			{
-				17: [1, 50],
+				17: [1, 51],
 				28: $V7,
-				31: 53,
+				31: 54,
 				33: $V8,
-				35: 58,
-				36: $V4,
-				37: 51,
+				35: 59,
+				36: $V9,
+				37: $V4,
 				38: 52,
-				39: $V9,
+				39: 53,
 				40: $Va,
 				41: $Vb,
 				42: $V5,
 			},
-			{ 17: [1, 59] },
-			o($V0, [2, 15]),
 			{ 17: [1, 60] },
-			o($V6, [2, 29]),
-			{ 17: [1, 61], 28: $Vc },
-			o($Vd, [2, 32]),
+			o($V0, [2, 15]),
+			{ 17: [1, 61] },
+			o($V6, [2, 30]),
+			{ 17: [1, 62], 28: $Vc },
 			o($Vd, [2, 33]),
-			o($Vd, [2, 35]),
+			o($Vd, [2, 34]),
 			o($Vd, [2, 36]),
 			o($Vd, [2, 37]),
 			o($Vd, [2, 38]),
 			o($Vd, [2, 39]),
-			o($V6, [2, 40]),
+			o($Vd, [2, 40]),
+			o($V6, [2, 41]),
 			o($V0, [2, 18]),
-			o($V6, [2, 30]),
+			o($V6, [2, 31]),
 			o($Vd, $V7, {
-				38: 52,
-				31: 53,
-				35: 58,
-				37: 63,
+				39: 53,
+				31: 54,
+				35: 59,
+				38: 64,
 				33: $V8,
-				36: $V4,
-				39: $V9,
+				36: $V9,
+				37: $V4,
 				40: $Va,
 				41: $Vb,
 				42: $V5,
 			}),
-			{ 17: [2, 34], 28: $Vc },
+			{ 17: [2, 35], 28: $Vc },
 		];
 	}
 
@@ -359,12 +362,15 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				this.$ = { Property: $$[$0] };
 				break;
 			case 26:
-				this.$ = { StringDeclaration: $$[$0] };
+				this.$ = { StringDeclaration: $$[$0].toString() };
 				break;
 			case 27:
-				this.$ = { ArrayDeclaration: $$[$0] };
+				this.$ = { ArrayDeclaration: [] };
 				break;
 			case 29:
+				this.$ = { IntegerValue: Number($$[$0]) };
+				break;
+			case 30:
 				this.$ = {
 					FunctionDeclaration: {
 						FunctionName: $$[$0 - 2],
@@ -372,37 +378,37 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 					},
 				};
 				break;
-			case 30:
+			case 31:
 				this.$ = {
 					FunctionDeclaration: {
 						FunctionName: $$[$0 - 3].toLowerCase(),
-						Arguemnts: [...$$[$0 - 1]],
+						Arguments: [...$$[$0 - 1]],
 					},
 				};
 				break;
-			case 31:
+			case 32:
 				this.$ = [];
 				break;
-			case 32:
 			case 33:
+			case 34:
 				this.$ = [$$[$0]];
 				break;
-			case 34:
+			case 35:
 				this.$ = [...$$[$0 - 2], ...$$[$0]];
 				break;
-			case 35:
+			case 36:
 				this.$ = { FunctionProperty: $$[$0] };
 				break;
-			case 36:
+			case 37:
 				this.$ = { decimalLiteral: $$[$0] };
 				break;
-			case 37:
-				this.$ = { integerLiteral: $$[$0] };
-				break;
 			case 38:
+				this.$ = { IntegerValue: Number($$[$0]) };
+				break;
+			case 39:
 				this.$ = { StringDeclaration: $$[$0] };
 				break;
-			case 40:
+			case 41:
 				this.$ = { ConstantReference: $$[$0 - 1] };
 				break;
 		}
@@ -435,20 +441,20 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 		/^(?:[^\n#{()=><]+)/i,
 		/^(?:subscribe\/)/i,
 		/^(?:[^/=>\s]+)/i,
+		/^(?:=>[\s])/i,
 		/^(?:<=[\s])/i,
 		/^(?:\()/i,
+		/^(?:=)/i,
 		/^(?:emit\/)/i,
 		/^(?:[^()=<\n]+)/i,
-		/^(?:=>[\s])/i,
 		/^(?:#\{)/i,
 		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
 		/^(?:\))/i,
-		/^(?:[^()=,][A-Za-z]+)/i,
-		/^(?:[^()=,][A-Za-z]+)/i,
+		/^(?:[^(',)][A-Za-z_]+)/i,
+		/^(?:[^()'=,][A-Za-z]+)/i,
+		/^(?:[^(')=,][A-Za-z]+)/i,
 		/^(?:=)/i,
 		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
-		/^(?:\))/i,
-		/^(?:[A-Za-z_]+)/i,
 		/^(?:\})/i,
 		/^(?:[^\}\()>\s\n<=]+)/i,
 		/^(?:[0-9]+\.[0-9]+)/i,
@@ -461,50 +467,50 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 	conditions: any = {
 		leftArrow: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 18, 20,
-				21, 30, 32, 33, 34, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 18, 19,
+				20, 22, 23, 27, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		rightSideOperation: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
-				22, 25, 30, 32, 33, 34, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20,
+				22, 23, 26, 27, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		KeyList: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
-				24, 26, 27, 30, 32, 33, 34, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20,
+				22, 23, 27, 28, 29, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		Constant: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
-				30, 32, 33, 34, 35, 36, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20,
+				22, 23, 27, 30, 32, 33, 34, 35, 36, 37,
 			],
 			inclusive: true,
 		},
 		Prop: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
-				30, 32, 33, 34, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20,
+				22, 23, 27, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		Func: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
-				23, 28, 29, 30, 32, 33, 34, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20,
+				22, 23, 24, 25, 27, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
 		Note: { rules: [13], inclusive: false },
 		Payload: { rules: [], inclusive: false },
 		SubcribeStatement: { rules: [15], inclusive: false },
-		EmitStatement: { rules: [19], inclusive: false },
+		EmitStatement: { rules: [21], inclusive: false },
 		ActionStatement: { rules: [31], inclusive: false },
 		PayloadValue: { rules: [], inclusive: false },
 		PayloadStatement: { rules: [], inclusive: false },
@@ -512,8 +518,8 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 		ContextStatement: { rules: [], inclusive: false },
 		INITIAL: {
 			rules: [
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 21,
-				30, 32, 33, 34, 37,
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20,
+				22, 23, 27, 30, 32, 33, 34, 37,
 			],
 			inclusive: true,
 		},
@@ -559,6 +565,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 				return 'end';
 				break;
 			case 11:
+				yy_.yytext = yy_.yytext.slice(1, -1);
 				return 33;
 				break;
 			case 12:
@@ -578,62 +585,61 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 				return 22;
 				break;
 			case 16:
-				this.begin('leftArrow');
-				return 14;
-				break;
-			case 17:
-				this.begin('KeyList');
-				return '(';
-				break;
-			case 18:
-				this.begin('EmitStatement');
-				return 21;
-				break;
-			case 19:
-				this.popState();
-				return 22;
-				break;
-			case 20:
 				this.begin('ActionStatement');
 				return 24;
 				break;
-			case 21:
-				this.begin('KeyList');
-				return 18;
+			case 17:
+				this.begin('leftArrow');
+				return 14;
 				break;
-			case 22:
+			case 18:
 				this.popState();
-				this.begin('Func');
-				return 36;
+				return 15;
 				break;
-			case 23:
-				this.popState();
-				return 17;
-				break;
-			case 24:
-				yy_.yytext = yy_.yytext.toLowerCase();
-				return 29;
-				break;
-			case 25:
-				this.popState();
-				return 32;
-				break;
-			case 26:
+			case 19:
 				this.begin('rightSideOperation');
 				return 20;
 				break;
-			case 27:
-				yy_.yytext = yy_.yytext.toLowerCase();
-				this.begin('Func');
-				return 36;
+			case 20:
+				this.begin('EmitStatement');
+				return 21;
 				break;
-			case 28:
+			case 21:
+				this.popState();
+				return 22;
+				break;
+			case 22:
+				this.begin('KeyList');
+				return 18;
+				break;
+			case 23:
+				this.popState();
+				this.begin('Func');
+				return 37;
+				break;
+			case 24:
 				this.popState();
 				return 17;
 				break;
-			case 29:
+			case 25:
+				return 40;
+				break;
+			case 26:
 				this.popState();
-				return 39;
+				return 32;
+				break;
+			case 27:
+				yy_.yytext = yy_.yytext.toLowerCase();
+				return 29;
+				break;
+			case 28:
+				this.begin('rightSideOperation');
+				return 20;
+				break;
+			case 29:
+				yy_.yytext = yy_.yytext.toLowerCase();
+				this.begin('Func');
+				return 37;
 				break;
 			case 30:
 				this.popState();
@@ -645,10 +651,10 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 				return 26;
 				break;
 			case 32:
-				return 40;
+				return 41;
 				break;
 			case 33:
-				return 41;
+				return 36;
 				break;
 			case 34:
 				this.begin('Constant');
