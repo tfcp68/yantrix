@@ -2,6 +2,7 @@ import {
 	TAbstractConstructor,
 	TAutomataBaseStateType,
 	TAutomataStateContext,
+	TDefinedValues,
 	TValidator,
 } from '../types/index.js';
 import BasicStateContainer from './BasicStateContainer.js';
@@ -18,7 +19,9 @@ export default function ExtendedStateContainer<
 				TAutomataStateContext<StateType, ContextType>
 			>;
 
-			public get validateContext() {
+			public get validateContext(): TValidator<
+				TAutomataStateContext<StateType, ContextType>
+			> {
 				return (
 					this.#__contextValidator ?? this.#__defaultContextValidator
 				);
@@ -43,9 +46,10 @@ export default function ExtendedStateContainer<
 
 			#__defaultContextValidator = (
 				p: any,
-			): p is TAutomataStateContext<StateType, ContextType> =>
+			): p is TDefinedValues<
+				TAutomataStateContext<StateType, ContextType>
+			> =>
 				this.validateState(p?.state) &&
-				p?.context != null &&
-				typeof p.context === 'object';
+				(p?.context === null || typeof p.context === 'object');
 		};
 }
