@@ -1,45 +1,86 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { GenericAutomata } from '@yantrix/automata';
-import { TStateDiagram } from '../../mermaid-parser/dist/state/types/stateDiagramTypes.js';
+import { toTypedObjectBlock, toTypedObjectProps } from './utils.js';
+import { set } from 'lodash-es';
 
 const diagram = `
 	stateDiagram-v2
 
+	state ChoiceState1 <<choice>>
+	state ChoiceState2 <<choice>>
+
 	[*] --> A
-	A --> B
-	B --> [*]`;
+	A --> ChoiceState1
+	ChoiceState1 --> ChoiceState2
+	ChoiceState1 --> B
+	ChoiceState2 --> B
+	ChoiceState2 --> D
+	B --> [*]
+	D --> [*]
+
+	note left of ChoiceState1
+		this is multiline
+		comment left of
+		first choice
+	end note
+
+	note right of ChoiceState2
+		this is another
+		multiline comment
+		right of second choice
+	end note`;
 
 export const generate = async () => {
 	const stateDiagramStructure = await parseStateDiagram(diagram);
 	const stateDiagram = await createStateDiagram(stateDiagramStructure);
 
-	const stateType = toUnion(stateDiagram.states, 'state');
-	const actionRowTypes = stateDiagram.states.flatMap((s) => {
-		if (!s.actionsPath.length) return [];
+	const states = {};
+	const actions = {};
 
-		return s.actionsPath.flatMap((p) => p.action);
-	});
+	for (const state of stateDiagram.states) {
+		set(states, state.id, state.id);
 
-	const actionType = toUnion(actionRowTypes, 'action');
+		for (const actionPath of state.actionsPath) {
+			for (const action of actionPath.action) {
+				set(actions, action, action);
+			}
+		}
+	}
+
+	const typedStateObjectBlock = toTypedObjectBlock(states, 'state');
+	const typedActionObjectBlock = toTypedObjectBlock(actions, 'action');
+	const typedStateObjectProps = toTypedObjectProps(states, 'state');
+	const typedActionObjectProps = toTypedObjectProps(actions, 'action');
 
 	return `
-		const states = ${JSON.stringify(stateDiagram.states, null, 2)};
+		${typedStateObjectBlock}
+		${typedActionObjectBlock}
 
-		${stateType}
-		${actionType}
-
-		function isValidState(obj: any): obj is TState {
-			return states.includes(obj)
+		class GeneratedAutomata extends createAutomata<
+			${typedStateObjectProps.typeName},
+			${typedActionObjectProps.typeName},
+			any,
+			any,
+			any,
+			any
+		> {
+			constructor() {
+				super();
+				this.init({
+					state: null,
+					context: { index: -1 },
+					rootReducer: ({ action, context, payload, state }) => {
+						if (!action || payload === null) return { state, context };
+						const ctx = {}
+						return {
+							state: null,
+							context: null,
+						};
+					},
+					stateValidator: () => {},
+					actionValidator: () => {},
+					eventValidator: () => {},
+				});
+			}
 		}
 	`;
 };
-
-function toUnion<T extends {}>(array: T[], name: string) {
-	const union = array.map((item) => JSON.stringify(item, null)).join(' | ');
-
-	return `type T${toUpperFirst(name)} = ${union}`;
-}
-
-function toUpperFirst(str: string) {
-	return str.charAt(0).toUpperCase() + str.slice(1);
-}

@@ -66,6 +66,8 @@
 		"packages/*"
 	],
 	"dependencies": {
+		"@types/lodash-es": "^4.17.12",
+		"lodash-es": "^4.17.21",
 		"npm-check": "^6.0.1"
 	}
 }

@@ -7,6 +7,12 @@ settings:
 importers:
     .:
         dependencies:
+            '@types/lodash-es':
+                specifier: ^4.17.12
+                version: 4.17.12
+            lodash-es:
+                specifier: ^4.17.21
+                version: 4.17.21
             npm-check:
                 specifier: ^6.0.1
                 version: 6.0.1
@@ -2256,6 +2262,15 @@ packages:
             }
         dependencies:
             '@types/node': 20.11.19
+        dev: false
+
+    /@types/lodash-es@4.17.12:
+        resolution:
+            {
+                integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==,
+            }
+        dependencies:
+            '@types/lodash': 4.14.202
         dev: false
 
     /@types/lodash@4.14.202:
@@ -7143,7 +7158,6 @@ packages:
             {
                 integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==,
             }
-        dev: true
 
     /lodash.camelcase@4.3.0:
         resolution:
