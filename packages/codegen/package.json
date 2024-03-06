@@ -1,5 +1,5 @@
 {
-	"name": "@yantrix/yantrix-parser",
+	"name": "@yantrix/codegen",
 	"version": "0.1.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -7,13 +7,12 @@
 		"dist"
 	],
 	"repository": {
-		"directory": "packages/yantrix-parser",
+		"directory": "packages/codegen",
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
-		"build": "rimraf dist && pnpm create-parser && tsc",
-		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
+		"build": "rimraf dist && tsc",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
@@ -40,11 +39,7 @@
 	"license": "ISC",
 	"type": "module",
 	"devDependencies": {
-		"@ts-jison/parser-generator": "0.4.1-alpha.2",
-		"jison": "0.4.18"
-	},
-	"dependencies": {
-		"@ts-jison/lexer": "0.4.1-alpha.1",
-		"@ts-jison/parser": "0.4.1-alpha.1"
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/automata": "workspace:^"
 	}
 }

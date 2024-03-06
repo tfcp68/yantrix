@@ -1,6 +1,5 @@
 # Packages
 node_modules
-.nx
 
 # Log files
 logs
@@ -26,6 +25,16 @@ dist
 .idea
 tsconfig.tsbuildinfo
 coverage
+
+# Yarn
+.pnp.*
+.yarn/*
+.yarn/install-state.gz
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # Cache
 .prettiercache

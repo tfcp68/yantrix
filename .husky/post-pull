@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn && yarn build:affected && yarn test:affected
+pnpm install && pnpm build:affected && pnpm test:affected
