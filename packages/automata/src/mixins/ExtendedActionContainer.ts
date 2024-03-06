@@ -2,6 +2,7 @@ import {
 	TAbstractConstructor,
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
+	TDefinedValues,
 	TValidator,
 } from '../types/index.js';
 import BasicActionContainer from './BasicActionContainer.js';
@@ -18,7 +19,9 @@ export default function ExtendedActionContainer<
 				TAutomataActionPayload<ActionType, PayloadType>
 			>;
 
-			get validateActionPayload() {
+			get validateActionPayload(): TValidator<
+				TAutomataActionPayload<ActionType, PayloadType>
+			> {
 				return this._payloadValidator ?? this._defaultPayloadValidator;
 			}
 
@@ -41,10 +44,11 @@ export default function ExtendedActionContainer<
 
 			_defaultPayloadValidator = (
 				p: any,
-			): p is TAutomataActionPayload<ActionType, PayloadType> =>
+			): p is TDefinedValues<
+				TAutomataActionPayload<ActionType, PayloadType>
+			> =>
 				!!this.validateAction &&
 				this.validateAction(p?.action) &&
-				p?.payload != null &&
-				typeof p.payload === 'object';
+				(p?.payload === null || typeof p.payload === 'object');
 		};
 }

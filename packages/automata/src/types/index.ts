@@ -112,8 +112,12 @@ export type TAutomataDispatch<
 >;
 
 export type TSubscriptionCancelFunction = () => void;
-
-export type TValidator<T> = (x: any) => x is T;
+export type TDefinedValues<T> = T extends object
+	? {
+			[P in keyof T]: NonNullable<T[P]>;
+	  }
+	: NonNullable<T>;
+export type TValidator<T> = (x: any) => x is TDefinedValues<T>;
 
 export type TAutomataParams<
 	StateType extends TAutomataBaseStateType,
