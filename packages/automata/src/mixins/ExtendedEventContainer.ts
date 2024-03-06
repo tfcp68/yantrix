@@ -2,6 +2,7 @@ import {
 	TAbstractConstructor,
 	TAutomataBaseEventType,
 	TAutomataEventMetaType,
+	TDefinedValues,
 	TValidator,
 } from '../types/index.js';
 import BasicEventContainer from './BasicEventContainer.js';
@@ -18,7 +19,9 @@ export default function ExtendedEventContainer<
 				TAutomataEventMetaType<EventType, EventMetaType>
 			>;
 
-			public get validateEventMeta() {
+			public get validateEventMeta(): TValidator<
+				TAutomataEventMetaType<EventType, EventMetaType>
+			> {
 				return (
 					this.#__eventMetaValidator ??
 					this.#__defaultEventMetaValidator
@@ -44,9 +47,10 @@ export default function ExtendedEventContainer<
 
 			#__defaultEventMetaValidator = (
 				p: any,
-			): p is TAutomataEventMetaType<EventType, EventMetaType> =>
+			): p is TDefinedValues<
+				TAutomataEventMetaType<EventType, EventMetaType>
+			> =>
 				this.validateEvent(p?.event) &&
-				p?.meta != null &&
-				typeof p.meta === 'object';
+				(p?.meta === null || typeof p.meta === 'object');
 		};
 }

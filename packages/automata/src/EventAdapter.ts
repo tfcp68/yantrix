@@ -138,7 +138,7 @@ export function createEventAdapter<
 					>
 				>
 			> {
-				if (!this.validateEvent(event?.event)) return [];
+				if (!this.validateEventMeta(event)) return [];
 				return (this.#eventListeners?.[event.event] || [])
 					.map((handler) => handler(event))
 					.filter((action) => this.validateAction(action.action));
@@ -156,7 +156,7 @@ export function createEventAdapter<
 					>
 				>
 			> {
-				if (!this.validateState(newState?.state)) return [];
+				if (!this.validateContext(newState)) return [];
 				return (this.#eventEmitters?.[newState.state] || [])
 					.map((emitter) => emitter(newState))
 					.filter((event) => this.validateEvent(event.event));

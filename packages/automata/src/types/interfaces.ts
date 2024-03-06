@@ -259,7 +259,7 @@ export interface IAutomata<
 	};
 
 	/**
-	 * Consume Action and return the new State and its context
+	 * Consume Action and return the new State and its context.
 	 * The Queue is Collapsed beforehand, if not Disabled
 	 * When Paused, puts an Action into the Queue instead
 	 * When Disabled, doesn't change the internal State
