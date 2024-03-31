@@ -427,4 +427,7 @@ const stateInput4 = `stateDiagram-v2
 
 export const emptyStateDiagram = 'stateDiagram-v2';
 
-console.log(await generate());
+const stateDiagramStructure = await parseStateDiagram(emptyStateDiagram);
+const stateDiagram = await createStateDiagram(stateDiagramStructure);
+
+console.log(await generate(stateDiagram, { className: 'GeneratedAutomata' }));

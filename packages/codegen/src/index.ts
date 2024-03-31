@@ -1,22 +1,22 @@
-import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
+import type { TStateDiagram } from '@yantrix/mermaid-parser';
+import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { toTypedObject } from './utils.js';
-import { set } from 'lodash-es';
 import type { ICodegenOptions } from './types.js';
 
-export const generate = async (diagram: string, options: ICodegenOptions) => {
-	const stateDiagramStructure = await parseStateDiagram(diagram);
-	const stateDiagram = await createStateDiagram(stateDiagramStructure);
+export const generate = async (
+	diagram: TStateDiagram,
+	options: ICodegenOptions,
+) => {
+	const states = new BasicStateDictionary();
+	const actions = new BasicActionDictionary();
 
-	const states = {};
-	const actions = {};
+	const stateKeys = diagram.states.map((s) => s.id);
 
-	for (const state of stateDiagram.states) {
-		set(states, state.id, state.id);
+	states.addStates({ keys: stateKeys, namespace: 'states1' });
 
+	for (const state of diagram.states) {
 		for (const actionPath of state.actionsPath) {
-			for (const action of actionPath.action) {
-				set(actions, action, action);
-			}
+			actions.addActions({ keys: actionPath.action });
 		}
 	}
 
@@ -24,20 +24,13 @@ export const generate = async (diagram: string, options: ICodegenOptions) => {
 	const typedAction = toTypedObject(actions, 'action');
 
 	return `
-		import { createAutomata } from "@yantrix/automata";
+		import { GenericAutomata } from "@yantrix/automata";
 
 		${typedState.codeBlock}
 		${typedAction.codeBlock}
 
-		class ${options.className} extends createAutomata<
-			${typedState.typeName},
-			${typedAction.typeName},
-			any,
-			any,
-			any,
-			any
-		> {
-			constructor() {
+		class ${options.className} extends GenericAutomata {
+			public constructor() {
 				super();
 				this.init({
 					state: null,

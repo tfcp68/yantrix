@@ -5,10 +5,10 @@ export const toUpperFirst = (str: string) => {
 };
 
 export const toTypedObjectProps = <T>(object: T, objName: string) => {
-	const typeName = `T${toUpperFirst(objName)}`;
 	const typeGuardName = `isValid${toUpperFirst(objName)}`;
-	const name = `${objName}Obj`;
+	const typeName = `T${toUpperFirst(objName)}`;
 	const body = JSON.stringify(object, null, 2);
+	const name = `${objName}Obj`;
 
 	return {
 		typeName,
