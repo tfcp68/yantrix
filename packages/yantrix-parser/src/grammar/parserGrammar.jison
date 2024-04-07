@@ -28,38 +28,39 @@
 <<EOF>>                              return 'EOF';
 [\r\n]+                              return 'NewLine';
 [\s]+                                /* skip all whitespace */
-','                    {return ','}
+','                                  {return ','}
 '+INITIAL'                           return 'InitialState';
 'note'                               {return 'note'}
-')'                                  {return ')'}
+')'                                  {this.popState();return ')'}
 '('                                  {return '('}
 'left'                               {return 'left'}
 'right'                              {return 'right'}
 'end'                                {return 'end'}
-\'[^\n#{()=><"]+\'                   {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+\'[^\n#{()=><"]+\'                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 'of'\s                               {this.begin('Note'); return 'of'}
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
 <SubcribeStatement>[^/=>\s]+         {this.popState(); return 'EventName'}
 
-'=>'[\s]                             {this.begin('ActionStatement'); return '=>'}
-'<='[\s]                             {this.begin('leftArrow');return '<=' }
-<leftArrow>'('                       {this.popState(); return '('}
-'='                                  {this.begin('rightSideOperation');return '='}
+'=>'[\s]                             {this.popState();this.begin('ActionStatement'); return '=>'}
+'<='[\s]                             {this.begin('KeyList');return '<=' }
+                         
+
+<Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
+<rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}    
+<rightSideOperation>[^=#{}][A-Za-z]+   {this.popState();return 'Property'}
+   
 
 
+'emit/'                               {this.begin('EmitStatement'); return 'emit/'}
+<EmitStatement>[^()=<\n]+             {this.popState(); return 'EventName'}
 
-'emit/'                              {this.begin('EmitStatement'); return 'emit/'}
-<EmitStatement>[^()=<\n]+            {this.popState(); return 'EventName'}
 
-
-'#{'                                 {this.begin('KeyList');return '#{'}
-[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {this.popState();this.begin('Func');return 'FunctionName';}
-<Func>')'                     {this.popState(); return ')'}
-<Func>[^(',)][A-Za-z_]+         {return 'PropertyArgument'}
-<rightSideOperation>[^()'=,][A-Za-z]+   {this.popState();return 'Property'}
-[^(')=,][A-Za-z]+             {yytext = yytext.toLowerCase();return 'TargetProperty'}
+'#{'                                   {this.begin('KeyList');return '#{'}
+<KeyList>[^(')=,][A-Za-z]+             {yytext = yytext.toLowerCase();return 'TargetProperty'}
+<Func>[^(',)][A-Za-z_]+               {return 'PropertyArgument'}
 <KeyList>'='                          {this.begin('rightSideOperation');return '='}
+
 <KeyList>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])                                                              {yytext = yytext.toLowerCase();this.begin('Func');return 'FunctionName';}
 '}'                                  {this.popState();return '}'}
 <ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
@@ -110,18 +111,11 @@ statements
         ;
 
 ContextDefinitions
-        : ContextStatement {$$ = {...$1}}
-        | ContextStatement '<=' '(' KeyList')' {$$ = {...$1,...$4}}
+        : ContextStatement {$$ = {context:$1}}
+        | ContextStatement '<=' '(' KeyList')' {$$ = {context:$1, payload:$4} }
         ;
 ContextStatement
-        : '#{' KeyList'}' {$$ = { context: $2} }
-        | '#{' KeyList'=' KeyList'}' {
-console.log($4)
-$$ = {
- context:$2,
- initialValue:$4
-}}
-        ;
+        : '#{' KeyList'}'  } {$$ = $2};
 EventEmitStatement
         : 'emit/' EventName  {$$ =  { eventName:$2}}
         | 'emit/' EventName '<=' '(' KeyList  ')' {$$ = {
@@ -138,12 +132,12 @@ SubscribeStatement
        ;
 ActionStatement
        : ActionName { $$ =  {actionName:$1}} }
-       | ActionName '(' KeyList  ')' {$$ = {action: {
+       | ActionName '(' KeyList  ')' {$$ = {
     actionName:$1,
     payload:$3
 }}} ;
 
-KeyList  : KeyList | KeyItem ',' KeyList | KeyItem ;
+KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression {$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression
