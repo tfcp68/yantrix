@@ -6,14 +6,20 @@ export const baseEmpty = {
 export const baseContext = {
 	contextDescription: [
 		{
-			context: {
-				KeyItemDeclaration: {
-					TargetProperty: 'leftsideproperty',
+			context: [
+				{
+					KeyItemDeclaration: {
+						TargetProperty: 'leftsideproperty',
+					},
 				},
-			},
-			KeyItemDeclaration: {
-				TargetProperty: 'rightsideproperty',
-			},
+			],
+			payload: [
+				{
+					KeyItemDeclaration: {
+						TargetProperty: 'rightsideproperty',
+					},
+				},
+			],
 		},
 	],
 };
@@ -33,11 +39,13 @@ export const baseEmitEvent = {
 	emit: [
 		{
 			eventName: 'eventName ',
-			payload: {
-				KeyItemDeclaration: {
-					TargetProperty: 'keylist',
+			payload: [
+				{
+					KeyItemDeclaration: {
+						TargetProperty: 'keylist',
+					},
 				},
-			},
+			],
 		},
 	],
 };

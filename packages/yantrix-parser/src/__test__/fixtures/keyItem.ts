@@ -13,12 +13,14 @@ const getKeyItem = (expression: TExpressionTypes | null) => {
 	return {
 		contextDescription: [
 			{
-				context: {
-					KeyItemDeclaration: {
-						...expression,
-						...baseKeyItemDeclaration,
+				context: [
+					{
+						KeyItemDeclaration: {
+							...expression,
+							...baseKeyItemDeclaration,
+						},
 					},
-				},
+				],
 			},
 		],
 	};
