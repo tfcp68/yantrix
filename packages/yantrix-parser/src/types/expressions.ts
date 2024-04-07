@@ -45,9 +45,3 @@ export type TExpressionMapped<T extends TExpressionTypes = TExpressionTypes> =
 					: T extends TExpressionTypes.Property
 						? TExpressionProperty
 						: never;
-
-export function isExpressionType<T extends typeof TExpressionTypes>(
-	expression: any,
-): expression is T[keyof T] {
-	return !Object.values(TExpressionTypes).includes(expression);
-}

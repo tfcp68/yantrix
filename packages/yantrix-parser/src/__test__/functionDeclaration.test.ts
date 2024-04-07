@@ -23,7 +23,7 @@ describe('Function declaration', () => {
 
 		assert.deepInclude(parser, functionsFixtures.withInteger);
 	});
-	test('should be return function declaration with many property arguments declaration', () => {
+	test('should be return function declaration with two property arguments declaration', () => {
 		const parser = new YantrixParser().parse(
 			'#{property=func(first,second)}',
 		);
