@@ -15,13 +15,13 @@ export const toTypedObjectProps = <T>(object: T, objName: string) => {
 		typeGuardName,
 		name,
 		body,
-	} as ITypedObjectProps;
+	} satisfies ITypedObjectProps;
 };
 
 export const toTypedObject = <T>(obj: T, name: string) => {
 	const props = toTypedObjectProps(obj, name);
 
-	const codeBlock = `const ${props.name} = ${props.name}
+	const codeBlock = `const ${props.name} = ${props.body}
 		type ${props.typeName} = keyof typeof ${props.name}
 		const ${props.typeGuardName} = (obj: any): obj is ${props.typeName} => {
 			return Object.keys(${props.name}).includes(obj);
@@ -30,5 +30,5 @@ export const toTypedObject = <T>(obj: T, name: string) => {
 	return {
 		...props,
 		codeBlock,
-	} as ITypedObject;
+	} satisfies ITypedObject;
 };

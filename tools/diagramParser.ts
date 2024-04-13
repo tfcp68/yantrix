@@ -425,9 +425,38 @@ const stateInput4 = `stateDiagram-v2
     s7 --> [*]
     s8 --> [*]`;
 
-export const emptyStateDiagram = 'stateDiagram-v2';
+const stateDiagramDoublePath = `
+   stateDiagram-v2
 
-const stateDiagramStructure = await parseStateDiagram(emptyStateDiagram);
+   state ChoiceState1 <<choice>>
+   state ChoiceState2 <<choice>>
+
+   [*] --> A
+   A --> ChoiceState1
+   ChoiceState1 --> ChoiceState2
+   ChoiceState1 --> B
+   ChoiceState2 --> B
+   ChoiceState2 --> D
+   B --> [*]
+   D --> [*]
+
+   note left of ChoiceState1
+		this is multiline
+		comment left of
+		first choice
+   end note
+
+   note right of ChoiceState2
+		this is another
+		multiline comment
+		right of second choice
+   end note
+`;
+
+const stateDiagramStructure = await parseStateDiagram(stateDiagramDoublePath);
 const stateDiagram = await createStateDiagram(stateDiagramStructure);
+const generated = await generate(stateDiagram, {
+	className: 'GeneratedAutomata',
+});
 
-console.log(await generate(stateDiagram, { className: 'GeneratedAutomata' }));
+console.log(generated);

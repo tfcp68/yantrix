@@ -11,34 +11,42 @@ export const generate = async (
 	const actions = new BasicActionDictionary();
 
 	const stateKeys = diagram.states.map((s) => s.id);
-
-	states.addStates({ keys: stateKeys, namespace: 'states1' });
+	states.addStates({ keys: stateKeys, namespace: 'states' });
 
 	for (const state of diagram.states) {
-		for (const actionPath of state.actionsPath) {
-			actions.addActions({ keys: actionPath.action });
+		const paths = state.actionsPath.map((p) => p.action);
+
+		for (const [idx, path] of paths.entries()) {
+			const namespace = `actions-${state.id}-${idx}`;
+			actions.addActions({ keys: path, namespace });
 		}
 	}
 
-	const typedState = toTypedObject(states, 'state');
-	const typedAction = toTypedObject(actions, 'action');
+	// console.log(states.getDictionary());
+	// console.log(actions.getDictionary());
+	const stateDict = states.getDictionary();
+	const actionDict = actions.getDictionary();
+
+	const typedState = toTypedObject(stateDict, 'state');
+	const typedAction = toTypedObject(actionDict, 'action');
 
 	return `
 		import { GenericAutomata } from "@yantrix/automata";
 
 		${typedState.codeBlock}
+
 		${typedAction.codeBlock}
 
-		class ${options.className} extends GenericAutomata {
+		export class ${options.className} extends GenericAutomata {
 			public constructor() {
 				super();
 				this.init({
-					state: null,
+					state: Object.values(${typedState.name})[0],
 					context: { index: -1 },
 					rootReducer: ({ action, context, payload, state }) => {
 						if (!action || payload === null) return { state, context };
 						const ctx = {}
-						return { state: null, context: null};
+						return { state: null, context: { index: -1 } };
 					},
 					stateValidator: () => {},
 					actionValidator: () => {},
