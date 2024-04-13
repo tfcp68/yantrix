@@ -36,7 +36,8 @@
 'left'                               {return 'left'}
 'right'                              {return 'right'}
 'end'                                {return 'end'}
-\'[^\n#{()=><"]+\'                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+\'[^\n#{()=><""]+\'                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+\"[^\n#{()=><'']+\"                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 'of'\s                               {this.begin('Note'); return 'of'}
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
@@ -44,11 +45,12 @@
 
 '=>'[\s]                             {this.popState();this.begin('ActionStatement'); return '=>'}
 '<='[\s]                             {this.begin('KeyList');return '<=' }
-                         
+[0-9]+                 {this.popState();return 'integerLiteral'} 
+[0-9]+'.'[0-9]+        {return 'decimalLiteral'}                       
 
 <Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
 <rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}    
-<rightSideOperation>[^=#{}][A-Za-z]+   {this.popState();return 'Property'}
+<rightSideOperation>[^=#{}][A-Za-z0-9]+   {this.popState();return 'Property'}
    
 
 
@@ -56,8 +58,11 @@
 <EmitStatement>[^()=<\n]+             {this.popState(); return 'EventName'}
 
 
+
+'('                                   {this.begin('KeyList');return '('}
 '#{'                                   {this.begin('KeyList');return '#{'}
-<KeyList>[^(')=,][A-Za-z]+             {yytext = yytext.toLowerCase();return 'TargetProperty'}
+'{'                                   {this.begin('KeyList');return '{'}
+<KeyList>[^({}')=,][A-Za-z0-9]+             {return 'TargetProperty'}
 <Func>[^(',)][A-Za-z_]+               {return 'PropertyArgument'}
 <KeyList>'='                          {this.begin('rightSideOperation');return '='}
 
@@ -66,12 +71,10 @@
 <ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 
 
-[0-9]+'.'[0-9]+        {return 'decimalLiteral'}
-[0-9]+                 {return 'integerLiteral'}
 '$('                   {this.begin('Constant'); return '$('}
 <Constant>[A-Za-z_]+   { return 'ConstantReference'}
 <Constant>')'          {this.popState(); return ')'}
-'[]'                   {return 'Array'}
+'[]'                   {this.popState();return 'Array'}
 
 
 
@@ -93,7 +96,7 @@ document
 	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
 	| document line {
            if($2 !== '\n') {
-              if($2.hasOwnProperty('context')) $1['contextDescription'].push($2)
+              $1['contextDescription'].push($2)
               if($2.hasOwnProperty('eventName')) $1['emit'].push($2)
               if($2.hasOwnProperty('event')) $1['subscribe'].push($2)
            }
@@ -112,7 +115,9 @@ statements
 
 ContextDefinitions
         : ContextStatement {$$ = {context:$1}}
-        | ContextStatement '<=' '(' KeyList')' {$$ = {context:$1, payload:$4} }
+        | ContextStatement '<=' '(' KeyList')' {if($4.length > $1.length){
+throw new Error(`The number of payload arguments must be equal to or less than the context argument`);}$$ = {context:$1, payload:$4}}
+        | ContextStatement '<=' '{' KeyList '}' {if($4.length > $1.length) {throw new Error('The number of arguments in the previous context must be equal to or less than the number of arguments specified in the current context.')}$$ = {context:$1, prevContext:$4}}
         ;
 ContextStatement
         : '#{' KeyList'}'  } {$$ = $2};
@@ -138,7 +143,7 @@ ActionStatement
 }}} ;
 
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
-KeyItem  : TargetProperty '=' Expression {$$ = {KeyItemDeclaration: {
+KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($3['Property'] === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression
           : FunctionOperator
