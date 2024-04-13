@@ -3,13 +3,10 @@ import { YantrixParser } from '../yantrixParser.js';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
 	allowedExpressions,
-	generateRandomKeyList,
 	getKeyItemsInitialEmpty,
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
 } from './utils/utils.js';
-import { an } from 'vitest/dist/reporters-MmQN-57K.js';
-import { values } from 'lodash-es';
 
 describe('Key list', () => {
 	describe('single key item', () => {
@@ -47,7 +44,7 @@ describe('Key list', () => {
 		});
 	});
 	describe('Random number of keyItem', () => {
-		describe('Input =#{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
+		describe('INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
 			const parser = new YantrixParser();
 
 			Object.entries(allowedExpressions).forEach(
@@ -88,7 +85,7 @@ describe('Key list', () => {
 				},
 			);
 		});
-		describe(`Input = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
+		describe(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
 			for (let index = 0; index < 10; index++) {
 				const parser = new YantrixParser();
 
@@ -118,7 +115,7 @@ describe('Key list', () => {
 			}
 		});
 		describe('Empty last initial value', () => {
-			test('Input = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', () => {
+			test('INPUT = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', () => {
 				for (let index = 0; index < 10; index++) {
 					const parser = new YantrixParser();
 
@@ -153,7 +150,7 @@ describe('Key list', () => {
 					expect(lastContextItem).toStrictEqual({ ...f });
 				}
 			});
-			test('Input = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', () => {
+			test('INPUT = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', () => {
 				for (let index = 0; index < 10; index++) {
 					const parser = new YantrixParser();
 
@@ -188,7 +185,7 @@ describe('Key list', () => {
 			});
 		});
 		describe('Incorect input', () => {
-			test('#{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
+			test('INPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
 				const parser = new YantrixParser();
 				const keyItems = [
 					getKeyItemsRandomInitial(true),
@@ -201,7 +198,7 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
-			test('#{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', () => {
+			test('INPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', () => {
 				const parser = new YantrixParser();
 				const keyItems = [
 					...getKeyItemsRandomInitial(),
@@ -213,7 +210,7 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
-			test('#{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
+			test('INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
 				const parser = new YantrixParser();
 				const keyItems = [
 					{ value: 'prop3,' },
