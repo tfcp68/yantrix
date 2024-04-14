@@ -1,58 +1,59 @@
 import type { TStateDiagram } from '@yantrix/mermaid-parser';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { toTypedObject } from './utils.js';
 import type { ICodegenOptions } from './types.js';
+import { format } from 'prettier';
+import { join } from 'path';
+import { cwd } from 'process';
+import { readFile } from 'fs/promises';
+
+const prettierCfgPath = join(cwd(), '.prettierrc');
+const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
+const prettierCfg = JSON.parse(prettierCfgRaw);
+const fmt = async (code: string) => {
+  return format(code, { ...prettierCfg, parser: 'babel-ts' });
+};
 
 export const generate = async (
-	diagram: TStateDiagram,
-	options: ICodegenOptions,
+  diagram: TStateDiagram,
+  options: ICodegenOptions,
 ) => {
-	const states = new BasicStateDictionary();
-	const actions = new BasicActionDictionary();
+  const states = new BasicStateDictionary();
+  const actions = new BasicActionDictionary();
 
-	const stateKeys = diagram.states.map((s) => s.id);
-	states.addStates({ keys: stateKeys, namespace: 'states' });
+  const stateKeys = diagram.states.map((s) => s.id);
+  states.addStates({ keys: stateKeys });
 
-	for (const state of diagram.states) {
-		const paths = state.actionsPath.map((p) => p.action);
+  for (const state of diagram.states) {
+    for (const path of state.actionsPath.map((p) => p.action)) {
+      actions.addActions({ keys: [path.join(' ')] });
+    }
+  }
 
-		for (const [idx, path] of paths.entries()) {
-			const namespace = `actions-${state.id}-${idx}`;
-			actions.addActions({ keys: path, namespace });
-		}
-	}
+  const stateDict = states.getDictionary();
+  const actionDict = actions.getDictionary();
 
-	// console.log(states.getDictionary());
-	// console.log(actions.getDictionary());
-	const stateDict = states.getDictionary();
-	const actionDict = actions.getDictionary();
-
-	const typedState = toTypedObject(stateDict, 'state');
-	const typedAction = toTypedObject(actionDict, 'action');
-
-	return `
+  return fmt(`
 		import { GenericAutomata } from "@yantrix/automata";
 
-		${typedState.codeBlock}
-
-		${typedAction.codeBlock}
+		const states = ${JSON.stringify(Object.values(stateDict), null, 2)}
+		const actions = ${JSON.stringify(Object.values(actionDict), null, 2)}
 
 		export class ${options.className} extends GenericAutomata {
 			public constructor() {
 				super();
 				this.init({
-					state: Object.values(${typedState.name})[0],
+					state: states[0],
 					context: { index: -1 },
 					rootReducer: ({ action, context, payload, state }) => {
 						if (!action || payload === null) return { state, context };
-						const ctx = {}
-						return { state: null, context: { index: -1 } };
+						const ctx = { index: -1 }
+						return { state: null, context: ctx };
 					},
-					stateValidator: () => {},
-					actionValidator: () => {},
+					stateValidator: (s) => states.includes(s),
+					actionValidator: (a) => actions.includes(a),
 					eventValidator: () => {},
 				});
 			}
 		}
-	`;
+	`);
 };
