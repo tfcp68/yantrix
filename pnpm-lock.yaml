@@ -88,6 +88,13 @@ importers:
         version: 1.13.6
 
   packages/codegen:
+    dependencies:
+      core-js-bundle:
+        specifier: ^3.36.1
+        version: 3.37.0
+      regenerator-runtime:
+        specifier: ^0.14.1
+        version: 0.14.1
     devDependencies:
       '@yantrix/automata':
         specifier: workspace:^
@@ -3778,6 +3785,14 @@ packages:
         integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==,
       }
     dev: true
+
+  /core-js-bundle@3.37.0:
+    resolution:
+      {
+        integrity: sha512-AdUUF5R8+2ytuozAN2idBfGiDqtdsRVClilMCQSso/MBaZ+Uc4ENgzQkrRV4VRspari6L5te8sROcxGS7sncGQ==,
+      }
+    requiresBuild: true
+    dev: false
 
   /core-util-is@1.0.3:
     resolution:
@@ -9280,6 +9295,13 @@ packages:
     dependencies:
       indent-string: 4.0.0
       strip-indent: 3.0.0
+
+  /regenerator-runtime@0.14.1:
+    resolution:
+      {
+        integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==,
+      }
+    dev: false
 
   /registry-auth-token@4.2.2:
     resolution:

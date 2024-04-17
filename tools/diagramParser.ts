@@ -1,12 +1,8 @@
 //import { parseStateDiagram } from '@yantrix/mermaid-parser'
-import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js';
-import { createStateDiagram } from '../packages/mermaid-parser/src/state/stateDiagram.js';
-import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js';
-import { YantrixParser } from '../packages/yantrix-parser/src/yantrixParser.js';
-import { generate } from '../packages/codegen/src/index.js';
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
+[*] --> INIT: Test
 INIT --> INTRO: RUN
 INTRO --> MAIN_MENU: TO_MENU
 MAIN_MENU --> [*]: EXIT
@@ -452,11 +448,3 @@ const stateDiagramDoublePath = `
 		right of second choice
    end note
 `;
-
-const stateDiagramStructure = await parseStateDiagram(stateDiagramDoublePath);
-const stateDiagram = await createStateDiagram(stateDiagramStructure);
-const generated = await generate(stateDiagram, {
-  className: 'GeneratedAutomata',
-});
-
-console.log(generated);
