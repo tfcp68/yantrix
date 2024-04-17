@@ -38,10 +38,6 @@
   ],
   "license": "ISC",
   "type": "module",
-  "dependencies": {
-    "core-js-bundle": "^3.36.1",
-    "regenerator-runtime": "^0.14.1"
-  },
   "devDependencies": {
     "@yantrix/automata": "workspace:^",
     "@yantrix/mermaid-parser": "workspace:^"

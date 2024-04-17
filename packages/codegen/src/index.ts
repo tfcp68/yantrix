@@ -4,14 +4,18 @@ import type { ICodegenOptions } from './types.js';
 import { format } from 'prettier';
 import { join } from 'path';
 import { cwd } from 'process';
-import { readFile } from 'fs/promises';
 import { Codegen } from './utils.js';
+import { readFile } from 'fs/promises';
 
 const prettierCfgPath = join(cwd(), '.prettierrc');
-const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
-const prettierCfg = JSON.parse(prettierCfgRaw);
 const fmt = async (code: string) => {
-  return format(code, { ...prettierCfg, parser: 'babel-ts' });
+  try {
+    const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
+    const prettierCfg = JSON.parse(prettierCfgRaw);
+    return format(code, { ...prettierCfg, parser: 'babel-ts' });
+  } catch {
+    return code;
+  }
 };
 
 export const generate = async (
