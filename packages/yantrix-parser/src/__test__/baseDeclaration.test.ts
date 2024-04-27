@@ -7,33 +7,43 @@ import {
 	baseSubscribe,
 } from './fixtures/baseDeclarations.js';
 
-describe('Base grammer declarations', () => {
+const invalidCases = [
+	['#{LeftSideProperty} <='],
+	['#{LeftSideProperty} =>'],
+	['#{LeftSideProperty} ='],
+	['#{LeftSideProperty'],
+	['#{,LeftSideProperty'],
+	['#{{LeftSideProperty} =>'],
+	['#{LeftSideProperty} =>'],
+	['#{}'],
+	['#{} => ()'],
+	['#{} => (RightSideProperty)'],
+	['#(LeftSideProperty) <= {RightSideProperty}'],
+	['#{LeftSideProperty = }'],
+	['#{LeftSideProperty,}'],
+	['#{LeftSideProperty = LeftSideProperty}'],
+	['#{LeftSideProperty =} => (RightSideProperty=)'],
+	['#{LeftSideProperty} => (RightSideProperty,)'],
+	['#{LeftSideProperty} => (RightSideProperty)'],
+	['#{Left1,Left2} <= (Right1, Right2, Right3)'],
+	['#{Left1,Left2} <= (Right1, Right2, Right3=5)'],
+	['#{Left1=1,Left2} <= (Right1, Right2, Right3)'],
+	['#{Left1,Left2} => (Right1, Right2)'],
+];
+
+const base = [
+	['', baseEmpty],
+	['#{LeftSideProperty} <= (RightSideProperty)', baseContext],
+	['subscribe/event => action', baseSubscribe],
+	['emit/eventName <= (keylist)', baseEmitEvent],
+] as const;
+
+describe('Base grammar declarations', () => {
 	describe('Correct input', () => {
-		test('should be return empty dictionary', () => {
-			const parser = new YantrixParser().parse('');
+		test.each(base)('%s', (input: any, res: any) => {
+			const parser = new YantrixParser().parse(input as string);
 
-			assert.deepInclude(parser, baseEmpty);
-		});
-		test('should be return dictionary with context declaration', () => {
-			const parser = new YantrixParser().parse(
-				'#{LeftSideProperty} <= (RightSideProperty)',
-			);
-
-			assert.deepInclude(parser, baseContext);
-		});
-		test('should be return dictionary with subscribe declaration', () => {
-			const parser = new YantrixParser().parse(
-				'subscribe/event => action',
-			);
-
-			assert.deepInclude(parser, baseSubscribe);
-		});
-		test('should be return dictionary with event emit declaration', () => {
-			const parser = new YantrixParser().parse(
-				'emit/eventName <= (keylist)',
-			);
-
-			assert.deepInclude(parser, baseEmitEvent);
+			assert.deepOwnInclude(parser, res);
 		});
 	});
 	describe('Identical output with ', () => {
@@ -100,30 +110,7 @@ describe('Base grammer declarations', () => {
 		});
 	});
 	describe('Incorrect input', () => {
-		const testCases = [
-			['#{LeftSideProperty} <='],
-			['#{LeftSideProperty} =>'],
-			['#{LeftSideProperty} ='],
-			['#{LeftSideProperty'],
-			['#{,LeftSideProperty'],
-			['#{{LeftSideProperty} =>'],
-			['#{LeftSideProperty} =>'],
-			['#{}'],
-			['#{} => ()'],
-			['#{} => (RightSideProperty)'],
-			['#(LeftSideProperty) <= {RightSideProperty}'],
-			['#{LeftSideProperty = }'],
-			['#{LeftSideProperty,}'],
-			['#{LeftSideProperty = LeftSideProperty}'],
-			['#{LeftSideProperty =} => (RightSideProperty=)'],
-			['#{LeftSideProperty} => (RightSideProperty,)'],
-			['#{LeftSideProperty} => (RightSideProperty)'],
-			['#{Left1,Left2} <= (Right1, Right2, Right3)'],
-			['#{Left1,Left2} <= (Right1, Right2, Right3=5)'],
-			['#{Left1=1,Left2} <= (Right1, Right2, Right3)'],
-			['#{Left1,Left2} => (Right1, Right2)'],
-		];
-		test.each(testCases)(' %s  ----- Error', (input) => {
+		test.each(invalidCases)(' %s  ----- Error', (input) => {
 			expect(() => new YantrixParser().parse(input)).toThrowError();
 		});
 	});

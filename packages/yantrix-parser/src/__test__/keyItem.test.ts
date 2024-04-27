@@ -8,39 +8,21 @@ import {
 	getKeyItemsWithInitial,
 } from './utils/utils.js';
 
+const cases = [
+	['#{property}', keyItem.declarationKeyItem],
+	[`#{property  = 'string'}`, keyItem.withStringInitial],
+	[`#{property = []}`, keyItem.withArrayInitial],
+	[`#{property = 3}`, keyItem.withIntegerInitial],
+	[`#{property = func()}`, functionsFixtures.expression],
+	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
+];
+
 describe('Key list', () => {
 	describe('single key item', () => {
-		test('should be return KeyItemDeclaration with TargetProperty', () => {
-			const parser = new YantrixParser().parse('#{property}');
+		test.each(cases)('%s', (input, res) => {
+			const output = new YantrixParser().parse(input as string);
 
-			assert.deepOwnInclude(parser, keyItem.declarationKeyItem);
-		});
-		test('should be return KeyItem declaration with initial string expression', () => {
-			const parser = new YantrixParser().parse(`#{property  = 'string'}`);
-
-			assert.deepInclude(parser, keyItem.withStringInitial);
-		});
-		test('should be return KeyItem declaration with initial array expression', () => {
-			const parser = new YantrixParser().parse(`#{property = []}`);
-
-			assert.deepInclude(parser, keyItem.withArrayInitial);
-		});
-		test('should be return KeyItem declaration with initial integerValue expression', () => {
-			const parser = new YantrixParser().parse(`#{property = 3}`);
-
-			assert.deepInclude(parser, keyItem.withIntegerInitial);
-		});
-		test('should be return KeyItem declaration with base function expression', () => {
-			const parser = new YantrixParser().parse(`#{property = func()}`);
-
-			assert.deepInclude(parser, functionsFixtures.expression);
-		});
-		test('should be return KeyItem declaration with property declaration', () => {
-			const parser = new YantrixParser().parse(
-				`#{property = anotherProperty}`,
-			);
-
-			assert.deepInclude(parser, keyItem.withPropertyInitial);
+			assert.deepOwnInclude(output, res);
 		});
 	});
 	describe('Random number of keyItem', () => {
