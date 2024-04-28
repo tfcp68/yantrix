@@ -47,7 +47,7 @@ fixturesList.forEach(async (fixture) => {
   });
 
   fs.writeFileSync(
-    path.resolve(pathSave, `${fixture.gameDiagram.automataName}.ts`),
+    path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),
     generatedAutomataOutput,
     {
       encoding: 'utf8',
