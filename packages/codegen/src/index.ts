@@ -1,10 +1,10 @@
 import type { TStateDiagram } from '@yantrix/mermaid-parser';
-import type { ICodegenOptions } from './types.js';
+import { ICodegenOptions, TCodegenType } from './types.js';
 import { format } from 'prettier';
 import { join } from 'path';
 import { cwd } from 'process';
 import { readFile } from 'fs/promises';
-import { Codegen } from './utils.js';
+import codegens from './codegens/index.js';
 
 const prettierCfgPath = join(cwd(), '.prettierrc');
 const fmt = async (code: string) => {
@@ -20,8 +20,9 @@ const fmt = async (code: string) => {
 export const generate = async (
   diagram: TStateDiagram,
   options: ICodegenOptions,
+  codeType: TCodegenType,
 ) => {
-  const codegen = new Codegen(diagram);
+  const codegen = new codegens[codeType](diagram);
   const output = [
     ...codegen.dictionaries,
     ...codegen.changeStateHandlers,
@@ -35,4 +36,12 @@ export const generate = async (
     ${output}
    
   `);
+};
+
+export const createGenerator = (codeType: TCodegenType) => {
+  return {
+    generate: async (diagram: TStateDiagram, options: ICodegenOptions) => {
+      return generate(diagram, options, codeType);
+    },
+  };
 };
