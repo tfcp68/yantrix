@@ -1,12 +1,8 @@
 //import { parseStateDiagram } from '@yantrix/mermaid-parser'
-import { parseStateDiagram } from '../packages/mermaid-parser/src/state/stateParser.js';
-import { createStateDiagram } from '../packages/mermaid-parser/src/state/stateDiagram.js';
-import { parseSequenceDiagram } from '../packages/mermaid-parser/src/sequence/sequenceParser.js';
-import { YantrixParser } from '../packages/yantrix-parser/src/yantrixParser.js';
-import { generate } from '../packages/codegen/src/index.js';
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
+[*] --> INIT: Test
 INIT --> INTRO: RUN
 INTRO --> MAIN_MENU: TO_MENU
 MAIN_MENU --> [*]: EXIT
@@ -188,12 +184,12 @@ const diagramText = `stateDiagram-v2
     EFFECT_TARGETING --> IDLE: SKIP`;
 
 const flowDiagram =
-	'flowchart TD\n' +
-	'    A[Christmas] -->|Get money| B(Go shopping)\n' +
-	'    B --> C{Let me think}\n' +
-	'    C -->|One| D[Laptop]\n' +
-	'    C -->|Two| E[iPhone]\n' +
-	'    C -->|Three| F[fa:fa-car Car]';
+  'flowchart TD\n' +
+  '    A[Christmas] -->|Get money| B(Go shopping)\n' +
+  '    B --> C{Let me think}\n' +
+  '    C -->|One| D[Laptop]\n' +
+  '    C -->|Two| E[iPhone]\n' +
+  '    C -->|Three| F[fa:fa-car Car]';
 
 const seqDiagram1 = `sequenceDiagram
 actor V as Vladimir
@@ -425,6 +421,30 @@ const stateInput4 = `stateDiagram-v2
     s7 --> [*]
     s8 --> [*]`;
 
-export const emptyStateDiagram = 'stateDiagram-v2';
+const stateDiagramDoublePath = `
+   stateDiagram-v2
 
-console.log(await generate());
+   state ChoiceState1 <<choice>>
+   state ChoiceState2 <<choice>>
+
+   [*] --> A
+   A --> ChoiceState1
+   ChoiceState1 --> ChoiceState2
+   ChoiceState1 --> B
+   ChoiceState2 --> B
+   ChoiceState2 --> D
+   B --> [*]
+   D --> [*]
+
+   note left of ChoiceState1
+		this is multiline
+		comment left of
+		first choice
+   end note
+
+   note right of ChoiceState2
+		this is another
+		multiline comment
+		right of second choice
+   end note
+`;

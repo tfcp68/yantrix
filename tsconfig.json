@@ -1,37 +1,36 @@
 {
-	"compilerOptions": {
-		// Type Checking
-		"allowUnreachableCode": true,
-		"allowUnusedLabels": false,
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitOverride": false,
-		"noImplicitReturns": true,
-		"strict": true,
-		"useUnknownInCatchVariables": true,
-		// Modules
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"resolveJsonModule": true,
-		"allowJs": true,
-		"skipLibCheck": true,
-		// Emit
-		"declaration": true,
-		"declarationMap": true,
-		"inlineSources": true,
-		"newLine": "lf",
-		"noEmitHelpers": true,
-		"outDir": "dist",
-		"removeComments": false,
-		"sourceMap": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"forceConsistentCasingInFileNames": true,
-		// Language and Environment
-		"experimentalDecorators": true,
-		"lib": ["ESNext", "ES2015"],
-		"target": "ES2021",
-		"useDefineForClassFields": true
-	},
-
-	"exclude": ["**/node_modules", "**/dist"]
+  "compilerOptions": {
+    // Type Checking
+    "allowUnreachableCode": true,
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": false,
+    "noImplicitReturns": true,
+    "strict": true,
+    "useUnknownInCatchVariables": true,
+    // Modules
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    // Emit
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": true,
+    "newLine": "lf",
+    "noEmitHelpers": true,
+    "outDir": "dist",
+    "removeComments": false,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    // Language and Environment
+    "experimentalDecorators": true,
+    "lib": ["ESNext", "ES2015"],
+    "target": "ES2022",
+    "useDefineForClassFields": true
+  },
+  "exclude": ["**/node_modules", "**/dist"]
 }
