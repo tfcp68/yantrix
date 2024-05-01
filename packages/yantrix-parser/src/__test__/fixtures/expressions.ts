@@ -1,4 +1,6 @@
-const primitives = {
+import { property } from 'lodash-es';
+
+export const primitives = {
 	string: {
 		StringDeclaration: 'string',
 	},
@@ -18,6 +20,39 @@ const primitives = {
 		Property: 'anotherProperty',
 	},
 };
+
+const getString = (value: string = 'string') => {
+	return { StringDeclaration: value };
+};
+const getInteger = (value: number = 3) => {
+	return { IntegerValue: value };
+};
+const getFunction = (name: string = 'func', args: any = []) => {
+	return {
+		FunctionDeclaration: {
+			FunctionName: name,
+			Arguments: [],
+		},
+	};
+};
+const getProperty = (name: string = 'property') => {
+	return {
+		Property: name,
+	};
+};
+const getArray = () => {
+	return {
+		ArrayDeclaration: [],
+	};
+};
+export const primitiveWithValue = {
+	string: getString,
+	integer: getInteger,
+	property: getProperty,
+	function: getFunction,
+	array: getArray,
+};
+
 type TKeysPrimitive = keyof typeof primitives;
 export type TPrimitives = (typeof primitives)[TKeysPrimitive];
 
