@@ -1,4 +1,4 @@
-import type { ITypedObject, ITypedObjectProps } from './types.js';
+import type { ITypedObject, ITypedObjectProps } from '../types.js';
 
 export const toUpperFirst = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);

@@ -1,4 +1,4 @@
-import codegens from './codegens/index.js';
+import { codegens } from './codegens/index.js';
 
 export interface ICodegenOptions {
   className: string;

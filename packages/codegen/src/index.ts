@@ -4,7 +4,7 @@ import { format } from 'prettier';
 import { join } from 'path';
 import { cwd } from 'process';
 import { readFile } from 'fs/promises';
-import codegens from './codegens/index.js';
+import { codegens } from './codegens/index.js';
 
 const prettierCfgPath = join(cwd(), '.prettierrc');
 const fmt = async (code: string) => {
@@ -20,7 +20,7 @@ const fmt = async (code: string) => {
 export const generate = async (
   diagram: TStateDiagram,
   options: ICodegenOptions,
-  codeType: TCodegenType,
+  codeType: TCodegenType = 'TypeScript',
 ) => {
   const codegen = new codegens[codeType](diagram);
   const output = [
