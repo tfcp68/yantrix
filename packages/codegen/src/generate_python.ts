@@ -32,9 +32,9 @@ export const generatePython = async (diagram: string) => {
         ActionProps = TypeVar('ActionProps', bound=${typedActionObjectProps.typeName})
 		
         ${typedStateObjectBlock}
-		${typedActionObjectBlock}
+        ${typedActionObjectBlock}
 
-		class GeneratedAutomata(createAutomata, Generic[StateProps, ActionProps, Any, Any, Any, Any]):
+        class GeneratedAutomata(createAutomata, Generic[StateProps, ActionProps, Any, Any, Any, Any]):
             def __init__(self):
                 self.state = None
                 self.context = {'index': -1}
