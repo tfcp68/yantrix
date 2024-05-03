@@ -448,15 +448,3 @@ const stateDiagramDoublePath = `
 		right of second choice
    end note
 `;
-
-const simpleTest: string = `
-stateDiagram-v2
-    [*] --> A
-    [*] --> B
-    A --> B
-    B --> [*]
-`;
-
-import { generatePython } from '../packages/codegen/src/generate_python.js';
-
-console.log(await generatePython(simpleTest));
