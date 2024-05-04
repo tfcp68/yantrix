@@ -1,11 +1,7 @@
 import type { ICodegen } from '../types.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
-import {
-  fillDictionaries,
-  getActionToStateDict,
-  getHandlerDict,
-} from './shared.js';
+import { fillDictionaries } from './shared.js';
 
 export class JavaScriptCodegen implements ICodegen {
   stateDictionary: BasicStateDictionary;
@@ -41,11 +37,7 @@ export class JavaScriptCodegen implements ICodegen {
     const value = this.stateDictionary.getStateValues({ keys: [state] });
     return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {
          const actionToStateDict = {
-              ${getActionToStateDict(
-                transitions,
-                this.stateDictionary,
-                this.actionDictionary,
-              )
+              ${this.getActionToStateDict(transitions)
                 .flatMap((el) => el)
                 .join('\n')}     
          };
@@ -64,7 +56,7 @@ export class JavaScriptCodegen implements ICodegen {
     this.handlersDict.push('const handlersDict = {');
 
     Object.keys(this.diagram.transitions).map((state) => {
-      this.handlersDict.push(getHandlerDict(state, this.stateDictionary));
+      this.handlersDict.push(this.getHandlerDict(state));
       this.changeStateHandlers.push(
         this.getHandleStateChanges(this.diagram.transitions[state], state),
       );
@@ -104,5 +96,31 @@ export class JavaScriptCodegen implements ICodegen {
   			});
   		}
   	}`;
+  }
+
+  /**
+   * Функция для получения словаря действий к состояниям
+   */
+  getActionToStateDict(transitions: Record<string, TDiagramAction>) {
+    return Object.keys(transitions).map((key) => {
+      const { actionsPath } = transitions[key];
+      const newState = this.stateDictionary.getStateValues({ keys: [key] });
+      return actionsPath.map(({ action }) => {
+        const actionValue = this.actionDictionary.getActionValues({
+          keys: action,
+        });
+        return `${actionValue[0]}:${newState[0]},`;
+      });
+    });
+  }
+
+  /**
+   * Функция для получения словаря обработчиков состояний
+   */
+  getHandlerDict(state: string) {
+    const stateValue = this.stateDictionary.getStateValues({
+      keys: [state],
+    })[0];
+    return `${stateValue}: handleStateChange${stateValue}, \n`;
   }
 }

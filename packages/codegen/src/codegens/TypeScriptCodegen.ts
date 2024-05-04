@@ -1,6 +1,5 @@
 import type { ICodegen } from '../types.js';
 import type { TDiagramAction } from '@yantrix/mermaid-parser';
-import { getActionToStateDict } from './shared.js';
 import { JavaScriptCodegen } from './JavaScriptCodegen.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
@@ -14,11 +13,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
     const value = this.stateDictionary.getStateValues({ keys: [state] });
     return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {
          const actionToStateDict = {
-              ${getActionToStateDict(
-                transitions,
-                this.stateDictionary,
-                this.actionDictionary,
-              )
+              ${this.getActionToStateDict(transitions)
                 .flatMap((el) => el)
                 .join('\n')}     
          };

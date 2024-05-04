@@ -4,4 +4,4 @@ import { TypeScriptCodegen } from './TypeScriptCodegen.js';
 export const codegens = {
   JavaScript: JavaScriptCodegen,
   TypeScript: TypeScriptCodegen,
-};
+} as const;

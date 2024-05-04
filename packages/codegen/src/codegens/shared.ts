@@ -1,25 +1,5 @@
-import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
+import type { TStateDiagram } from '@yantrix/mermaid-parser';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-
-/**
- * Функция для получения словаря действий к состояниям
- */
-export const getActionToStateDict = (
-  transitions: Record<string, TDiagramAction>,
-  stateDictionary: BasicStateDictionary,
-  actionDictionary: BasicActionDictionary,
-) => {
-  return Object.keys(transitions).map((key) => {
-    const { actionsPath } = transitions[key];
-    const newState = stateDictionary.getStateValues({ keys: [key] });
-    return actionsPath.map(({ action }) => {
-      const actionValue = actionDictionary.getActionValues({
-        keys: action,
-      });
-      return `${actionValue[0]}:${newState[0]},`;
-    });
-  });
-};
 
 /**
  * Функция для заполнения словарей состояний и действий
@@ -44,17 +24,4 @@ export const fillDictionaries = (
       actionDictionary.addActions({ keys: [path.join(' ')] });
     }
   }
-};
-
-/**
- * Функция для получения словаря обработчиков состояний
- */
-export const getHandlerDict = (
-  state: string,
-  stateDictionary: BasicStateDictionary,
-) => {
-  const stateValue = stateDictionary.getStateValues({
-    keys: [state],
-  })[0];
-  return `${stateValue}: handleStateChange${stateValue}, \n`;
 };
