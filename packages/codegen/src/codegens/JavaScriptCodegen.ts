@@ -30,13 +30,18 @@ export class JavaScriptCodegen implements ICodegen {
   /**
    * Функция для получения обработчика изменения состояния
    */
-  public getHandleStateChanges(
+  protected getHandleStateChanges(
     transitions: Record<string, TDiagramAction>,
     state: string,
   ) {
-    const value = this.stateDictionary.getStateValues({ keys: [state] });
-    return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {
-         const actionToStateDict = {
+    const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+    if (!value) {
+      throw new Error(`State ${state} not found`);
+    }
+    return this.getHandleStateChangeDeclaration(
+      value,
+      `
+             const actionToStateDict = {
               ${this.getActionToStateDict(transitions)
                 .flatMap((el) => el)
                 .join('\n')}     
@@ -45,7 +50,12 @@ export class JavaScriptCodegen implements ICodegen {
         const isNewState = newState !== state
         
         return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
-    };`;
+        `,
+    );
+  }
+
+  protected getHandleStateChangeDeclaration(value: number, body: string) {
+    return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
   }
 
   /**

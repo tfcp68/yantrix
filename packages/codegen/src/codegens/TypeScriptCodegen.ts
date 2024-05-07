@@ -3,31 +3,10 @@ import type { TDiagramAction } from '@yantrix/mermaid-parser';
 import { JavaScriptCodegen } from './JavaScriptCodegen.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
-  /**
-   * Функция для получения обработчика изменения состояния
-   */
-  public getHandleStateChanges(
-    transitions: Record<string, TDiagramAction>,
-    state: string,
-  ) {
-    const value = this.stateDictionary.getStateValues({ keys: [state] });
-    return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {
-         const actionToStateDict = {
-              ${this.getActionToStateDict(transitions)
-                .flatMap((el) => el)
-                .join('\n')}     
-         };
-        // @ts-expect-error okay
-        const newState = actionToStateDict[action] ?? state
-        const isNewState = newState !== state
-        
-        return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
-    };`;
+  protected getHandleStateChangeDeclaration(value: number, body: string) {
+    return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {${body}}`;
   }
 
-  /**
-   * Функция для получения шаблона класса
-   */
   public getClassTemplate(className: string) {
     return `export class ${className} extends GenericAutomata {
   		public constructor() {
