@@ -41,7 +41,6 @@ export class JavaScriptCodegen implements ICodegen {
                 .flatMap((el) => el)
                 .join('\n')}     
          };
-        // @ts-expect-error okay
         const newState = actionToStateDict[action] ?? state
         const isNewState = newState !== state
         
