@@ -1,5 +1,4 @@
 import type { ICodegen } from '../types.js';
-import type { TDiagramAction } from '@yantrix/mermaid-parser';
 import { JavaScriptCodegen } from './JavaScriptCodegen.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
