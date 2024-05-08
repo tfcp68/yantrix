@@ -4,8 +4,7 @@ import { join } from 'path';
 import { format } from 'prettier';
 import { cwd } from 'process';
 import { codegens } from './codegens/index.js';
-import { ICodegenOptions, TCodegenType } from './types.js';
-import { getGenerationCodeOutput } from './utils.js';
+import { ICodegen, ICodegenOptions, TCodegenType } from './types.js';
 
 const prettierCfgPath = join(cwd(), '.prettierrc');
 const fmt = async (code: string) => {
@@ -25,12 +24,29 @@ export const generate = async (
 ) => {
   const codegen = new codegens[codeType](diagram);
 
-  return fmt(`
-  import { GenericAutomata } from "@yantrix/automata";
-  
-  ${getGenerationCodeOutput[codeType](codegen, options)}
- 
-  `);
+  const getGenerationCodeOutput = {
+    JavaScript: (codegen, options) => {
+      const output = [
+        ...codegen.dictionaries,
+        ...codegen.changeStateHandlers,
+        ...codegen.handlersDict,
+        codegen.getClassTemplate(options.className),
+      ].join('\n');
+      return fmt(`
+        import { GenericAutomata } from "@yantrix/automata";
+
+        ${output}
+      `);
+    },
+    TypeScript: (...args) => {
+      return getGenerationCodeOutput.JavaScript(...args);
+    },
+  } as Record<
+    TCodegenType,
+    (codegen: ICodegen, options: ICodegenOptions) => Promise<string>
+  >;
+
+  return getGenerationCodeOutput[codeType](codegen, options);
 };
 
 export const createGenerator = (codeType: TCodegenType) => {
