@@ -169,11 +169,7 @@ describe('Key list', () => {
 		describe('Incorect input', () => {
 			test('INPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
 				const parser = new YantrixParser();
-				const keyItems = [
-					getKeyItemsRandomInitial(true),
-					{ values: ',' },
-					getKeyItemsRandomInitial(true),
-				];
+				const keyItems = getKeyItemsRandomInitial(true);
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
@@ -195,7 +191,7 @@ describe('Key list', () => {
 			test('INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
 				const parser = new YantrixParser();
 				const keyItems = [
-					{ value: 'prop3,' },
+					{ value: ',prop3=' },
 					...getKeyItemsRandomInitial(),
 				];
 
@@ -214,6 +210,18 @@ describe('Key list', () => {
 					}
 					return item.value;
 				});
+
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+			test('INPUT = #{prop1=5, prop2=2.5, prop5=5, prop6=5 } ------- received undefined (float) data type', () => {
+				const parser = new YantrixParser();
+				const keyItems = [
+					...getKeyItemsRandomInitial(),
+					{ value: 'prop2=2.5' },
+				];
+
+				const itemsValue = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
