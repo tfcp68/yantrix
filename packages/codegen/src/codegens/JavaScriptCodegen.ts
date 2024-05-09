@@ -27,9 +27,6 @@ export class JavaScriptCodegen implements ICodegen {
     this.setupDictionaries();
   }
 
-  /**
-   * Функция для получения обработчика изменения состояния
-   */
   protected getHandleStateChanges(
     transitions: Record<string, TDiagramAction>,
     state: string,
@@ -58,9 +55,6 @@ export class JavaScriptCodegen implements ICodegen {
     return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
   }
 
-  /**
-   * Функция для создания обработчиков состояний
-   */
   setupHandlers() {
     this.handlersDict.push('const handlersDict = {');
 
@@ -73,9 +67,6 @@ export class JavaScriptCodegen implements ICodegen {
     this.handlersDict.push(' }');
   }
 
-  /**
-   * Функция для создания словарей состояний и действий
-   */
   setupDictionaries() {
     this.dictionaries.push(
       `export const statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
@@ -85,9 +76,6 @@ export class JavaScriptCodegen implements ICodegen {
     );
   }
 
-  /**
-   * Функция для получения шаблона класса
-   */
   getClassTemplate(className: string) {
     return `export class ${className} extends GenericAutomata {
   		 constructor() {
@@ -107,9 +95,6 @@ export class JavaScriptCodegen implements ICodegen {
   	}`;
   }
 
-  /**
-   * Функция для получения словаря действий к состояниям
-   */
   getActionToStateDict(transitions: Record<string, TDiagramAction>) {
     return Object.keys(transitions).map((key) => {
       const { actionsPath } = transitions[key];
@@ -123,9 +108,6 @@ export class JavaScriptCodegen implements ICodegen {
     });
   }
 
-  /**
-   * Функция для получения словаря обработчиков состояний
-   */
   getHandlerDict(state: string) {
     const stateValue = this.stateDictionary.getStateValues({
       keys: [state],

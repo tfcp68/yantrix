@@ -1,9 +1,6 @@
 import type { TStateDiagram } from '@yantrix/mermaid-parser';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 
-/**
- * Функция для заполнения словарей состояний и действий
- */
 export const fillDictionaries = (
   diagram: TStateDiagram,
   stateDictionary: BasicStateDictionary,
