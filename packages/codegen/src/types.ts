@@ -20,6 +20,7 @@ export interface ICodegen {
   changeStateHandlers: string[];
   handlersDict: string[];
   getClassTemplate(className: string): string;
+  getImports(): string;
 }
 
 export type TCodegenType = keyof typeof codegens;
