@@ -23,6 +23,10 @@ export const allowedExpressions = {
 		value: randomInteger,
 		output: (value: string) => primitiveWithValue.integer(Number(value)),
 	},
+	decimal: {
+		value: () => Number(randomInteger() + '.' + randomInteger()),
+		output: (value: string) => primitiveWithValue.decimal(Number(value)),
+	},
 	property: {
 		value: randomString,
 		output: (property: string) => primitiveWithValue.property(property),

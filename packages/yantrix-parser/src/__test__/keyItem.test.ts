@@ -15,7 +15,7 @@ const cases = [
 	[`#{property = 3}`, keyItem.withIntegerInitial],
 	[`#{property = func()}`, functionsFixtures.expression],
 	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
-	[`#{property0 = 3, property1 = 'string'}`, keyItem.withMultiplyInitial],
+	[`#{property0 = 3.14, property1 = 'string', property2 = 3}`, keyItem.withMultiplyInitial],
 	[`#{property = 3.14}`, keyItem.withDecimalInitial],
 ];
 

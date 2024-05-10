@@ -51,7 +51,7 @@ export const withArrayInitial = getKeyItem(expressions.array);
 export const withIntegerInitial = getKeyItem(expressions.integer);
 export const withPropertyInitial = getKeyItem(expressions.property);
 export const withDecimalInitial = getKeyItem(expressions.decimal);
-export const withMultiplyInitial = getKeyItemWithMultipleExpressions(expressions.integer, expressions.string);
+export const withMultiplyInitial = getKeyItemWithMultipleExpressions(expressions.decimal, expressions.string, expressions.integer);
 
 /// Base function declaration
 const expression = getKeyItem(expressions.function);
