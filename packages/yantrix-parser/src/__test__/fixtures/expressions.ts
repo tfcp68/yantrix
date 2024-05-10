@@ -19,6 +19,10 @@ export const primitives = {
 	property: {
 		Property: 'anotherProperty',
 	},
+	decimal: {
+		decimalLiteral: 3.14,
+	}
+
 };
 
 const getString = (value: string = 'string') => {
@@ -45,12 +49,19 @@ const getArray = () => {
 		ArrayDeclaration: [],
 	};
 };
+const getFloat = (value: number = 3.14) => {
+	return {
+		FloatValue: value,
+	};
+
+}
 export const primitiveWithValue = {
 	string: getString,
 	integer: getInteger,
 	property: getProperty,
 	function: getFunction,
 	array: getArray,
+	float: getFloat,
 };
 
 type TKeysPrimitive = keyof typeof primitives;

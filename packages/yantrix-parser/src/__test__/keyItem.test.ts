@@ -15,6 +15,8 @@ const cases = [
 	[`#{property = 3}`, keyItem.withIntegerInitial],
 	[`#{property = func()}`, functionsFixtures.expression],
 	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
+	[`#{property0 = 3, property1 = 'string'}`, keyItem.withMultiplyInitial],
+	[`#{property = 3.14}`, keyItem.withDecimalInitial],
 ];
 
 describe('Key list', () => {
@@ -210,18 +212,6 @@ describe('Key list', () => {
 					}
 					return item.value;
 				});
-
-				const formattedInput = `#{${itemsValue.join(',')}}`;
-				expect(() => parser.parse(formattedInput)).toThrowError();
-			});
-			test('INPUT = #{prop1=5, prop2=2.5, prop5=5, prop6=5 } ------- received undefined (float) data type', () => {
-				const parser = new YantrixParser();
-				const keyItems = [
-					...getKeyItemsRandomInitial(),
-					{ value: 'prop2=2.5' },
-				];
-
-				const itemsValue = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
