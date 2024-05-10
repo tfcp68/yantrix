@@ -1,4 +1,4 @@
-import { assert, describe, expect, test } from 'vitest';
+import { assert, describe, expect, test, afterEach} from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
@@ -78,8 +78,8 @@ describe('Key list', () => {
 				const inputArray = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${inputArray.join(',')}}`;
-
 				const output = parser.parse(formattedInput);
+				console.log(output)
 
 				const { contextDescription } = output;
 				const context = contextDescription[0].context;
@@ -215,6 +215,28 @@ describe('Key list', () => {
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+			test('INPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
+				const parser = new YantrixParser();
+				const invalidSymbols = ',$,%,^,&,*,(,),_,+,-,|,\\,/,.,<,>,?'.split(
+					',',
+				);
+				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
+				const keyItems = [
+					{ value: `pro${randomInvalidSymbol}p3=` },
+					...getKeyItemsRandomInitial(),
+				];
+				const itemsValue = keyItems.map((item: any) => item.value);
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+				const callError = () => parser.parse(formattedInput);
+				expect(callError).toThrowError();
+				afterEach(() => {
+					try {
+						callError();
+					} catch (error) {
+						console.log(error)
+					}
+				})
 			});
 		});
 	});

@@ -10,6 +10,8 @@ const randomString = (length: number = 10) => {
 };
 const randomInteger = () => `${Math.floor(Math.random() * 10000)}`;
 
+const randomDecimal = () => Number(randomInteger() + '.' + randomInteger());
+
 const KeyItemsCount = 50;
 
 export const allowedExpressions = {
@@ -24,7 +26,7 @@ export const allowedExpressions = {
 		output: (value: string) => primitiveWithValue.integer(Number(value)),
 	},
 	decimal: {
-		value: () => Number(randomInteger() + '.' + randomInteger()),
+		value: randomDecimal,
 		output: (value: string) => primitiveWithValue.decimal(Number(value)),
 	},
 	property: {
