@@ -1,4 +1,3 @@
-import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { generate } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
@@ -9,7 +8,8 @@ const dirname = path.dirname(filename);
 
 const pathSave = path.resolve(dirname);
 
-const input1 = `stateDiagram-v2
+const input1 = `
+stateDiagram-v2
 [*] --> INIT: RESET
 INIT --> INTRO: RUN
 INTRO --> MAIN_MENU: TO_MENU
@@ -27,30 +27,63 @@ IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
+const input2 = `
+stateDiagram-v2
+[*] --> CLOSED: RESET (list)
+note left of [*]
+#{ items = []}
+#{ selectedIndex = 0 }
+end note
+CLOSED --> OPEN: OPEN
+OPEN --> CLOSED: CLOSE
+OPEN --> SELECTED: SELECT (index)
+SELECTED --> CLOSED: CLOSE
+note left of CLOSED
++INITIAL
+#{ items } <= (list)
+#{ selectedIndex = 0 } <= {index}
+subscribe/click => OPEN
+emit/dropdownClose
+end note
+note left of SELECTED
+#{ selectedIndex } <= (index)
+emit/selected <= (index)
+subscribe/selected => CLOSE
+end note
+note right of OPEN
+emit/dropdownOpen
+subscribe/click => SELECT (index)
+subscribe/clickOutside => CLOSE
+end note
+`;
+
 const diagramsInput = {
   gameDiagram: {
     value: input1,
     automataName: 'GamePhaseAutomata',
   },
+  dropDownDiagram: {
+    value: input2,
+    automataName: 'DropDownAutomata',
+  },
 } as const;
 
-const fixturesList = [diagramsInput];
+const fixturesList = [...Object.values(diagramsInput)];
 
-fixturesList.forEach(async (fixture) => {
-  const stateDiagramStructure = await parseStateDiagram(
-    fixture.gameDiagram.value,
-  );
-  const stateDiagram = await createStateDiagram(stateDiagramStructure);
+const generateTests = () => {
+  fixturesList.forEach(async (fixture) => {
+    const generatedAutomataOutput = await generate(fixture.value, {
+      className: fixture.automataName,
+    });
 
-  const generatedAutomataOutput = await generate(stateDiagram, {
-    className: fixture.gameDiagram.automataName,
+    fs.writeFileSync(
+      path.resolve(pathSave, `${fixture.automataName}_generated.ts`),
+      generatedAutomataOutput,
+      {
+        encoding: 'utf8',
+      },
+    );
   });
+};
 
-  fs.writeFileSync(
-    path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),
-    generatedAutomataOutput,
-    {
-      encoding: 'utf8',
-    },
-  );
-});
+generateTests();

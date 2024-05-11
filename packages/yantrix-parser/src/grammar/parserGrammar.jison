@@ -37,7 +37,6 @@
 'right'                              {return 'right'}
 'end'                                {return 'end'}
 \'[^\n#{()=><""]+\'                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
-\"[^\n#{()=><'']+\"                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 'of'\s                               {this.begin('Note'); return 'of'}
 <Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
 'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
@@ -45,8 +44,8 @@
 
 '=>'[\s]                             {this.popState();this.begin('ActionStatement'); return '=>'}
 '<='[\s]                             {this.begin('KeyList');return '<=' }
-[0-9]+'.'[0-9]+        {return 'decimalLiteral'}                       
 [0-9]+                 {this.popState();return 'integerLiteral'} 
+[0-9]+'.'[0-9]+        {return 'decimalLiteral'}                       
 
 <Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
 <rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}    
@@ -144,19 +143,18 @@ ActionStatement
 
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($3['Property'] === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
-TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
+TargetProperty:$1, ...$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression
           : FunctionOperator
-          | Property {$$ = {Property:$1}}
-          | StringDeclaration {$$ = {StringDeclaration:$1.toString()}}
-          | decimalLiteral {$$ = {DecimalValue: Number($1)}}
-          | Array {$$ = {ArrayDeclaration:[]}}
+          | Property {$$ = {Expression:{Property:$1},ExpressionType:'1'}}
+          | StringDeclaration {$$ = {Expression:{StringDeclaration:$1.toString()},ExpressionType:'2'}}
+          | Array {$$ = {Expression:{ArrayDeclaration:[]},ExpressionType:'3'}}
           | Constant
-          | integerLiteral {$$ = {IntegerValue: Number($1)}}
+          | integerLiteral {$$ = {Expression:{IntegerValue: Number($1),ExpressionType:'5'}}}
           ;
-FunctionOperator 
-      : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
-      | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguments:[...$3]}}}
+FunctionOperator
+      : FunctionName '(' ')'  {$$ ={Expression:{FunctionDeclaration:{FunctionName:$1,Arguments:[]}},ExpressionType:'6'}}
+      | FunctionName '(' Arguments ')' {$$={Expression:{FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguments:[...$3]}},ExpressionType:'6'}}
       ; 
 Arguments 
         : /* empty */ {$$ = []} 

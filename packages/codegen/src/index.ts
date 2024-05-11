@@ -1,38 +1,42 @@
-import type { TStateDiagram } from '@yantrix/mermaid-parser';
-import type { ICodegenOptions } from './types.js';
-import { format } from 'prettier';
-import { join } from 'path';
-import { cwd } from 'process';
-import { readFile } from 'fs/promises';
-import { Codegen } from './utils.js';
-
-const prettierCfgPath = join(cwd(), '.prettierrc');
-const fmt = async (code: string) => {
-  try {
-    const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
-    const prettierCfg = JSON.parse(prettierCfgRaw);
-    return format(code, { ...prettierCfg, parser: 'babel-ts' });
-  } catch {
-    return code;
-  }
-};
+import { codegens } from './codegens/index.js';
+import {
+  ICodegenOptions,
+  TCodegenType,
+  TStateDiagramSyntaxTree,
+} from './types.js';
+import { fmt } from './utils.js';
+import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
+import { TNotes, YantrixParser } from '@yantrix/yantrix-parser';
 
 export const generate = async (
-  diagram: TStateDiagram,
+  diagramText: string,
   options: ICodegenOptions,
+  codeType: TCodegenType = 'TypeScript',
 ) => {
-  const codegen = new Codegen(diagram);
-  const output = [
-    ...codegen.dictionaries,
-    ...codegen.changeStateHandlers,
-    ...codegen.handlersDict,
-    codegen.getClassTemplate(options.className),
-  ].join('\n');
+  const parsedDiagram = await parseStateDiagram(diagramText);
 
-  return fmt(`
-  	import { GenericAutomata } from "@yantrix/automata";
-  	
-    ${output}
-   
-  `);
+  const stateDiagram = await createStateDiagram(parsedDiagram);
+  const yantrixParser = new YantrixParser();
+
+  const syntaxTree: TStateDiagramSyntaxTree = {
+    ...stateDiagram,
+    notes: parsedDiagram.notes.map((note) => {
+      return {
+        state: note.over === '[*]' ? '/~~~START~~~' : note.over,
+        dict: yantrixParser.parse(note.text.join('')) as TNotes,
+      };
+    }),
+  };
+
+  const codegen = new codegens[codeType](syntaxTree);
+
+  return fmt(
+    [
+      codegen.getImports(),
+      ...codegen.dictionaries,
+      ...codegen.changeStateHandlers,
+      ...codegen.handlersDict,
+      codegen.getClassTemplate(options.className),
+    ].join('\n'),
+  );
 };
