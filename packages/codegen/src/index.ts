@@ -1,24 +1,27 @@
-import type { TStateDiagram } from '@yantrix/mermaid-parser';
-import type { ICodegenOptions } from './types/common.js';
-import { Codegen } from './core/Codegen.js';
+import {
+  IGenerateOptions,
+  TOutLang,
+  TStateDiagramSyntaxTree,
+} from './types/common.js';
 import { fmt } from './utils/utils.js';
+import { CodegenCreator } from './core/Codegen.js';
 
-export const generate = async (
-  diagram: TStateDiagram,
-  options: ICodegenOptions,
+export const generateAutomataFromStateDiagram = async (
+  diagram: TStateDiagramSyntaxTree,
+  options: IGenerateOptions,
 ) => {
-  const codegen = new Codegen(diagram);
-  const output = [
-    ...codegen.dictionaries,
-    ...codegen.changeStateHandlers,
-    ...codegen.handlersDict,
-    codegen.getClassTemplate(options.className),
-  ].join('\n');
+  const creator = new CodegenCreator(diagram);
+  const codegen = creator.createCodegen({
+    language: options.outLang ?? 'TypeScript',
+  });
 
-  return fmt(`
-  	import { GenericAutomata } from "@yantrix/automata";
-
-    ${output}
-
-  `);
+  return fmt(
+    [
+      codegen.getImports(),
+      ...codegen.dictionaries,
+      ...codegen.changeStateHandlers,
+      ...codegen.handlersDict,
+      codegen.getClassTemplate(options.className),
+    ].join('\n'),
+  );
 };
