@@ -1,7 +1,7 @@
 %lex
 
 %options case-insensitive
-// Special states for recognizing aliases
+// Special states for recognizing aliafses
 %token note of statement
 %x ContextStatement
 %x ContextInitialValue
