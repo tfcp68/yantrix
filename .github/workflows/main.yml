@@ -1,7 +1,7 @@
 name: tests
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
@@ -13,6 +13,6 @@ jobs:
           node-version: '20.x'
           cache: 'pnpm'
       - name: Install dependencies
-      - run: pnpm install
+        run: pnpm install
       - name: Tests
-      - run: pnpm test
+        run: pnpm test
