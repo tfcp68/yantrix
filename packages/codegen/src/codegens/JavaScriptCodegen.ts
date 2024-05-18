@@ -31,6 +31,18 @@ export class JavaScriptCodegen implements ICodegen {
     return `import { GenericAutomata } from "@yantrix/automata";`;
   }
 
+  public getHandlers(): string {
+    return this.handlersDict.join('\n');
+  }
+
+  public getDictionaries(): string {
+    return this.dictionaries.join('\n');
+  }
+
+  public getChangeStateHandlers(): string {
+    return this.changeStateHandlers.join('\n');
+  }
+
   protected getHandleStateChanges(
     transitions: Record<string, TDiagramAction>,
     state: string,

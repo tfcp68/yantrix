@@ -13,9 +13,9 @@ export const generate = async (
   return fmt(
     [
       codegen.getImports(),
-      ...codegen.dictionaries,
-      ...codegen.changeStateHandlers,
-      ...codegen.handlersDict,
+      codegen.getDictionaries(),
+      codegen.getChangeStateHandlers(),
+      codegen.getHandlers(),
       codegen.getClassTemplate(options.className),
     ].join('\n'),
   );
