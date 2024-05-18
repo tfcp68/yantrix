@@ -1,23 +1,23 @@
-import { TExpressionMapped, TExpressionTypes } from './expressions.js';
+import { TExpressionMapped, TMappedKeys } from './expressions.js';
 
 export type TKeyItemBase = {
-	KeyItemDeclaration: {
-		TargetProperty: string;
-	};
+  KeyItemDeclaration: {
+    TargetProperty: string;
+  };
 };
-export type TKeyItemWithExpression<T extends TExpressionTypes> = {
-	KeyItemDeclaration: {
-		TargetProperty: string;
-		Expression: TExpressionMapped<T>;
-		expressionType: T;
-	};
+export type TKeyItemWithExpression<T extends TMappedKeys> = {
+  KeyItemDeclaration: {
+    TargetProperty: string;
+    Expression: TExpressionMapped<T>;
+    expressionType: T;
+  };
 };
 
-export type TKeyItemTypes<K extends TExpressionTypes | undefined = undefined> =
-	K extends TExpressionTypes ? TKeyItemWithExpression<K> : TKeyItemBase;
+export type TKeyItemTypes<K extends TMappedKeys | undefined = undefined> =
+  K extends TMappedKeys ? TKeyItemWithExpression<K> : TKeyItemBase;
 
 export type TKeyItem<
-	T extends TExpressionTypes | undefined = TExpressionTypes | undefined,
+  T extends TMappedKeys | undefined = TMappedKeys | undefined,
 > = TKeyItemTypes<T>;
 
 export type TKeyItems = TKeyItem[];

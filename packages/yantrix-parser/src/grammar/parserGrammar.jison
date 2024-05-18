@@ -1,6 +1,7 @@
 %{
-  import {ReservedList} from './index.js'
+  import {ReservedList, ExpressionTypes} from './index.js'
 %}
+
 
 
 %lex
@@ -20,7 +21,7 @@
 %x Note
 %s Func
 %s Prop
-%s Constant
+%s ConstantState
 %s KeyList
 %s rightSideOperation
 %s leftArrow
@@ -76,9 +77,9 @@
 <ActionStatement>[^\}\()>\s\n<=]+    {this.popState(); this.begin('KeyList');return 'ActionName'}
 
 
-'$('                   {this.begin('Constant'); return '$('}
-<Constant>[A-Za-z_]+   { return 'ConstantReference'}
-<Constant>')'          {this.popState(); return ')'}
+'$('                   {this.popState(); this.begin('ConstantState'); return '$('}
+<ConstantState>[A-Za-z_]+   { return 'Constant'}
+<ConstantState>')'          {this.popState(); return ')'}
 '[]'                   {this.popState();return 'Array'}
 
 
@@ -151,28 +152,22 @@ KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($3['Property'] === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Expression
-          : FunctionOperator
-          | Property {$$ = {Property:$1}}
-          | StringDeclaration {$$ = {StringDeclaration:$1.toString()}}
-          | Array {$$ = {ArrayDeclaration:[]}}
-          | Constant
-          | integerLiteral {$$ = {IntegerValue: Number($1)}}
+          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
+          | Property {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
+          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
+          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
+          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
+          | integerLiteral {$$ = {IntegerValue: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
           ;
-FunctionOperator 
+FunctionOperator
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
       | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguments:[...$3]}}}
-      ; 
-Arguments 
-        : /* empty */ {$$ = []} 
-        | Ident {$$=[$1]}
-        | FunctionOperator {$$=[$1]}
+      ;
+Arguments
+        : /* empty */ {$$ = []}
+        | Expression{$$=[$1]}
+        | PropertyArgument {$$=[{Expression:{FunctionProperty:$1,expressionType:ExpressionTypes.FunctionProperty}}]}
         | Arguments ',' Arguments {$$ = [...$1,...$3]}
         ;
-Ident 
-   : PropertyArgument {$$={FunctionProperty:$1}}
-   | decimalLiteral {$$={decimalLiteral :$1}}
-   | integerLiteral {$$={IntegerValue:Number($1)}}
-   | StringDeclaration  {$$={StringDeclaration:$1}}
-   | Constant
-   ;
-Constant : '$(' ConstantReference ')'{ $$ = {ConstantReference: $2}};
+
+ConstantDeclaration : '$(' Constant ')'{ $$ = $2};
