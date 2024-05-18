@@ -1,4 +1,4 @@
-import { assert, describe, expect, test, afterEach} from 'vitest';
+import { assert, describe, expect, test } from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
@@ -15,7 +15,10 @@ const cases = [
 	[`#{property = 3}`, keyItem.withIntegerInitial],
 	[`#{property = func()}`, functionsFixtures.expression],
 	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
-	[`#{property0 = 3.14, property1 = 'string', property2 = 3}`, keyItem.withMultiplyInitial],
+	[
+		`#{property0 = 3.14, property1 = 'string', property2 = 3}`,
+		keyItem.withMultiplyInitial,
+	],
 	[`#{property = 3.14}`, keyItem.withDecimalInitial],
 ];
 
@@ -69,7 +72,7 @@ describe('Key list', () => {
 				},
 			);
 		});
-		describe(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
+		test(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
 			for (let index = 0; index < 10; index++) {
 				const parser = new YantrixParser();
 
@@ -79,7 +82,6 @@ describe('Key list', () => {
 
 				const formattedInput = `#{${inputArray.join(',')}}`;
 				const output = parser.parse(formattedInput);
-				console.log(output)
 
 				const { contextDescription } = output;
 				const context = contextDescription[0].context;
@@ -207,7 +209,7 @@ describe('Key list', () => {
 				const keyItems = getKeyItemsRandomInitial();
 
 				const itemsValue = keyItems.map((item: any, index: any) => {
-					if (index === Math.floor(keyItems.length / 2) + 1) {
+					if (index === Math.floor(keyItems.length / 2)) {
 						return `${item.value},`;
 					}
 					return item.value;
@@ -218,9 +220,7 @@ describe('Key list', () => {
 			});
 			test('INPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
 				const parser = new YantrixParser();
-				const invalidSymbols = ',$,%,^,&,*,(,),_,+,-,|,\\,/,.,<,>,?'.split(
-					',',
-				);
+				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
 				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
 				const keyItems = [
 					{ value: `pro${randomInvalidSymbol}p3=` },
@@ -230,13 +230,6 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				const callError = () => parser.parse(formattedInput);
 				expect(callError).toThrowError();
-				afterEach(() => {
-					try {
-						callError();
-					} catch (error) {
-						console.log(error)
-					}
-				})
 			});
 		});
 	});
