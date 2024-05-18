@@ -35,11 +35,11 @@ export const allowedExpressions = {
   },
   array: {
     value: () => '[]',
-    output: (s: string) => primitiveWithValue.array(),
+    output: () => primitiveWithValue.array(),
   },
   constant: {
     value: () => `$(${randomString()})`,
-    output: (s: string) => primitiveWithValue.constant(),
+    output: (s: string) => primitiveWithValue.constant(s),
   },
 };
 

@@ -24,6 +24,10 @@ export const primitives = {
     Property: 'anotherProperty',
     expressionType: ExpressionTypes.Property,
   },
+  constant: {
+    Property: 'constant',
+    expressionType: ExpressionTypes.Constant,
+  },
 };
 
 const getString = (value: string = 'string') => {
@@ -61,7 +65,7 @@ const getArray = () => {
 };
 const getConstat = (value: string = 'constantName') => {
   return {
-    ConstantReference: value,
+    ConstantReference: value.slice(2, -1),
     expressionType: ExpressionTypes.Constant,
   };
 };
