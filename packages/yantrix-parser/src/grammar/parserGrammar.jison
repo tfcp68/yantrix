@@ -1,3 +1,8 @@
+%{
+  import {ReservedList} from './index.js'
+%}
+
+
 %lex
 
 %options case-insensitive
@@ -51,9 +56,9 @@
 "-"[0-9]+            {this.popState();return 'integerLiteral'}
 
 <Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
-<rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}    
+<rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}
 <rightSideOperation>[^=#{}][A-Za-z0-9]+   {this.popState();return 'Property'}
-   
+
 
 
 'emit/'                               {this.begin('EmitStatement'); return 'emit/'}
