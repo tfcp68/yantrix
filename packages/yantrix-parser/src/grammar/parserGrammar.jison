@@ -166,7 +166,7 @@ Arguments
         ;
 Ident 
    : PropertyArgument {$$={FunctionProperty:$1}}
-   | decimalLiteral {$$={decimalLiteral :$1}}
+   | decimalLiteral {$$={DecimalValue:Number($1)}}
    | integerLiteral {$$={IntegerValue:Number($1)}}
    | StringDeclaration  {$$={StringDeclaration:$1}}
    | Constant
