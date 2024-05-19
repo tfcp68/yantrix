@@ -44,9 +44,8 @@
 
 '=>'[\s]                             {this.popState();this.begin('ActionStatement'); return '=>'}
 '<='[\s]                             {this.begin('KeyList');return '<=' }
-
-[0-9]+'.'[0-9]+        {return 'decimalLiteral'}
-[0-9]+                 {this.popState();return 'integerLiteral'}
+[0-9]+'.'[0-9]+        {this.popState();return 'decimalLiteral'}                       
+[0-9]+                 {this.popState();return 'integerLiteral'} 
 
 <Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
 <rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}
@@ -149,6 +148,7 @@ Expression
           : FunctionOperator
           | Property {$$ = {Property:$1}}
           | StringDeclaration {$$ = {StringDeclaration:$1.toString()}}
+          | decimalLiteral {$$ = {DecimalValue: Number($1)}}
           | Array {$$ = {ArrayDeclaration:[]}}
           | Constant
           | integerLiteral {$$ = {IntegerValue: Number($1)}}
@@ -165,7 +165,7 @@ Arguments
         ;
 Ident 
    : PropertyArgument {$$={FunctionProperty:$1}}
-   | decimalLiteral {$$={decimalLiteral :$1}}
+   | decimalLiteral {$$={DecimalValue:Number($1)}}
    | integerLiteral {$$={IntegerValue:Number($1)}}
    | StringDeclaration  {$$={StringDeclaration:$1}}
    | Constant
