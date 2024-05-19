@@ -145,6 +145,51 @@ describe('Base grammar declarations', () => {
     });
   });
 
+  describe.skip('Key item descriptor starts only with a letter', () => {
+    const parser = new YantrixParser();
+    const propertyName = 'LeftHandProperty';
+    const correctStatement = `#{${propertyName}}`;
+    describe('Key item descriptor cannot start with or contain a special character', () => {
+      const incorrectStatements = [
+        ...SpecialChars.map((char) => `#{${char}${propertyName}}`),
+        ...SpecialChars.map((char) => `#{${propertyName}${char}}`),
+      ];
+      test.each(incorrectStatements)('%s --- ERROR', (input) => {
+        expect(() => parser.parse(input)).toThrowError();
+      });
+      test(`${correctStatement} --- CORRECT`, () => {
+        const result = parser.parse(correctStatement);
+        assert.isOk(result);
+      });
+    });
+    describe('Key item descriptor cannot start with a number, but can contain numbers afterwards', () => {
+      const incorrectStatements = [...Array(10).keys()].map(
+        (number) => `#{${number}${propertyName}}`,
+      );
+      const correctStatements = [...Array(10).keys()].map(
+        (number) => `#{${propertyName}${number}}`,
+      );
+      test.each(incorrectStatements)('%s --- ERROR', (input) => {
+        expect(() => parser.parse(input)).toThrowError();
+      });
+      test.each(correctStatements)('%s --- CORRECT', (input) => {
+        assert.isOk(parser.parse(input));
+      });
+    });
+    describe('Key item descriptor can start with lowercase and uppercase letters', () => {
+      const uppercaseNameStatement = `#{${propertyName.toUpperCase()}}`;
+      const lowercaseNameStatement = `#{${propertyName.toLowerCase()}}`;
+      test(`${uppercaseNameStatement} --- CORRECT`, () => {
+        const result = parser.parse(uppercaseNameStatement);
+        assert.isOk(result);
+      });
+      test(`${lowercaseNameStatement} --- CORRECT`, () => {
+        const result = parser.parse(lowercaseNameStatement);
+        assert.isOk(result);
+      });
+    });
+  });
+
   describe('Payload cannot have more arguments than the context', () => {
     const parser = new YantrixParser();
     for (let i = 0; i < 100; i++) {
