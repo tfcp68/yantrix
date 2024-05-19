@@ -305,7 +305,7 @@ describe('Base grammar declarations', () => {
       const result = parser.parse(correctString);
       assert.deepNestedInclude(
         result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-        primitiveWithValue.integer(1),
+        primitiveWithValue.constant('val'),
       );
     });
     test('Expression value is recognized as Array', () => {

@@ -69,7 +69,7 @@ const getArray = () => {
     expressionType: ExpressionTypes.ArrayDeclaration,
   };
 };
-const getConstat = (value: string = 'constantName') => {
+const getConstant = (value: string = 'constantName') => {
   return {
     ConstantReference: value.slice(2, -1),
     expressionType: ExpressionTypes.Constant,
@@ -83,7 +83,7 @@ export const primitiveWithValue = {
   property: getProperty,
   function: getFunction,
   array: getArray,
-  constant: getConstat,
+  constant: getConstant,
 };
 
 type TKeysPrimitive = keyof typeof primitives;
