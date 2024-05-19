@@ -1,24 +1,15 @@
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedActionContainer from './mixins/ExtendedActionContainer.js';
-import {
-	TActionKeysCollection,
-	TActionLookupParams,
-	TActionValuesCollection,
-} from './types/dictionaries.js';
-import {
-	TAbstractConstructor,
-	TAutomataBaseActionType,
-} from './types/index.js';
+import { TActionKeysCollection, TActionLookupParams, TActionValuesCollection } from './types/dictionaries.js';
+import { TAbstractConstructor, TAutomataBaseActionType } from './types/index.js';
 import { IActionDictionary } from './types/interfaces.js';
 
 export function createActionDictionary<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
 >() {
-	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(
-		Base: BaseType,
-	) =>
+	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(Base: BaseType) =>
 		class AbstractActionDictionary extends DictionaryContainer<ActionType>()(
 			ExtendedActionContainer<ActionType, PayloadType>()(Base),
 		) {
@@ -30,8 +21,7 @@ export function createActionDictionary<
 					if (!this.validateAction(action)) return null;
 					const data = this._getValueData(action);
 					if (!data) return null;
-					if (namespace !== null && namespace !== data.namespace)
-						return null;
+					if (namespace !== null && namespace !== data.namespace) return null;
 					return data.key;
 				});
 			}
@@ -40,27 +30,15 @@ export function createActionDictionary<
 				return this._clearItems(namespace);
 			}
 
-			removeActions({
-				namespace,
-				actions = [],
-				keys = [],
-			}: TActionLookupParams<ActionType>) {
+			removeActions({ namespace, actions = [], keys = [] }: TActionLookupParams<ActionType>) {
 				const actionsToDelete = [
 					...actions.filter(this.validateAction),
-					...keys.map((actionKey) =>
-						this._findItem(actionKey as string, namespace),
-					),
+					...keys.map((actionKey) => this._findItem(actionKey as string, namespace)),
 				].filter((v) => v != null) as ActionType[];
 				const actionKeys = actionsToDelete
 					.map((action) => this._getValueData(action))
-					.filter(
-						(data) =>
-							!!data &&
-							(namespace == null ||
-								namespace === data?.namespace),
-					);
-				for (const actionKey of actionKeys)
-					if (actionKey) this._deleteItemKey(actionKey.key);
+					.filter((data) => !!data && (namespace == null || namespace === data?.namespace));
+				for (const actionKey of actionKeys) if (actionKey) this._deleteItemKey(actionKey.key);
 				return this;
 			}
 
@@ -68,32 +46,18 @@ export function createActionDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TActionKeysCollection<ActionType>): Array<ActionType | null> {
-				return (keys ?? []).map((actionKey) =>
-					this._findItem(actionKey as string, namespace),
-				);
+				return (keys ?? []).map((actionKey) => this._findItem(actionKey as string, namespace));
 			}
 
-			addActions({
-				namespace = undefined,
-				keys,
-			}: TActionKeysCollection<ActionType>): ActionType[] {
-				return (keys || []).map((k) =>
-					this._addItemKey(k as string, namespace),
-				);
+			addActions({ namespace = undefined, keys }: TActionKeysCollection<ActionType>): ActionType[] {
+				return (keys || []).map((k) => this._addItemKey(k as string, namespace));
 			}
 		};
 }
 
 export class BasicActionDictionary
-	extends createActionDictionary<
-		TAutomataBaseActionType,
-		Record<TAutomataBaseActionType, any>
-	>()(AbstractBaseClass)
-	implements
-		IActionDictionary<
-			TAutomataBaseActionType,
-			Record<TAutomataBaseActionType, any>
-		>
+	extends createActionDictionary<TAutomataBaseActionType, Record<TAutomataBaseActionType, any>>()(AbstractBaseClass)
+	implements IActionDictionary<TAutomataBaseActionType, Record<TAutomataBaseActionType, any>>
 {
 	constructor() {
 		super();

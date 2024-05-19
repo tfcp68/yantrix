@@ -4,19 +4,19 @@ import { ICodegenOptions, TCodegenType } from './types.js';
 import { fmt } from './utils.js';
 
 export const generate = async (
-  diagram: TStateDiagram,
-  options: ICodegenOptions,
-  codeType: TCodegenType = 'TypeScript',
+	diagram: TStateDiagram,
+	options: ICodegenOptions,
+	codeType: TCodegenType = 'TypeScript',
 ) => {
-  const codegen = new codegens[codeType](diagram);
+	const codegen = new codegens[codeType](diagram);
 
-  return fmt(
-    [
-      codegen.getImports(),
-      ...codegen.dictionaries,
-      ...codegen.changeStateHandlers,
-      ...codegen.handlersDict,
-      codegen.getClassTemplate(options.className),
-    ].join('\n'),
-  );
+	return fmt(
+		[
+			codegen.getImports(),
+			...codegen.dictionaries,
+			...codegen.changeStateHandlers,
+			...codegen.handlersDict,
+			codegen.getClassTemplate(options.className),
+		].join('\n'),
+	);
 };

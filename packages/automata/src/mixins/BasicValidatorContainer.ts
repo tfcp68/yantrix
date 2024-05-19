@@ -15,8 +15,6 @@ export default function BasicValidatorContainer<
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractBasicValidatorContainer extends BasicStateContainer<StateType>()(
-			BasicEventContainer<EventType>()(
-				BasicActionContainer<ActionType>()(Proto),
-			),
+			BasicEventContainer<EventType>()(BasicActionContainer<ActionType>()(Proto)),
 		) {};
 }

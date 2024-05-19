@@ -1,9 +1,4 @@
-import {
-	TAbstractConstructor,
-	TAutomataBaseEventType,
-	TAutomataEventStack,
-	TEventBusHandler,
-} from './types/index.js';
+import { TAbstractConstructor, TAutomataBaseEventType, TAutomataEventStack, TEventBusHandler } from './types/index.js';
 import { IAutomataEventBus } from './types/interfaces.js';
 import ExtendedEventContainer from './mixins/ExtendedEventContainer.js';
 import { AbstractBaseClass } from './mixins/BaseClass.js';
@@ -20,10 +15,7 @@ export function createEventBus<
 			#isProcessing: boolean;
 			#isPaused: boolean;
 			#eventStack: TAutomataEventStack<EventType, EventMetaType>;
-			#eventSubscriptions: Map<
-				EventType,
-				Set<TEventBusHandler<EventType, EventMetaType>>
-			>;
+			#eventSubscriptions: Map<EventType, Set<TEventBusHandler<EventType, EventMetaType>>>;
 
 			constructor() {
 				super();
@@ -33,10 +25,7 @@ export function createEventBus<
 				this.#isPaused = false;
 			}
 
-			public subscribe(
-				event: EventType,
-				callback: TEventBusHandler<EventType, EventMetaType>,
-			): this {
+			public subscribe(event: EventType, callback: TEventBusHandler<EventType, EventMetaType>): this {
 				let eventCallbacks = this.#eventSubscriptions.get(event);
 				if (!eventCallbacks) {
 					eventCallbacks = new Set();
@@ -46,10 +35,7 @@ export function createEventBus<
 				return this;
 			}
 
-			public unsubscribe(
-				event: EventType,
-				callback: null | TEventBusHandler<EventType, EventMetaType>,
-			): this {
+			public unsubscribe(event: EventType, callback: null | TEventBusHandler<EventType, EventMetaType>): this {
 				const eventCallbacks = this.#eventSubscriptions.get(event);
 				if (eventCallbacks && callback) {
 					eventCallbacks.delete(callback);
@@ -57,18 +43,13 @@ export function createEventBus<
 				return this;
 			}
 
-			public dispatch(
-				...events: TAutomataEventStack<EventType, EventMetaType>
-			): this {
+			public dispatch(...events: TAutomataEventStack<EventType, EventMetaType>): this {
 				this.#eventStack.push(...events);
 				this.processEvents();
 				return this;
 			}
 
-			public getEventStack(): TAutomataEventStack<
-				EventType,
-				EventMetaType
-			> {
+			public getEventStack(): TAutomataEventStack<EventType, EventMetaType> {
 				return this.#eventStack.slice();
 			}
 
@@ -92,10 +73,7 @@ export function createEventBus<
 				return !this.#isPaused;
 			}
 
-			public processEvents(): TAutomataEventStack<
-				EventType,
-				EventMetaType
-			> {
+			public processEvents(): TAutomataEventStack<EventType, EventMetaType> {
 				if (this.#isProcessing || this.#isPaused) {
 					return [];
 				}
@@ -105,9 +83,7 @@ export function createEventBus<
 					const eventObject = this.#eventStack.shift();
 					if (!eventObject) continue;
 					if (this.validateEventMeta(eventObject)) {
-						const eventCallbacks = this.#eventSubscriptions.get(
-							eventObject.event,
-						);
+						const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
 						if (eventCallbacks) {
 							eventCallbacks.forEach((callback) => {
 								callback(eventObject);
@@ -123,15 +99,8 @@ export function createEventBus<
 }
 
 export class BasicEventBus
-	extends createEventBus<
-		TAutomataBaseEventType,
-		Record<TAutomataBaseEventType, any>
-	>()(AbstractBaseClass)
-	implements
-		IAutomataEventBus<
-			TAutomataBaseEventType,
-			Record<TAutomataBaseEventType, any>
-		>
+	extends createEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
+	implements IAutomataEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>
 {
 	constructor() {
 		super();

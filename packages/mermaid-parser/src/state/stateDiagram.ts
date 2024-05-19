@@ -45,9 +45,7 @@ function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
  * @param stateDiagramStructure - base state diagram;
  * @returns Returns array with choices.
  */
-function getChoicesId(
-	stateDiagramStructure: TStateDiagramStructure,
-): TChoicesId {
+function getChoicesId(stateDiagramStructure: TStateDiagramStructure): TChoicesId {
 	const choices = stateDiagramStructure.choices;
 	const choicesId: TChoicesId = [];
 	for (let i = 0; i < choices.length; i++) {
@@ -89,11 +87,7 @@ function addNotesForChoices(
  * @param notesId - dict with notes;
  * @returns Returns from choices array.
  */
-function getFromChoices(
-	actions: TActionsStructure,
-	choicesId: TChoicesId,
-	notesId: TNotesId,
-): TFromChoiceArray {
+function getFromChoices(actions: TActionsStructure, choicesId: TChoicesId, notesId: TNotesId): TFromChoiceArray {
 	let fromChoices: TFromChoiceArray = [];
 	for (let i = 0; i < actions.length; i++) {
 		const choice = actions[i].to;
@@ -108,12 +102,7 @@ function getFromChoices(
 					},
 				],
 			};
-			fromChoices = addNotesForChoices(
-				notesId,
-				choice,
-				choiceAction,
-				fromChoices,
-			);
+			fromChoices = addNotesForChoices(notesId, choice, choiceAction, fromChoices);
 		}
 	}
 	return fromChoices;
@@ -125,10 +114,7 @@ function getFromChoices(
  * @param toChoice - second action path;
  * @returns Returns action path after concatenation.
  */
-function concatActionPathes(
-	fromChoice: TActionPathArray,
-	toChoice: TActionPathArray,
-): TActionPathArray {
+function concatActionPathes(fromChoice: TActionPathArray, toChoice: TActionPathArray): TActionPathArray {
 	const actionPathArray: TActionPathArray = [];
 	for (let i = 0; i < fromChoice.length; i++) {
 		for (let j = 0; j < toChoice.length; j++) {
@@ -217,9 +203,7 @@ function markChoicesInTransitions(
 			choicesId.includes(fromChoice.choice) &&
 			fromChoice.from === fromChoice.choice
 		) {
-			throw new ChoiceCycleError(
-				fromChoice.from + '-->' + fromChoice.choice,
-			);
+			throw new ChoiceCycleError(fromChoice.from + '-->' + fromChoice.choice);
 		}
 		fromChoices.pop();
 		const { choice, from } = fromChoice;
@@ -230,18 +214,8 @@ function markChoicesInTransitions(
 			const to = toChoiceKeys[i];
 			const fromChoicePath = fromChoice.actionsPath;
 			const toChoicePath = toChoice[to].actionsPath;
-			const actionPathes: TActionPathArray = concatActionPathes(
-				fromChoicePath,
-				toChoicePath,
-			);
-			transitions = unravelChoices(
-				choicesId,
-				fromChoices,
-				from,
-				to,
-				actionPathes,
-				transitions,
-			);
+			const actionPathes: TActionPathArray = concatActionPathes(fromChoicePath, toChoicePath);
+			transitions = unravelChoices(choicesId, fromChoices, from, to, actionPathes, transitions);
 		}
 	}
 	transitions = deleteRowChoices(transitions, stateDiagramStructure);
@@ -253,9 +227,7 @@ function markChoicesInTransitions(
  * @param stateDiagramStructure - base state diagram;
  * @returns Returns matrix of transitions.
  */
-function getTransitions(
-	stateDiagramStructure: TStateDiagramStructure,
-): TDiagramTransitions {
+function getTransitions(stateDiagramStructure: TStateDiagramStructure): TDiagramTransitions {
 	let transitions: TDiagramTransitions = {};
 	const actions = stateDiagramStructure.actions;
 
@@ -287,10 +259,7 @@ function getTransitions(
  * @param stateId - The state for which actions pathes is being sought;
  * @returns Returns actions pathes.
  */
-function getActionsPathesForStates(
-	transitions: TDiagramTransitions,
-	stateId: string,
-): TActionPathArray {
+function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: string): TActionPathArray {
 	const actionsPath: TActionPathArray = [];
 	if (!Object.keys(transitions).includes(stateId)) {
 		return [];
@@ -330,10 +299,7 @@ function getStates(
 		if (notesIdKeys.includes(stateId)) {
 			notes = notesId[stateId];
 		}
-		const actionsPath: TActionPathArray = getActionsPathesForStates(
-			transitions,
-			stateId,
-		);
+		const actionsPath: TActionPathArray = getActionsPathesForStates(transitions, stateId);
 		const state: TDiagramState = {
 			id: stateId,
 			caption: stateDiagramStructure.states[i].caption,
@@ -350,9 +316,7 @@ function getStates(
  * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
  */
-export async function createStateDiagram(
-	stateDiagramStructure: TStateDiagramStructure,
-): Promise<TStateDiagram> {
+export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagram> {
 	const transitions = getTransitions(stateDiagramStructure);
 	const states = getStates(stateDiagramStructure, transitions);
 	return {

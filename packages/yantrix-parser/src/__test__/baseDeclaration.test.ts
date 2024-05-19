@@ -1,11 +1,6 @@
 import { assert, describe, expect, test } from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
-import {
-	baseContext,
-	baseEmitEvent,
-	baseEmpty,
-	baseSubscribe,
-} from './fixtures/baseDeclarations.js';
+import { baseContext, baseEmitEvent, baseEmpty, baseSubscribe } from './fixtures/baseDeclarations.js';
 
 const invalidCases = [
 	['#{LeftSideProperty} <='],
@@ -49,18 +44,13 @@ describe('Base grammar declarations', () => {
 	describe('Identical output with ', () => {
 		test('#{Left1, Left2} <= (Right1, Right2) = #{Left2, Left1} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse(
-				'#{Left1, Left2} <= (Right1, Right2)',
-			);
-			const parsedRight = parser.parse(
-				'#{Left2, Left1} <= (Right2, Right1)',
-			);
+			const parsedLeft = parser.parse('#{Left1, Left2} <= (Right1, Right2)');
+			const parsedRight = parser.parse('#{Left2, Left1} <= (Right2, Right1)');
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
 			const { context, payload } = contextLeftDescription;
-			const { context: contextRight, payload: payloadRight } =
-				contextRightDescription;
+			const { context: contextRight, payload: payloadRight } = contextRightDescription;
 
 			expect(context[0]).toStrictEqual(contextRight[1]);
 			expect(context[1]).toStrictEqual(contextRight[0]);
@@ -71,18 +61,13 @@ describe('Base grammar declarations', () => {
 
 		test('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse(
-				'#{Left1, Left2, Left3} <= (Right1, Right2)',
-			);
-			const parsedRight = parser.parse(
-				'#{Left2, Left1, Left3} <= (Right2, Right1)',
-			);
+			const parsedLeft = parser.parse('#{Left1, Left2, Left3} <= (Right1, Right2)');
+			const parsedRight = parser.parse('#{Left2, Left1, Left3} <= (Right2, Right1)');
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
 			const { context, payload } = contextLeftDescription;
-			const { context: contextRight, payload: payloadRight } =
-				contextRightDescription;
+			const { context: contextRight, payload: payloadRight } = contextRightDescription;
 
 			expect(context[0]).toStrictEqual(contextRight[1]);
 			expect(context[1]).toStrictEqual(contextRight[0]);
@@ -95,9 +80,7 @@ describe('Base grammar declarations', () => {
 		test('#{Left1, Left2, Left3} = #{     Left1,	Left2      ,   Left3  }', () => {
 			const parser = new YantrixParser();
 			const parsedLeft = parser.parse('#{Left1, Left2, Left3}');
-			const parsedRight = parser.parse(
-				'#{     Left1,	Left2      ,   Left3   }',
-			);
+			const parsedRight = parser.parse('#{     Left1,	Left2      ,   Left3   }');
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
