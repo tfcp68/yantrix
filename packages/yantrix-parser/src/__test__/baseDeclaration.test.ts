@@ -145,7 +145,7 @@ describe('Base grammar declarations', () => {
     });
   });
 
-  describe.skip('Key item descriptor starts only with a letter', () => {
+  describe('Key item descriptor starts only with a letter', () => {
     const parser = new YantrixParser();
     const propertyName = 'LeftHandProperty';
     const correctStatement = `#{${propertyName}}`;
@@ -292,7 +292,7 @@ describe('Base grammar declarations', () => {
         primitiveWithValue.integer(1),
       );
     });
-    test.skip('Expression value is recognized as Decimal', () => {
+    test('Expression value is recognized as Decimal', () => {
       const correctString = '#{val=1.01}';
       const result = parser.parse(correctString);
       assert.deepNestedInclude(
@@ -300,12 +300,12 @@ describe('Base grammar declarations', () => {
         primitiveWithValue.decimal(1.01),
       );
     });
-    test.skip('Expression value is recognized as Constant', () => {
+    test('Expression value is recognized as Constant', () => {
       const correctString = '#{arg=$(val)}';
       const result = parser.parse(correctString);
       assert.deepNestedInclude(
         result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-        primitiveWithValue.constant('val'),
+        primitiveWithValue.constant('$(val)'),
       );
     });
     test('Expression value is recognized as Array', () => {
