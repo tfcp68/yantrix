@@ -21,8 +21,7 @@ export const primitives = {
 	},
 	decimal: {
 		DecimalValue: 3.14,
-	}
-
+	},
 };
 
 const getString = (value: string = 'string') => {
@@ -53,8 +52,7 @@ const getDecimal = (value: number = 3.14) => {
 	return {
 		DecimalValue: value,
 	};
-
-}
+};
 export const primitiveWithValue = {
 	string: getString,
 	integer: getInteger,

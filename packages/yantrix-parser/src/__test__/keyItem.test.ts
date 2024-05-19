@@ -15,10 +15,7 @@ const cases = [
 	[`#{property = 3}`, keyItem.withIntegerInitial],
 	[`#{property = func()}`, functionsFixtures.expression],
 	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
-	[
-		`#{property0 = 3.14, property1 = 'string', property2 = 3}`,
-		keyItem.withMultiplyInitial,
-	],
+	[`#{property0 = 3.14, property1 = 'string', property2 = 3}`, keyItem.withMultiplyInitial],
 	[`#{property = 3.14}`, keyItem.withDecimalInitial],
 ];
 
@@ -171,10 +168,7 @@ describe('Key list', () => {
 			});
 			test('INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
 				const parser = new YantrixParser();
-				const keyItems = [
-					{ value: ',prop3=' },
-					...getKeyItemsRandomInitial(),
-				];
+				const keyItems = [{ value: ',prop3=' }, ...getKeyItemsRandomInitial()];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
@@ -199,10 +193,7 @@ describe('Key list', () => {
 				const parser = new YantrixParser();
 				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
 				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
-				const keyItems = [
-					{ value: `pro${randomInvalidSymbol}p3=` },
-					...getKeyItemsRandomInitial(),
-				];
+				const keyItems = [{ value: `pro${randomInvalidSymbol}p3=` }, ...getKeyItemsRandomInitial()];
 				const itemsValue = keyItems.map((item: any) => item.value);
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				const callError = () => parser.parse(formattedInput);
