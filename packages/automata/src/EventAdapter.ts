@@ -21,9 +21,7 @@ export function createEventAdapter<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 >() {
-	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(
-		Base: BaseType,
-	) =>
+	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(Base: BaseType) =>
 		class AbstractAutomataEventAdapter extends ExtendedValidatorContainer<
 			StateType,
 			ActionType,
@@ -33,24 +31,10 @@ export function createEventAdapter<
 			EventMetaType
 		>()(Base) {
 			#eventListeners: {
-				[T in EventType]?: Array<
-					TAutomataEventHandler<
-						T,
-						ActionType,
-						EventMetaType,
-						PayloadType
-					>
-				>;
+				[T in EventType]?: Array<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>;
 			};
 			#eventEmitters: {
-				[T in StateType]?: Array<
-					TAutomataEventEmitter<
-						EventType,
-						T,
-						EventMetaType,
-						ContextType
-					>
-				>;
+				[T in StateType]?: Array<TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>>;
 			};
 
 			public constructor() {
@@ -61,28 +45,16 @@ export function createEventAdapter<
 
 			public addEventEmitter<T extends StateType>(
 				on: T,
-				emitter: TAutomataEventEmitter<
-					EventType,
-					T,
-					EventMetaType,
-					ContextType
-				>,
+				emitter: TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>,
 			) {
-				if (
-					on === null ||
-					on === undefined ||
-					!(emitter instanceof Function) ||
-					!this.validateState(on)
-				)
+				if (on === null || on === undefined || !(emitter instanceof Function) || !this.validateState(on))
 					return null;
 				this.#eventEmitters = Object.assign(this.#eventEmitters ?? {}, {
 					[on]: (this.#eventEmitters[on] ?? []).concat(emitter),
 				});
 				return () => {
 					if (this.#eventEmitters?.[on]) {
-						const newEmitters = (
-							this.#eventEmitters[on] || []
-						).filter((v) => v !== emitter);
+						const newEmitters = (this.#eventEmitters[on] || []).filter((v) => v !== emitter);
 						if (!newEmitters.length) delete this.#eventEmitters[on];
 						else this.#eventEmitters[on] = newEmitters;
 					}
@@ -91,36 +63,17 @@ export function createEventAdapter<
 
 			public addEventListener<T extends EventType>(
 				type: T,
-				handler: TAutomataEventHandler<
-					T,
-					ActionType,
-					EventMetaType,
-					PayloadType
-				>,
+				handler: TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>,
 			) {
-				if (
-					type === null ||
-					type === undefined ||
-					!(handler instanceof Function) ||
-					!this.validateEvent(type)
-				)
+				if (type === null || type === undefined || !(handler instanceof Function) || !this.validateEvent(type))
 					return null;
-				this.#eventListeners = Object.assign(
-					this.#eventListeners ?? {},
-					{
-						[type]: [
-							...(this.#eventListeners?.[type] ?? []),
-							handler,
-						],
-					},
-				);
+				this.#eventListeners = Object.assign(this.#eventListeners ?? {}, {
+					[type]: [...(this.#eventListeners?.[type] ?? []), handler],
+				});
 				return () => {
 					if (this.#eventListeners?.[type]) {
-						const newHandlers = (
-							this.#eventListeners[type] || []
-						).filter((v) => v !== handler);
-						if (!newHandlers.length)
-							delete this.#eventListeners[type];
+						const newHandlers = (this.#eventListeners[type] || []).filter((v) => v !== handler);
+						if (!newHandlers.length) delete this.#eventListeners[type];
 						else this.#eventListeners[type] = newHandlers;
 					}
 				};
@@ -128,16 +81,7 @@ export function createEventAdapter<
 
 			public handleEvent<T extends EventType>(
 				event: TAutomataEventMetaType<T, EventMetaType>,
-			): Array<
-				ReturnType<
-					TAutomataEventHandler<
-						T,
-						ActionType,
-						EventMetaType,
-						PayloadType
-					>
-				>
-			> {
+			): Array<ReturnType<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>> {
 				if (!this.validateEventMeta(event)) return [];
 				return (this.#eventListeners?.[event.event] || [])
 					.map((handler) => handler(event))
@@ -146,52 +90,31 @@ export function createEventAdapter<
 
 			public handleTransition<T extends StateType>(
 				newState: TAutomataStateContext<T, ContextType>,
-			): Array<
-				ReturnType<
-					TAutomataEventEmitter<
-						EventType,
-						T,
-						EventMetaType,
-						ContextType
-					>
-				>
-			> {
+			): Array<ReturnType<TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>>> {
 				if (!this.validateContext(newState)) return [];
 				return (this.#eventEmitters?.[newState.state] || [])
 					.map((emitter) => emitter(newState))
 					.filter((event) => this.validateEvent(event.event));
 			}
 
-			public removeAllListeners<T extends EventType>(
-				type: T | null = null,
-			) {
+			public removeAllListeners<T extends EventType>(type: T | null = null) {
 				switch (true) {
 					case type === null:
 						this.#eventListeners = {};
 						break;
 					default:
-						if (
-							this.validateEvent(type) &&
-							this.#eventListeners?.[type]
-						)
-							delete this.#eventListeners[type];
+						if (this.validateEvent(type) && this.#eventListeners?.[type]) delete this.#eventListeners[type];
 				}
 				return this;
 			}
 
-			public removeAllEmitters<T extends StateType>(
-				type: T | null = null,
-			): this {
+			public removeAllEmitters<T extends StateType>(type: T | null = null): this {
 				switch (true) {
 					case type === null:
 						this.#eventEmitters = {};
 						break;
 					default:
-						if (
-							this.validateState(type) &&
-							this.#eventEmitters?.[type]
-						)
-							delete this.#eventEmitters[type];
+						if (this.validateState(type) && this.#eventEmitters?.[type]) delete this.#eventEmitters[type];
 				}
 				return this;
 			}

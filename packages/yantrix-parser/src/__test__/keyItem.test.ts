@@ -34,43 +34,33 @@ describe('Key list', () => {
 		describe('INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
 			const parser = new YantrixParser();
 
-			Object.entries(allowedExpressions).forEach(
-				([key, value]: [string, any]) => {
-					test(`Data type - ${key}`, () => {
-						for (let index = 0; index < 100; index++) {
-							const keyItems = getKeyItemsWithInitial(value);
-							const targetPropertyCount = keyItems.length;
-							const formatInput = `#{${keyItems.join(',')}}`;
+			Object.entries(allowedExpressions).forEach(([key, value]: [string, any]) => {
+				test(`Data type - ${key}`, () => {
+					for (let index = 0; index < 100; index++) {
+						const keyItems = getKeyItemsWithInitial(value);
+						const targetPropertyCount = keyItems.length;
+						const formatInput = `#{${keyItems.join(',')}}`;
 
-							const output = parser.parse(formatInput);
+						const output = parser.parse(formatInput);
 
-							const { contextDescription } = output;
-							const context = contextDescription[0].context;
+						const { contextDescription } = output;
+						const context = contextDescription[0].context;
 
-							expect(targetPropertyCount).toBe(context.length);
+						expect(targetPropertyCount).toBe(context.length);
 
-							keyItems.map((strKey, index) => {
-								const { KeyItemDeclaration } = context[index];
-								const { TargetProperty } = KeyItemDeclaration;
+						keyItems.map((strKey, index) => {
+							const { KeyItemDeclaration } = context[index];
+							const { TargetProperty } = KeyItemDeclaration;
 
-								const targetPropertyInput =
-									strKey.split('=')[0];
-								const targetPropertyValue =
-									strKey.split('=')[1];
+							const targetPropertyInput = strKey.split('=')[0];
+							const targetPropertyValue = strKey.split('=')[1];
 
-								expect(targetPropertyInput).toBe(
-									TargetProperty,
-								);
-								expect(
-									KeyItemDeclaration.Expression,
-								).toStrictEqual(
-									value.output(targetPropertyValue),
-								);
-							});
-						}
-					});
-				},
-			);
+							expect(targetPropertyInput).toBe(TargetProperty);
+							expect(KeyItemDeclaration.Expression).toStrictEqual(value.output(targetPropertyValue));
+						});
+					}
+				});
+			});
 		});
 		test(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
 			for (let index = 0; index < 10; index++) {
@@ -81,6 +71,7 @@ describe('Key list', () => {
 				const inputArray = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${inputArray.join(',')}}`;
+
 				const output = parser.parse(formattedInput);
 
 				const { contextDescription } = output;
@@ -121,9 +112,7 @@ describe('Key list', () => {
 						},
 					];
 
-					const inputArray = initialEmptyEnd.map(
-						(item: any) => item.value,
-					);
+					const inputArray = initialEmptyEnd.map((item: any) => item.value);
 
 					const formattedInput = `#{${inputArray.join(',')}}`;
 					const output = parser.parse(formattedInput);
@@ -143,10 +132,7 @@ describe('Key list', () => {
 					const generatedEmpty = getKeyItemsInitialEmpty();
 					const generatedRandomInitial = getKeyItemsRandomInitial();
 
-					const keyItems = [
-						...generatedRandomInitial,
-						...generatedEmpty,
-					];
+					const keyItems = [...generatedRandomInitial, ...generatedEmpty];
 
 					const formattedArr = keyItems.map((el) => el.value);
 					const formattedInput = `#{${formattedArr.join(',')}}`;
@@ -156,17 +142,11 @@ describe('Key list', () => {
 					const { contextDescription } = output;
 					const context = contextDescription[0].context;
 
-					const emptyOutputElements = context.slice(
-						generatedRandomInitial.length,
-					);
+					const emptyOutputElements = context.slice(generatedRandomInitial.length);
 					emptyOutputElements.map((el: any, index: any) => {
-						expect(el).toStrictEqual(
-							generatedEmpty[index].output(),
-						);
+						expect(el).toStrictEqual(generatedEmpty[index].output());
 					});
-					expect(emptyOutputElements.length).toBe(
-						generatedEmpty.length,
-					);
+					expect(emptyOutputElements.length).toBe(generatedEmpty.length);
 				}
 			});
 		});
@@ -182,10 +162,7 @@ describe('Key list', () => {
 			});
 			test('INPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', () => {
 				const parser = new YantrixParser();
-				const keyItems = [
-					...getKeyItemsRandomInitial(),
-					{ value: 'prop3,' },
-				];
+				const keyItems = [...getKeyItemsRandomInitial(), { value: 'prop3,' }];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
