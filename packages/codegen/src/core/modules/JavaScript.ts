@@ -31,6 +31,13 @@ export class JavaScriptCodegen implements ICodegen {
     return `import { GenericAutomata } from "@yantrix/automata";`;
   }
 
+  protected getStateValidator() {
+    return `(s) => Object.values(statesDictionary).includes(s)`;
+  }
+  protected getActionValidator() {
+    return `(a) => Object.values(actionsDictionary).includes(a)`;
+  }
+
   protected getHandleStateChanges(
     transitions: Record<string, TDiagramAction>,
     state: string,
@@ -87,16 +94,22 @@ export class JavaScriptCodegen implements ICodegen {
   			this.init({
   				state: ${this.initialState},
   				context: { index: -1 },
-                rootReducer: ({ action, context, payload, state }) => {
-                  if (!action || payload === null) return { state, context };
-                  return handlersDict[state]({action,payload,context,state})
-  				},
-  				stateValidator: (s) => Object.values(statesDictionary).includes(s),
-  				actionValidator: (a) => Object.values(actionsDictionary).includes(a),
-  				eventValidator: () => {},
+          rootReducer: ${this.getRootReducer()},
+  				stateValidator: ${this.getStateValidator()},
+  				actionValidator: ${this.getActionValidator()},
   			});
   		}
   	}`;
+  }
+
+  protected getRootReducer() {
+    return `({ action, context, payload, state }) => {
+                  if (!action || payload === null) return { state, context };
+                  if (!state) {
+                    throw new Error("Invalid state");
+                  }
+                  return handlersDict[state]({action,payload,context,state})
+  				}`;
   }
 
   getActionToStateDict(transitions: Record<string, TDiagramAction>) {

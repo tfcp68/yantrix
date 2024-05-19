@@ -6,26 +6,14 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
     return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {${body}}`;
   }
 
-  public getClassTemplate(className: string) {
-    return `export class ${className} extends GenericAutomata {
-  		public constructor() {
-  			super();
-  			this.init({
-  				state: ${this.initialState},
-  				context: { index: -1 },
-                rootReducer: ({ action, context, payload, state }) => {
-                  if (!action || payload === null) return { state, context };
-                  // @ts-expect-error okay
-                  return handlersDict[state]({action,payload,context,state})
-  				},
-  				// @ts-expect-error okay
-  				stateValidator: (s) => Object.values(statesDictionary).includes(s),
-  				// @ts-expect-error okay
-  				actionValidator: (a) => Object.values(actionsDictionary).includes(a),
-  				// @ts-expect-error okay
-  				eventValidator: () => {},
-  			});
-  		}
-  	}`;
+  public getImports(): string {
+    return `import { GenericAutomata, TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType } from '@yantrix/automata';`;
+  }
+
+  protected getStateValidator() {
+    return `(s): s is TAutomataBaseStateType => Object.values(statesDictionary).includes(s)`;
+  }
+  protected getActionValidator() {
+    return `(a): a is TAutomataBaseActionType => Object.values(actionsDictionary).includes(a)`;
   }
 }
