@@ -10,6 +10,8 @@ import {
 } from './fixtures/baseDeclarations.js';
 import { primitiveWithValue } from './fixtures/expressions.js';
 
+import { ReservedList } from '../index.js';
+
 const invalidCases = [
   ['#[LeftSideProperty]'],
   ['#{LeftSideProperty} <='],
@@ -49,7 +51,27 @@ const base = [
   ['emit/eventName <= (keylist)', baseEmitEvent],
 ] as const;
 
-const reservedWords = ['+INITIAL', 'note', 'left', 'right', 'end'];
+const specialChars = [
+  '!',
+  '@',
+  '$',
+  '%',
+  '^',
+  '&',
+  '*',
+  '(',
+  ')',
+  '-',
+  '=',
+  '+',
+  '/',
+  '№',
+  '+',
+  '.',
+  ',',
+  '\\',
+  '|',
+];
 
 describe('Base grammar declarations', () => {
   describe('Correct input', () => {
@@ -131,12 +153,10 @@ describe('Base grammar declarations', () => {
     const propertyName = 'LeftHandProperty';
     const correctStatement = `#{${propertyName}}`;
     const incorrectStatements = [
-      ...'!@$%^&*()-=+/№+.,\\|'
-        .split('')
-        .map((char) => `${char}{${propertyName}}`),
+      ...ReservedList.map((reservedWord) => `#{${reservedWord}}`),
+      ...specialChars.map((char) => `${char}{${propertyName}}`),
       `#[${propertyName}]`,
       `#(${propertyName})`,
-      ...reservedWords.map((word) => `#{${word}}`),
     ];
     test.each(incorrectStatements)('%s -- ERROR', (input) => {
       expect(() => parser.parse(input)).toThrowError();
