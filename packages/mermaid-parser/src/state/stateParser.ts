@@ -21,9 +21,7 @@ import { InvalidInputError, BlankInputError } from './errors/stateErrors.js';
  * @param diagramText - diagram [string];
  * @returns Returns parsed diagram dictionary.
  */
-async function diagramParser(
-	diagramText: string,
-): Promise<TParsedDiagramArray> {
+async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> {
 	diagramText = diagramText.trim().replaceAll('\t', '');
 	if (diagramText === '') {
 		throw new BlankInputError();
@@ -33,8 +31,7 @@ async function diagramParser(
 			...mermaid.mermaidAPI.defaultConfig,
 		});
 		await mermaid.mermaidAPI.initialize();
-		const diagram =
-			await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+		const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
 		return parsedDiagram;
 	} catch (e) {
@@ -52,10 +49,8 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'relation') {
 			const directionI: string[] = [];
-			const tempSt1: Record<string, string> = parsedDiagram[i]
-				.state1 as Record<string, string>;
-			const tempSt2: Record<string, string> = parsedDiagram[i]
-				.state2 as Record<string, string>;
+			const tempSt1: Record<string, string> = parsedDiagram[i].state1 as Record<string, string>;
+			const tempSt2: Record<string, string> = parsedDiagram[i].state2 as Record<string, string>;
 			const st1: string = tempSt1.id;
 			const st2: string = tempSt2.id;
 			if (st1 === '[*]' && st2 === '[*]') {
@@ -90,9 +85,7 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
  * @param diagramStates - array of diagram elements;
  * @returns Returns an dictionary of state captions.
  */
-function getStatesCaption(
-	parsedDiagram: TParsedDiagramArray,
-): Record<string, string> {
+function getStatesCaption(parsedDiagram: TParsedDiagramArray): Record<string, string> {
 	const stateCaptions: Record<string, string> = {};
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
@@ -100,8 +93,7 @@ function getStatesCaption(
 			if (keys.includes('type')) {
 				if (parsedDiagram[i].type === 'default') {
 					const stateId: string = parsedDiagram[i].id as string;
-					const stateDesc: string = parsedDiagram[i]
-						.description as string;
+					const stateDesc: string = parsedDiagram[i].description as string;
 					stateCaptions[stateId] = stateDesc;
 				}
 			}
@@ -115,13 +107,9 @@ function getStatesCaption(
  * @param transitions - array of transitions;
  * @returns Returns an array of diagram elements.
  */
-function getStates(
-	parsedDiagram: TParsedDiagramArray,
-	transitions: TTransitionsArray,
-): TStatesStructure {
+function getStates(parsedDiagram: TParsedDiagramArray, transitions: TTransitionsArray): TStatesStructure {
 	const diagramStates: TStatesStructure = [];
-	const stateCaptions: Record<string, string> =
-		getStatesCaption(parsedDiagram);
+	const stateCaptions: Record<string, string> = getStatesCaption(parsedDiagram);
 	const stateCaptionKeys = Object.keys(stateCaptions);
 	const visited: string[] = [];
 	for (let i = 0; i < transitions.length; i++) {
@@ -210,8 +198,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 				const noteKeys = Object.keys(parsedDiagram[i].note);
 				if (noteKeys.includes('text')) {
 					const from: string = parsedDiagram[i].id as string;
-					const parsedDiagramNote: Record<string, string> =
-						parsedDiagram[i].note as Record<string, string>;
+					const parsedDiagramNote: Record<string, string> = parsedDiagram[i].note as Record<string, string>;
 					const noteText: string = parsedDiagramNote.text;
 					const visitedKeys = Object.keys(visited);
 					if (visitedKeys.includes(from)) {
@@ -271,9 +258,7 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
  * @param diagramText - diagram [string];
  * @returns Returns dictionary with information from the diagram.
  */
-export async function parseStateDiagram(
-	diagramText: string,
-): Promise<TStateDiagramStructure> {
+export async function parseStateDiagram(diagramText: string): Promise<TStateDiagramStructure> {
 	const parsedDiagram: TParsedDiagramArray = await diagramParser(diagramText);
 	const transitions: TTransitionsArray = getTransitions(parsedDiagram);
 	const stateDiagramStructure: TStateDiagramStructure = {
