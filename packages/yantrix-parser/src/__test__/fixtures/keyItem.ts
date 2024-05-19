@@ -21,9 +21,7 @@ const getKeyItem = (expression: TExpressionTypes | null) => {
 	};
 };
 
-const getKeyItemWithMultipleExpressions = (
-	...expressions: Array<TExpressionTypes | null>
-) => {
+const getKeyItemWithMultipleExpressions = (...expressions: Array<TExpressionTypes | null>) => {
 	return {
 		contextDescription: [
 			{
@@ -38,8 +36,7 @@ const getKeyItemWithMultipleExpressions = (
 			},
 		],
 	};
-
-}
+};
 
 /// Base key item declaration
 const declarationKeyItem = getKeyItem(null);
@@ -77,5 +74,5 @@ export const keyItem = {
 	withIntegerInitial,
 	withPropertyInitial,
 	withDecimalInitial,
-	withMultiplyInitial
+	withMultiplyInitial,
 };
