@@ -15,7 +15,7 @@
 %x PayloadValue
 %x  ActionStatement
 %x EmitStatement
-%x SubcribeStatement
+%x SubscribeStatement
 %x Payload
 %x Note
 %s Func
@@ -34,24 +34,19 @@
 [\r\n]+                              return 'NewLine';
 [\s]+                                /* skip all whitespace */
 ','                                  {return ','}
-'+INITIAL'                           return 'InitialState';
-'note'                               {return 'note'}
 ')'                                  {this.popState();return ')'}
 '('                                  {return '('}
-'left'                               {return 'left'}
-'right'                              {return 'right'}
-'end'                                {return 'end'}
-\'[^\n#{()=><""]+\'                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
-\"[^\n#{()=><'']+\"                   {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
-'of'\s                               {this.begin('Note'); return 'of'}
-<Note>[^\n#{()=><]+                  {this.popState(); return 'StateID'}
-'subscribe/'                         {this.begin('SubcribeStatement'); return 'subscribe/'}
-<SubcribeStatement>[^/=>\s]+         {this.popState(); return 'EventName'}
+\'[^\n#{()=><""]+\'                  {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+\"[^\n#{()=><'']+\"                  {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+
+'subscribe/'                         {this.begin('SubscribeStatement'); return 'subscribe/'}
+<SubscribeStatement>[^/=>\s]+        {this.popState(); return 'EventName'}
 
 '=>'[\s]                             {this.popState();this.begin('ActionStatement'); return '=>'}
 '<='[\s]                             {this.begin('KeyList');return '<=' }
-[0-9]+                 {this.popState();return 'integerLiteral'}
+
 [0-9]+'.'[0-9]+        {return 'decimalLiteral'}
+[0-9]+                 {this.popState();return 'integerLiteral'}
 
 <Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
 <rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}
@@ -65,9 +60,9 @@
 
 
 '('                                   {this.begin('KeyList');return '('}
-'#{'                                   {this.begin('KeyList');return '#{'}
+'#{'                                  {this.begin('KeyList');return '#{'}
 '{'                                   {this.begin('KeyList');return '{'}
-<KeyList>[^({}')=,][A-Za-z0-9]+             {return 'TargetProperty'}
+<KeyList>[a-zA-Z]\w+                  {return 'TargetProperty'}
 <Func>[^(',)][A-Za-z_]+               {return 'PropertyArgument'}
 <KeyList>'='                          {this.begin('rightSideOperation');return '='}
 
