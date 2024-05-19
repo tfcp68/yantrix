@@ -10,7 +10,7 @@ import {
 } from './fixtures/baseDeclarations.js';
 import { primitiveWithValue } from './fixtures/expressions.js';
 
-import { ReservedList } from '../index.js';
+import { ReservedList, SpecialChars } from '../index.js';
 
 const invalidCases = [
   ['#[LeftSideProperty]'],
@@ -50,28 +50,6 @@ const base = [
   ['subscribe/event => action', baseSubscribe],
   ['emit/eventName <= (keylist)', baseEmitEvent],
 ] as const;
-
-const specialChars = [
-  '!',
-  '@',
-  '$',
-  '%',
-  '^',
-  '&',
-  '*',
-  '(',
-  ')',
-  '-',
-  '=',
-  '+',
-  '/',
-  '№',
-  '+',
-  '.',
-  ',',
-  '\\',
-  '|',
-];
 
 describe('Base grammar declarations', () => {
   describe('Correct input', () => {
@@ -154,7 +132,7 @@ describe('Base grammar declarations', () => {
     const correctStatement = `#{${propertyName}}`;
     const incorrectStatements = [
       ...ReservedList.map((reservedWord) => `#{${reservedWord}}`),
-      ...specialChars.map((char) => `${char}{${propertyName}}`),
+      ...SpecialChars.map((char) => `${char}{${propertyName}}`),
       `#[${propertyName}]`,
       `#(${propertyName})`,
     ];
