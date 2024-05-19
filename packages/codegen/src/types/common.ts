@@ -1,4 +1,5 @@
 import { TStateDiagram } from '@yantrix/mermaid-parser';
+import { Modules } from '../core/modules/index.js';
 
 export type TStateDiagramSyntaxTree = TStateDiagram;
 
@@ -30,4 +31,4 @@ export interface ICodegen {
   getImports(): string;
 }
 
-export type TOutLang = 'JavaScript' | 'TypeScript';
+export type TOutLang = keyof typeof Modules;

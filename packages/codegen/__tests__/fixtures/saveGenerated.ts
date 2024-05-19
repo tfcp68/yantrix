@@ -1,5 +1,5 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generate } from '../../src/index.js';
+import { generateAutomataFromStateDiagram } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,9 +42,13 @@ fixturesList.forEach(async (fixture) => {
   );
   const stateDiagram = await createStateDiagram(stateDiagramStructure);
 
-  const generatedAutomataOutput = await generate(stateDiagram, {
-    className: fixture.gameDiagram.automataName,
-  });
+  const generatedAutomataOutput = await generateAutomataFromStateDiagram(
+    stateDiagram,
+    {
+      className: fixture.gameDiagram.automataName,
+      outLang: 'TypeScript',
+    },
+  );
 
   fs.writeFileSync(
     path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),

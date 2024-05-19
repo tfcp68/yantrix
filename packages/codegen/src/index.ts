@@ -1,8 +1,4 @@
-import {
-  IGenerateOptions,
-  TOutLang,
-  TStateDiagramSyntaxTree,
-} from './types/common.js';
+import { IGenerateOptions, TStateDiagramSyntaxTree } from './types/common.js';
 import { fmt } from './utils/utils.js';
 import { CodegenCreator } from './core/Codegen.js';
 
