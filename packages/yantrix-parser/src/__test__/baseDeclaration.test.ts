@@ -418,30 +418,4 @@ describe('Base grammar declarations', () => {
       expect(() => parser.parse(str)).toThrowError(),
     );
   });
-
-  describe.skip('Effect statements have correct format', () => {
-    const parser = new YantrixParser();
-    const eventName = 'selected';
-    const keyList = ['idx1', 'idx2'];
-    const correctStrings = [
-      `effect/${eventName} <= (${keyList.join(',')})`,
-      `effect/${eventName}`,
-    ];
-    const incorrectStrings = [
-      `efect/${eventName}`,
-      `effect/${eventName} <= ${keyList.join(',')}`,
-      `effect/${eventName} <= ()`,
-      `effect/${eventName} <=`,
-      `effect/${eventName} =>`,
-      `effect/${eventName} <= {${keyList.join(',')}}`,
-      `effect/${eventName} <= [${keyList.join(',')}]`,
-      `effect/${eventName} => (${keyList.join(',')})`,
-    ];
-    test.each(correctStrings)('%s --- CORRECT', (str) =>
-      assert.isOk(parser.parse(str)),
-    );
-    test.each(incorrectStrings)(`%s --- ERROR`, (str) =>
-      expect(() => parser.parse(str)).toThrowError(),
-    );
-  });
 });
