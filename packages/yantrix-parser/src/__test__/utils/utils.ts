@@ -75,9 +75,7 @@ export const getKeyItemsWithInitial = (expression: any) => {
 	});
 };
 
-export const getKeyItemsRandomInitial = (
-	isRandomEmptyErr: boolean = false,
-): any => {
+export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any => {
 	const keyItems = generateRandomKeyList();
 	const expressions = isRandomEmptyErr
 		? [
@@ -89,8 +87,7 @@ export const getKeyItemsRandomInitial = (
 			]
 		: Object.values(allowedExpressions);
 
-	const randomExpression = () =>
-		expressions[Math.floor(Math.random() * expressions.length)];
+	const randomExpression = () => expressions[Math.floor(Math.random() * expressions.length)];
 
 	return keyItems.map((el) => {
 		const expressions = randomExpression();

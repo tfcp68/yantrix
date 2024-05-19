@@ -1,9 +1,4 @@
-import {
-	expressions,
-	functions,
-	getExpression,
-	TExpressionTypes,
-} from './expressions.js';
+import { expressions, functions, getExpression, TExpressionTypes } from './expressions.js';
 
 const baseKeyItemDeclaration = {
 	TargetProperty: 'property',

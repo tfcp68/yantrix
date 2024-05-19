@@ -1,9 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { parseStateDiagram } from '../src/index.js';
-import {
-	BlankInputError,
-	InvalidInputError,
-} from '../src/state/errors/stateErrors.js';
+import { BlankInputError, InvalidInputError } from '../src/state/errors/stateErrors.js';
 import {
 	blankDiagram,
 	emptyStateDiagram,
@@ -29,15 +26,11 @@ import {
 describe('State Diagram Parser', () => {
 	describe('Common', () => {
 		test('Empty Input Error', async () => {
-			await expect(parseStateDiagram(blankDiagram)).rejects.toThrow(
-				BlankInputError,
-			);
+			await expect(parseStateDiagram(blankDiagram)).rejects.toThrow(BlankInputError);
 		});
 
 		test('Invalid Diagram Type', async () => {
-			await expect(parseStateDiagram(invalidDiagram)).rejects.toThrow(
-				InvalidInputError,
-			);
+			await expect(parseStateDiagram(invalidDiagram)).rejects.toThrow(InvalidInputError);
 		});
 
 		test('Empty Diagram', async () => {
@@ -53,9 +46,7 @@ describe('State Diagram Parser', () => {
 
 	describe('Notes', () => {
 		test('One Line', async () => {
-			const { notes } = await parseStateDiagram(
-				stateDiagramWithOneLineNotes,
-			);
+			const { notes } = await parseStateDiagram(stateDiagramWithOneLineNotes);
 
 			expect(notes.length).toEqual(2);
 			expect(notes[0].over).toEqual('A');
@@ -65,9 +56,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Empty Note', async () => {
-			const { notes } = await parseStateDiagram(
-				stateDiagramWithEmptyNote,
-			);
+			const { notes } = await parseStateDiagram(stateDiagramWithEmptyNote);
 
 			expect(notes.length).toEqual(2);
 			expect(notes[0].over).toEqual('A');
@@ -77,9 +66,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Left side note', async () => {
-			const { notes } = await parseStateDiagram(
-				stateDiagramWithLeftSideNote,
-			);
+			const { notes } = await parseStateDiagram(stateDiagramWithLeftSideNote);
 
 			expect(notes.length).toEqual(1);
 			expect(notes[0].over).toEqual('A');
@@ -87,9 +74,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Right side note', async () => {
-			const { notes } = await parseStateDiagram(
-				stateDiagramWithRightSideNote,
-			);
+			const { notes } = await parseStateDiagram(stateDiagramWithRightSideNote);
 
 			expect(notes.length).toEqual(1);
 
@@ -100,49 +85,35 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Multiline note', async () => {
-			const { notes } = await parseStateDiagram(
-				stateDiagramWithMultilineNotes,
-			);
+			const { notes } = await parseStateDiagram(stateDiagramWithMultilineNotes);
 
 			expect(notes.length).toEqual(1);
 
 			expect(notes[0].over).toEqual('A');
 
 			expect(notes[0].text[0]).toEqual(
-				'simple right side note\n' +
-					'right of A that is\n' +
-					'longer than 1 line',
+				'simple right side note\n' + 'right of A that is\n' + 'longer than 1 line',
 			);
-			expect(notes[0].text[1]).toEqual(
-				'another note left\n' +
-					'of A that contains\n' +
-					'more than 1 line',
-			);
+			expect(notes[0].text[1]).toEqual('another note left\n' + 'of A that contains\n' + 'more than 1 line');
 		});
 	});
 
 	describe('States And Actions', () => {
 		test('Simple Transition', async () => {
-			const parsedDiagram = await parseStateDiagram(
-				stateDiagramSimpleTransition,
-			);
+			const parsedDiagram = await parseStateDiagram(stateDiagramSimpleTransition);
 
 			expect(parsedDiagram.states).toEqual([
 				{ id: 'A', caption: 'A' },
 				{ id: 'B', caption: 'B' },
 			]);
-			expect(parsedDiagram.actions).toEqual([
-				{ from: 'A', to: 'B', id: 'A, B, 0' },
-			]);
+			expect(parsedDiagram.actions).toEqual([{ from: 'A', to: 'B', id: 'A, B, 0' }]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
 			expect(parsedDiagram.forks).toEqual([]);
 		});
 
 		test('Named State', async () => {
-			const parsedDiagram = await parseStateDiagram(
-				stateDiagramWithNamedStates,
-			);
+			const parsedDiagram = await parseStateDiagram(stateDiagramWithNamedStates);
 
 			expect(parsedDiagram.states).toEqual([
 				{ id: '~~~START~~~', caption: '~~~START~~~' },
@@ -161,9 +132,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Simple Completed Transition', async () => {
-			const parsedDiagram = await parseStateDiagram(
-				stateDiagramSimpleTransitionCompleted,
-			);
+			const parsedDiagram = await parseStateDiagram(stateDiagramSimpleTransitionCompleted);
 
 			expect(parsedDiagram.states).toEqual([
 				{ id: '~~~START~~~', caption: '~~~START~~~' },
@@ -182,9 +151,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Simple Transition With Comments', async () => {
-			const parsedDiagram = await parseStateDiagram(
-				stateDiagramSimpleTransitionWithComments,
-			);
+			const parsedDiagram = await parseStateDiagram(stateDiagramSimpleTransitionWithComments);
 
 			expect(parsedDiagram.states).toEqual([
 				{ id: '~~~START~~~', caption: '~~~START~~~' },
@@ -230,9 +197,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Double Transitions', async () => {
-			const result = await parseStateDiagram(
-				stateDiagramWithDoubleTransitions,
-			);
+			const result = await parseStateDiagram(stateDiagramWithDoubleTransitions);
 
 			expect(result.actions).toEqual([
 				{
@@ -271,9 +236,7 @@ describe('State Diagram Parser', () => {
 
 	describe('Forks', () => {
 		test('Simple', async () => {
-			const { forks } = await parseStateDiagram(
-				stateDiagramWithSimpleFork,
-			);
+			const { forks } = await parseStateDiagram(stateDiagramWithSimpleFork);
 
 			expect(forks.length).toEqual(2);
 
@@ -284,9 +247,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Normal', async () => {
-			const { forks } = await parseStateDiagram(
-				stateDiagramWitNormalForks,
-			);
+			const { forks } = await parseStateDiagram(stateDiagramWitNormalForks);
 
 			expect(forks.length).toEqual(4);
 
@@ -308,9 +269,7 @@ describe('State Diagram Parser', () => {
 
 	describe('Choices', () => {
 		test('Simple', async () => {
-			const { choices } = await parseStateDiagram(
-				stateDiagramWithSimpleChoice,
-			);
+			const { choices } = await parseStateDiagram(stateDiagramWithSimpleChoice);
 
 			expect(choices.length).toEqual(1);
 			expect(choices[0].id).toEqual('ChoiceState');
@@ -325,9 +284,7 @@ describe('State Diagram Parser', () => {
 		});
 
 		test('Loop', async () => {
-			const { choices } = await parseStateDiagram(
-				stateDiagramWithLoopChoice,
-			);
+			const { choices } = await parseStateDiagram(stateDiagramWithLoopChoice);
 
 			expect(choices.length).toEqual(2);
 			expect(choices[0].id).toEqual('ChoiceState1');

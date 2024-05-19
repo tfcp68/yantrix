@@ -9,8 +9,7 @@ export function pickFromArray<T>(arr: T[], n = 1): T[] {
 	const acc: T[] = [];
 	if (!arr?.length || n <= 0) return acc;
 	const a = JSON.parse(JSON.stringify(arr));
-	while (acc.length < n)
-		acc.push(...a.splice(Math.floor(Math.random() * a.length), 1));
+	while (acc.length < n) acc.push(...a.splice(Math.floor(Math.random() * a.length), 1));
 	return acc;
 }
 
@@ -27,10 +26,7 @@ export function popFromArray<T>(arr: T[], n = 1): T[] {
 	return acc;
 }
 
-export function sampleArray<T = number, N extends number = number>(
-	item: null | ((index?: number) => T) | T,
-	n: N,
-) {
+export function sampleArray<T = number, N extends number = number>(item: null | ((index?: number) => T) | T, n: N) {
 	if (item === null)
 		return Array(n)
 			.fill(null)
@@ -49,7 +45,6 @@ export function sampleArray<T = number, N extends number = number>(
  */
 export function uniqId(length = 10) {
 	const key = [...microtime().toString(36)];
-	while (key.length < length)
-		key.push(...Math.random().toString(36).slice(2));
+	while (key.length < length) key.push(...Math.random().toString(36).slice(2));
 	return key.slice(length).join('').toUpperCase();
 }
