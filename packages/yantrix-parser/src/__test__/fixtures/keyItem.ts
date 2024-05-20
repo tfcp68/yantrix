@@ -21,12 +21,33 @@ const getKeyItem = (expression: TExpressionTypes | null) => {
 	};
 };
 
+const getKeyItemWithMultipleExpressions = (...expressions: Array<TExpressionTypes | null>) => {
+	return {
+		contextDescription: [
+			{
+				context: expressions.map((expression, ix) => ({
+					KeyItemDeclaration: {
+						...expression,
+						TargetProperty: `property${ix}`,
+					},
+				})),
+			},
+		],
+	};
+};
+
 /// Base key item declaration
 const declarationKeyItem = getKeyItem(null);
 export const withStringInitial = getKeyItem(expressions.string);
 export const withArrayInitial = getKeyItem(expressions.array);
 export const withIntegerInitial = getKeyItem(expressions.integer);
 export const withPropertyInitial = getKeyItem(expressions.property);
+export const withDecimalInitial = getKeyItem(expressions.decimal);
+export const withMultiplyInitial = getKeyItemWithMultipleExpressions(
+	expressions.decimal,
+	expressions.string,
+	expressions.integer,
+);
 
 /// Base function declaration
 const expression = getKeyItem(expressions.function);
@@ -50,4 +71,6 @@ export const keyItem = {
 	withArrayInitial,
 	withIntegerInitial,
 	withPropertyInitial,
+	withDecimalInitial,
+	withMultiplyInitial,
 };

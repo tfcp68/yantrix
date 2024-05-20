@@ -4,6 +4,7 @@ export const ExpressionTypes = {
 	ArrayDeclaration: 'array',
 	Constant: 'constant',
 	IntegerDeclaration: 'integer',
+	DecimalDeclaration: 'decimal',
 	FunctionProperty: 'FunctionProperty',
 	Property: 'property',
 } as const;
@@ -12,9 +13,6 @@ export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
 type TExpressionString = {
 	StringDeclaration: string;
-};
-type TExpressionInteger = {
-	IntegerValue: number;
 };
 type TExpressionArray = {
 	ArrayDeclaration: [];
@@ -25,7 +23,10 @@ type TExpressionProperty = {
 type TExpressionFunctionProperty = {
 	Property: any;
 };
-type TFunctionArgument = TExpressionInteger | TExpressionString | TExpressionFunctionProperty;
+type TExpressionNumber = {
+	NumberExpression: number;
+};
+type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
 
 type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -38,7 +39,8 @@ export type TMapped = {
 	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
 	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
 	[ExpressionTypes.Function]: TExpressionFunction;
-	[ExpressionTypes.IntegerDeclaration]: TExpressionInteger;
+	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
+	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
 	[ExpressionTypes.Property]: TExpressionProperty;
 };

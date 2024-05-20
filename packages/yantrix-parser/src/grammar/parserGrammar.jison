@@ -45,8 +45,9 @@
 
 '=>'[\s]                             {this.popState();this.begin('ActionStatement'); return '=>'}
 '<='[\s]                             {this.begin('KeyList');return '<=' }
-[0-9]+'.'[0-9]+        {this.popState();return 'decimalLiteral'}                       
-[0-9]+                 {this.popState();return 'integerLiteral'} 
+'-'?[0-9]+'.'[0-9]+        {this.popState();return 'decimalLiteral'}
+'-'?[0-9]+                 {this.popState();return 'integerLiteral'}
+
 
 <Func>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.begin('Func');return 'FunctionName';}
 <rightSideOperation>[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]) {this.popState();this.begin('Func');return 'FunctionName';}
@@ -145,14 +146,17 @@ ActionStatement
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($3['Property'] === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
+Number:
+        | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
+        ;
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
           | Property {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
           | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
           | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
           | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
-          | integerLiteral {$$ = {IntegerValue: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-          | decimalLiteral {$$ = {DecimalValue: Number($1)}}
+          | Number
           ;
 FunctionOperator
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
