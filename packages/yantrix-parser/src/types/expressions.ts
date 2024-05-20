@@ -4,14 +4,11 @@ export enum TExpressionTypes {
 	StringDeclaration,
 	ArrayDeclaration,
 	Constant,
-	IntegerDeclaration,
+	NumberDeclaration,
 	FunctionProperty,
 }
 type TExpressionString = {
 	StringDeclaration: string;
-};
-type TExpressionInteger = {
-	IntegerValue: number;
 };
 type TExpressionArray = {
 	ArrayDeclaration: [];
@@ -22,10 +19,9 @@ type TExpressionProperty = {
 type TExpressionFunctionProperty = {
 	Property: any;
 };
-type TExpressionDecimal = {
-	DecimalValue: number;
+type TExpressionNumber = {
+	NumberExpression: number;
 };
-type TExpressionNumber = TExpressionInteger | TExpressionDecimal;
 type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
 
 type TExpressionFunction = {
@@ -39,8 +35,8 @@ export type TExpressionMapped<T extends TExpressionTypes = TExpressionTypes> =
 		? TExpressionArray
 		: T extends TExpressionTypes.StringDeclaration
 			? TExpressionString
-			: T extends TExpressionTypes.IntegerDeclaration
-				? TExpressionInteger
+			: T extends TExpressionTypes.NumberDeclaration
+				? TExpressionNumber
 				: T extends TExpressionTypes.FunctionProperty
 					? TExpressionFunction
 					: T extends TExpressionTypes.Property

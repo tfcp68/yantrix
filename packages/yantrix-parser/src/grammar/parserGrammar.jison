@@ -151,14 +151,17 @@ ActionStatement
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($3['Property'] === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
+Number:
+        | integerLiteral {$$ = {NumberDeclaration: Number($1)}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
+        ;
 Expression
           : FunctionOperator
           | Property {$$ = {Property:$1}}
           | StringDeclaration {$$ = {StringDeclaration:$1.toString()}}
-          | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
           | Array {$$ = {ArrayDeclaration:[]}}
           | Constant
-          | integerLiteral {$$ = {NumberDeclaration: Number($1)}}
+          | Number
           ;
 FunctionOperator 
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
