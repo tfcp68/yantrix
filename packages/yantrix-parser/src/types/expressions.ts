@@ -1,12 +1,15 @@
-export enum TExpressionTypes {
-	Function,
-	Property,
-	StringDeclaration,
-	ArrayDeclaration,
-	Constant,
-	IntegerDeclaration,
-	FunctionProperty,
-}
+export const ExpressionTypes = {
+	Function: 'function',
+	StringDeclaration: 'string',
+	ArrayDeclaration: 'array',
+	Constant: 'constant',
+	IntegerDeclaration: 'integer',
+	FunctionProperty: 'FunctionProperty',
+	Property: 'property',
+} as const;
+
+export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
+
 type TExpressionString = {
 	StringDeclaration: string;
 };
@@ -30,15 +33,15 @@ type TExpressionFunction = {
 		Arguments?: TFunctionArgument[];
 	};
 };
-export type TExpressionMapped<T extends TExpressionTypes = TExpressionTypes> =
-	T extends TExpressionTypes.ArrayDeclaration
-		? TExpressionArray
-		: T extends TExpressionTypes.StringDeclaration
-			? TExpressionString
-			: T extends TExpressionTypes.IntegerDeclaration
-				? TExpressionInteger
-				: T extends TExpressionTypes.FunctionProperty
-					? TExpressionFunction
-					: T extends TExpressionTypes.Property
-						? TExpressionProperty
-						: never;
+
+export type TMapped = {
+	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
+	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
+	[ExpressionTypes.Function]: TExpressionFunction;
+	[ExpressionTypes.IntegerDeclaration]: TExpressionInteger;
+	[ExpressionTypes.StringDeclaration]: TExpressionString;
+	[ExpressionTypes.Property]: TExpressionProperty;
+};
+
+export type TMappedKeys = keyof TMapped;
+export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];

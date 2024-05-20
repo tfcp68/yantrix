@@ -1,9 +1,11 @@
-import { TExpressionTypes } from './expressions.js';
-import { TKeyItemBase, TKeyItemWithExpression, TKeyItems } from './keyItem.js';
+import { ExpressionTypes, TExpressionTypesKeys } from './expressions.js';
+import { TKeyItemBase, TKeyItems, TKeyItemWithExpression } from './keyItem.js';
 import { TAction, TSubscribeStatement } from './statements.js';
 
-export function isExpressionType<T extends typeof TExpressionTypes>(expression: any): expression is T[keyof T] {
-	return Object.values(TExpressionTypes).includes(expression);
+export function isExpressionType<T extends TExpressionTypesKeys>(
+	expression: any,
+): expression is (typeof ExpressionTypes)[T] {
+	return Object.keys(ExpressionTypes).includes(expression);
 }
 
 export const isKeyItem = function (obj: any): obj is TKeyItemBase {
