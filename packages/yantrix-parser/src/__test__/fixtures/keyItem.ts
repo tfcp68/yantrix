@@ -28,9 +28,7 @@ const getKeyItemWithMultipleExpressions = (...expressions: Array<TExpressionType
 				context: expressions.map((expression, ix) => ({
 					KeyItemDeclaration: {
 						...expression,
-						...{
-							TargetProperty: `property${ix}`,
-						},
+						TargetProperty: `property${ix}`,
 					},
 				})),
 			},

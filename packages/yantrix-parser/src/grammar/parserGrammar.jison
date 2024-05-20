@@ -155,10 +155,10 @@ Expression
           : FunctionOperator
           | Property {$$ = {Property:$1}}
           | StringDeclaration {$$ = {StringDeclaration:$1.toString()}}
-          | decimalLiteral {$$ = {DecimalValue: Number($1)}}
+          | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
           | Array {$$ = {ArrayDeclaration:[]}}
           | Constant
-          | integerLiteral {$$ = {IntegerValue: Number($1)}}
+          | integerLiteral {$$ = {NumberDeclaration: Number($1)}}
           ;
 FunctionOperator 
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
@@ -172,8 +172,8 @@ Arguments
         ;
 Ident 
    : PropertyArgument {$$={FunctionProperty:$1}}
-   | decimalLiteral {$$={DecimalValue:Number($1)}}
-   | integerLiteral {$$={IntegerValue:Number($1)}}
+   | decimalLiteral {$$={NumberDeclaration:Number($1)}}
+   | integerLiteral {$$={NumberDeclaration:Number($1)}}
    | StringDeclaration  {$$={StringDeclaration:$1}}
    | Constant
    ;

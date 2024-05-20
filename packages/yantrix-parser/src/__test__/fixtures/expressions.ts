@@ -5,7 +5,7 @@ export const primitives = {
 		StringDeclaration: 'string',
 	},
 	integer: {
-		IntegerValue: 3,
+		NumberDeclaration: 3,
 	},
 	array: {
 		ArrayDeclaration: [],
@@ -20,7 +20,7 @@ export const primitives = {
 		Property: 'anotherProperty',
 	},
 	decimal: {
-		DecimalValue: 3.14,
+		NumberDeclaration: 3.14,
 	},
 };
 
@@ -28,7 +28,7 @@ const getString = (value: string = 'string') => {
 	return { StringDeclaration: value };
 };
 const getInteger = (value: number = 3) => {
-	return { IntegerValue: value };
+	return { NumberDeclaration: value };
 };
 const getFunction = (name: string = 'func', args: any = []) => {
 	return {
@@ -50,7 +50,7 @@ const getArray = () => {
 };
 const getDecimal = (value: number = 3.14) => {
 	return {
-		DecimalValue: value,
+		NumberDeclaration: value,
 	};
 };
 export const primitiveWithValue = {

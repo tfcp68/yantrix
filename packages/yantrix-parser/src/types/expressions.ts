@@ -22,7 +22,11 @@ type TExpressionProperty = {
 type TExpressionFunctionProperty = {
 	Property: any;
 };
-type TFunctionArgument = TExpressionInteger | TExpressionString | TExpressionFunctionProperty;
+type TExpressionDecimal = {
+	DecimalValue: number;
+};
+type TExpressionNumber = TExpressionInteger | TExpressionDecimal;
+type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
 
 type TExpressionFunction = {
 	FunctionDeclaration: {
