@@ -40,7 +40,7 @@ export type TMapped = {
 	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
 	[ExpressionTypes.Function]: TExpressionFunction;
 	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
-	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber
+	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
 	[ExpressionTypes.Property]: TExpressionProperty;
 };

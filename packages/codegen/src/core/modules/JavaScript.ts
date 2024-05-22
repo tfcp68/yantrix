@@ -1,7 +1,7 @@
-import type { ICodegen } from '../types.js';
+import type { ICodegen } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
-import { fillDictionaries } from './shared.js';
+import { fillDictionaries } from '../shared.js';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
@@ -31,6 +31,13 @@ export class JavaScriptCodegen implements ICodegen {
 		return `import { GenericAutomata } from "@yantrix/automata";`;
 	}
 
+	protected getStateValidator() {
+		return `(s) => Object.values(statesDictionary).includes(s)`;
+	}
+	protected getActionValidator() {
+		return `(a) => Object.values(actionsDictionary).includes(a)`;
+	}
+
 	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
 		const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 		if (!value) {
@@ -42,11 +49,11 @@ export class JavaScriptCodegen implements ICodegen {
              const actionToStateDict = {
               ${this.getActionToStateDict(transitions)
 					.flatMap((el) => el)
-					.join('\n')}     
+					.join('\n')}
          };
         const newState = actionToStateDict[action] ?? state
         const isNewState = newState !== state
-        
+
         return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
         `,
 		);
@@ -82,16 +89,22 @@ export class JavaScriptCodegen implements ICodegen {
   			this.init({
   				state: ${this.initialState},
   				context: { index: -1 },
-                rootReducer: ({ action, context, payload, state }) => {
-                  if (!action || payload === null) return { state, context };
-                  return handlersDict[state]({action,payload,context,state})
-  				},
-  				stateValidator: (s) => Object.values(statesDictionary).includes(s),
-  				actionValidator: (a) => Object.values(actionsDictionary).includes(a),
-  				eventValidator: () => {},
+          rootReducer: ${this.getRootReducer()},
+  				stateValidator: ${this.getStateValidator()},
+  				actionValidator: ${this.getActionValidator()},
   			});
   		}
   	}`;
+	}
+
+	protected getRootReducer() {
+		return `({ action, context, payload, state }) => {
+                  if (!action || payload === null) return { state, context };
+                  if (!state) {
+                    throw new Error("Invalid state");
+                  }
+                  return handlersDict[state]({action,payload,context,state})
+  				}`;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
