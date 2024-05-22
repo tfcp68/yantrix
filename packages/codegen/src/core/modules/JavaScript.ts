@@ -31,11 +31,16 @@ export class JavaScriptCodegen implements ICodegen {
 		return `import { GenericAutomata } from "@yantrix/automata";`;
 	}
 
-	protected getStateValidator() {
-		return `(s) => Object.values(statesDictionary).includes(s)`;
+	public getHandlers(): string {
+		return this.handlersDict.join('\n');
 	}
-	protected getActionValidator() {
-		return `(a) => Object.values(actionsDictionary).includes(a)`;
+
+	public getDictionaries(): string {
+		return this.dictionaries.join('\n');
+	}
+
+	public getChangeStateHandlers(): string {
+		return this.changeStateHandlers.join('\n');
 	}
 
 	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
@@ -49,11 +54,11 @@ export class JavaScriptCodegen implements ICodegen {
              const actionToStateDict = {
               ${this.getActionToStateDict(transitions)
 					.flatMap((el) => el)
-					.join('\n')}
+					.join('\n')}     
          };
         const newState = actionToStateDict[action] ?? state
         const isNewState = newState !== state
-
+        
         return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
         `,
 		);
@@ -89,22 +94,16 @@ export class JavaScriptCodegen implements ICodegen {
   			this.init({
   				state: ${this.initialState},
   				context: { index: -1 },
-          rootReducer: ${this.getRootReducer()},
-  				stateValidator: ${this.getStateValidator()},
-  				actionValidator: ${this.getActionValidator()},
+                rootReducer: ({ action, context, payload, state }) => {
+                  if (!action || payload === null) return { state, context };
+                  return handlersDict[state]({action,payload,context,state})
+  				},
+  				stateValidator: (s) => Object.values(statesDictionary).includes(s),
+  				actionValidator: (a) => Object.values(actionsDictionary).includes(a),
+  				eventValidator: () => {},
   			});
   		}
   	}`;
-	}
-
-	protected getRootReducer() {
-		return `({ action, context, payload, state }) => {
-                  if (!action || payload === null) return { state, context };
-                  if (!state) {
-                    throw new Error("Invalid state");
-                  }
-                  return handlersDict[state]({action,payload,context,state})
-  				}`;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
