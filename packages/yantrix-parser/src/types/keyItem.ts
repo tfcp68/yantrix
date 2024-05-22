@@ -1,11 +1,11 @@
-import { TExpressionMapped, TExpressionTypes } from './expressions.js';
+import { TExpressionMapped, TMappedKeys } from './expressions.js';
 
 export type TKeyItemBase = {
 	KeyItemDeclaration: {
 		TargetProperty: string;
 	};
 };
-export type TKeyItemWithExpression<T extends TExpressionTypes> = {
+export type TKeyItemWithExpression<T extends TMappedKeys> = {
 	KeyItemDeclaration: {
 		TargetProperty: string;
 		Expression: TExpressionMapped<T>;
@@ -13,11 +13,10 @@ export type TKeyItemWithExpression<T extends TExpressionTypes> = {
 	};
 };
 
-export type TKeyItemTypes<K extends TExpressionTypes | undefined = undefined> =
-	K extends TExpressionTypes ? TKeyItemWithExpression<K> : TKeyItemBase;
+export type TKeyItemTypes<K extends TMappedKeys | undefined = undefined> = K extends TMappedKeys
+	? TKeyItemWithExpression<K>
+	: TKeyItemBase;
 
-export type TKeyItem<
-	T extends TExpressionTypes | undefined = TExpressionTypes | undefined,
-> = TKeyItemTypes<T>;
+export type TKeyItem<T extends TMappedKeys | undefined = TMappedKeys | undefined> = TKeyItemTypes<T>;
 
 export type TKeyItems = TKeyItem[];

@@ -23,7 +23,26 @@ export const baseContext = {
 		},
 	],
 };
-
+export const baseContextWithPrevious = {
+	contextDescription: [
+		{
+			context: [
+				{
+					KeyItemDeclaration: {
+						TargetProperty: 'leftsideproperty',
+					},
+				},
+			],
+			prevContext: [
+				{
+					KeyItemDeclaration: {
+						TargetProperty: 'rightsideproperty',
+					},
+				},
+			],
+		},
+	],
+};
 export const baseSubscribe = {
 	subscribe: [
 		{
