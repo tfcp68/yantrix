@@ -24,9 +24,9 @@ export interface ITypedObject extends ITypedObjectProps {
 }
 
 export interface ICodegen {
-	dictionaries: string[];
-	changeStateHandlers: string[];
-	handlersDict: string[];
+	getDictionaries(): string;
+	getChangeStateHandlers(): string;
+	getHandlers(): string;
 	getClassTemplate(className: string): string;
 	getImports(): string;
 }
