@@ -8,7 +8,12 @@ const randomString = (length: number = 10) => {
 	}
 	return result;
 };
-const randomInteger = () => `${Math.floor(Math.random() * 10000)}`;
+const randomInteger = () => `${Math.floor(Math.random() * 20000) - 10000}`;
+
+const randomDecimal = (min: number, max: number, decimalPlaces: number) => {
+	const rand = Math.random() * (max - min) + min;
+	return `${rand.toFixed(decimalPlaces)}`;
+};
 
 const KeyItemsCount = 50;
 
@@ -23,6 +28,10 @@ export const allowedExpressions = {
 		value: randomInteger,
 		output: (value: string) => primitiveWithValue.integer(Number(value)),
 	},
+	decimal: {
+		value: () => randomDecimal(-10000, 10000, 4),
+		output: (value: string) => primitiveWithValue.decimal(Number(value)),
+	},
 	property: {
 		value: randomString,
 		output: (property: string) => primitiveWithValue.property(property),
@@ -35,7 +44,11 @@ export const allowedExpressions = {
 	},
 	array: {
 		value: () => '[]',
-		output: (s: string) => primitiveWithValue.array(),
+		output: () => primitiveWithValue.array(),
+	},
+	constant: {
+		value: () => `$(${randomString()})`,
+		output: (s: string) => primitiveWithValue.constant(s),
 	},
 };
 
@@ -77,19 +90,11 @@ export const getKeyItemsWithInitial = (expression: any) => {
 
 export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any => {
 	const keyItems = generateRandomKeyList();
-	const expressions = isRandomEmptyErr
-		? [
-				...Object.values(allowedExpressions),
-				{
-					value: () => ',',
-					output: () => {},
-				},
-			]
-		: Object.values(allowedExpressions);
+	const expressions = Object.values(allowedExpressions);
 
 	const randomExpression = () => expressions[Math.floor(Math.random() * expressions.length)];
 
-	return keyItems.map((el) => {
+	const listKeyItem = keyItems.map((el) => {
 		const expressions = randomExpression();
 		const rndValue = expressions.value();
 
@@ -106,4 +111,16 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 			output: expressions.output(rndValue),
 		};
 	});
+
+	if (isRandomEmptyErr) {
+		return [
+			...listKeyItem,
+			{
+				value: () => ',',
+				output: () => {},
+			},
+		];
+	} else {
+		return listKeyItem;
+	}
 };

@@ -1,17 +1,18 @@
-export enum TExpressionTypes {
-	Function,
-	Property,
-	StringDeclaration,
-	ArrayDeclaration,
-	Constant,
-	IntegerDeclaration,
-	FunctionProperty,
-}
+export const ExpressionTypes = {
+	Function: 'function',
+	StringDeclaration: 'string',
+	ArrayDeclaration: 'array',
+	Constant: 'constant',
+	IntegerDeclaration: 'integer',
+	DecimalDeclaration: 'decimal',
+	FunctionProperty: 'FunctionProperty',
+	Property: 'property',
+} as const;
+
+export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
+
 type TExpressionString = {
 	StringDeclaration: string;
-};
-type TExpressionInteger = {
-	IntegerValue: number;
 };
 type TExpressionArray = {
 	ArrayDeclaration: [];
@@ -22,7 +23,10 @@ type TExpressionProperty = {
 type TExpressionFunctionProperty = {
 	Property: any;
 };
-type TFunctionArgument = TExpressionInteger | TExpressionString | TExpressionFunctionProperty;
+type TExpressionNumber = {
+	NumberExpression: number;
+};
+type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
 
 type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -30,15 +34,16 @@ type TExpressionFunction = {
 		Arguments?: TFunctionArgument[];
 	};
 };
-export type TExpressionMapped<T extends TExpressionTypes = TExpressionTypes> =
-	T extends TExpressionTypes.ArrayDeclaration
-		? TExpressionArray
-		: T extends TExpressionTypes.StringDeclaration
-			? TExpressionString
-			: T extends TExpressionTypes.IntegerDeclaration
-				? TExpressionInteger
-				: T extends TExpressionTypes.FunctionProperty
-					? TExpressionFunction
-					: T extends TExpressionTypes.Property
-						? TExpressionProperty
-						: never;
+
+export type TMapped = {
+	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
+	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
+	[ExpressionTypes.Function]: TExpressionFunction;
+	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
+	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
+	[ExpressionTypes.StringDeclaration]: TExpressionString;
+	[ExpressionTypes.Property]: TExpressionProperty;
+};
+
+export type TMappedKeys = keyof TMapped;
+export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];

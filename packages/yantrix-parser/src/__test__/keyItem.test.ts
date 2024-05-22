@@ -15,6 +15,8 @@ const cases = [
 	[`#{property = 3}`, keyItem.withIntegerInitial],
 	[`#{property = func()}`, functionsFixtures.expression],
 	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
+	[`#{property0 = 3.14, property1 = 'string', property2 = 3}`, keyItem.withMultiplyInitial],
+	[`#{property = 3.14}`, keyItem.withDecimalInitial],
 ];
 
 describe('Key list', () => {
@@ -57,7 +59,7 @@ describe('Key list', () => {
 				});
 			});
 		});
-		describe(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
+		test(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
 			for (let index = 0; index < 10; index++) {
 				const parser = new YantrixParser();
 
@@ -148,7 +150,7 @@ describe('Key list', () => {
 		describe('Incorect input', () => {
 			test('INPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
 				const parser = new YantrixParser();
-				const keyItems = [getKeyItemsRandomInitial(true), { values: ',' }, getKeyItemsRandomInitial(true)];
+				const keyItems = getKeyItemsRandomInitial(true);
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
@@ -166,7 +168,7 @@ describe('Key list', () => {
 			});
 			test('INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
 				const parser = new YantrixParser();
-				const keyItems = [{ value: 'prop3,' }, ...getKeyItemsRandomInitial()];
+				const keyItems = [{ value: ',prop3=' }, ...getKeyItemsRandomInitial()];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
@@ -178,7 +180,7 @@ describe('Key list', () => {
 				const keyItems = getKeyItemsRandomInitial();
 
 				const itemsValue = keyItems.map((item: any, index: any) => {
-					if (index === Math.floor(keyItems.length / 2) + 1) {
+					if (index === Math.floor(keyItems.length / 2)) {
 						return `${item.value},`;
 					}
 					return item.value;
@@ -186,6 +188,16 @@ describe('Key list', () => {
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+			test('INPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
+				const parser = new YantrixParser();
+				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
+				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
+				const keyItems = [{ value: `pro${randomInvalidSymbol}p3=` }, ...getKeyItemsRandomInitial()];
+				const itemsValue = keyItems.map((item: any) => item.value);
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+				const callError = () => parser.parse(formattedInput);
+				expect(callError).toThrowError();
 			});
 		});
 	});
