@@ -519,9 +519,7 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 					note: [],
 				},
 			],
-			notes: [
-				['simple right side note', 'another simple left side note'],
-			],
+			notes: [['simple right side note', 'another simple left side note']],
 		},
 		{
 			id: 'B',
@@ -550,13 +548,7 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 				actionsPath: [
 					{
 						action: ['~~~START~~~, A, 0', 'A, B, 1'],
-						note: [
-							[
-								'simple right side note',
-								'another simple left side note',
-								'in 2 lines',
-							],
-						],
+						note: [['simple right side note', 'another simple left side note', 'in 2 lines']],
 					},
 				],
 			},
@@ -564,13 +556,7 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 				actionsPath: [
 					{
 						action: ['~~~START~~~, A, 0', 'A, C, 2'],
-						note: [
-							[
-								'simple right side note',
-								'another simple left side note',
-								'in 2 lines',
-							],
-						],
+						note: [['simple right side note', 'another simple left side note', 'in 2 lines']],
 					},
 				],
 			},
@@ -603,23 +589,11 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 			actionsPath: [
 				{
 					action: ['~~~START~~~, A, 0', 'A, B, 1'],
-					note: [
-						[
-							'simple right side note',
-							'another simple left side note',
-							'in 2 lines',
-						],
-					],
+					note: [['simple right side note', 'another simple left side note', 'in 2 lines']],
 				},
 				{
 					action: ['~~~START~~~, A, 0', 'A, C, 2'],
-					note: [
-						[
-							'simple right side note',
-							'another simple left side note',
-							'in 2 lines',
-						],
-					],
+					note: [['simple right side note', 'another simple left side note', 'in 2 lines']],
 				},
 			],
 			notes: [],
@@ -857,31 +831,13 @@ export const stateDiagramDoublePathExpectedResult = {
 				actionsPath: [
 					{
 						action: ['A, ChoiceState1, 1', 'ChoiceState1, B, 3'],
-						note: [
-							[
-								'this is multiline',
-								'comment left of',
-								'first choice',
-							],
-						],
+						note: [['this is multiline', 'comment left of', 'first choice']],
 					},
 					{
-						action: [
-							'A, ChoiceState1, 1',
-							'ChoiceState1, ChoiceState2, 2',
-							'ChoiceState2, B, 4',
-						],
+						action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, B, 4'],
 						note: [
-							[
-								'this is multiline',
-								'comment left of',
-								'first choice',
-							],
-							[
-								'this is another',
-								'multiline comment',
-								'right of second choice',
-							],
+							['this is multiline', 'comment left of', 'first choice'],
+							['this is another', 'multiline comment', 'right of second choice'],
 						],
 					},
 				],
@@ -889,22 +845,10 @@ export const stateDiagramDoublePathExpectedResult = {
 			D: {
 				actionsPath: [
 					{
-						action: [
-							'A, ChoiceState1, 1',
-							'ChoiceState1, ChoiceState2, 2',
-							'ChoiceState2, D, 5',
-						],
+						action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, D, 5'],
 						note: [
-							[
-								'this is multiline',
-								'comment left of',
-								'first choice',
-							],
-							[
-								'this is another',
-								'multiline comment',
-								'right of second choice',
-							],
+							['this is multiline', 'comment left of', 'first choice'],
+							['this is another', 'multiline comment', 'right of second choice'],
 						],
 					},
 				],
@@ -949,50 +893,20 @@ export const stateDiagramDoublePathExpectedResult = {
 			actionsPath: [
 				{
 					action: ['A, ChoiceState1, 1', 'ChoiceState1, B, 3'],
+					note: [['this is multiline', 'comment left of', 'first choice']],
+				},
+				{
+					action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, B, 4'],
 					note: [
-						[
-							'this is multiline',
-							'comment left of',
-							'first choice',
-						],
+						['this is multiline', 'comment left of', 'first choice'],
+						['this is another', 'multiline comment', 'right of second choice'],
 					],
 				},
 				{
-					action: [
-						'A, ChoiceState1, 1',
-						'ChoiceState1, ChoiceState2, 2',
-						'ChoiceState2, B, 4',
-					],
+					action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, D, 5'],
 					note: [
-						[
-							'this is multiline',
-							'comment left of',
-							'first choice',
-						],
-						[
-							'this is another',
-							'multiline comment',
-							'right of second choice',
-						],
-					],
-				},
-				{
-					action: [
-						'A, ChoiceState1, 1',
-						'ChoiceState1, ChoiceState2, 2',
-						'ChoiceState2, D, 5',
-					],
-					note: [
-						[
-							'this is multiline',
-							'comment left of',
-							'first choice',
-						],
-						[
-							'this is another',
-							'multiline comment',
-							'right of second choice',
-						],
+						['this is multiline', 'comment left of', 'first choice'],
+						['this is another', 'multiline comment', 'right of second choice'],
 					],
 				},
 			],

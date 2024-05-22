@@ -6,15 +6,10 @@
 import { TAbstractConstructor } from '../types/index.js';
 
 export default function DictionaryContainer<ItemType>() {
-	return <TBase extends TAbstractConstructor = TAbstractConstructor>(
-		base: TBase,
-	) =>
+	return <TBase extends TAbstractConstructor = TAbstractConstructor>(base: TBase) =>
 		class AbstractDictionaryContainer extends base {
 			_dictionary: Record<string, ItemType> = {};
-			_dictionaryIndex = new Map<
-				ItemType,
-				{ key: string; namespace?: string }
-			>();
+			_dictionaryIndex = new Map<ItemType, { key: string; namespace?: string }>();
 			_namespaceIndex: Record<string, string[]> = {};
 
 			getDictionary(namespace?: string) {
@@ -46,9 +41,7 @@ export default function DictionaryContainer<ItemType>() {
 				delete this._dictionary[k];
 				if (!namespace) return null;
 				if (this._namespaceIndex[namespace])
-					this._namespaceIndex[namespace] = this._namespaceIndex[
-						namespace
-					].filter((v) => v !== k);
+					this._namespaceIndex[namespace] = this._namespaceIndex[namespace].filter((v) => v !== k);
 				return null;
 			}
 
@@ -59,13 +52,9 @@ export default function DictionaryContainer<ItemType>() {
 
 			_getItemValue(itemKey: string, namespace?: string) {
 				if (!itemKey?.length) throw new Error(`item key is empty`);
-				let value = this._stringHash(
-					this._getItemKey(itemKey, namespace),
-				);
+				let value = this._stringHash(this._getItemKey(itemKey, namespace));
 				if (Object.values(this._dictionary).includes(value as ItemType))
-					value =
-						value +
-						this._stringHash(JSON.stringify(this._dictionary));
+					value = value + this._stringHash(JSON.stringify(this._dictionary));
 				return value as ItemType;
 			}
 
@@ -75,9 +64,9 @@ export default function DictionaryContainer<ItemType>() {
 				const meta = this._dictionaryIndex.get(item);
 				delete this._dictionary[itemKey];
 				if (meta?.namespace)
-					this._namespaceIndex[meta.namespace] = this._namespaceIndex[
-						meta.namespace
-					].filter((v) => v !== itemKey);
+					this._namespaceIndex[meta.namespace] = this._namespaceIndex[meta.namespace].filter(
+						(v) => v !== itemKey,
+					);
 				this._dictionaryIndex.delete(item);
 				return this;
 			}
@@ -91,16 +80,13 @@ export default function DictionaryContainer<ItemType>() {
 				if (this._dictionary[k])
 					throw new Error(
 						`Item key ${itemKey} is taken within ${
-							namespace == null
-								? 'default namespace'
-								: `namespace "${namespace}"`
+							namespace == null ? 'default namespace' : `namespace "${namespace}"`
 						}`,
 					);
 				const value = this._getItemValue(itemKey, namespace);
 				this._dictionary[k] = value;
 				if (namespace) {
-					if (!this._namespaceIndex[namespace])
-						this._namespaceIndex[namespace] = [];
+					if (!this._namespaceIndex[namespace]) this._namespaceIndex[namespace] = [];
 					this._namespaceIndex[namespace].push(k);
 				}
 				this._dictionaryIndex.set(value, { key: k, namespace });
@@ -109,8 +95,7 @@ export default function DictionaryContainer<ItemType>() {
 
 			_clearItems(namespace?: string) {
 				if (namespace != null) {
-					for (const itemKey of this._namespaceIndex[namespace] ??
-						[]) {
+					for (const itemKey of this._namespaceIndex[namespace] ?? []) {
 						this._deleteItemKey(itemKey);
 					}
 					delete this._namespaceIndex[namespace];

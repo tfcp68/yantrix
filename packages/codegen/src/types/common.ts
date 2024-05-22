@@ -4,31 +4,31 @@ import { Modules } from '../core/modules/index.js';
 export type TStateDiagramSyntaxTree = TStateDiagram;
 
 export interface ICodegenOptions {
-  language: TOutLang;
+	language: TOutLang;
 }
 
 export interface IGenerateOptions {
-  className: string;
-  outLang: TOutLang;
+	className: string;
+	outLang: TOutLang;
 }
 
 export interface ITypedObjectProps {
-  typeName: string;
-  typeGuardName: string;
-  name: string;
-  body: string;
+	typeName: string;
+	typeGuardName: string;
+	name: string;
+	body: string;
 }
 
 export interface ITypedObject extends ITypedObjectProps {
-  codeBlock: string;
+	codeBlock: string;
 }
 
 export interface ICodegen {
-  dictionaries: string[];
-  changeStateHandlers: string[];
-  handlersDict: string[];
-  getClassTemplate(className: string): string;
-  getImports(): string;
+	dictionaries: string[];
+	changeStateHandlers: string[];
+	handlersDict: string[];
+	getClassTemplate(className: string): string;
+	getImports(): string;
 }
 
 export type TOutLang = keyof typeof Modules;
