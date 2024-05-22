@@ -1,4 +1,8 @@
-import type { ITypedObject, ITypedObjectProps } from '../types.js';
+import type { ITypedObject, ITypedObjectProps } from '../types/common.js';
+import { join } from 'path';
+import { cwd } from 'node:process';
+import { readFile } from 'fs/promises';
+import { format } from 'prettier';
 
 export const toUpperFirst = (str: string) => {
 	return str.charAt(0).toUpperCase() + str.slice(1);
@@ -33,4 +37,15 @@ export const toTypedObject = <T>(obj: T, name: string) => {
 		...props,
 		codeBlock,
 	} satisfies ITypedObject;
+};
+
+const prettierCfgPath = join(cwd(), '.prettierrc');
+export const fmt = async (code: string) => {
+	try {
+		const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
+		const prettierCfg = JSON.parse(prettierCfgRaw);
+		return format(code, { ...prettierCfg, parser: 'babel-ts' });
+	} catch {
+		return code;
+	}
 };

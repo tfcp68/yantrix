@@ -1,7 +1,7 @@
-import type { ICodegen } from '../types.js';
+import type { ICodegen } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
-import { fillDictionaries } from './shared.js';
+import { fillDictionaries } from '../shared.js';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
@@ -29,6 +29,18 @@ export class JavaScriptCodegen implements ICodegen {
 
 	public getImports() {
 		return `import { GenericAutomata } from "@yantrix/automata";`;
+	}
+
+	public getHandlers(): string {
+		return this.handlersDict.join('\n');
+	}
+
+	public getDictionaries(): string {
+		return this.dictionaries.join('\n');
+	}
+
+	public getChangeStateHandlers(): string {
+		return this.changeStateHandlers.join('\n');
 	}
 
 	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {

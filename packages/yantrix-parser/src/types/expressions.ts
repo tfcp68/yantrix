@@ -12,16 +12,16 @@ export const ExpressionTypes = {
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
 type TExpressionString = {
-  StringDeclaration: string;
+	StringDeclaration: string;
 };
 type TExpressionArray = {
-  ArrayDeclaration: [];
+	ArrayDeclaration: [];
 };
 type TExpressionProperty = {
-  Property: any;
+	Property: any;
 };
 type TExpressionFunctionProperty = {
-  Property: any;
+	Property: any;
 };
 type TExpressionNumber = {
 	NumberExpression: number;
@@ -29,10 +29,10 @@ type TExpressionNumber = {
 type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
 
 type TExpressionFunction = {
-  FunctionDeclaration: {
-    FunctionName: string;
-    Arguments?: TFunctionArgument[];
-  };
+	FunctionDeclaration: {
+		FunctionName: string;
+		Arguments?: TFunctionArgument[];
+	};
 };
 
 export type TMapped = {
@@ -40,7 +40,7 @@ export type TMapped = {
 	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
 	[ExpressionTypes.Function]: TExpressionFunction;
 	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
-	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber
+	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
 	[ExpressionTypes.Property]: TExpressionProperty;
 };

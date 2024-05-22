@@ -1,42 +1,20 @@
-import { codegens } from './codegens/index.js';
-import {
-  ICodegenOptions,
-  TCodegenType,
-  TStateDiagramSyntaxTree,
-} from './types.js';
-import { fmt } from './utils.js';
-import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { TNotes, YantrixParser } from '@yantrix/yantrix-parser';
+import { IGenerateOptions, TStateDiagramSyntaxTree } from './types/common.js';
+import { fmt } from './utils/utils.js';
+import { CodegenCreator } from './core/Codegen.js';
 
-export const generate = async (
-  diagramText: string,
-  options: ICodegenOptions,
-  codeType: TCodegenType = 'TypeScript',
-) => {
-  const parsedDiagram = await parseStateDiagram(diagramText);
+export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramSyntaxTree, options: IGenerateOptions) => {
+	const creator = new CodegenCreator(diagram);
+	const codegen = creator.createCodegen({
+		language: options.outLang ?? 'TypeScript',
+	});
 
-  const stateDiagram = await createStateDiagram(parsedDiagram);
-  const yantrixParser = new YantrixParser();
-
-  const syntaxTree: TStateDiagramSyntaxTree = {
-    ...stateDiagram,
-    notes: parsedDiagram.notes.map((note) => {
-      return {
-        state: note.over === '[*]' ? '/~~~START~~~' : note.over,
-        dict: yantrixParser.parse(note.text.join('')) as TNotes,
-      };
-    }),
-  };
-
-  const codegen = new codegens[codeType](syntaxTree);
-
-  return fmt(
-    [
-      codegen.getImports(),
-      ...codegen.dictionaries,
-      ...codegen.changeStateHandlers,
-      ...codegen.handlersDict,
-      codegen.getClassTemplate(options.className),
-    ].join('\n'),
-  );
+	return fmt(
+		[
+			codegen.getImports(),
+			codegen.getDictionaries(),
+			codegen.getChangeStateHandlers(),
+			codegen.getHandlers(),
+			codegen.getClassTemplate(options.className),
+		].join('\n'),
+	);
 };
