@@ -17,10 +17,7 @@ export default function ExtendedValidatorContainer<
 	EventMetaType extends { [K in EventType]: any },
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
-		class AbstractExtendedValidatorContainer extends ExtendedStateContainer<
-			StateType,
-			ContextType
-		>()(
+		class AbstractExtendedValidatorContainer extends ExtendedStateContainer<StateType, ContextType>()(
 			ExtendedEventContainer<EventType, EventMetaType>()(
 				ExtendedActionContainer<ActionType, PayloadType>()(Proto),
 			),

@@ -1,73 +1,73 @@
 {
-  "name": "@yantrix/monorepo",
-  "private": true,
-  "version": "0.0.1",
-  "description": "Event-Driven FSM Framework",
-  "type": "module",
-  "scripts": {
-    "clean": "lerna exec rimraf dist coverage",
-    "build": "lerna run build",
-    "build:affected": "lerna run build --since=origin/main",
-    "build:clean": "pnpm clean && pnpm build",
-    "test": "lerna run test --verbose",
-    "test:affected": "lerna run test --since=origin/main",
-    "lint": "lerna run lint",
-    "lint:affected": "lerna run lint --since=origin/main",
-    "format": "lerna run format",
-    "format:affected": "lerna run format --since=origin/main",
-    "yalc:all": "lerna exec -- yalc push --replace",
-    "publish:local": "pnpm build:clean && pnpm yalc:all",
-    "postinstall": "is-ci || husky install",
-    "upd": "pnpm --interactive update --latest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/octaharon/yantrix.git"
-  },
-  "keywords": [
-    "fsm",
-    "typescript",
-    "state",
-    "management",
-    "eda",
-    "uml",
-    "mermaidjs"
-  ],
-  "author": "Alexander Uskov <neolord.tmb@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/octaharon/yantrix/issues"
-  },
-  "homepage": "https://github.com/octaharon/yantrix#readme",
-  "peerDependencies": {
-    "yalc": "1.0.0-pre.53"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^18.6.1",
-    "@commitlint/config-conventional": "^18.6.2",
-    "@types/node": "^20.11.19",
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
-    "@vitest/coverage-v8": "^1.3.1",
-    "cross-env": "^7.0.3",
-    "eslint": "^8.42.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "husky": "^9.0.11",
-    "is-ci": "^3.0.1",
-    "lerna": "^8.1.2",
-    "lint-staged": "^15.2.2",
-    "rimraf": "^5.0.1",
-    "typescript": "^5.1.3",
-    "vitest": "^1.3.1"
-  },
-  "workspaces": [
-    "packages/*"
-  ],
-  "dependencies": {
-    "@types/lodash-es": "^4.17.12",
-    "lodash-es": "^4.17.21",
-    "npm-check": "^6.0.1",
-    "prettier": "^3.2.5"
-  }
+	"name": "@yantrix/monorepo",
+	"private": true,
+	"version": "0.0.1",
+	"description": "Event-Driven FSM Framework",
+	"type": "module",
+	"scripts": {
+		"clean": "lerna exec rimraf dist coverage",
+		"build": "lerna run build",
+		"build:affected": "lerna run build --since=origin/main",
+		"build:clean": "pnpm clean && pnpm build",
+		"test": "lerna run test --verbose",
+		"test:affected": "lerna run test --since=origin/main",
+		"lint": "lerna run lint",
+		"lint:affected": "lerna run lint --since=origin/main",
+		"format": "lerna run format",
+		"format:affected": "lerna run format --since=origin/main",
+		"yalc:all": "lerna exec -- yalc push --replace",
+		"publish:local": "pnpm build:clean && pnpm yalc:all",
+		"postinstall": "is-ci || husky install",
+		"upd": "pnpm --interactive update --latest"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git"
+	},
+	"keywords": [
+		"fsm",
+		"typescript",
+		"state",
+		"management",
+		"eda",
+		"uml",
+		"mermaidjs"
+	],
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
+	},
+	"homepage": "https://github.com/octaharon/yantrix#readme",
+	"peerDependencies": {
+		"yalc": "1.0.0-pre.53"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^18.6.1",
+		"@commitlint/config-conventional": "^18.6.2",
+		"@types/node": "^20.11.19",
+		"@typescript-eslint/eslint-plugin": "^7.0.2",
+		"@typescript-eslint/parser": "^7.0.2",
+		"@vitest/coverage-v8": "^1.3.1",
+		"cross-env": "^7.0.3",
+		"eslint": "^8.42.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-prettier": "^5.0.0",
+		"husky": "^9.0.11",
+		"is-ci": "^3.0.1",
+		"lerna": "^8.1.2",
+		"lint-staged": "^15.2.2",
+		"rimraf": "^5.0.1",
+		"typescript": "^5.1.3",
+		"vitest": "^1.3.1"
+	},
+	"workspaces": [
+		"packages/*"
+	],
+	"dependencies": {
+		"@types/lodash-es": "^4.17.12",
+		"lodash-es": "^4.17.21",
+		"npm-check": "^6.0.1",
+		"prettier": "^3.2.5"
+	}
 }

@@ -15,11 +15,7 @@
 			"jsx": true
 		}
 	},
-	"extends": [
-		"eslint:recommended",
-		"plugin:@typescript-eslint/recommended",
-		"prettier"
-	],
+	"extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
 	"plugins": ["prettier", "@typescript-eslint"],
 	"rules": {
 		"no-unused-vars": "off",
@@ -158,14 +154,7 @@
 		"default-case": "error",
 		"eqeqeq": ["warn", "always"],
 		"guard-for-in": "error",
-		"id-blacklist": [
-			"warn",
-			"any",
-			"Number",
-			"String",
-			"Boolean",
-			"Undefined"
-		],
+		"id-blacklist": ["warn", "any", "Number", "String", "Boolean", "Undefined"],
 		"id-match": "error",
 		"import/no-default-export": "off",
 		"import/no-deprecated": "off",

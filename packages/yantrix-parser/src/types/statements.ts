@@ -17,6 +17,9 @@ export type TEventEmitStatement<T extends TKeyItems = TKeyItems> = {
   eventName: string;
 } & (T extends undefined ? {} : { payload: T });
 
+export type TContextStatement<T extends TKeyItems = TKeyItems, X extends TKeyItems = TKeyItems> = {
+	context: T;
+	payload: X;
 export type TPreviousContextToContext<T extends TKeyItems = TKeyItems> = {
   prevContext: T;
 };

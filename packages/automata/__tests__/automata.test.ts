@@ -2,19 +2,8 @@ import { sampleRange } from '@yantrix/utils';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
 import { createAutomata, createEventAdapter } from '../src/index.js';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import {
-	TAutomataActionPayload,
-	TAutomataEvent,
-	TValidator,
-} from '../src/types/index.js';
-import {
-	TTestAction,
-	TTestContext,
-	TTestEvent,
-	TTestEventMeta,
-	TTestPayload,
-	TTestState,
-} from './fixtures/index.js';
+import { TAutomataActionPayload, TAutomataEvent, TValidator } from '../src/types/index.js';
+import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index.js';
 
 const EventAdapterTest = createEventAdapter<
 	TTestState,
@@ -59,19 +48,9 @@ class AutomataTest extends createAutomata<
 
 const testReducer =
 	(sampleState: number) =>
-	(
-		params: TAutomataEvent<
-			TTestState,
-			TTestAction,
-			TTestContext<TTestState>,
-			TTestPayload<TTestAction>
-		>,
-	) => ({
+	(params: TAutomataEvent<TTestState, TTestAction, TTestContext<TTestState>, TTestPayload<TTestAction>>) => ({
 		context: {
-			context: Object.values(params?.payload ?? {}).reduce(
-				(a, b) => a + b,
-				0,
-			),
+			context: Object.values(params?.payload ?? {}).reduce((a, b) => a + b, 0),
 		},
 		state: (params?.action ?? 0) + sampleState,
 	});
@@ -80,10 +59,7 @@ describe(`Automata`, () => {
 	let sampleInstance: AutomataTest = new AutomataTest();
 	let aQueue: ReturnType<(typeof sampleInstance)['getActionQueue']>;
 	let state: ReturnType<(typeof sampleInstance)['getContext']>;
-	let sampleAction: TAutomataActionPayload<
-		TTestAction,
-		TTestPayload<TTestAction>
-	>;
+	let sampleAction: TAutomataActionPayload<TTestAction, TTestPayload<TTestAction>>;
 	beforeEach(() => {
 		vitest.restoreAllMocks();
 		vitest.clearAllTimers();
@@ -97,87 +73,64 @@ describe(`Automata`, () => {
 			expect(sampleInstance).toBeInstanceOf(AbstractBaseClass);
 		});
 		test('sets the EventAdapter', () => {
-			expect(sampleInstance.eventAdapter).toBeInstanceOf(
-				EventAdapterTest,
-			);
+			expect(sampleInstance.eventAdapter).toBeInstanceOf(EventAdapterTest);
 		});
 	});
 
 	describe('/setEventValidator', () => {
-		const testValidator = ((a: number) =>
-			a % 2 === 0) as TValidator<TTestEvent>;
+		const testValidator = ((a: number) => a % 2 === 0) as TValidator<TTestEvent>;
 		test('accepts a function to overwrite default Event Validator', () => {
 			sampleInstance.setEventValidator(testValidator);
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
-				expect(sampleInstance.validateEvent(sampleValue)).toBe(
-					testValidator(sampleValue),
-				);
+				expect(sampleInstance.validateEvent(sampleValue)).toBe(testValidator(sampleValue));
 			}
 		});
 		test('resets the Event Validator to default when called with null', () => {
 			sampleInstance.setEventValidator(testValidator);
 			sampleInstance.setEventValidator(null);
-			expect(sampleInstance.validateEvent).toBe(
-				sampleInstance.getDefaultEventValidator(),
-			);
+			expect(sampleInstance.validateEvent).toBe(sampleInstance.getDefaultEventValidator());
 		});
 		test('returns self', () => {
-			expect(sampleInstance.setEventValidator(testValidator)).toBe(
-				sampleInstance,
-			);
+			expect(sampleInstance.setEventValidator(testValidator)).toBe(sampleInstance);
 		});
 	});
 
 	describe('/setActionValidator', () => {
-		const testValidator = ((a: number) =>
-			a % 15 === 0) as TValidator<TTestAction>;
+		const testValidator = ((a: number) => a % 15 === 0) as TValidator<TTestAction>;
 		test('accepts a function to overwrite default Action Validator', () => {
 			sampleInstance.setActionValidator(testValidator);
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
-				expect(sampleInstance.validateAction(sampleValue)).toBe(
-					testValidator(sampleValue),
-				);
+				expect(sampleInstance.validateAction(sampleValue)).toBe(testValidator(sampleValue));
 			}
 		});
 		test('resets the Action Validator to default when called with null', () => {
 			sampleInstance.setActionValidator(testValidator);
 			sampleInstance.setActionValidator(null);
-			expect(sampleInstance.validateAction).toBe(
-				sampleInstance.getDefaultActionValidator(),
-			);
+			expect(sampleInstance.validateAction).toBe(sampleInstance.getDefaultActionValidator());
 		});
 		test('returns self', () => {
-			expect(sampleInstance.setActionValidator(testValidator)).toBe(
-				sampleInstance,
-			);
+			expect(sampleInstance.setActionValidator(testValidator)).toBe(sampleInstance);
 		});
 	});
 
 	describe('/setStateValidator', () => {
-		const testValidator = ((a: number) =>
-			a % 15 === 0) as TValidator<TTestState>;
+		const testValidator = ((a: number) => a % 15 === 0) as TValidator<TTestState>;
 		test('accepts a function to overwrite default State Validator', () => {
 			sampleInstance.setStateValidator(testValidator);
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
-				expect(sampleInstance.validateState(sampleValue)).toBe(
-					testValidator(sampleValue),
-				);
+				expect(sampleInstance.validateState(sampleValue)).toBe(testValidator(sampleValue));
 			}
 		});
 		test('resets the State Validator to default when called with null', () => {
 			sampleInstance.setStateValidator(testValidator);
 			sampleInstance.setStateValidator(null);
-			expect(sampleInstance.validateState).toBe(
-				sampleInstance.getDefaultStateValidator(),
-			);
+			expect(sampleInstance.validateState).toBe(sampleInstance.getDefaultStateValidator());
 		});
 		test('returns self', () => {
-			expect(sampleInstance.setStateValidator(testValidator)).toBe(
-				sampleInstance,
-			);
+			expect(sampleInstance.setStateValidator(testValidator)).toBe(sampleInstance);
 		});
 	});
 
@@ -359,9 +312,7 @@ describe(`Automata`, () => {
 			sampleInstance.clearActionQueue();
 			const reducer = sampleInstance.getReducer();
 			if (!reducer) throw new Error('No Reducer');
-			const sampleValues = new Array(sampleRange(5, 10))
-				.fill(null)
-				.map(() => sampleRange(0, 100));
+			const sampleValues = new Array(sampleRange(5, 10)).fill(null).map(() => sampleRange(0, 100));
 			for (const count of sampleValues) {
 				const result = sampleInstance.consumeAction(count);
 				expect(result).toEqual({
@@ -413,12 +364,10 @@ describe(`Automata`, () => {
 			}> = [];
 			beforeEach(() => {
 				sampleInstance.clearActionQueue();
-				testActions = new Array(sampleRange(7, 10))
-					.fill(null)
-					.map(() => ({
-						action: sampleRange(1, 100),
-						payload: { payload: sampleRange(1, 100) },
-					}));
+				testActions = new Array(sampleRange(7, 10)).fill(null).map(() => ({
+					action: sampleRange(1, 100),
+					payload: { payload: sampleRange(1, 100) },
+				}));
 			});
 			test('pops all Actions from Action Queue and returns computed Context, when called with number greater than queue length', () => {
 				const reducer = sampleInstance.getReducer();
@@ -492,9 +441,7 @@ describe(`Automata`, () => {
 				// has changed
 				expect(sampleInstance.getContext()).toEqual(newState);
 				// has changed
-				expect(sampleInstance.getActionQueue()).toEqual(
-					aQueue.slice(count),
-				);
+				expect(sampleInstance.getActionQueue()).toEqual(aQueue.slice(count));
 				expect(sampleInstance.isPaused()).toBe(true);
 				expect(sampleInstance.isEnabled()).toBe(true);
 			});
@@ -618,10 +565,7 @@ describe(`Automata`, () => {
 				const expectedResult = reducer({ ...state, ...sampleAction });
 				expect(sampleInstance.getContext()).toEqual(state);
 				expect(result).toEqual(expectedResult);
-				expect(sampleInstance.getActionQueue()).toEqual([
-					...aQueue,
-					sampleAction,
-				]);
+				expect(sampleInstance.getActionQueue()).toEqual([...aQueue, sampleAction]);
 				expect(sampleInstance.getActionQueue().length).toBe(1);
 			});
 			test("Doesn't Disable or Resume", () => {
@@ -645,10 +589,7 @@ describe(`Automata`, () => {
 				const expectedResult = reducer({ ...state, ...sampleAction });
 				expect(sampleInstance.getContext()).toEqual(state);
 				expect(result).toEqual(expectedResult);
-				expect(sampleInstance.getActionQueue()).toEqual([
-					...aQueue,
-					sampleAction,
-				]);
+				expect(sampleInstance.getActionQueue()).toEqual([...aQueue, sampleAction]);
 				expect(sampleInstance.getActionQueue().length).toBe(1);
 			});
 			test("Doesn't Enable or Resume", () => {
@@ -720,30 +661,21 @@ describe(`Automata`, () => {
 
 				expect(sampleInstance.isPaused()).toBe(true);
 				expect(state).toMatchObject(sampleInstance.getContext());
-				expect(sampleInstance.getActionQueue()).toEqual([
-					...aQueue,
-					sampleAction,
-				]);
+				expect(sampleInstance.getActionQueue()).toEqual([...aQueue, sampleAction]);
 			});
 
 			describe('Enabling/Disabling in Paused mode', () => {
 				test('Disable is invariant to Paused and Context, but not to Action Queue', () => {
 					sampleInstance.disable();
 					sampleInstance.dispatch(sampleAction);
-					expect(sampleInstance.getActionQueue()).toEqual([
-						...aQueue,
-						sampleAction,
-					]);
+					expect(sampleInstance.getActionQueue()).toEqual([...aQueue, sampleAction]);
 					expect(state).toMatchObject(sampleInstance.getContext());
 					expect(sampleInstance.isPaused()).toBe(true);
 				});
 				test('Enable is invariant to Paused, and Context, but not to Action Queue', () => {
 					sampleInstance.enable();
 					sampleInstance.dispatch(sampleAction);
-					expect(sampleInstance.getActionQueue()).toEqual([
-						...aQueue,
-						sampleAction,
-					]);
+					expect(sampleInstance.getActionQueue()).toEqual([...aQueue, sampleAction]);
 					expect(state).toMatchObject(sampleInstance.getContext());
 					expect(sampleInstance.isPaused()).toBe(true);
 				});
@@ -751,9 +683,7 @@ describe(`Automata`, () => {
 					sampleInstance.disable(true);
 					sampleInstance.dispatch(sampleAction);
 					expect(state).toMatchObject(sampleInstance.getContext());
-					expect(sampleInstance.getActionQueue()).toEqual([
-						sampleAction,
-					]);
+					expect(sampleInstance.getActionQueue()).toEqual([sampleAction]);
 					expect(sampleInstance.isPaused()).toBe(true);
 				});
 			});
@@ -823,9 +753,7 @@ describe(`Automata`, () => {
 					expect(sampleInstance.getActionQueue()).toEqual(aQueue);
 					const reducer = sampleInstance.getReducer();
 					if (reducer)
-						expect(sampleInstance.getContext()).toMatchObject(
-							reducer({ ...state, ...sampleAction }),
-						);
+						expect(sampleInstance.getContext()).toMatchObject(reducer({ ...state, ...sampleAction }));
 					expect(sampleInstance.isPaused()).toBe(false);
 				});
 			});
@@ -900,9 +828,7 @@ describe(`Automata`, () => {
 			expect(sampleInstance.getContext()).not.toBe(testContext);
 			testContext.state = sampleRange(25, 50);
 			expect(sampleInstance.getContext()).not.toEqual(testContext);
-			expect(sampleInstance.getContext()).not.toBe(
-				sampleInstance.getContext(),
-			);
+			expect(sampleInstance.getContext()).not.toBe(sampleInstance.getContext());
 		});
 	});
 
@@ -1019,8 +945,7 @@ describe(`Automata`, () => {
 				};
 				sampleInstance.dispatch(sampleAction);
 				sampleInstance.dispatch(extraAction);
-				const { newState, actions } =
-					sampleInstance.collapseActionQueue();
+				const { newState, actions } = sampleInstance.collapseActionQueue();
 				expect(newState).toEqual(
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
@@ -1046,8 +971,7 @@ describe(`Automata`, () => {
 				const testContext = sampleInstance.getContext();
 				sampleInstance.dispatch(sampleAction);
 				sampleInstance.dispatch(extraAction);
-				const { newState, actions } =
-					sampleInstance.collapseActionQueue();
+				const { newState, actions } = sampleInstance.collapseActionQueue();
 				expect(newState).toEqual(
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
@@ -1079,8 +1003,7 @@ describe(`Automata`, () => {
 				sampleInstance.dispatch(sampleAction);
 				sampleInstance.dispatch(extraAction);
 				expect(sampleInstance.getActionQueue()).toEqual([]);
-				const { newState, actions } =
-					sampleInstance.collapseActionQueue();
+				const { newState, actions } = sampleInstance.collapseActionQueue();
 				expect(newState).toEqual(
 					reducer({
 						...reducer({ ...testContext, ...sampleAction }),
@@ -1106,8 +1029,7 @@ describe(`Automata`, () => {
 				const testContext = sampleInstance.getContext();
 				sampleInstance.dispatch(sampleAction);
 				sampleInstance.dispatch(extraAction);
-				const { newState, actions } =
-					sampleInstance.collapseActionQueue();
+				const { newState, actions } = sampleInstance.collapseActionQueue();
 				expect(newState).toEqual(testContext);
 				expect(actions).toEqual([]);
 				expect(sampleInstance.getActionQueue()).toEqual([]);

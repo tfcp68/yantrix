@@ -24,10 +24,12 @@ export type TDiagramAction = {
   actionsPath: TActionPathArray;
 };
 
-export type TDiagramTransitions = Record<
-  string,
-  Record<string, TDiagramAction>
->;
+export type TDiagramTransitions = Record<string, Record<string, TDiagramAction>>;
+
+export type TStateDiagram = {
+	states: TDiagramStatesArray;
+	transitions: TDiagramTransitions;
+};
 
 export type TFromChoice = {
   choice: string;

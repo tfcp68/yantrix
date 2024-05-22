@@ -2,12 +2,12 @@ import type { ICodegen } from '../types.js';
 import { JavaScriptCodegen } from './JavaScriptCodegen.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
-  protected getHandleStateChangeDeclaration(value: number, body: string) {
-    return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {${body}}`;
-  }
+	protected getHandleStateChangeDeclaration(value: number, body: string) {
+		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {${body}}`;
+	}
 
-  public getClassTemplate(className: string) {
-    return `export class ${className} extends GenericAutomata {
+	public getClassTemplate(className: string) {
+		return `export class ${className} extends GenericAutomata {
   		public constructor() {
   			super();
   			this.init({
@@ -27,5 +27,5 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
   			});
   		}
   	}`;
-  }
+	}
 }

@@ -1,9 +1,4 @@
-import {
-	pickFromArray,
-	popFromArray,
-	sampleArray,
-	sampleRange,
-} from '@yantrix/utils';
+import { pickFromArray, popFromArray, sampleArray, sampleRange } from '@yantrix/utils';
 import * as _ from 'underscore';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
 import { BasicActionDictionary } from '../src/ActionDictionary.js';
@@ -30,11 +25,7 @@ const testNamespace = 'test';
 const testNamespaceCross = 'cross';
 const testNamespaceExtra = 'extra';
 
-const testValues = _.shuffle(
-	_.range('a'.charCodeAt(0), 'z'.charCodeAt(0)).map((v) =>
-		String.fromCharCode(v),
-	),
-);
+const testValues = _.shuffle(_.range('a'.charCodeAt(0), 'z'.charCodeAt(0)).map((v) => String.fromCharCode(v)));
 // creating a random sets of letters
 const testSamples = [
 	popFromArray(testValues, 1),
@@ -51,17 +42,12 @@ const sampleKeys = {
 	// namespace 2: shares some keys with namespace 3, no intersections with namespace 1
 	[testNamespace]: [...testSamples[1], ...testSamples[3]],
 	// namespace 3: shares some keys with namespaces 1 and 2
-	[testNamespaceCross]: [
-		...testSamples[0],
-		...testSamples[1],
-		...testSamples[4],
-	],
+	[testNamespaceCross]: [...testSamples[0], ...testSamples[1], ...testSamples[4]],
 	// namespace 4: is not represented in the dictionary
 	[testNamespaceExtra]: testSamples[5],
 };
 
-const sampleAction = () =>
-	pickFromArray(Object.values(sampleKeys).flatMap((x) => x))[0];
+const sampleAction = () => pickFromArray(Object.values(sampleKeys).flatMap((x) => x))[0];
 
 describe('ActionDictionary', () => {
 	beforeEach(() => {
@@ -87,28 +73,21 @@ describe('ActionDictionary', () => {
 	});
 
 	describe('/setActionValidator', () => {
-		const testValidator = ((a: number) =>
-			a % 15 === 0) as TValidator<TTestAction>;
+		const testValidator = ((a: number) => a % 15 === 0) as TValidator<TTestAction>;
 		test('accepts a function to overwrite default Action Validator', () => {
 			sampleInstance.setActionValidator(testValidator);
 			for (let i = 0; i < 100; i++) {
 				const sampleValue = sampleRange(-1e6, 1e6);
-				expect(sampleInstance.validateAction(sampleValue)).toBe(
-					testValidator(sampleValue),
-				);
+				expect(sampleInstance.validateAction(sampleValue)).toBe(testValidator(sampleValue));
 			}
 		});
 		test('resets the Action Validator to default when called with null', () => {
 			sampleInstance.setActionValidator(testValidator);
 			sampleInstance.setActionValidator(null);
-			expect(sampleInstance.validateAction).toBe(
-				sampleInstance.getDefaultActionValidator(),
-			);
+			expect(sampleInstance.validateAction).toBe(sampleInstance.getDefaultActionValidator());
 		});
 		test('returns self', () => {
-			expect(sampleInstance.setActionValidator(testValidator)).toBe(
-				sampleInstance,
-			);
+			expect(sampleInstance.setActionValidator(testValidator)).toBe(sampleInstance);
 		});
 	});
 
@@ -128,17 +107,13 @@ describe('ActionDictionary', () => {
 			const dictionary = sampleInstance.getDictionary();
 			expect(dictionary).toBeDefined();
 			expect(Object.keys(dictionary)).toHaveLength(
-				Object.values(_.omit(sampleKeys, testNamespaceExtra)).flatMap(
-					(x) => x,
-				).length,
+				Object.values(_.omit(sampleKeys, testNamespaceExtra)).flatMap((x) => x).length,
 			);
 		});
 		test('filters by namespace', () => {
 			const dictionary = sampleInstance.getDictionary(testNamespace);
 			const values = Object.values(dictionary);
-			expect(Object.keys(dictionary)).toHaveLength(
-				sampleKeys[testNamespace].length,
-			);
+			expect(Object.keys(dictionary)).toHaveLength(sampleKeys[testNamespace].length);
 			expect(values).toEqual(
 				sampleInstance.getActionValues({
 					namespace: testNamespace,
@@ -147,9 +122,7 @@ describe('ActionDictionary', () => {
 			);
 		});
 		test('ignores invalid namespaces', () => {
-			expect(sampleInstance.getDictionary(testNamespaceExtra)).toEqual(
-				{},
-			);
+			expect(sampleInstance.getDictionary(testNamespaceExtra)).toEqual({});
 			// @ts-ignore
 			expect(sampleInstance.getDictionary(123.45)).toEqual({});
 		});
@@ -182,12 +155,9 @@ describe('ActionDictionary', () => {
 			});
 			test('removes the particular namespace', () => {
 				const dictionary = sampleInstance.getDictionary();
-				const removedNamespace =
-					sampleInstance.getDictionary(testNamespace);
+				const removedNamespace = sampleInstance.getDictionary(testNamespace);
 				sampleInstance.clearActions(testNamespace);
-				expect(sampleInstance.getDictionary()).toEqual(
-					_.omit(dictionary, Object.keys(removedNamespace)),
-				);
+				expect(sampleInstance.getDictionary()).toEqual(_.omit(dictionary, Object.keys(removedNamespace)));
 			});
 			test('ignores invalid namespaces', () => {
 				const dictionary = sampleInstance.getDictionary();
@@ -285,11 +255,7 @@ describe('ActionDictionary', () => {
 					keys: sampleKeys.default,
 				});
 				expect(sampleActions).toHaveLength(sampleKeys.default.length);
-				expect(
-					sampleActions.every((x) =>
-						sampleInstance.validateAction(x),
-					),
-				).toBe(true);
+				expect(sampleActions.every((x) => sampleInstance.validateAction(x))).toBe(true);
 			});
 			test('is idempotent', () => {
 				const sampleActions = sampleInstance.addActions({
@@ -325,14 +291,8 @@ describe('ActionDictionary', () => {
 					namespace: testNamespaceCross,
 					keys: sampleKeys[testNamespaceCross],
 				});
-				expect(sampleActions).toHaveLength(
-					sampleKeys[testNamespaceCross].length,
-				);
-				expect(
-					sampleActions.every((x) =>
-						sampleInstance.validateAction(x),
-					),
-				).toBe(true);
+				expect(sampleActions).toHaveLength(sampleKeys[testNamespaceCross].length);
+				expect(sampleActions.every((x) => sampleInstance.validateAction(x))).toBe(true);
 			});
 			test('is idempotent', () => {
 				const sampleActions = sampleInstance.addActions({
@@ -358,10 +318,7 @@ describe('ActionDictionary', () => {
 					keys: sampleKeys[testNamespace],
 				});
 				const dictionary = sampleInstance.getDictionary();
-				expect(Object.values(dictionary)).toEqual([
-					...sampleActions,
-					...sampleActions2,
-				]);
+				expect(Object.values(dictionary)).toEqual([...sampleActions, ...sampleActions2]);
 			});
 			test('throws when adding duplicate keys', () => {
 				const sampleActions = sampleInstance.addActions({
@@ -476,17 +433,10 @@ describe('ActionDictionary', () => {
 						namespace: testNamespace,
 						keys: sampleKey,
 					});
-					expect(
-						Object.values(
-							sampleInstance.getDictionary(testNamespace),
-						),
-					).toEqual(
+					expect(Object.values(sampleInstance.getDictionary(testNamespace))).toEqual(
 						sampleInstance.getActionValues({
 							namespace: testNamespace,
-							keys: _.without(
-								sampleKeys[testNamespace],
-								...sampleKey,
-							),
+							keys: _.without(sampleKeys[testNamespace], ...sampleKey),
 						}),
 					);
 				});
@@ -520,10 +470,7 @@ describe('ActionDictionary', () => {
 					const dictionary = sampleInstance.getDictionary();
 					sampleInstance.removeActions({
 						namespace: testNamespaceCross,
-						actions: sampleArray(
-							() => sampleRange(0, 100),
-							sampleRange(5, 8),
-						),
+						actions: sampleArray(() => sampleRange(0, 100), sampleRange(5, 8)),
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
 				});
@@ -533,16 +480,10 @@ describe('ActionDictionary', () => {
 						namespace: testNamespaceCross,
 						actions: sampleAction,
 					});
-					expect(
-						Object.values(
-							sampleInstance.getDictionary(testNamespaceCross),
-						),
-					).toEqual(_.without(sampleValues, ...sampleAction));
-					expect(
-						Object.keys(
-							sampleInstance.getDictionary(testNamespaceCross),
-						),
-					).toEqual(
+					expect(Object.values(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
+						_.without(sampleValues, ...sampleAction),
+					);
+					expect(Object.keys(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
 						sampleInstance.getActionKeys({
 							namespace: testNamespaceCross,
 							actions: _.without(sampleValues, ...sampleAction),
@@ -571,10 +512,7 @@ describe('ActionDictionary', () => {
 				});
 				test('removes the requested Actions and Keys', () => {
 					const sampleAction = pickFromArray(sampleValues, 2);
-					const sampleKey = pickFromArray(
-						sampleKeys[testNamespaceCross],
-						2,
-					);
+					const sampleKey = pickFromArray(sampleKeys[testNamespaceCross], 2);
 					const actionToRemove = sampleInstance
 						.getActionValues({
 							namespace: testNamespaceCross,
@@ -586,38 +524,19 @@ describe('ActionDictionary', () => {
 						actions: sampleAction,
 						keys: sampleKey,
 					});
-					expect(
-						Object.values(
-							sampleInstance.getDictionary(testNamespaceCross),
-						),
-					).toEqual(
-						_.without(
-							sampleValues,
-							...sampleAction,
-							...actionToRemove,
-						),
+					expect(Object.values(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
+						_.without(sampleValues, ...sampleAction, ...actionToRemove),
 					);
-					expect(
-						Object.keys(
-							sampleInstance.getDictionary(testNamespaceCross),
-						),
-					).toEqual(
+					expect(Object.keys(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
 						sampleInstance.getActionKeys({
 							namespace: testNamespaceCross,
-							actions: _.without(
-								sampleValues,
-								...sampleAction,
-								...actionToRemove,
-							),
+							actions: _.without(sampleValues, ...sampleAction, ...actionToRemove),
 						}),
 					);
 				});
 				test('restricts removed Actions and Keys to the requested namespace', () => {
 					const sampleAction = pickFromArray(sampleValues, 2);
-					const sampleKey = pickFromArray(
-						sampleKeys[testNamespaceCross],
-						2,
-					);
+					const sampleKey = pickFromArray(sampleKeys[testNamespaceCross], 2);
 					const actionToRemove = sampleInstance
 						.getActionValues({
 							namespace: testNamespaceCross,
@@ -629,29 +548,13 @@ describe('ActionDictionary', () => {
 						actions: [...sampleAction, ...defaultValues],
 						keys: [...sampleKey, ...sampleKeys[testNamespaceExtra]],
 					});
-					expect(
-						Object.values(
-							sampleInstance.getDictionary(testNamespaceCross),
-						),
-					).toEqual(
-						_.without(
-							sampleValues,
-							...sampleAction,
-							...actionToRemove,
-						),
+					expect(Object.values(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
+						_.without(sampleValues, ...sampleAction, ...actionToRemove),
 					);
-					expect(
-						Object.keys(
-							sampleInstance.getDictionary(testNamespaceCross),
-						),
-					).toEqual(
+					expect(Object.keys(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
 						sampleInstance.getActionKeys({
 							namespace: testNamespaceCross,
-							actions: _.without(
-								sampleValues,
-								...sampleAction,
-								...actionToRemove,
-							),
+							actions: _.without(sampleValues, ...sampleAction, ...actionToRemove),
 						}),
 					);
 				});
@@ -688,14 +591,7 @@ describe('ActionDictionary', () => {
 					sampleInstance.removeActions({
 						keys: sampleKey,
 					});
-					expect(
-						Object.values(
-							_.pick(
-								sampleInstance.getDictionary(),
-								...defaultKeys,
-							),
-						),
-					).toEqual(
+					expect(Object.values(_.pick(sampleInstance.getDictionary(), ...defaultKeys))).toEqual(
 						sampleInstance.getActionValues({
 							keys: _.without(sampleKeys.default, ...sampleKey),
 						}),
@@ -723,10 +619,7 @@ describe('ActionDictionary', () => {
 				test('ignores non-existent Actions', () => {
 					const dictionary = sampleInstance.getDictionary();
 					sampleInstance.removeActions({
-						actions: sampleArray(
-							() => sampleRange(1, 50),
-							sampleRange(3, 5),
-						),
+						actions: sampleArray(() => sampleRange(1, 50), sampleRange(3, 5)),
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
 				});
@@ -735,14 +628,9 @@ describe('ActionDictionary', () => {
 					sampleInstance.removeActions({
 						actions: sampleAction,
 					});
-					expect(
-						Object.values(
-							_.pick(
-								sampleInstance.getDictionary(),
-								...defaultKeys,
-							),
-						),
-					).toEqual(_.without(defaultValues, ...sampleAction));
+					expect(Object.values(_.pick(sampleInstance.getDictionary(), ...defaultKeys))).toEqual(
+						_.without(defaultValues, ...sampleAction),
+					);
 				});
 			});
 			describe('with Keys and Actions', () => {
@@ -766,19 +654,8 @@ describe('ActionDictionary', () => {
 						actions: sampleAction,
 						keys: sampleKey,
 					});
-					expect(
-						Object.values(
-							_.pick(
-								sampleInstance.getDictionary(),
-								...defaultKeys,
-							),
-						),
-					).toEqual(
-						_.without(
-							defaultValues,
-							...sampleAction,
-							...actionToRemove,
-						),
+					expect(Object.values(_.pick(sampleInstance.getDictionary(), ...defaultKeys))).toEqual(
+						_.without(defaultValues, ...sampleAction, ...actionToRemove),
 					);
 				});
 				test('restricts removed Actions and Keys to the default namespace', () => {
@@ -800,19 +677,8 @@ describe('ActionDictionary', () => {
 						keys: [...sampleKey, ...sampleKeys[testNamespaceExtra]],
 					});
 
-					expect(
-						Object.values(
-							_.pick(
-								sampleInstance.getDictionary(),
-								...defaultKeys,
-							),
-						),
-					).toEqual(
-						_.without(
-							defaultValues,
-							...sampleAction,
-							...actionToRemove,
-						),
+					expect(Object.values(_.pick(sampleInstance.getDictionary(), ...defaultKeys))).toEqual(
+						_.without(defaultValues, ...sampleAction, ...actionToRemove),
 					);
 				});
 			});
@@ -861,9 +727,7 @@ describe('ActionDictionary', () => {
 				actions: testValues,
 			});
 			expect(keys).toHaveLength(1);
-			expect(sampleInstance.getDictionary()[keys[0] ?? '']).toEqual(
-				testValues[0],
-			);
+			expect(sampleInstance.getDictionary()[keys[0] ?? '']).toEqual(testValues[0]);
 		});
 		test('returns a key with namespace', () => {
 			const testValues = pickFromArray(sampleValues);
@@ -872,9 +736,7 @@ describe('ActionDictionary', () => {
 				actions: testValues,
 			});
 			expect(keys).toHaveLength(1);
-			expect(
-				sampleInstance.getDictionary(testNamespaceCross)[keys[0] ?? ''],
-			).toEqual(testValues[0]);
+			expect(sampleInstance.getDictionary(testNamespaceCross)[keys[0] ?? '']).toEqual(testValues[0]);
 		});
 		describe('returns null when namespace and/or action does not match', () => {
 			test('invalid action', () => {
@@ -899,9 +761,7 @@ describe('ActionDictionary', () => {
 			});
 			test('action in default namespace that does not exist', () => {
 				const values = sampleInstance.getActionKeys({
-					actions: pickFromArray(
-						_.without(sampleValues, ...defaultValues),
-					),
+					actions: pickFromArray(_.without(sampleValues, ...defaultValues)),
 				});
 				expect(values).toEqual([null]);
 			});
@@ -910,10 +770,7 @@ describe('ActionDictionary', () => {
 				expect(
 					sampleInstance.getActionKeys({
 						namespace: testNamespaceExtra,
-						actions: sampleArray(
-							() => sampleRange(0, Number.MAX_SAFE_INTEGER),
-							sampleLength,
-						),
+						actions: sampleArray(() => sampleRange(0, Number.MAX_SAFE_INTEGER), sampleLength),
 					}),
 				).toEqual(new Array(sampleLength).fill(null));
 			});

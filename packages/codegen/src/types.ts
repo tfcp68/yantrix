@@ -3,18 +3,18 @@ import { TStateDiagram } from '@yantrix/mermaid-parser';
 import { TNotes } from '@yantrix/yantrix-parser';
 
 export interface ICodegenOptions {
-  className: string;
+	className: string;
 }
 
 export interface ITypedObjectProps {
-  typeName: string;
-  typeGuardName: string;
-  name: string;
-  body: string;
+	typeName: string;
+	typeGuardName: string;
+	name: string;
+	body: string;
 }
 
 export interface ITypedObject extends ITypedObjectProps {
-  codeBlock: string;
+	codeBlock: string;
 }
 
 export type TParsedNotes = {
