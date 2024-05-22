@@ -1,15 +1,15 @@
 import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
 import {
-  TActionPathArray,
-  TChoicesId,
-  TDiagramAction,
-  TDiagramState,
-  TDiagramStatesArray,
-  TDiagramTransitions,
-  TFromChoice,
-  TFromChoiceArray,
-  TNotesId,
-  TStateDiagram,
+	TActionPathArray,
+	TChoicesId,
+	TDiagramAction,
+	TDiagramState,
+	TDiagramStatesArray,
+	TDiagramTransitions,
+	TFromChoice,
+	TFromChoiceArray,
+	TNotesId,
+	TStateDiagramMatrix,
 } from './types/stateDiagramTypes.js';
 
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
@@ -20,24 +20,24 @@ import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
  * @returns Returns dict with notes.
  */
 function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
-  const notes = stateDiagramStructure.notes;
-  const notesId: TNotesId = {};
+	const notes = stateDiagramStructure.notes;
+	const notesId: TNotesId = {};
 
-  for (let i = 0; i < notes.length; i++) {
-    const note = notes[i];
-    if (!Object.keys(notesId).includes(note.over)) {
-      notesId[note.over] = [];
-    }
-    const notesArray: string[] = [];
-    for (let j = 0; j < note.text.length; j++) {
-      const noteArray: string[] = note.text[j].trim().split('\n');
-      for (let k = 0; k < noteArray.length; k++) {
-        notesArray.push(noteArray[k].trim());
-      }
-    }
-    notesId[note.over].push(notesArray);
-  }
-  return notesId;
+	for (let i = 0; i < notes.length; i++) {
+		const note = notes[i];
+		if (!Object.keys(notesId).includes(note.over)) {
+			notesId[note.over] = [];
+		}
+		const notesArray: string[] = [];
+		for (let j = 0; j < note.text.length; j++) {
+			const noteArray: string[] = note.text[j].trim().split('\n');
+			for (let k = 0; k < noteArray.length; k++) {
+				notesArray.push(noteArray[k].trim());
+			}
+		}
+		notesId[note.over].push(notesArray);
+	}
+	return notesId;
 }
 
 /**
@@ -63,21 +63,21 @@ function getChoicesId(stateDiagramStructure: TStateDiagramStructure): TChoicesId
  * @returns Returns updated fromChoices.
  */
 function addNotesForChoices(
-  notesId: TNotesId,
-  choice: string,
-  choiceAction: TFromChoice,
-  fromChoices: TFromChoiceArray,
+	notesId: TNotesId,
+	choice: string,
+	choiceAction: TFromChoice,
+	fromChoices: TFromChoiceArray,
 ): TFromChoiceArray {
-  if (!Object.keys(notesId).includes(choice)) {
-    notesId[choice] = [['']];
-  }
-  for (let j = 0; j < notesId[choice].length; j++) {
-    const noteId: string[] = notesId[choice][j];
-    choiceAction.actionsPath[0].note.push(noteId);
-  }
-  fromChoices.push(choiceAction);
+	if (!Object.keys(notesId).includes(choice)) {
+		notesId[choice] = [['']];
+	}
+	for (let j = 0; j < notesId[choice].length; j++) {
+		const noteId: string[] = notesId[choice][j];
+		choiceAction.actionsPath[0].note.push(noteId);
+	}
+	fromChoices.push(choiceAction);
 
-  return fromChoices;
+	return fromChoices;
 }
 
 /**
@@ -136,31 +136,31 @@ function concatActionPathes(fromChoice: TActionPathArray, toChoice: TActionPathA
  * @returns Returns updated transitions.
  */
 function unravelChoices(
-  choicesId: TChoicesId,
-  fromChoices: TFromChoiceArray,
-  from: string,
-  to: string,
-  actionPathes: TActionPathArray,
-  transitions: TDiagramTransitions,
+	choicesId: TChoicesId,
+	fromChoices: TFromChoiceArray,
+	from: string,
+	to: string,
+	actionPathes: TActionPathArray,
+	transitions: TDiagramTransitions,
 ): TDiagramTransitions {
-  if (choicesId.includes(to)) {
-    fromChoices.push({
-      choice: to,
-      from,
-      actionsPath: actionPathes,
-    });
-  } else {
-    if (!Object.keys(transitions[from]).includes(to)) {
-      transitions[from][to] = {
-        actionsPath: [],
-      };
-    }
+	if (choicesId.includes(to)) {
+		fromChoices.push({
+			choice: to,
+			from,
+			actionsPath: actionPathes,
+		});
+	} else {
+		if (!Object.keys(transitions[from]).includes(to)) {
+			transitions[from][to] = {
+				actionsPath: [],
+			};
+		}
 
-    for (let i = 0; i < actionPathes.length; i++) {
-      transitions[from][to].actionsPath.push(actionPathes[i]);
-    }
-  }
-  return transitions;
+		for (let i = 0; i < actionPathes.length; i++) {
+			transitions[from][to].actionsPath.push(actionPathes[i]);
+		}
+	}
+	return transitions;
 }
 
 /**
@@ -170,15 +170,15 @@ function unravelChoices(
  * @returns Returns updated transitions.
  */
 function deleteRowChoices(
-  transitions: TDiagramTransitions,
-  stateDiagramStructure: TStateDiagramStructure,
+	transitions: TDiagramTransitions,
+	stateDiagramStructure: TStateDiagramStructure,
 ): TDiagramTransitions {
-  const choices = stateDiagramStructure.choices;
-  for (let i = 0; i < choices.length; i++) {
-    delete transitions[choices[i].id];
-  }
+	const choices = stateDiagramStructure.choices;
+	for (let i = 0; i < choices.length; i++) {
+		delete transitions[choices[i].id];
+	}
 
-  return transitions;
+	return transitions;
 }
 
 /**
@@ -188,13 +188,13 @@ function deleteRowChoices(
  * @returns Returns updated transitions.
  */
 function markChoicesInTransitions(
-  transitions: TDiagramTransitions,
-  stateDiagramStructure: TStateDiagramStructure,
+	transitions: TDiagramTransitions,
+	stateDiagramStructure: TStateDiagramStructure,
 ): TDiagramTransitions {
-  const actions = stateDiagramStructure.actions;
-  const notesId = getNotesId(stateDiagramStructure);
-  const choicesId = getChoicesId(stateDiagramStructure);
-  const fromChoices = getFromChoices(actions, choicesId, notesId);
+	const actions = stateDiagramStructure.actions;
+	const notesId = getNotesId(stateDiagramStructure);
+	const choicesId = getChoicesId(stateDiagramStructure);
+	const fromChoices = getFromChoices(actions, choicesId, notesId);
 
 	while (fromChoices.length) {
 		const fromChoice = fromChoices[fromChoices.length - 1];
@@ -231,26 +231,26 @@ function getTransitions(stateDiagramStructure: TStateDiagramStructure): TDiagram
 	let transitions: TDiagramTransitions = {};
 	const actions = stateDiagramStructure.actions;
 
-  for (let i = 0; i < actions.length; i++) {
-    const from = actions[i].from;
-    const to = actions[i].to;
-    const actionId = actions[i].id;
-    const action: TDiagramAction = {
-      actionsPath: [],
-    };
-    if (!Object.keys(transitions).includes(from)) {
-      transitions[from] = {};
-    }
-    if (!Object.keys(transitions[from]).includes(to)) {
-      transitions[from][to] = action;
-    }
-    transitions[from][to].actionsPath.push({
-      action: [actionId],
-      note: [],
-    });
-  }
-  transitions = markChoicesInTransitions(transitions, stateDiagramStructure);
-  return transitions;
+	for (let i = 0; i < actions.length; i++) {
+		const from = actions[i].from;
+		const to = actions[i].to;
+		const actionId = actions[i].id;
+		const action: TDiagramAction = {
+			actionsPath: [],
+		};
+		if (!Object.keys(transitions).includes(from)) {
+			transitions[from] = {};
+		}
+		if (!Object.keys(transitions[from]).includes(to)) {
+			transitions[from][to] = action;
+		}
+		transitions[from][to].actionsPath.push({
+			action: [actionId],
+			note: [],
+		});
+	}
+	transitions = markChoicesInTransitions(transitions, stateDiagramStructure);
+	return transitions;
 }
 
 /**
@@ -283,8 +283,8 @@ function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: st
  * @returns Returns states.
  */
 function getStates(
-  stateDiagramStructure: TStateDiagramStructure,
-  transitions: TDiagramTransitions,
+	stateDiagramStructure: TStateDiagramStructure,
+	transitions: TDiagramTransitions,
 ): TDiagramStatesArray {
 	const states: TDiagramStatesArray = [];
 	const notesId = getNotesId(stateDiagramStructure);
@@ -316,7 +316,7 @@ function getStates(
  * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
  */
-export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagram> {
+export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagramMatrix> {
 	const transitions = getTransitions(stateDiagramStructure);
 	const states = getStates(stateDiagramStructure, transitions);
 	return {

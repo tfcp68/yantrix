@@ -1,7 +1,7 @@
-import { TStateDiagram } from '@yantrix/mermaid-parser';
+import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { Modules } from '../core/modules/index.js';
 
-export type TStateDiagramSyntaxTree = TStateDiagram;
+export type TStateDiagramSyntaxTree = TStateDiagramMatrix;
 
 export interface ICodegenOptions {
 	language: TOutLang;
@@ -25,9 +25,13 @@ export interface ITypedObject extends ITypedObjectProps {
 
 export interface ICodegen {
 	getDictionaries(): string;
+
 	getChangeStateHandlers(): string;
+
 	getHandlers(): string;
+
 	getClassTemplate(className: string): string;
+
 	getImports(): string;
 }
 

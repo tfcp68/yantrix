@@ -1,18 +1,18 @@
 import type { ICodegen } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
+import type { TDiagramAction, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	diagram: TStateDiagram;
+	diagram: TStateDiagramMatrix;
 	handlersDict: string[];
 	changeStateHandlers: string[];
 	initialState: null | number;
 	dictionaries: string[];
 
-	constructor(diagram: TStateDiagram) {
+	constructor(diagram: TStateDiagramMatrix) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 
@@ -41,31 +41,6 @@ export class JavaScriptCodegen implements ICodegen {
 
 	public getChangeStateHandlers(): string {
 		return this.changeStateHandlers.join('\n');
-	}
-
-	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
-		const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-		if (!value) {
-			throw new Error(`State ${state} not found`);
-		}
-		return this.getHandleStateChangeDeclaration(
-			value,
-			`
-             const actionToStateDict = {
-              ${this.getActionToStateDict(transitions)
-					.flatMap((el) => el)
-					.join('\n')}     
-         };
-        const newState = actionToStateDict[action] ?? state
-        const isNewState = newState !== state
-        
-        return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
-        `,
-		);
-	}
-
-	protected getHandleStateChangeDeclaration(value: number, body: string) {
-		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
 	}
 
 	setupHandlers() {
@@ -124,5 +99,30 @@ export class JavaScriptCodegen implements ICodegen {
 			keys: [state],
 		})[0];
 		return `${stateValue}: handleStateChange${stateValue}, \n`;
+	}
+
+	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
+		const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+		if (!value) {
+			throw new Error(`State ${state} not found`);
+		}
+		return this.getHandleStateChangeDeclaration(
+			value,
+			`
+             const actionToStateDict = {
+              ${this.getActionToStateDict(transitions)
+					.flatMap((el) => el)
+					.join('\n')}     
+         };
+        const newState = actionToStateDict[action] ?? state
+        const isNewState = newState !== state
+        
+        return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
+        `,
+		);
+	}
+
+	protected getHandleStateChangeDeclaration(value: number, body: string) {
+		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
 	}
 }
