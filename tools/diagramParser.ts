@@ -184,12 +184,12 @@ const diagramText = `stateDiagram-v2
     EFFECT_TARGETING --> IDLE: SKIP`;
 
 const flowDiagram =
-  'flowchart TD\n' +
-  '    A[Christmas] -->|Get money| B(Go shopping)\n' +
-  '    B --> C{Let me think}\n' +
-  '    C -->|One| D[Laptop]\n' +
-  '    C -->|Two| E[iPhone]\n' +
-  '    C -->|Three| F[fa:fa-car Car]';
+	'flowchart TD\n' +
+	'    A[Christmas] -->|Get money| B(Go shopping)\n' +
+	'    B --> C{Let me think}\n' +
+	'    C -->|One| D[Laptop]\n' +
+	'    C -->|Two| E[iPhone]\n' +
+	'    C -->|Three| F[fa:fa-car Car]';
 
 const seqDiagram1 = `sequenceDiagram
 actor V as Vladimir

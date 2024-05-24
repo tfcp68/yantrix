@@ -1,45 +1,45 @@
 {
-  "name": "@yantrix/codegen",
-  "version": "0.1.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "repository": {
-    "directory": "packages/codegen",
-    "type": "git",
-    "url": "git+https://github.com/octaharon/yantrix.git"
-  },
-  "scripts": {
-    "build": "rimraf dist && tsc",
-    "format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-    "lint": "prettier --check . && cross-env TIMING=1 eslint src",
-    "prepack": "pnpm lint && pnpm test && pnpm build",
-    "test": "pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run"
-  },
-  "description": "Execute jison parser",
-  "author": "Alexander Uskov <neolord.tmb@gmail.com>",
-  "bugs": {
-    "url": "https://github.com/octaharon/yantrix/issues"
-  },
-  "directories": {
-    "lib": "src",
-    "test": "__tests__"
-  },
-  "exports": {
-    "types": "./dist/index.d.ts",
-    "default": "./dist/index.js"
-  },
-  "homepage": "https://github.com/octaharon/yantrix",
-  "keywords": [
-    "FSM",
-    "Miely Machine"
-  ],
-  "license": "ISC",
-  "type": "module",
-  "devDependencies": {
-    "@yantrix/automata": "workspace:^",
-    "@yantrix/mermaid-parser": "workspace:^"
-  }
+	"name": "@yantrix/codegen",
+	"version": "0.1.0",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"directory": "packages/codegen",
+		"type": "git",
+		"url": "git+https://github.com/octaharon/yantrix.git"
+	},
+	"scripts": {
+		"build": "rimraf dist && tsc",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
+		"prepack": "pnpm lint && pnpm test && pnpm build",
+		"test": "pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run"
+	},
+	"description": "Execute jison parser",
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"bugs": {
+		"url": "https://github.com/octaharon/yantrix/issues"
+	},
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
+	"homepage": "https://github.com/octaharon/yantrix",
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
+	"license": "ISC",
+	"type": "module",
+	"devDependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^"
+	}
 }

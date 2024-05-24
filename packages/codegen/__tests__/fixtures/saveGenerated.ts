@@ -1,5 +1,5 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generate } from '../../src/index.js';
+import { generateAutomataFromStateDiagram } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,29 +28,28 @@ SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
 const diagramsInput = {
-  gameDiagram: {
-    value: input1,
-    automataName: 'GamePhaseAutomata',
-  },
+	gameDiagram: {
+		value: input1,
+		automataName: 'GamePhaseAutomata',
+	},
 } as const;
 
 const fixturesList = [diagramsInput];
 
 fixturesList.forEach(async (fixture) => {
-  const stateDiagramStructure = await parseStateDiagram(
-    fixture.gameDiagram.value,
-  );
-  const stateDiagram = await createStateDiagram(stateDiagramStructure);
+	const stateDiagramStructure = await parseStateDiagram(fixture.gameDiagram.value);
+	const stateDiagram = await createStateDiagram(stateDiagramStructure);
 
-  const generatedAutomataOutput = await generate(stateDiagram, {
-    className: fixture.gameDiagram.automataName,
-  });
+	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
+		className: fixture.gameDiagram.automataName,
+		outLang: 'TypeScript',
+	});
 
-  fs.writeFileSync(
-    path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),
-    generatedAutomataOutput,
-    {
-      encoding: 'utf8',
-    },
-  );
+	fs.writeFileSync(
+		path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),
+		generatedAutomataOutput,
+		{
+			encoding: 'utf8',
+		},
+	);
 });
