@@ -1,12 +1,12 @@
 import { assert, describe, expect, test } from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
-import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
+import { functionsFixtures, keyItem } from '../fixtures/keyItem.js';
 import {
 	allowedExpressions,
 	getKeyItemsInitialEmpty,
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
-} from './utils/utils.js';
+} from '../utils/utils.js';
 
 const cases = [
 	['#{property}', keyItem.declarationKeyItem],

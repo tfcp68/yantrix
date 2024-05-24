@@ -1,6 +1,6 @@
 import { assert, describe, test } from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
-import { functionsFixtures } from './fixtures/keyItem.js';
+import { functionsFixtures } from '../fixtures/keyItem.js';
 
 const cases = [
 	[`#{property = func()}`, functionsFixtures.expression],

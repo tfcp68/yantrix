@@ -1,8 +1,39 @@
-import { expressions, functions, getExpression, TExpressionTypes } from './expressions.js';
+// import { createContext } from 'vm';
+import { TKeyItems, TKeyItem } from '../types/keyItem.js';
+import { expressions, functions, getExpression, TExpression, TExpressionTypes } from './expressions.js';
+import { randomString } from '../utils/utils.js';
+
+// partial<type>
+
+type TContextDescription = {
+	context: TKeyItems;
+	payload?: TKeyItems;
+	prevContext?: TKeyItems;
+};
 
 const baseKeyItemDeclaration = {
 	TargetProperty: 'property',
 };
+
+const targetProperty = (propertyName: string = randomString()) => ({ TargetProperty: propertyName });
+const createExpression = () => {};
+
+const createKeyItemDeclaration = (keyItem?: TKeyItem): TKeyItem => ({
+	KeyItemDeclaration: {
+		TargetProperty: randomString(),
+		...keyItem,
+	},
+});
+
+const createContextDescription = (
+	contextKeyItems: TKeyItems,
+	payloadKeyItems?: TKeyItems,
+	prevContextKeyItems?: TKeyItems,
+): TContextDescription => ({
+	context: contextKeyItems,
+	payload: payloadKeyItems,
+	prevContext: prevContextKeyItems,
+});
 
 const getKeyItem = (expression: TExpressionTypes | null) => {
 	return {
@@ -21,33 +52,12 @@ const getKeyItem = (expression: TExpressionTypes | null) => {
 	};
 };
 
-const getKeyItemWithMultipleExpressions = (...expressions: Array<TExpressionTypes | null>) => {
-	return {
-		contextDescription: [
-			{
-				context: expressions.map((expression, ix) => ({
-					KeyItemDeclaration: {
-						...expression,
-						TargetProperty: `property${ix}`,
-					},
-				})),
-			},
-		],
-	};
-};
-
 /// Base key item declaration
 const declarationKeyItem = getKeyItem(null);
 export const withStringInitial = getKeyItem(expressions.string);
 export const withArrayInitial = getKeyItem(expressions.array);
 export const withIntegerInitial = getKeyItem(expressions.integer);
 export const withPropertyInitial = getKeyItem(expressions.property);
-export const withDecimalInitial = getKeyItem(expressions.decimal);
-export const withMultiplyInitial = getKeyItemWithMultipleExpressions(
-	expressions.decimal,
-	expressions.string,
-	expressions.integer,
-);
 
 /// Base function declaration
 const expression = getKeyItem(expressions.function);
@@ -71,6 +81,4 @@ export const keyItem = {
 	withArrayInitial,
 	withIntegerInitial,
 	withPropertyInitial,
-	withDecimalInitial,
-	withMultiplyInitial,
 };

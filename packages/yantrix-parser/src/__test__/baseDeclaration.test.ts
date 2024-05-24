@@ -7,8 +7,8 @@ import {
 	baseEmitEvent,
 	baseEmpty,
 	baseSubscribe,
-} from './fixtures/baseDeclarations.js';
-import { primitiveWithValue } from './fixtures/expressions.js';
+} from '../fixtures/baseDeclarations.js';
+import { expressionProperties } from '../fixtures/expressions.js';
 
 import { ReservedList, SpecialChars } from '../index.js';
 
