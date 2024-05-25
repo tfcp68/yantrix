@@ -50,6 +50,9 @@ export const fmt = async (code: string) => {
 	}
 };
 
+/**
+ * Преобразует ключи объекта в число
+ */
 export const convertKeysToNumberString = (obj: Object) => {
 	if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
 
