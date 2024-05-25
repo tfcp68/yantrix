@@ -2,6 +2,7 @@ import type { ICodegen } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
+import { convertKeysToNumberString } from '../../utils/utils.js';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
@@ -104,13 +105,19 @@ export class JavaScriptCodegen implements ICodegen {
 	protected getRootReducer() {
 		return `({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
-					${this.getRootReducerStateGuard()}
-					return ${this.getRootReducerHandlersDict()};
+					${this.getRootReducerStateValidation()}
+					${this.getRootReducerActionValidation()}
+					const newState = actionToStateFromStateDict[state][action] ?? state;
+					return {state:  newState, context: { ...payload }};
   				}`;
 	}
 
-	protected getRootReducerStateGuard() {
-		return `if (!state) throw new Error("Invalid state");`;
+	protected getRootReducerStateValidation() {
+		return `if (!(state in actionToStateFromStateDict)) throw new Error("Invalid action")`;
+	}
+
+	protected getRootReducerActionValidation() {
+		return `if (!isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
 	}
 
 	protected getRootReducerHandlersDict() {
@@ -141,7 +148,7 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	public getActionToStateFromState() {
-		return `const actionToStateDict = ${JSON.stringify(this.getActionToStateFromStateDict(), null, 2)}`;
+		return `const actionToStateFromStateDict = ${convertKeysToNumberString(this.getActionToStateFromStateDict())}`;
 	}
 
 	/**

@@ -49,3 +49,17 @@ export const fmt = async (code: string) => {
 		return code;
 	}
 };
+
+export const convertKeysToNumberString = (obj: Object) => {
+	if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
+
+	let result = '{';
+	let first = true;
+	for (const [key, value] of Object.entries(obj)) {
+		if (!first) result += ',';
+		first = false;
+		result += `${Number(key)}:${convertKeysToNumberString(value)}`;
+	}
+	result += '}';
+	return result;
+};

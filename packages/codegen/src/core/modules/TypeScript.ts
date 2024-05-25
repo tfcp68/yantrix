@@ -31,10 +31,6 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 		return `const newState = actionToStateDict[action as keyof typeof actionToStateDict] ?? state;`;
 	}
 
-	protected getRootReducerHandlersDict() {
-		return `handlersDict[state as keyof typeof handlersDict]({action,payload,context,state})`;
-	}
-
 	public getUtils() {
 		return this.getTypeGuards();
 	}
@@ -47,7 +43,11 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 		return `const isKeyOf = <T extends Object>(key:any, object: T): key is keyof T => key in object;`;
 	}
 
-	protected getRootReducerStateGuard() {
-		return `if (!isKeyOf(state,handlersDict)) throw new Error("Invalid state");`;
+	protected getRootReducerStateValidation() {
+		return `if (!isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid action")`;
+	}
+
+	protected getRootReducerActionValidation() {
+		return `if (!isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
 	}
 }
