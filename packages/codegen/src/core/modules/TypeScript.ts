@@ -1,5 +1,6 @@
 import type { ICodegen } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
+import type { TDiagramAction } from '@yantrix/mermaid-parser';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 	protected getHandleStateChangeDeclaration(value: number, body: string) {
@@ -13,7 +14,16 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 	protected getStateValidator() {
 		return `(s): s is TAutomataBaseStateType => Object.values(statesDictionary).includes(s)`;
 	}
+
 	protected getActionValidator() {
 		return `(a): a is TAutomataBaseActionType => Object.values(actionsDictionary).includes(a)`;
+	}
+
+	protected getHandleStateChangesBodyNewState() {
+		return `const newState = actionToStateDict[action as keyof typeof actionToStateDict] ?? state;`;
+	}
+
+	protected getRootReducerHandlersDict() {
+		return `handlersDict[state as keyof typeof handlersDict]({action,payload,context,state})`;
 	}
 }

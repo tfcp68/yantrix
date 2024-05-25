@@ -48,20 +48,24 @@ export class JavaScriptCodegen implements ICodegen {
 		if (!value) {
 			throw new Error(`State ${state} not found`);
 		}
-		return this.getHandleStateChangeDeclaration(
-			value,
-			`
-             const actionToStateDict = {
-              ${this.getActionToStateDict(transitions)
+		return this.getHandleStateChangeDeclaration(value, this.getHandleStateChangesBody(transitions, state));
+	}
+
+	protected getHandleStateChangesBody(transitions: Record<string, TDiagramAction>, state: string) {
+		return `
+			const actionToStateDict = {
+				${this.getActionToStateDict(transitions)
 					.flatMap((el) => el)
-					.join('\n')}     
-         };
-        const newState = actionToStateDict[action] ?? state
-        const isNewState = newState !== state
-        
-        return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
-        `,
-		);
+					.join('\n')}
+			};
+			${this.getHandleStateChangesBodyNewState()}
+			const isNewState = newState !== state;
+			return { state: isNewState ? newState : state, context: isNewState ? { ...payload } : { ...prevContext } };
+		`;
+	}
+
+	protected getHandleStateChangesBodyNewState() {
+		return `const newState = actionToStateDict[action] ?? state;`;
 	}
 
 	protected getHandleStateChangeDeclaration(value: number, body: string) {
@@ -94,16 +98,32 @@ export class JavaScriptCodegen implements ICodegen {
   			this.init({
   				state: ${this.initialState},
   				context: { index: -1 },
-                rootReducer: ({ action, context, payload, state }) => {
-                  if (!action || payload === null) return { state, context };
-                  return handlersDict[state]({action,payload,context,state})
-  				},
-  				stateValidator: (s) => Object.values(statesDictionary).includes(s),
-  				actionValidator: (a) => Object.values(actionsDictionary).includes(a),
-  				eventValidator: () => {},
-  			});
-  		}
-  	}`;
+                rootReducer: ${this.getRootReducer()},
+  				stateValidator: ${this.getStateValidator()},
+  				actionValidator: ${this.getActionValidator()},
+				});
+			}
+		}`;
+	}
+
+	protected getRootReducer() {
+		return `({ action, context, payload, state }) => {
+					if (!action || payload === null) return { state, context };
+					if (!state) throw new Error("Invalid state");
+					return ${this.getRootReducerHandlersDict()};
+  				}`;
+	}
+
+	protected getRootReducerHandlersDict() {
+		return `handlersDict[state]({action,payload,context,state})`;
+	}
+
+	protected getStateValidator() {
+		return `(s) => Object.values(statesDictionary).includes(s)`;
+	}
+
+	protected getActionValidator() {
+		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
