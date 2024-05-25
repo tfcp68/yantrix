@@ -1,6 +1,5 @@
 import type { ICodegen } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
-import type { TDiagramAction } from '@yantrix/mermaid-parser';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 	protected getHandleStateChangeDeclaration(value: number, body: string) {
@@ -12,15 +11,15 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getTypeImports() {
-		return `import { TAutomataBaseActionType, TAutomataBaseStateType } from '@yantrix/automata';`;
+		return `import { TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/automata';`;
 	}
 
 	protected getStateValidator() {
-		return `(s): s is TAutomataBaseStateType => Object.values(statesDictionary).includes(s)`;
+		return `(${super.getStateValidator()}) as TValidator<TAutomataBaseStateType>`;
 	}
 
 	protected getActionValidator() {
-		return `(a): a is TAutomataBaseActionType => Object.values(actionsDictionary).includes(a)`;
+		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
 	}
 
 	protected getHandleStateChangesBodyNewState() {
@@ -29,5 +28,21 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 
 	protected getRootReducerHandlersDict() {
 		return `handlersDict[state as keyof typeof handlersDict]({action,payload,context,state})`;
+	}
+
+	public getUtils() {
+		return this.getTypeGuards();
+	}
+
+	protected getTypeGuards() {
+		return this.getIsTypeGuard();
+	}
+
+	protected getIsTypeGuard() {
+		return `const isKeyOf = <T extends Object>(key:any, object: T): key is keyof T => key in object;`;
+	}
+
+	protected getRootReducerStateGuard() {
+		return `if (!isKeyOf(state,handlersDict)) throw new Error("Invalid state");`;
 	}
 }

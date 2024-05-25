@@ -48,10 +48,10 @@ export class JavaScriptCodegen implements ICodegen {
 		if (!value) {
 			throw new Error(`State ${state} not found`);
 		}
-		return this.getHandleStateChangeDeclaration(value, this.getHandleStateChangesBody(transitions, state));
+		return this.getHandleStateChangeDeclaration(value, this.getHandleStateChangesBody(transitions));
 	}
 
-	protected getHandleStateChangesBody(transitions: Record<string, TDiagramAction>, state: string) {
+	protected getHandleStateChangesBody(transitions: Record<string, TDiagramAction>) {
 		return `
 			const actionToStateDict = {
 				${this.getActionToStateDict(transitions)
@@ -109,9 +109,13 @@ export class JavaScriptCodegen implements ICodegen {
 	protected getRootReducer() {
 		return `({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
-					if (!state) throw new Error("Invalid state");
+					${this.getRootReducerStateGuard()}
 					return ${this.getRootReducerHandlersDict()};
   				}`;
+	}
+
+	protected getRootReducerStateGuard() {
+		return `if (!state) throw new Error("Invalid state");`;
 	}
 
 	protected getRootReducerHandlersDict() {
