@@ -2,15 +2,6 @@ import type { ICodegen } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
-	protected getHandleStateChangeDeclaration(id: number, body: string) {
-		return `const handleStateChange${id} = ({payload,action,context:prevContext,state}:{
-					state:number|null, 
-					action:keyof typeof actionToStateDict[${id}], 
-					payload:any, 
-					context:any
-				}) => {${body}}`;
-	}
-
 	public getImports(): string {
 		return super.getImports() + '\n' + this.getTypeImports();
 	}
@@ -25,10 +16,6 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 
 	protected getActionValidator() {
 		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
-	}
-
-	protected getHandleStateChangesBodyNewState() {
-		return `const newState = actionToStateDict[action as keyof typeof actionToStateDict] ?? state;`;
 	}
 
 	public getUtils() {

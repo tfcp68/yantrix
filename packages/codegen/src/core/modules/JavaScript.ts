@@ -8,8 +8,6 @@ export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagram;
-	handlersDict: string[];
-	changeStateHandlers: string[];
 	initialState: null | number;
 	dictionaries: string[];
 
@@ -18,13 +16,10 @@ export class JavaScriptCodegen implements ICodegen {
 		this.stateDictionary = new BasicStateDictionary();
 
 		this.diagram = diagram;
-		this.handlersDict = [];
-		this.changeStateHandlers = [];
 		this.dictionaries = [];
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 		this.initialState = Object.values(this.stateDictionary.getDictionary())[0];
-		this.setupHandlers();
 		this.setupDictionaries();
 	}
 
@@ -32,50 +27,12 @@ export class JavaScriptCodegen implements ICodegen {
 		return `import { GenericAutomata } from "@yantrix/automata";`;
 	}
 
-	public getHandlers(): string {
-		return this.handlersDict.join('\n');
-	}
-
 	public getDictionaries(): string {
 		return this.dictionaries.join('\n');
 	}
 
-	public getChangeStateHandlers(): string {
-		return this.changeStateHandlers.join('\n');
-	}
-
-	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
-		const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-		if (!value) {
-			throw new Error(`State ${state} not found`);
-		}
-		return this.getHandleStateChangeDeclaration(value, this.getHandleStateChangesBody(value));
-	}
-
-	protected getHandleStateChangesBody(id: number) {
-		return `
-			const newState = actionToStateDict[${id}][action] ?? state;
-			const isNewState = newState !== state;
-			return { state: isNewState ? newState : state, context: isNewState ? { ...payload } : { ...prevContext } };
-		`;
-	}
-
-	protected getHandleStateChangesBodyNewState() {
-		return `const newState = actionToStateDict[action] ?? state;`;
-	}
-
 	protected getHandleStateChangeDeclaration(id: number, body: string) {
 		return `const handleStateChange${id} = ({payload,action,context:prevContext,state}) => {${body}}`;
-	}
-
-	setupHandlers() {
-		this.handlersDict.push('const handlersDict = {');
-
-		Object.keys(this.diagram.transitions).map((state) => {
-			this.handlersDict.push(this.getHandlerDict(state));
-			this.changeStateHandlers.push(this.getHandleStateChanges(this.diagram.transitions[state], state));
-		});
-		this.handlersDict.push(' }');
 	}
 
 	setupDictionaries() {
@@ -170,12 +127,5 @@ export class JavaScriptCodegen implements ICodegen {
 			});
 		});
 		return actionToStateDict;
-	}
-
-	getHandlerDict(state: string) {
-		const stateValue = this.stateDictionary.getStateValues({
-			keys: [state],
-		})[0];
-		return `${stateValue}: handleStateChange${stateValue}, \n`;
 	}
 }
