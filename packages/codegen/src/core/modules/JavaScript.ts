@@ -70,7 +70,15 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getRootReducerStateValidation() {
-		return `if (!(state in actionToStateFromStateDict)) throw new Error("Invalid action")`;
+		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`;
+	}
+
+	protected getRootReducerStateValidationHead() {
+		return `if (!(state in actionToStateFromStateDict))`;
+	}
+
+	protected getRootReducerStateValidationError() {
+		return `throw new Error("Invalid state, maybe machine isn't running.")`;
 	}
 
 	protected getRootReducerActionValidation() {

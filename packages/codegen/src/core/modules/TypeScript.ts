@@ -30,8 +30,8 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 		return `const isKeyOf = <T extends Object>(key:any, object: T): key is keyof T => key in object;`;
 	}
 
-	protected getRootReducerStateValidation() {
-		return `if (!isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid action")`;
+	protected getRootReducerStateValidationHead() {
+		return `if (!isKeyOf(state, actionToStateFromStateDict))`;
 	}
 
 	protected getRootReducerActionValidation() {
