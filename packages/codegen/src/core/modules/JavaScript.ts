@@ -74,7 +74,7 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getRootReducerActionValidation() {
-		return `if (!isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
+		return `if (!(action in actionToStateFromStateDict[state])) return { state, context };`;
 	}
 
 	protected getRootReducerHandlersDict() {
