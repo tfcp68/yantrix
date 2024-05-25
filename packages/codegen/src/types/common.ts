@@ -25,10 +25,25 @@ export interface ITypedObject extends ITypedObjectProps {
 
 export interface ICodegen {
 	getDictionaries(): string;
+
 	getChangeStateHandlers(): string;
+
 	getHandlers(): string;
+
+	/**
+	 * Возвращает объект возможных переходов к состояням из каждого состояния
+	 * Пример вида {
+	 *     состояние1: {
+	 *            действие1: состояние2
+	 *     }
+	 * }
+	 */
+	getActionToStateFromState(): string;
+
 	getClassTemplate(className: string): string;
+
 	getImports(): string;
+
 	getUtils?(): string;
 }
 

@@ -16,6 +16,7 @@ const codegenArrayOutputByLanguage = {
 			codegen.getImports(),
 			codegen.getDictionaries(),
 			codegen.getChangeStateHandlers(),
+			codegen.getActionToStateFromState(),
 			codegen.getHandlers(),
 			codegen.getClassTemplate(options.className),
 		];

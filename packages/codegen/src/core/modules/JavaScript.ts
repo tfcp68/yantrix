@@ -48,17 +48,12 @@ export class JavaScriptCodegen implements ICodegen {
 		if (!value) {
 			throw new Error(`State ${state} not found`);
 		}
-		return this.getHandleStateChangeDeclaration(value, this.getHandleStateChangesBody(transitions));
+		return this.getHandleStateChangeDeclaration(value, this.getHandleStateChangesBody(value));
 	}
 
-	protected getHandleStateChangesBody(transitions: Record<string, TDiagramAction>) {
+	protected getHandleStateChangesBody(id: number) {
 		return `
-			const actionToStateDict = {
-				${this.getActionToStateDict(transitions)
-					.flatMap((el) => el)
-					.join('\n')}
-			};
-			${this.getHandleStateChangesBodyNewState()}
+			const newState = actionToStateDict[${id}][action] ?? state;
 			const isNewState = newState !== state;
 			return { state: isNewState ? newState : state, context: isNewState ? { ...payload } : { ...prevContext } };
 		`;
@@ -68,8 +63,8 @@ export class JavaScriptCodegen implements ICodegen {
 		return `const newState = actionToStateDict[action] ?? state;`;
 	}
 
-	protected getHandleStateChangeDeclaration(value: number, body: string) {
-		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
+	protected getHandleStateChangeDeclaration(id: number, body: string) {
+		return `const handleStateChange${id} = ({payload,action,context:prevContext,state}) => {${body}}`;
 	}
 
 	setupHandlers() {
@@ -130,17 +125,44 @@ export class JavaScriptCodegen implements ICodegen {
 		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
 
+	/**
+	 * Возвращает объект возможных переходов к состояням из каждого состояния
+	 * Пример вида { состояние1: { действие1: состояние2 } }
+	 */
+	protected getActionToStateFromStateDict() {
+		let actionToStateFromStateDict: Record<number, Record<number, number>> = {};
+		Object.keys(this.diagram.transitions).map((state) => {
+			const transitions = this.diagram.transitions[state];
+			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+			if (!value) throw new Error(`State ${state} not found`);
+			actionToStateFromStateDict[value] = this.getActionToStateDict(transitions);
+		});
+		return actionToStateFromStateDict;
+	}
+
+	public getActionToStateFromState() {
+		return `const actionToStateDict = ${JSON.stringify(this.getActionToStateFromStateDict(), null, 2)}`;
+	}
+
+	/**
+	 * Возвращает объект возможных переходов к состояниям из каждого действия
+	 * Пример вида { действие1: состояние1 }
+	 */
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.keys(transitions).map((key) => {
+		const actionToStateDict: Record<number, number> = {};
+		Object.keys(transitions).map((key) => {
 			const { actionsPath } = transitions[key];
-			const newState = this.stateDictionary.getStateValues({ keys: [key] });
-			return actionsPath.map(({ action }) => {
+			const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+			actionsPath.map(({ action }) => {
 				const actionValue = this.actionDictionary.getActionValues({
 					keys: action,
-				});
-				return `${actionValue[0]}:${newState[0]},`;
+				})[0];
+				if (!actionValue) throw new Error(`Action ${action} not found`);
+				if (!newState) throw new Error(`State ${key} not found`);
+				actionToStateDict[actionValue] = newState;
 			});
 		});
+		return actionToStateDict;
 	}
 
 	getHandlerDict(state: string) {
