@@ -8,7 +8,11 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 	}
 
 	public getImports(): string {
-		return `import { GenericAutomata, TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType } from '@yantrix/automata';`;
+		return super.getImports() + '\n' + this.getTypeImports();
+	}
+
+	protected getTypeImports() {
+		return `import { TAutomataBaseActionType, TAutomataBaseStateType } from '@yantrix/automata';`;
 	}
 
 	protected getStateValidator() {
