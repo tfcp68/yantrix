@@ -1,14 +1,10 @@
 import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
-import { beforeAll, beforeEach, describe, expect, test, vitest } from 'vitest';
-import { writeFile } from './fixtures/saveGenerated.js';
+import { beforeEach, describe, expect, test, vitest } from 'vitest';
 
 let automata: GamePhaseAutomata;
 
 describe('Codegen output', () => {
 	describe('GamePhaseAutomata', () => {
-		beforeAll(() => {
-			writeFile();
-		});
 		let automata = new GamePhaseAutomata();
 		const payload = {};
 		const toInit = [{ action: actionsDictionary['/RESET'], payload }];
