@@ -2,7 +2,7 @@ export const ReservedList = ['end note, +INITIAL'];
 export const SpecialCharList = [
 	'!',
 	'@',
-	'$',
+	"$",
 	'%',
 	'^',
 	'&',
@@ -27,3 +27,13 @@ export const SpecialCharList = [
 	'\\',
 	'|',
 ];
+export const ExpressionTypes = {
+	Function: 'function',
+	StringDeclaration: 'string',
+	ArrayDeclaration: 'array',
+	Constant: 'constant',
+	IntegerDeclaration: 'integer',
+	DecimalDeclaration: 'decimal',
+	FunctionProperty: 'FunctionProperty',
+	Property: 'property',
+} as const;
