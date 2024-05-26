@@ -39,6 +39,7 @@
 '('                                  {return '('}
 \'[^\n#{()=><""]+\'                  {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 \"[^\n#{()=><'']+\"                  {this.popState();yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+'+INITIAL'                        {return 'InitialState'}
 
 'subscribe/'                         {this.begin('SubscribeStatement'); return 'subscribe/'}
 <SubscribeStatement>[^/=>\s]+        {this.popState(); return 'EventName'}
@@ -97,7 +98,7 @@ document
 	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
 	| document line {
            if($2 !== '\n') {
-              $1['contextDescription'].push($2)
+              if($2.hasOwnProperty('context'))  $1['contextDescription'].push($2)
               if($2.hasOwnProperty('eventName')) $1['emit'].push($2)
               if($2.hasOwnProperty('event')) $1['subscribe'].push($2)
            }
@@ -144,20 +145,22 @@ ActionStatement
 }}} ;
 
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
-KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($3['Property'] === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
+KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('value')){if($3['value']?.Property === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
-Number:
-        | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
-        ;
+
 Expression
-          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
-          | Property {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
-          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
-          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
-          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
-          | Number
+          : FunctionOperator {$$ = {value:{...$1}, expressionType:ExpressionTypes.Function}}
+          | Property {$$ = {value:{Property:$1}, expressionType:ExpressionTypes.Property}}
+          | StringDeclaration {$$ = {value:{StringDeclaration:$1.toString()}, expressionType:ExpressionTypes.StringDeclaration}}
+          | ConstantDeclaration {$$ = {value:{ConstantReference:$1}, expressionType:ExpressionTypes.Constant}}
+          | Array {$$ = {value:{ArrayDeclaration:[]}, expressionType:ExpressionTypes.ArrayDeclaration}}
+          | Number {$$ = {value:{NumberDeclaration: Number($1)}, expressionType:ExpressionTypes.NumberDeclaration}}
           ;
+
+Number
+     :  integerLiteral
+     | decimalLiteral
+     ;
 FunctionOperator
       : FunctionName '(' ')'  {$$ ={FunctionDeclaration:{FunctionName:$1,Arguments:[]}}}
       | FunctionName '(' Arguments ')' {$$={FunctionDeclaration:{FunctionName:$1.toLowerCase(), Arguments:[...$3]}}}
@@ -165,7 +168,7 @@ FunctionOperator
 Arguments
         : /* empty */ {$$ = []}
         | Expression{$$=[$1]}
-        | PropertyArgument {$$=[{Expression:{FunctionProperty:$1,expressionType:ExpressionTypes.FunctionProperty}}]}
+        | PropertyArgument {$$=[{Expression:{value:{FunctionProperty:$1},expressionType:ExpressionTypes.FunctionProperty}}]}
         | Arguments ',' Arguments {$$ = [...$1,...$3]}
         ;
 

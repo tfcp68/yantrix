@@ -12,18 +12,14 @@ export type TSubscribeStatement<T extends TKeyItems = TKeyItems> = {
 	event: string;
 	action: TAction<T>;
 };
-
+export type TSubscribe = {
+	subscribe: TSubscribeStatement[];
+};
 export type TEventEmitStatement<T extends TKeyItems = TKeyItems> = {
 	eventName: string;
 } & (T extends undefined ? {} : { payload: T });
 
-export type TContextStatement<T extends TKeyItems = TKeyItems, X extends TKeyItems = TKeyItems> = {
-	context: T;
-	payload: X;
-};
-export type TPreviousContextToContext<T extends TKeyItems = TKeyItems> = {
-	prevContext: T;
-};
+export type TEvents = { emit: TEventEmitStatement[] };
 
 export type TContext<T extends TKeyItems = TKeyItems> = {
 	context: T;
@@ -37,7 +33,7 @@ export type TPayloadToContext<T extends TKeyItems = TKeyItems> = {
 } & TContext;
 
 export type TContextDescription = {
-	contextDescription: [TPayloadToContext, TPreviousToContext];
+	contextDescription: [TPayloadToContext | TPreviousToContext];
 };
 
-export type TNotes = TContextDescription;
+export type TNotes = TContextDescription & TSubscribe & TEvents;

@@ -1,20 +1,30 @@
-import { ExpressionTypes, TExpressionTypesKeys } from './expressions.js';
+import { ExpressionTypes, TMapped, TMappedKeys } from './expressions.js';
 import { TKeyItemBase, TKeyItems, TKeyItemWithExpression } from './keyItem.js';
-import { TAction, TSubscribeStatement } from './statements.js';
+import { TAction, TPayloadToContext, TPreviousToContext, TSubscribeStatement } from './statements.js';
 
-export function isExpressionType<T extends TExpressionTypesKeys>(
-	expression: any,
-): expression is (typeof ExpressionTypes)[T] {
+export const isPrevContext = (
+	obj: TPayloadToContext<TKeyItems> | TPreviousToContext<TKeyItems>,
+): obj is TPreviousToContext => {
+	return Object.keys(obj).includes('prevContext');
+};
+export const isPayloadContext = (
+	obj: TPayloadToContext<TKeyItems> | TPreviousToContext<TKeyItems>,
+): obj is TPayloadToContext => {
+	return Object.keys(obj).includes('payload');
+};
+
+export function isExpressionType<T extends TMappedKeys>(expression: any): expression is TMapped[T] {
 	return Object.keys(ExpressionTypes).includes(expression);
 }
 
 export const isKeyItem = function (obj: any): obj is TKeyItemBase {
-	return Object.hasOwn(obj, 'KeyItemDeclaration') && Object.hasOwn(obj?.KeyItemDeclaration, 'TargetProperty');
+	const keys = Object.keys(obj);
+	return keys.includes('KeyItemDeclaration') && Object.keys(obj.KeyItemDeclaration).includes('TargetProperty');
 };
-export const isKeyItemWithExpression = function (obj: any): obj is TKeyItemWithExpression<any> {
+export const isKeyItemWithExpression = function (obj: any): obj is TKeyItemWithExpression {
 	const isKey = isKeyItem(obj);
 	if (isKey) {
-		return Object.hasOwn(obj?.KeyItemDeclaration, 'Expression');
+		return Object.keys(obj.KeyItemDeclaration).includes('Expression');
 	}
 	return false;
 };

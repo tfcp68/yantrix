@@ -1,7 +1,16 @@
-import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { Modules } from '../core/modules/index.js';
+import { TMapped, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
+import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 
-export type TStateDiagramSyntaxTree = TStateDiagramMatrix;
+export type TStateDiagramMatrixIncludeNotes = {
+	states: TStateIncludingNotes[];
+} & Omit<TStateDiagramMatrix, 'states'>;
+
+type TDiagramStateOmitNotes = Omit<TDiagramState, 'notes'>;
+
+export type TStateIncludingNotes = {
+	notes: TNotes | null;
+} & TDiagramStateOmitNotes;
 
 export interface ICodegenOptions {
 	language: TOutLang;
@@ -36,3 +45,7 @@ export interface ICodegen {
 }
 
 export type TOutLang = keyof typeof Modules;
+
+export type TExpressionRecord = {
+	[K in TMappedKeys]: (arg: TMapped[K]) => string;
+};

@@ -27,29 +27,40 @@ IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
-const diagramsInput = {
-	gameDiagram: {
+const input2 = `stateDiagram-v2
+	[*] --> SELECTED: RESET (list)
+	SELECTED --> CLOSED: Close
+	note left of SELECTED
+	#{ selectedIndex } <= (index=3)
+	emit/selected <= (index)
+	subscribe/selected => CLOSE
+	end note
+`;
+
+const diagramsInput = [
+	{
 		value: input1,
 		automataName: 'GamePhaseAutomata',
 	},
-} as const;
+	{
+		value: input2,
+		automataName: 'DropdownAutomata',
+	},
+] as const;
 
-const fixturesList = [diagramsInput];
+export const writeFile = () => {
+	diagramsInput.forEach(async (fixture) => {
+		const stateDiagramStructure = await parseStateDiagram(fixture.value);
+		const stateDiagram = await createStateDiagram(stateDiagramStructure);
 
-fixturesList.forEach(async (fixture) => {
-	const stateDiagramStructure = await parseStateDiagram(fixture.gameDiagram.value);
-	const stateDiagram = await createStateDiagram(stateDiagramStructure);
+		const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
+			className: fixture.automataName,
+			outLang: 'TypeScript',
+		});
 
-	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
-		className: fixture.gameDiagram.automataName,
-		outLang: 'TypeScript',
-	});
-
-	fs.writeFileSync(
-		path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),
-		generatedAutomataOutput,
-		{
+		fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), generatedAutomataOutput, {
 			encoding: 'utf8',
-		},
-	);
-});
+		});
+	});
+};
+writeFile();

@@ -1,4 +1,4 @@
-import type { ITypedObject, ITypedObjectProps } from '../types/common.js';
+import { ITypedObject, ITypedObjectProps } from '../types/common.js';
 import { join } from 'path';
 import { cwd } from 'node:process';
 import { readFile } from 'fs/promises';

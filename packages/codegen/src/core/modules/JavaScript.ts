@@ -1,27 +1,38 @@
-import type { ICodegen } from '../../types/common.js';
+import { ICodegen, TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
+import type { TDiagramAction } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
+import {
+	ExpressionTypes,
+	isKeyItemWithExpression,
+	isPayloadContext,
+	TKeyItem,
+	TKeyItemWithExpression,
+} from '@yantrix/yantrix-parser';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	diagram: TStateDiagramMatrix;
+	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	changeStateHandlers: string[];
 	initialState: null | number;
 	dictionaries: string[];
+	expressionsDict: TExpressionRecord;
 
-	constructor(diagram: TStateDiagramMatrix) {
+	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-
 		this.diagram = diagram;
+
 		this.handlersDict = [];
 		this.changeStateHandlers = [];
 		this.dictionaries = [];
 
+		this.expressionsDict = this.fillExpression();
+
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
+
 		this.initialState = Object.values(this.stateDictionary.getDictionary())[0];
 		this.setupHandlers();
 		this.setupDictionaries();
@@ -89,7 +100,8 @@ export class JavaScriptCodegen implements ICodegen {
 				const actionValue = this.actionDictionary.getActionValues({
 					keys: action,
 				});
-				return `${actionValue[0]}:${newState[0]},`;
+
+				return `${actionValue[0]}:{state:${newState[0]}, ${this.getSubsyntaxContext(key || null)}},`;
 			});
 		});
 	}
@@ -101,8 +113,26 @@ export class JavaScriptCodegen implements ICodegen {
 		return `${stateValue}: handleStateChange${stateValue}, \n`;
 	}
 
+	protected fillExpression(): TExpressionRecord {
+		return {
+			[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => `${StringDeclaration}`,
+			[ExpressionTypes.NumberDeclaration]: ({ NumberDeclaration }) => `${NumberDeclaration}`,
+			[ExpressionTypes.ArrayDeclaration]: (value) => '[]',
+			[ExpressionTypes.Function]: (value) => {
+				throw new Error(`Not implemented ${ExpressionTypes.Function}`);
+			},
+			[ExpressionTypes.Property]: () => {
+				throw new Error(`Not implemented ${ExpressionTypes.Property}`);
+			},
+			[ExpressionTypes.FunctionProperty]: () => {
+				throw new Error(`Not implemented ${ExpressionTypes.FunctionProperty}`);
+			},
+		};
+	}
+
 	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
 		const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+
 		if (!value) {
 			throw new Error(`State ${state} not found`);
 		}
@@ -114,15 +144,100 @@ export class JavaScriptCodegen implements ICodegen {
 					.flatMap((el) => el)
 					.join('\n')}     
          };
-        const newState = actionToStateDict[action] ?? state
-        const isNewState = newState !== state
         
-        return {state:isNewState ? newState : state, context:isNewState ? {...payload} : {...prevContext}}
+        const reducedState = actionToStateDict[action]?.state ?? null
+        const newState = reducedState || state
+        const ctx = reducedState ? actionToStateDict[action]?.ctx : {...prevContext}
+        
+
+		
+        return {state:newState, context:{...ctx}}
         `,
 		);
 	}
 
 	protected getHandleStateChangeDeclaration(value: number, body: string) {
 		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
+	}
+
+	protected getSubsyntaxContext(state: string | null) {
+		const value = this.diagram.states.find((diagramState) => diagramState.id === state);
+
+		if (!value) {
+			throw new Error(`Invalid state - ${value}`);
+		}
+		if (!value.notes) {
+			return `ctx: null`;
+		}
+		const { contextDescription } = value.notes;
+
+		const res = contextDescription
+			.map((ctx) => {
+				return ctx.context.map((el, index) => {
+					if (isPayloadContext(ctx)) {
+						const { context, payload } = ctx;
+						return context.map((ctxItem, index) => {
+							const boundProperty = payload[index] || null;
+							return this.getContextValues(ctxItem, boundProperty, 'payload');
+						});
+					} else {
+						const { context, prevContext } = ctx;
+						return context.map((ctxItem, index) => {
+							const boundProperty = prevContext[index] || null;
+							return this.getContextValues(ctxItem, boundProperty, 'prevContext');
+						});
+					}
+				});
+			})
+			.flatMap((template) => template.flatMap((el) => el));
+
+		return `
+			ctx: {${res.join('\r\n')}}
+		`;
+	}
+
+	private getContextValues(context: TKeyItem, boundProperty: TKeyItem, type: 'payload' | 'prevContext') {
+		const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
+		const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
+
+		const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
+		const isEmptyInitial = !isKeyItemWithExpression(context);
+
+		if (isEmptyBoundExpression && isEmptyInitial) {
+			return `
+				${LeftTarget} : ${type}['${RightTarget}'],;
+			`;
+		}
+		if (isEmptyBoundExpression && !isEmptyInitial) {
+			if (isKeyItemWithExpression(context)) {
+				const value = this.getByExpressionValue(context);
+
+				return `${LeftTarget}:  ${type}['${RightTarget}'] || ${value},`;
+			}
+		}
+		//	#{ selectedIndex } <= (index=3)
+		if (!isEmptyBoundExpression && isEmptyInitial) {
+			if (isKeyItemWithExpression(boundProperty)) {
+				const value = this.getByExpressionValue(boundProperty);
+
+				return `${LeftTarget}: ${type}['${RightTarget}'] || ${value},`;
+			}
+		}
+		if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
+			const leftValue = this.getByExpressionValue(context);
+			const rightValue = this.getByExpressionValue(context);
+
+			return `${LeftTarget}: ${type}['${RightTarget}'] || ${rightValue} || ${leftValue},`;
+		}
+		return `${LeftTarget}: null,`;
+	}
+
+	private getByExpressionValue({
+		KeyItemDeclaration: {
+			Expression: { expressionType, value },
+		},
+	}: TKeyItemWithExpression) {
+		// @ts-ignore - Мужики я честно пытался это пофиксить, но у меня не вышло(
+		return this.expressionsDict[expressionType](value);
 	}
 }

@@ -1,18 +1,18 @@
 import mermaid from 'mermaid';
 import {
-  TAction,
-  TActionsStructure,
-  TChoice,
-  TChoicesStructure,
-  TFork,
-  TForksStructure,
-  TNote,
-  TNotesStructure,
-  TParsedDiagramArray,
-  TState,
-  TStateDiagramStructure,
-  TStatesStructure,
-  TTransitionsArray,
+	TAction,
+	TActionsStructure,
+	TChoice,
+	TChoicesStructure,
+	TFork,
+	TForksStructure,
+	TNote,
+	TNotesStructure,
+	TParsedDiagramArray,
+	TState,
+	TStateDiagramStructure,
+	TStatesStructure,
+	TTransitionsArray,
 } from './types/index.js';
 
 import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
@@ -34,8 +34,15 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
 		await mermaid.mermaidAPI.initialize();
 		const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
+
 		return parsedDiagram;
 	} catch (e) {
+		if (e instanceof Error) {
+			if (e.message === 'Diagram stateDiagram already registered.') {
+				mermaid.mermaidAPI.reset();
+				return diagramParser(diagramText);
+			}
+		}
 		throw new InvalidInputError((e as Error).message);
 	}
 }
@@ -45,6 +52,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
  * @param parsedDiagram - a primary diagram dictionary;
  * @returns Returns the transitions from the diagram and their descriptions.
  */
+
 function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 	const transitions: TTransitionsArray = [];
 	for (let i = 0; i < parsedDiagram.length; i++) {
@@ -138,23 +146,23 @@ function getStates(parsedDiagram: TParsedDiagramArray, transitions: TTransitions
  * @returns Returns array with choice elements;
  */
 function getChoices(parsedDiagram: TParsedDiagramArray): TChoicesStructure {
-  const choices: TChoicesStructure = [];
-  for (let i = 0; i < parsedDiagram.length; i++) {
-    if (parsedDiagram[i].stmt === 'state') {
-      const keys = Object.keys(parsedDiagram[i]);
-      if (keys.includes('type')) {
-        const stateType = parsedDiagram[i].type;
-        if (stateType === 'choice') {
-          const choiceElement = parsedDiagram[i].id as string;
-          const choice: TChoice = {
-            id: choiceElement,
-          };
-          choices.push(choice);
-        }
-      }
-    }
-  }
-  return choices;
+	const choices: TChoicesStructure = [];
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				const stateType = parsedDiagram[i].type;
+				if (stateType === 'choice') {
+					const choiceElement = parsedDiagram[i].id as string;
+					const choice: TChoice = {
+						id: choiceElement,
+					};
+					choices.push(choice);
+				}
+			}
+		}
+	}
+	return choices;
 }
 
 /**
@@ -163,23 +171,23 @@ function getChoices(parsedDiagram: TParsedDiagramArray): TChoicesStructure {
  * @returns Returns array with fork and join elements;
  */
 function getForks(parsedDiagram: TParsedDiagramArray): TForksStructure {
-  const forks: TForksStructure = [];
-  for (let i = 0; i < parsedDiagram.length; i++) {
-    if (parsedDiagram[i].stmt === 'state') {
-      const keys = Object.keys(parsedDiagram[i]);
-      if (keys.includes('type')) {
-        const stateType = parsedDiagram[i].type;
-        if (stateType === 'fork' || stateType === 'join') {
-          const forkElement = parsedDiagram[i].id as string;
-          const fork: TFork = {
-            id: forkElement,
-          };
-          forks.push(fork);
-        }
-      }
-    }
-  }
-  return forks;
+	const forks: TForksStructure = [];
+	for (let i = 0; i < parsedDiagram.length; i++) {
+		if (parsedDiagram[i].stmt === 'state') {
+			const keys = Object.keys(parsedDiagram[i]);
+			if (keys.includes('type')) {
+				const stateType = parsedDiagram[i].type;
+				if (stateType === 'fork' || stateType === 'join') {
+					const forkElement = parsedDiagram[i].id as string;
+					const fork: TFork = {
+						id: forkElement,
+					};
+					forks.push(fork);
+				}
+			}
+		}
+	}
+	return forks;
 }
 
 /**
@@ -192,6 +200,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 	const notes: TNotesStructure = [];
 	const visited: Record<string, number> = {};
 	let visitedCount = 0;
+
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
 			const keys = Object.keys(parsedDiagram[i]);
@@ -228,7 +237,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
  * @returns Returns unique id for anonymous action.
  */
 function generateIdForAnonymousAction(from: string, to: string, num: number) {
-  return from + ', ' + to + ', ' + String(num);
+	return from + ', ' + to + ', ' + String(num);
 }
 
 /**
@@ -237,22 +246,22 @@ function generateIdForAnonymousAction(from: string, to: string, num: number) {
  * @returns Returns a dictionary of transitions action.
  */
 function getActions(transitions: TTransitionsArray): TActionsStructure {
-  const actions: TActionsStructure = [];
-  for (let i = 0; i < transitions.length; i++) {
-    const from = transitions[i][0];
-    const to = transitions[i][1];
-    let id = transitions[i][2];
-    if (id === '') {
-      id = generateIdForAnonymousAction(from, to, i);
-    }
-    const action: TAction = {
-      from,
-      to,
-      id,
-    };
-    actions.push(action);
-  }
-  return actions;
+	const actions: TActionsStructure = [];
+	for (let i = 0; i < transitions.length; i++) {
+		const from = transitions[i][0];
+		const to = transitions[i][1];
+		let id = transitions[i][2];
+		if (id === '') {
+			id = generateIdForAnonymousAction(from, to, i);
+		}
+		const action: TAction = {
+			from,
+			to,
+			id,
+		};
+		actions.push(action);
+	}
+	return actions;
 }
 
 /**

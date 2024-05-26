@@ -1,8 +1,8 @@
-import type { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
 
 export const fillDictionaries = (
-	diagram: TStateDiagramMatrix,
+	diagram: TStateDiagramMatrixIncludeNotes,
 	stateDictionary: BasicStateDictionary,
 	actionDictionary: BasicActionDictionary,
 ) => {

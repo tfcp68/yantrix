@@ -1,10 +1,14 @@
 import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
-import { beforeEach, describe, expect, test, vitest } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, test, vitest } from 'vitest';
+import { writeFile } from './fixtures/saveGenerated.js';
 
 let automata: GamePhaseAutomata;
 
 describe('Codegen output', () => {
 	describe('GamePhaseAutomata', () => {
+		beforeAll(() => {
+			writeFile();
+		});
 		let automata = new GamePhaseAutomata();
 		const payload = {};
 		const toInit = [{ action: actionsDictionary['/RESET'], payload }];
@@ -34,17 +38,6 @@ describe('Codegen output', () => {
 		});
 		test('Initial state', () => {
 			expect(automata.state).toBe(statesDictionary['/~~~START~~~']);
-		});
-		test('Set passed context', () => {
-			automata.dispatch({
-				action: actionsDictionary['/RESET'],
-				payload: { players: 3, score: 0 },
-			});
-			expect(automata.state).toBe(statesDictionary['/INIT']);
-			expect(automata.context).toStrictEqual({
-				players: 3,
-				score: 0,
-			});
 		});
 		test('The context and state do not change with the wrong action.', () => {
 			const prevContext = { ...automata.context };

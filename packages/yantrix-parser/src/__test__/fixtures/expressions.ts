@@ -2,78 +2,102 @@ import { ExpressionTypes } from '../../types/expressions.js';
 
 export const primitives = {
 	string: {
-		StringDeclaration: 'string',
+		value: {
+			StringDeclaration: 'string',
+		},
 		expressionType: ExpressionTypes.StringDeclaration,
 	},
 	integer: {
-		NumberDeclaration: 3,
-		expressionType: ExpressionTypes.IntegerDeclaration,
+		value: {
+			NumberDeclaration: 3,
+		},
+		expressionType: ExpressionTypes.NumberDeclaration,
 	},
 	array: {
-		ArrayDeclaration: [],
+		value: {
+			ArrayDeclaration: [],
+		},
 		expressionType: ExpressionTypes.ArrayDeclaration,
 	},
 	function: {
 		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func',
-			Arguments: [],
+		value: {
+			FunctionDeclaration: {
+				FunctionName: 'func',
+				Arguments: [],
+			},
 		},
 	},
 	property: {
-		Property: 'anotherProperty',
+		value: {
+			Property: 'anotherProperty',
+		},
 		expressionType: ExpressionTypes.Property,
 	},
 	constant: {
-		Property: 'constant',
+		value: {
+			Property: 'constant',
+		},
 		expressionType: ExpressionTypes.Constant,
 	},
 	decimal: {
-		NumberDeclaration: 3.14,
+		value: {
+			NumberDeclaration: 3.14,
+		},
+		expressionType: ExpressionTypes.NumberDeclaration,
 	},
 };
 
 const getString = (value: string = 'string') => {
 	return {
-		StringDeclaration: value,
+		value: { StringDeclaration: value },
 		expressionType: ExpressionTypes.StringDeclaration,
 	};
 };
 const getInteger = (value: number = 3) => {
 	return {
-		NumberDeclaration: value,
-		expressionType: ExpressionTypes.IntegerDeclaration,
+		value: { NumberDeclaration: value },
+		expressionType: ExpressionTypes.NumberDeclaration,
 	};
 };
 const getFunction = (name: string = 'func', args: any = []) => {
 	return {
-		FunctionDeclaration: {
-			FunctionName: name,
-			Arguments: [],
+		value: {
+			FunctionDeclaration: {
+				FunctionName: name,
+				Arguments: [],
+			},
 		},
 		expressionType: ExpressionTypes.Function,
 	};
 };
 const getProperty = (name: string = 'property') => {
 	return {
-		Property: name,
+		value: {
+			Property: name,
+		},
 		expressionType: ExpressionTypes.Property,
 	};
 };
 const getArray = () => {
 	return {
-		ArrayDeclaration: [],
+		value: {
+			ArrayDeclaration: [],
+		},
 		expressionType: ExpressionTypes.ArrayDeclaration,
 	};
 };
 const getDecimal = (value: number = 3.14) => {
 	return {
-		NumberDeclaration: value,
+		value: { NumberDeclaration: value },
+		expressionType: ExpressionTypes.NumberDeclaration,
 	};
 };
 const getConstant = (value: string = 'constantName') => {
 	return {
-		ConstantReference: value.slice(2, -1),
+		value: {
+			ConstantReference: value.slice(2, -1),
+		},
 		expressionType: ExpressionTypes.Constant,
 	};
 };
@@ -94,65 +118,81 @@ export type TPrimitives = (typeof primitives)[TKeysPrimitive];
 export const functions = {
 	withPropertyArgs: {
 		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func',
-			Arguments: [
-				{
-					Expression: {
-						FunctionProperty: 'property',
-						expressionType: ExpressionTypes.FunctionProperty,
+		value: {
+			FunctionDeclaration: {
+				FunctionName: 'func',
+				Arguments: [
+					{
+						Expression: {
+							value: { FunctionProperty: 'property' },
+							expressionType: ExpressionTypes.FunctionProperty,
+						},
 					},
-				},
-			],
+				],
+			},
 		},
 	},
 	withStringArgs: {
 		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func',
-			Arguments: [primitives.string],
+		value: {
+			FunctionDeclaration: {
+				FunctionName: 'func',
+				Arguments: [primitives.string],
+			},
 		},
 	},
 	withIntegerArgs: {
 		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func',
-			Arguments: [primitives.integer],
+		value: {
+			FunctionDeclaration: {
+				FunctionName: 'func',
+				Arguments: [primitives.integer],
+			},
 		},
 	},
 	withMultiplyArgs: {
 		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func',
-			Arguments: [
-				{
-					Expression: {
-						expressionType: ExpressionTypes.FunctionProperty,
-						FunctionProperty: 'first',
+		value: {
+			FunctionDeclaration: {
+				FunctionName: 'func',
+				Arguments: [
+					{
+						Expression: {
+							expressionType: ExpressionTypes.FunctionProperty,
+							value: {
+								FunctionProperty: 'first',
+							},
+						},
 					},
-				},
-				{
-					Expression: {
-						expressionType: ExpressionTypes.FunctionProperty,
-						FunctionProperty: 'second',
+					{
+						Expression: {
+							expressionType: ExpressionTypes.FunctionProperty,
+							value: {
+								FunctionProperty: 'second',
+							},
+						},
 					},
-				},
-			],
+				],
+			},
 		},
 	},
 	withRecursiveFunction: {
 		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func',
-			Arguments: [
-				{
-					expressionType: ExpressionTypes.Function,
-					FunctionDeclaration: {
-						FunctionName: 'function',
-						Arguments: [],
+		value: {
+			FunctionDeclaration: {
+				FunctionName: 'func',
+				Arguments: [
+					{
+						expressionType: ExpressionTypes.Function,
+						value: {
+							FunctionDeclaration: {
+								FunctionName: 'function',
+								Arguments: [],
+							},
+						},
 					},
-				},
-			],
+				],
+			},
 		},
 	},
 };
