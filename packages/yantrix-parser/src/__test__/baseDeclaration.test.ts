@@ -1,4 +1,3 @@
-import { parse } from 'path';
 import { assert, describe, expect, test } from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
 import {
@@ -10,7 +9,7 @@ import {
 } from './fixtures/baseDeclarations.js';
 import { primitiveWithValue } from './fixtures/expressions.js';
 
-import { ReservedList, SpecialChars } from '../index.js';
+import { ReservedList, SpecialCharList } from '../index.js';
 
 const invalidCases = [
 	['#[LeftSideProperty]'],
@@ -122,7 +121,7 @@ describe('Base grammar declarations', () => {
 		const correctStatement = `#{${propertyName}}`;
 		const incorrectStatements = [
 			...ReservedList.map((reservedWord) => `#{${reservedWord}}`),
-			...SpecialChars.map((char) => `${char}{${propertyName}}`),
+			...SpecialCharList.map((char) => `${char}{${propertyName}}`),
 			`#[${propertyName}]`,
 			`#(${propertyName})`,
 		];
@@ -141,8 +140,8 @@ describe('Base grammar declarations', () => {
 		const correctStatement = `#{${propertyName}}`;
 		describe('Key item descriptor cannot start with or contain a special character', () => {
 			const incorrectStatements = [
-				...SpecialChars.map((char) => `#{${char}${propertyName}}`),
-				...SpecialChars.map((char) => `#{${propertyName}${char}}`),
+				...SpecialCharList.map((char) => `#{${char}${propertyName}}`),
+				...SpecialCharList.map((char) => `#{${propertyName}${char}}`),
 			];
 			test.each(incorrectStatements)('%s --- ERROR', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
