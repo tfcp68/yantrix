@@ -1,55 +1,57 @@
 // import { createContext } from 'vm';
+import { Map } from 'immutable';
 import { TKeyItems, TKeyItem } from '../types/keyItem.js';
-import { expressions, functions, getExpression, TExpression, TExpressionTypes } from './expressions.js';
+import { ExpressionTypes, TMapped } from '../types/expressions.js';
+import {
+	expressionProperties,
+	expressions,
+	functions,
+	getExpression,
+	TExpression,
+	TExpressionTypes,
+} from './expressions.js';
 import { randomString } from '../utils/utils.js';
 
-// partial<type>
-
-type TContextDescription = {
-	context: TKeyItems;
-	payload?: TKeyItems;
-	prevContext?: TKeyItems;
-};
-
-const baseKeyItemDeclaration = {
-	TargetProperty: 'property',
-};
-
-const targetProperty = (propertyName: string = randomString()) => ({ TargetProperty: propertyName });
-const createExpression = () => {};
-
-const createKeyItemDeclaration = (keyItem?: TKeyItem): TKeyItem => ({
+const baseKeyItemDeclaration = (): TKeyItem => ({
 	KeyItemDeclaration: {
 		TargetProperty: randomString(),
-		...keyItem,
 	},
 });
+const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
+	const base = baseKeyItemDeclaration();
+	if (keyItem) {
+		return Map(base)
+			.updateIn(['KeyItemDeclaration'], (item) => keyItem.KeyItemDeclaration)
+			.toJS();
+	} else return base;
+};
+
+const createContext = (keyItems?: TKeyItems) => {
+	const contextItems = keyItems || [baseKeyItemDeclaration()];
+	return {
+		context: contextItems,
+	};
+};
 
 const createContextDescription = (
-	contextKeyItems: TKeyItems,
+	contextKeyItems?: TKeyItems,
 	payloadKeyItems?: TKeyItems,
 	prevContextKeyItems?: TKeyItems,
-): TContextDescription => ({
-	context: contextKeyItems,
-	payload: payloadKeyItems,
-	prevContext: prevContextKeyItems,
-});
+) => {
+	const baseContext = createContext(contextKeyItems);
+	return Map(baseContext)
+		.updateIn(['context'], (items) => contextKeyItems ?? items)
+		.updateIn(['payload'], (items) => payloadKeyItems ?? items)
+		.updateIn(['prevContext'], (items) => prevContextKeyItems ?? items)
+		.toJS();
+};
 
 const getKeyItem = (expression: TExpressionTypes | null) => {
-	return {
-		contextDescription: [
-			{
-				context: [
-					{
-						KeyItemDeclaration: {
-							...expression,
-							...baseKeyItemDeclaration,
-						},
-					},
-				],
-			},
-		],
-	};
+	const keyItem = Map(createKeyItemDeclaration())
+		.updateIn(['KeyItemDeclaration', 'Expression'], (item) => expression?.Expression ?? item)
+		.toJS() as TKeyItem;
+
+	return createContextDescription([keyItem]);
 };
 
 /// Base key item declaration

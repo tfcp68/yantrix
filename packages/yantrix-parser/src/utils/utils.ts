@@ -1,4 +1,4 @@
-import { primitiveWithValue } from '../fixtures/expressions.js';
+import { expressionProperties } from '../fixtures/expressions.js';
 
 export const randomString = (length: number = 10) => {
 	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -19,34 +19,34 @@ export const allowedExpressions = {
 	string: {
 		value: randomString,
 		output: (str: string) => {
-			return primitiveWithValue.string(str.slice(1, str.length - 1));
+			return expressionProperties.string(str.slice(1, str.length - 1));
 		},
 	},
 	integer: {
-		value: randomInteger,
-		output: (value: string) => primitiveWithValue.integer(Number(value)),
+		value: () => randomInteger().toString(),
+		output: (value: string) => expressionProperties.integer(Number(value)),
 	},
 	decimal: {
-		value: () => randomDecimal(-10000, 10000, 4),
-		output: (value: string) => primitiveWithValue.decimal(Number(value)),
+		value: () => randomDecimal(-10000, 10000).toFixed(4),
+		output: (value: string) => expressionProperties.decimal(Number(value)),
 	},
 	property: {
 		value: randomString,
-		output: (property: string) => primitiveWithValue.property(property),
+		output: (property: string) => expressionProperties.property(property),
 	},
 	function: {
 		value: () => randomString() + '()',
 		output: (name: string) => {
-			return primitiveWithValue.function(name.slice(0, name.length - 2));
+			return expressionProperties.function(name.slice(0, name.length - 2));
 		},
 	},
 	array: {
 		value: () => '[]',
-		output: () => primitiveWithValue.array(),
+		output: () => expressionProperties.array(),
 	},
 	constant: {
 		value: () => `$(${randomString()})`,
-		output: (s: string) => primitiveWithValue.constant(s),
+		output: (s: string) => expressionProperties.constant(s),
 	},
 };
 

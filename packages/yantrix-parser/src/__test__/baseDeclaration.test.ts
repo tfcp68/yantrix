@@ -249,14 +249,14 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.string('test'),
+				expressionProperties.string('test'),
 			);
 
 			const extraStrings = ['#{arg="1"}', '#{arg="1.01"}', '#{arg="func()"}', '#{arg="[]"}'];
 			extraStrings.forEach((str) =>
 				assert.deepNestedInclude(
 					result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-					primitiveWithValue.string('test'),
+					expressionProperties.string('test'),
 				),
 			);
 		});
@@ -265,7 +265,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.integer(1),
+				expressionProperties.integer(1),
 			);
 		});
 		test('Expression value is recognized as Decimal', () => {
@@ -273,7 +273,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.decimal(1.01),
+				expressionProperties.decimal(1.01),
 			);
 		});
 		test('Expression value is recognized as Constant', () => {
@@ -281,7 +281,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.constant('$(val)'),
+				expressionProperties.constant('$(val)'),
 			);
 		});
 		test('Expression value is recognized as Array', () => {
@@ -289,7 +289,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.array(),
+				expressionProperties.array(),
 			);
 		});
 		test('Expression value is recognized as Function', () => {
@@ -297,7 +297,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.function('func'),
+				expressionProperties.function('func'),
 			);
 		});
 		test('Expression value is recognized as Property', () => {
@@ -305,7 +305,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.property('prop'),
+				expressionProperties.property('prop'),
 			);
 		});
 	});
@@ -317,7 +317,7 @@ describe('Base grammar declarations', () => {
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.array(),
+				expressionProperties.array(),
 			);
 		});
 		test('Non-empty array expression cannot be created', () => {
