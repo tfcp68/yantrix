@@ -31,7 +31,7 @@ export const primitives = {
 		expressionType: ExpressionTypes.Property,
 	},
 	constant: {
-		Property: randomString(),
+		ConstantReference: randomString(),
 		expressionType: ExpressionTypes.Constant,
 	},
 };
@@ -50,7 +50,7 @@ const getDecimalExpressionProperties = (value: number = randomDecimal()) =>
 		.toJS();
 const getConstantExpressionProperties = (value: string = randomString()) =>
 	Map(primitives.constant)
-		.updateIn(['Property'], (v) => value.slice(2, -1))
+		.updateIn(['ConstantReference'], (v) => value.slice(2, -1))
 		.toJS();
 const getPropertyExpressionProperties = (name: string = randomString()) =>
 	Map(primitives.property)
@@ -76,24 +76,6 @@ export const expressionProperties = {
 
 type TKeysPrimitive = keyof typeof primitives;
 export type TPrimitives = (typeof primitives)[TKeysPrimitive];
-
-const functionExpressionPrimitive = (name: string = randomString()) => ({
-	Expression: {
-		FunctionProperty: name,
-		expressionType: ExpressionTypes.FunctionProperty,
-	},
-});
-
-// export const functions = {
-// 	withPropertyArgs: getFunctionExpressionProperties(randomString(), [functionExpressionPrimitive()]),
-// 	withStringArgs: getFunctionExpressionProperties(randomString(), [getStringExpressionProperties()]),
-// 	withIntegerArgs: getFunctionExpressionProperties(randomString(), [getIntegerExpressionProperties()]),
-// 	withMultiplyArgs: getFunctionExpressionProperties(randomString(), [
-// 		functionExpressionPrimitive('first'),
-// 		functionExpressionPrimitive('second'),
-// 	]),
-// 	withRecursiveFunction: getFunctionExpressionProperties(randomString(), [getFunctionExpressionProperties()]),
-// };
 
 export const functions = {
 	withPropertyArgs: {
@@ -150,13 +132,11 @@ export const functions = {
 			FunctionName: 'func-' + randomString(),
 			Arguments: [
 				{
-					Expression: {
-						expressionType: ExpressionTypes.Function,
-						FunctionDeclaration: {
-							FunctionName: 'func-' + randomString(),
-							Arguments: [],
-						},
+					FunctionDeclaration: {
+						FunctionName: 'func-' + randomString(),
+						Arguments: [],
 					},
+					expressionType: ExpressionTypes.Function,
 				},
 			],
 		},

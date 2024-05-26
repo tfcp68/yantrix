@@ -148,7 +148,7 @@ KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('Property')){if($
 TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
 Number:
         | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
         ;
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
