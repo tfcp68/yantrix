@@ -1,0 +1,57 @@
+name: Deploy docs to Github Pages
+
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - 'vitepress/**'
+            - 'docs/**'
+            - '.github/workflows/vitepress.yml'
+
+permissions: write-all
+
+concurrency:
+    group: 'docs-pages'
+    cancel-in-progress: true
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+            - name: Install dependencies
+              run: npm install
+              working-directory: vitepress
+            - name: Pre build script
+              run: sh pre_build.sh
+              working-directory: vitepress
+            - name: Build
+              run: npm run build
+              working-directory: vitepress
+            - name: Setup Pages
+              id: pages
+              uses: actions/configure-pages@v5
+              with:
+                  enablement: true
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: vitepress/.vitepress/dist
+
+    deploy:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        needs: build
+        runs-on: ubuntu-latest
+        name: Deploy
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
