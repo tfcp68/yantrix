@@ -371,7 +371,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				this.$ = { NumberDeclaration: Number($$[$0]), expressionType: ExpressionTypes.IntegerDeclaration };
 				break;
 			case 25:
-				this.$ = { NumberDeclaration: Number($$[$0]) };
+				this.$ = { NumberDeclaration: Number($$[$0]), expressionType: ExpressionTypes.DecimalDeclaration };
 				break;
 			case 26:
 				this.$ = { ...$$[$0], expressionType: ExpressionTypes.Function };
