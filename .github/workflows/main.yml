@@ -18,7 +18,7 @@ jobs:
                   run_install: false
             - name: Install dependencies
               run: pnpm install
-            - name: Tests
+            - name: Build
               run: pnpm build
             - name: Tests
               run: pnpm test
