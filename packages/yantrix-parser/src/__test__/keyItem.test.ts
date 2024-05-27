@@ -6,26 +6,49 @@ import {
 	getKeyItemsInitialEmpty,
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
+	randomString,
+	randomDecimal,
+	randomInteger,
 } from '../utils/utils.js';
 
-const cases = [
-	['#{property}', keyItem.declarationKeyItem],
-	[`#{property  = 'string'}`, keyItem.withStringInitial],
-	[`#{property = []}`, keyItem.withArrayInitial],
-	[`#{property = 3}`, keyItem.withIntegerInitial],
-	[`#{property = func()}`, functionsFixtures.expression],
-	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
-	// [`#{property0 = 3.14, property1 = 'string', property2 = 3}`, keyItem.withMultiplyInitial],
-	// [`#{property = 3.14}`, keyItem.withDecimalInitial],
-];
+const generateCases = () => {
+	const cases: any[] = [];
+	const [keyItemName, funcName1, propertyName1, propertyName2] = Array.apply(null, Array(4)).map(() =>
+		randomString().toLowerCase(),
+	) as string[];
+	const stringProperty = `'${randomString().toLowerCase()}'`;
+	const integerProperty = randomInteger();
+	const decimalProperty = randomDecimal();
+	cases.push(
+		[`#{${keyItemName}}`, keyItem.declarationKeyItem(keyItemName)],
+		[`#{${keyItemName} = ${stringProperty}}`, keyItem.withStringInitial(keyItemName, stringProperty)],
+		[`#{${keyItemName} = []}`, keyItem.withArrayInitial(keyItemName)],
+		[`#{${keyItemName} = ${integerProperty}}`, keyItem.withIntegerInitial(keyItemName, integerProperty)],
+		[`#{${keyItemName} = ${propertyName1}}`, keyItem.withPropertyInitial(keyItemName, propertyName1)],
+		[
+			`#{${keyItemName} = ${decimalProperty}, ${propertyName1} = ${stringProperty}, ${propertyName2} = ${integerProperty}}`,
+			keyItem.withMultiplyInitial([
+				[keyItemName, decimalProperty],
+				[propertyName1, stringProperty],
+				[propertyName2, integerProperty],
+			]),
+		],
+		[`#{${keyItemName} = ${decimalProperty}}`, keyItem.withDecimalInitial(keyItemName, decimalProperty)],
+		[`#{${keyItemName} = ${funcName1}()}`, functionsFixtures.expression(keyItemName, funcName1)],
+	);
+	return cases;
+};
 
 describe('Key list', () => {
 	describe('single key item', () => {
-		test.each(cases)('%s', (input, res) => {
-			const output = new YantrixParser().parse(input as string);
-
-			assert.deepOwnInclude(output, res);
-		});
+		const cases = generateCases();
+		for (let i = 0; i < cases.length; i++) {
+			const [input, res] = cases[i];
+			test(input, () => {
+				const output = new YantrixParser().parse(input as string);
+				assert.deepOwnInclude(output, res);
+			});
+		}
 	});
 	describe('Random number of keyItem', () => {
 		describe('INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {

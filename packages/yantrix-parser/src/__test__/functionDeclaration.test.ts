@@ -6,7 +6,7 @@ import { randomString, randomInteger } from '../utils/utils.js';
 const generateCases = () => {
 	const cases: any[] = [];
 	const [propertyName1, funcName1, funcPropertyName1, funcPropertyName2, funcPropertyName3, funcRecursiveName1] =
-		Array.apply(null, Array(6)).map((i) => randomString().toLowerCase()) as string[];
+		Array.apply(null, Array(6)).map(() => randomString().toLowerCase()) as string[];
 	const stringProperty = `'${randomString().toLowerCase()}'`;
 	const integerProperty = randomInteger();
 	cases.push(
@@ -44,10 +44,4 @@ describe('Function declaration', () => {
 			assert.deepOwnInclude(output, res);
 		});
 	}
-	// test.each(cases)('%s', (case) => {
-	// 	const input = case[0];
-	// 	const res = case.res;
-	// 	const output = new YantrixParser().parse(input as string);
-	// 	assert.deepOwnInclude(output, res);
-	// });
 });
