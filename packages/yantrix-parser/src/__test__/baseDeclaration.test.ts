@@ -8,8 +8,8 @@ import {
 	baseSubscribe,
 } from '../fixtures/baseDeclarations.js';
 import { expressionProperties } from '../fixtures/expressions.js';
-
-import { ReservedList, SpecialCharList } from '../index.js';
+import { randomString, randomInteger, randomDecimal } from '../utils/utils.js';
+import { ReservedList, SpecialCharList } from '../constants/index.js';
 
 const invalidCases = [
 	['#[LeftSideProperty]'],
@@ -61,8 +61,9 @@ describe('Base grammar declarations', () => {
 	describe('Identical output with ', () => {
 		test('#{Left1, Left2} <= (Right1, Right2) = #{Left2, Left1} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse('#{Left1, Left2} <= (Right1, Right2)');
-			const parsedRight = parser.parse('#{Left2, Left1} <= (Right2, Right1)');
+			const [left1, left2, right1, right2] = Array.apply(null, Array(4)).map(() => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}} <= (${right1}, ${right2})`);
+			const parsedRight = parser.parse(`#{${left2}, ${left1}} <= (${right2}, ${right1})`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -78,8 +79,9 @@ describe('Base grammar declarations', () => {
 
 		test('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse('#{Left1, Left2, Left3} <= (Right1, Right2)');
-			const parsedRight = parser.parse('#{Left2, Left1, Left3} <= (Right2, Right1)');
+			const [left1, left2, left3, right1, right2] = Array.apply(null, Array(5)).map(() => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}} <= (${right1}, ${right2})`);
+			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= (${right2}, ${right1})`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -96,8 +98,9 @@ describe('Base grammar declarations', () => {
 		});
 		test('#{Left1, Left2, Left3} = #{     Left1,	Left2      ,   Left3  }', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse('#{Left1, Left2, Left3}');
-			const parsedRight = parser.parse('#{     Left1,	Left2      ,   Left3   }');
+			const [left1, left2, left3] = Array.apply(null, Array(3)).map(() => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}}`);
+			const parsedRight = parser.parse(`#{     ${left1},	${left2}      ,   ${left3}   }`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -117,11 +120,11 @@ describe('Base grammar declarations', () => {
 
 	describe('Context statement has correct format', () => {
 		const parser = new YantrixParser();
-		const propertyName = 'LeftHandProperty';
+		const propertyName = randomString();
 		const correctStatement = `#{${propertyName}}`;
 		const incorrectStatements = [
 			...ReservedList.map((reservedWord) => `#{${reservedWord}}`),
-			...SpecialCharList.map((char) => `${char}{${propertyName}}`),
+			...SpecialCharList.map((char: string) => `${char}{${propertyName}}`),
 			`#[${propertyName}]`,
 			`#(${propertyName})`,
 		];
@@ -136,12 +139,12 @@ describe('Base grammar declarations', () => {
 
 	describe('Key item descriptor starts only with a letter', () => {
 		const parser = new YantrixParser();
-		const propertyName = 'LeftHandProperty';
+		const propertyName = randomString();
 		const correctStatement = `#{${propertyName}}`;
 		describe('Key item descriptor cannot start with or contain a special character', () => {
 			const incorrectStatements = [
-				...SpecialCharList.map((char) => `#{${char}${propertyName}}`),
-				...SpecialCharList.map((char) => `#{${propertyName}${char}}`),
+				...SpecialCharList.map((char: string) => `#{${char}${propertyName}}`),
+				...SpecialCharList.map((char: string) => `#{${propertyName}${char}}`),
 			];
 			test.each(incorrectStatements)('%s --- ERROR', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
@@ -223,14 +226,15 @@ describe('Base grammar declarations', () => {
 
 	describe('Expressions are created with the correct format', () => {
 		const parser = new YantrixParser();
-		const correctString = '#{arg=value}';
+		const [arg, value] = [randomString(), randomString()];
+		const correctString = `#{${arg} = ${value}}`;
 		const incorrectStrings = [
-			'#{arg-value}',
-			'#{arg value}',
-			'#{arg==value}',
-			'#{arg->value}',
-			'#{arg<-value}',
-			'#{arg={value}}',
+			`#{${arg} - ${value}}`,
+			`#{${arg}  ${value}}`,
+			`#{${arg} == ${value}}`,
+			`#{${arg} -> ${value}}`,
+			`#{${arg} <- ${value}}`,
+			`#{${arg} = {${value}}}`,
 		];
 		test(`${correctString} --- CORRECT`, () => {
 			const result = parser.parse(correctString);
@@ -243,48 +247,58 @@ describe('Base grammar declarations', () => {
 
 	describe('Expression values are separated into strings, integers, decimals, functions etc', () => {
 		const parser = new YantrixParser();
+		const [arg, stringVal, intVal, decimalVal, funcName, propName] = [
+			randomString(),
+			randomString(),
+			randomInteger(),
+			randomDecimal(),
+			randomString(),
+			randomString(),
+		];
 		test('Expression value is recognized as String', () => {
-			const correctString = '#{arg="test"}';
+			const correctString = `#{${arg} ="${stringVal}"}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				expressionProperties.string('test'),
+				expressionProperties.string(stringVal),
 			);
 
-			const extraStrings = ['#{arg="1"}', '#{arg="1.01"}', '#{arg="func()"}', '#{arg="[]"}'];
-			extraStrings.forEach((str) =>
-				assert.deepNestedInclude(
-					result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-					expressionProperties.string('test'),
-				),
-			);
+			const extraCases = [
+				[`#{${arg} ="${intVal}"}`, expressionProperties.string(intVal.toString())],
+				[`#{${arg} ="${decimalVal}"}`, expressionProperties.string(decimalVal.toString())],
+				[`#{${arg} ="[]"}`, expressionProperties.string('[]')],
+			];
+			extraCases.forEach((c) => {
+				const result = parser.parse(c[0] as string);
+				assert.deepNestedInclude(result.contextDescription[0].context[0].KeyItemDeclaration.Expression, c[1]);
+			});
 		});
 		test('Expression value is recognized as Integer', () => {
-			const correctString = '#{arg=1}';
+			const correctString = `#{${arg} = ${intVal}}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				expressionProperties.integer(1),
+				expressionProperties.integer(intVal),
 			);
 		});
 		test('Expression value is recognized as Decimal', () => {
-			const correctString = '#{val=1.01}';
+			const correctString = `#{${arg} = ${decimalVal}}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				expressionProperties.decimal(1.01),
+				expressionProperties.decimal(decimalVal),
 			);
 		});
 		test('Expression value is recognized as Constant', () => {
-			const correctString = '#{arg=$(val)}';
+			const correctString = `#{${arg} = $(${stringVal})}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				expressionProperties.constant('$(val)'),
+				expressionProperties.constant(`$(${stringVal})`),
 			);
 		});
 		test('Expression value is recognized as Array', () => {
-			const correctString = '#{arg=[]}';
+			const correctString = `#{${arg} = []}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
@@ -292,19 +306,19 @@ describe('Base grammar declarations', () => {
 			);
 		});
 		test('Expression value is recognized as Function', () => {
-			const correctString = '#{arg=func()}';
+			const correctString = `#{${arg} = ${funcName}()}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				expressionProperties.function('func'),
+				expressionProperties.function(funcName),
 			);
 		});
 		test('Expression value is recognized as Property', () => {
-			const correctString = '#{arg=prop}';
+			const correctString = `#{${arg} = ${propName}}`;
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				expressionProperties.property('prop'),
+				expressionProperties.property(propName),
 			);
 		});
 	});
@@ -312,7 +326,7 @@ describe('Base grammar declarations', () => {
 	describe('Array expression is created only with an empty array', () => {
 		const parser = new YantrixParser();
 		test('Empty array expression can be created', () => {
-			const correctString = '#{arg=[]}';
+			const correctString = '#{arg = []}';
 			const result = parser.parse(correctString);
 			assert.deepNestedInclude(
 				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
@@ -321,12 +335,12 @@ describe('Base grammar declarations', () => {
 		});
 		test('Non-empty array expression cannot be created', () => {
 			const incorrectStrings = [
-				'#{arg=[1,2,3]}',
-				'#{arg=[1.01,2.02,2.03]}',
-				'#{arg=["str1", "str2", "str3"]}',
-				'#{arg=[func1(), func2()]}',
-				'#{arg=[prop1, prop2]}',
-				'#{arg=["mixed array", 1, 1.01, func1(), prop1]}',
+				`#{arg=[${randomInteger}, ${randomInteger}, ${randomInteger}]}`,
+				`#{arg=[${randomDecimal}, ${randomDecimal}, ${randomDecimal}]}`,
+				`#{arg=[${randomString}, ${randomString}, ${randomString}]}`,
+				`#{arg=[${randomString}(), ${randomString}()]}`,
+				`#{arg=[${randomString}, ${randomString}]}`,
+				`#{arg=["${randomString}", ${randomInteger}, ${randomDecimal}, ${randomString}(), ${randomString}]}`,
 			];
 			incorrectStrings.forEach((str) => expect(() => parser.parse(str)).toThrowError());
 		});
@@ -334,18 +348,19 @@ describe('Base grammar declarations', () => {
 
 	describe('State transformer statement has correct format', () => {
 		const parser = new YantrixParser();
-		const correctStrings = ['#{arg} <= (val)', '#{arg} <= {val}'];
+		const [arg, val] = [randomString(), randomString()];
+		const correctStrings = [`#{${arg}} <= (${val})`, `#{${arg}} <= {${val}}`];
 		const incorrectStrings = [
-			'#{arg} <= [val]',
-			'#{arg} <= ((val))',
-			'#{arg} <= {{val}}',
-			'#{{arg}} <= (val)',
-			'#{arg} <== (val)',
-			'#{arg} <<= (val)',
-			'#{arg} <<== (val)',
-			'#{arg} <- (val)',
-			'#{arg} =< (val)',
-			'#{arg} => (val)',
+			`#{${arg}} <= [${val}]`,
+			`#{${arg}} <= ((${val}))`,
+			`#{${arg}} <= {{${val}}}`,
+			`#{{${arg}}} <= (${val})`,
+			`#{${arg}} <== (${val})`,
+			`#{${arg}} <<= (${val})`,
+			`#{${arg}} <<== (${val})`,
+			`#{${arg}} <- (${val})`,
+			`#{${arg}} =< (${val})`,
+			`#{${arg}} => (${val})`,
 		];
 		test.each(correctStrings)('%s --- CORRECT', (input) => assert.isOk(parser.parse(input)));
 		test.each(incorrectStrings)('%s --- ERROR', (input) => expect(() => parser.parse(input)).toThrowError());
@@ -353,8 +368,8 @@ describe('Base grammar declarations', () => {
 
 	describe('Subscribe statements have correct format', () => {
 		const parser = new YantrixParser();
-		const eventName = 'click';
-		const actionName = 'OPEN';
+		const eventName = `EVENT-${randomString()}`;
+		const actionName = `ACTION-${randomString()}`;
 		const keyList = ['idx1', 'idx2'];
 		const correctStrings = [
 			`subscribe/${eventName} => ${actionName}`,
@@ -385,7 +400,7 @@ describe('Base grammar declarations', () => {
 
 	describe('Emit statements have correct format', () => {
 		const parser = new YantrixParser();
-		const eventName = 'selected';
+		const eventName = `EVENT-${randomString()}`;
 		const keyList = ['idx1', 'idx2'];
 		const correctStrings = [`emit/${eventName} <= (${keyList.join(',')})`, `emit/${eventName}`];
 		const incorrectStrings = [
