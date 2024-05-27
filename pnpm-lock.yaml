@@ -104,6 +104,9 @@ importers:
             '@types/dompurify':
                 specifier: ^3.0.2
                 version: 3.0.5
+            '@yantrix/utils':
+                specifier: workspace:^
+                version: link:../utils
             mermaid:
                 specifier: 10.1.0
                 version: 10.1.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
