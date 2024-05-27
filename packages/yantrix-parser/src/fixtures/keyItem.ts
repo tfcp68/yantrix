@@ -1,15 +1,7 @@
 // import { createContext } from 'vm';
 import { Map } from 'immutable';
 import { TKeyItems, TKeyItem } from '../types/keyItem.js';
-import { ExpressionTypes, TMapped } from '../types/expressions.js';
-import {
-	expressionProperties,
-	expressions,
-	functions,
-	getExpression,
-	TExpression,
-	TExpressionTypes,
-} from './expressions.js';
+import { expressions, functions, getExpression, TExpressionTypes } from './expressions.js';
 import { randomString } from '../utils/utils.js';
 
 const baseKeyItemDeclaration = (): TKeyItem => ({
@@ -27,7 +19,7 @@ const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
 };
 
 const createContext = (keyItems?: TKeyItems) => {
-	const contextItems = keyItems || [baseKeyItemDeclaration()];
+	const contextItems = keyItems ?? [baseKeyItemDeclaration()];
 	return {
 		contextDescription: [
 			{
@@ -63,19 +55,118 @@ const getKeyItem = (expression: TExpressionTypes | null) => {
 };
 
 /// Base key item declaration
+/*
 const declarationKeyItem = getKeyItem(null);
 export const withStringInitial = getKeyItem(expressions.string);
 export const withArrayInitial = getKeyItem(expressions.array);
 export const withIntegerInitial = getKeyItem(expressions.integer);
 export const withPropertyInitial = getKeyItem(expressions.property);
+*/
+
+const declarationKeyItem = (propertyName?: string) => {
+	const base = getKeyItem(null);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.toJS();
+};
+
+export const withStringInitial = (propertyName?: string, stringProperty?: string) => {
+	const base = getKeyItem(expressions.string);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'Expression', 'StringDeclaration'],
+			(v) => stringProperty?.substring(1, stringProperty.length - 1) ?? v,
+		)
+		.toJS();
+};
+
+export const withArrayInitial = (propertyName?: string) => {
+	const base = getKeyItem(expressions.array);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.toJS();
+};
+
+export const withIntegerInitial = (propertyName?: string, integerValue?: number) => {
+	const base = getKeyItem(expressions.integer);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'Expression', 'NumberDeclaration'],
+			(v) => integerValue ?? v,
+		)
+		.toJS();
+};
+
+export const withDecimalInitial = (propertyName?: string, decimalValue?: number) => {
+	const base = getKeyItem(expressions.decimal);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'Expression', 'NumberDeclaration'],
+			(v) => decimalValue ?? v,
+		)
+		.toJS();
+};
+
+export const withPropertyInitial = (propertyName?: string, propertyName2?: string) => {
+	const base = getKeyItem(expressions.property);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'Expression', 'Property'],
+			(name) => propertyName2 ?? name,
+		)
+		.toJS();
+};
+
+export const withMultiplyInitial = (properties?: [prop1: string, prop2: any][]) => {
+	const base = Map(getKeyItem(null)).deleteIn(['contextDescription', 0, 'context', 0]);
+	properties?.forEach(([name, value]) => {
+		let keyItem = {};
+		if (typeof value === 'string') {
+			keyItem = withStringInitial(name, value);
+		} else if (typeof value === 'number') {
+			keyItem = Number.isInteger(value) ? withIntegerInitial(name, value) : withDecimalInitial(name, value);
+		} else if (Array.isArray(value)) {
+			keyItem = withArrayInitial(name);
+		}
+		base.mergeWith((oldVal: any, newVal: any) => {
+			oldVal[0]?.context.push(...newVal[0]?.context);
+			return oldVal;
+		}, keyItem);
+	});
+	return base.toJS();
+};
 
 /// Base function declaration
-// const expression = getKeyItem(expressions.function);
-// const withString = getKeyItem(getExpression(functions.withStringArgs));
-// const withProperty = getKeyItem(getExpression(functions.withPropertyArgs));
-// const withInteger = getKeyItem(getExpression(functions.withIntegerArgs));
-// const recursive = getKeyItem(getExpression(functions.withRecursiveFunction));
-// const multiplyProperty = getKeyItem(getExpression(functions.withMultiplyArgs));
+/*
+const expression = getKeyItem(expressions.function);
+const withString = getKeyItem(getExpression(functions.withStringArgs));
+const withProperty = getKeyItem(getExpression(functions.withPropertyArgs));
+const withInteger = getKeyItem(getExpression(functions.withIntegerArgs));
+const recursive = getKeyItem(getExpression(functions.withRecursiveFunction));
+const multiplyProperty = getKeyItem(getExpression(functions.withMultiplyArgs));
+*/
 
 const expression = (propertyName?: string, functionName?: string) => {
 	const base = getKeyItem(expressions.function);
@@ -345,5 +436,7 @@ export const keyItem = {
 	withStringInitial,
 	withArrayInitial,
 	withIntegerInitial,
+	withDecimalInitial,
 	withPropertyInitial,
+	withMultiplyInitial,
 };
