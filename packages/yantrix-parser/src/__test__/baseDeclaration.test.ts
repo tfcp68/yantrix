@@ -47,11 +47,11 @@ const base = [
 	['#{LeftSideProperty} <= (RightSideProperty)', baseContext],
 	['#{LeftSideProperty} <= {RightSideProperty}', baseContextWithPrevious],
 	['subscribe/event => action', baseSubscribe],
-	['emit/eventName <= (keylist)', baseEmitEvent],
+	['emit/event <= (keylist)', baseEmitEvent],
 ] as const;
 
 describe('Base grammar declarations', () => {
-	describe('Correct input', () => {
+	describe('Base constructs are created', () => {
 		test.each(base)('%s', (input: any, res: any) => {
 			const parser = new YantrixParser().parse(input as string);
 
@@ -112,7 +112,7 @@ describe('Base grammar declarations', () => {
 			});
 		});
 	});
-	describe('Incorrect input', () => {
+	describe('Parser fails on invalid cases', () => {
 		test.each(invalidCases)(' %s  ----- Error', (input) => {
 			expect(() => new YantrixParser().parse(input)).toThrowError();
 		});

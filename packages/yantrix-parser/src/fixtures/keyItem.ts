@@ -4,12 +4,12 @@ import { TKeyItems, TKeyItem } from '../types/keyItem.js';
 import { expressions, functions, getExpression, TExpressionTypes } from './expressions.js';
 import { randomString } from '../utils/utils.js';
 
-const baseKeyItemDeclaration = (): TKeyItem => ({
+export const baseKeyItemDeclaration = (propertyName?: string): TKeyItem => ({
 	KeyItemDeclaration: {
-		TargetProperty: randomString(),
+		TargetProperty: (propertyName ?? randomString()).toLowerCase(),
 	},
 });
-const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
+export const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
 	const base = baseKeyItemDeclaration();
 	if (keyItem) {
 		return Map(base)
@@ -18,7 +18,7 @@ const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
 	} else return base;
 };
 
-const createContext = (keyItems?: TKeyItems) => {
+export const createContext = (keyItems?: TKeyItems) => {
 	const contextItems = keyItems ?? [baseKeyItemDeclaration()];
 	return {
 		contextDescription: [
@@ -29,24 +29,20 @@ const createContext = (keyItems?: TKeyItems) => {
 	};
 };
 
-const createContextDescription = (
+export const createContextDescription = (
 	contextKeyItems?: TKeyItems,
 	payloadKeyItems?: TKeyItems,
 	prevContextKeyItems?: TKeyItems,
 ) => {
 	const baseContext = createContext(contextKeyItems);
 	return Map(baseContext)
-		.updateIn(['contextDescription'], (desc) => {
-			const array = <Array<any>>desc;
-			if (contextKeyItems) array[0].context = contextKeyItems;
-			if (payloadKeyItems) array[0].payload = payloadKeyItems;
-			if (prevContextKeyItems) array[0].prevContext = prevContextKeyItems;
-			return array;
-		})
+		.updateIn(['contextDescription', 0, 'context'], (context) => contextKeyItems ?? context)
+		.updateIn(['contextDescription', 0, 'payload'], (payload) => payloadKeyItems ?? payload)
+		.updateIn(['contextDescription', 0, 'prevContext'], (prevContext) => prevContextKeyItems ?? prevContext)
 		.toJS();
 };
 
-const getKeyItem = (expression: TExpressionTypes | null) => {
+export const getKeyItem = (expression: TExpressionTypes | null) => {
 	const keyItem = Map(createKeyItemDeclaration())
 		.updateIn(['KeyItemDeclaration', 'Expression'], (item) => expression?.Expression ?? item)
 		.toJS() as TKeyItem;
@@ -63,7 +59,7 @@ export const withIntegerInitial = getKeyItem(expressions.integer);
 export const withPropertyInitial = getKeyItem(expressions.property);
 */
 
-const declarationKeyItem = (propertyName?: string) => {
+export const declarationKeyItem = (propertyName?: string) => {
 	const base = getKeyItem(null);
 	return Map(base)
 		.updateIn(
@@ -168,7 +164,7 @@ const recursive = getKeyItem(getExpression(functions.withRecursiveFunction));
 const multiplyProperty = getKeyItem(getExpression(functions.withMultiplyArgs));
 */
 
-const expression = (propertyName?: string, functionName?: string) => {
+export const expression = (propertyName?: string, functionName?: string) => {
 	const base = getKeyItem(expressions.function);
 	if (propertyName || functionName) {
 		const map = Map(base);
@@ -194,7 +190,7 @@ const expression = (propertyName?: string, functionName?: string) => {
 	} else return base;
 };
 
-const withProperty = (propertyName?: string, functionName?: string, functionPropertyName?: string) => {
+export const withProperty = (propertyName?: string, functionName?: string, functionPropertyName?: string) => {
 	const base = getKeyItem(getExpression(functions.withPropertyArgs));
 	if (propertyName || functionName || functionPropertyName) {
 		const map = Map(base);
@@ -236,7 +232,7 @@ const withProperty = (propertyName?: string, functionName?: string, functionProp
 	} else return base;
 };
 
-const withString = (propertyName?: string, functionName?: string, stringProperty?: string) => {
+export const withString = (propertyName?: string, functionName?: string, stringProperty?: string) => {
 	const base = getKeyItem(getExpression(functions.withStringArgs));
 	if (propertyName || functionName || stringProperty) {
 		const map = Map(base);
@@ -277,7 +273,7 @@ const withString = (propertyName?: string, functionName?: string, stringProperty
 	} else return base;
 };
 
-const withInteger = (propertyName?: string, functionName?: string, integerValue?: number) => {
+export const withInteger = (propertyName?: string, functionName?: string, integerValue?: number) => {
 	const base = getKeyItem(getExpression(functions.withIntegerArgs));
 	if (propertyName || functionName || integerValue) {
 		const map = Map(base);
@@ -318,7 +314,7 @@ const withInteger = (propertyName?: string, functionName?: string, integerValue?
 	} else return base;
 };
 
-const recursive = (propertyName?: string, functionName?: string, funcRecursiveName?: string) => {
+export const recursive = (propertyName?: string, functionName?: string, funcRecursiveName?: string) => {
 	const base = getKeyItem(getExpression(functions.withRecursiveFunction));
 	if (propertyName || functionName || funcRecursiveName) {
 		const map = Map(base);
@@ -360,7 +356,7 @@ const recursive = (propertyName?: string, functionName?: string, funcRecursiveNa
 	} else return base;
 };
 
-const multiplyProperty = (
+export const multiplyProperty = (
 	propertyName?: string,
 	functionName?: string,
 	funcPropertyName1?: string,

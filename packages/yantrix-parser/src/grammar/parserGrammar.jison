@@ -56,7 +56,7 @@
 
 
 'emit/'                               {this.begin('EmitStatement'); return 'emit/'}
-<EmitStatement>[^()=<\n]+             {this.popState(); return 'EventName'}
+<EmitStatement>[^()=<\n\s]+             {this.popState(); return 'EventName'}
 
 
 

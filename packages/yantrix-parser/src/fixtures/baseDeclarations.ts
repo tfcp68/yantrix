@@ -1,70 +1,45 @@
+import { baseKeyItemDeclaration, createKeyItemDeclaration, createContextDescription } from './keyItem.js';
+import { TKeyItems } from '../types/keyItem.js';
+
 export const baseEmpty = {
 	contextDescription: [],
 	emit: [],
 	subscribe: [],
 };
-export const baseContext = {
-	contextDescription: [
-		{
-			context: [
-				{
-					KeyItemDeclaration: {
-						TargetProperty: 'leftsideproperty',
-					},
-				},
-			],
-			payload: [
-				{
-					KeyItemDeclaration: {
-						TargetProperty: 'rightsideproperty',
-					},
-				},
-			],
-		},
-	],
-};
-export const baseContextWithPrevious = {
-	contextDescription: [
-		{
-			context: [
-				{
-					KeyItemDeclaration: {
-						TargetProperty: 'leftsideproperty',
-					},
-				},
-			],
-			prevContext: [
-				{
-					KeyItemDeclaration: {
-						TargetProperty: 'rightsideproperty',
-					},
-				},
-			],
-		},
-	],
-};
-export const baseSubscribe = {
+
+export const baseContext = createContextDescription(
+	[baseKeyItemDeclaration('LeftSideProperty')],
+	[baseKeyItemDeclaration('RightSideProperty')],
+);
+
+export const baseContextWithPrevious = createContextDescription(
+	[baseKeyItemDeclaration('LeftSideProperty')],
+	undefined,
+	[baseKeyItemDeclaration('RightSideProperty')],
+);
+
+export const createSubscribeStatement = (eventName: string = 'event', actionName: string = 'action') => ({
 	subscribe: [
 		{
-			event: 'event',
+			event: eventName,
 			action: {
-				actionName: 'action',
+				actionName: actionName,
 			},
 		},
 	],
-};
+});
 
-export const baseEmitEvent = {
+export const createEmitStatement = (
+	eventName: string = 'event',
+	payloadItems: TKeyItems = [baseKeyItemDeclaration('KeyList')],
+) => ({
 	emit: [
 		{
-			eventName: 'eventName ',
-			payload: [
-				{
-					KeyItemDeclaration: {
-						TargetProperty: 'keylist',
-					},
-				},
-			],
+			eventName: eventName,
+			payload: [...payloadItems],
 		},
 	],
-};
+});
+
+export const baseSubscribe = createSubscribeStatement();
+export const baseEmitEvent = createEmitStatement();
