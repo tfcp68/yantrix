@@ -1,6 +1,5 @@
 import { ExpressionTypes } from '../constants/index.js';
 
-
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
 type TExpressionString = {
@@ -12,13 +11,10 @@ type TExpressionArray = {
 type TExpressionProperty = {
 	Property: any;
 };
-type TExpressionFunctionProperty = {
-	Property: any;
-};
 type TExpressionNumber = {
 	NumberExpression: number;
 };
-type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
+type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionProperty;
 
 type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -29,7 +25,6 @@ type TExpressionFunction = {
 
 export type TMapped = {
 	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
-	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
 	[ExpressionTypes.Function]: TExpressionFunction;
 	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
 	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
