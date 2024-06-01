@@ -7,8 +7,18 @@ export interface ICodegenOptions {
 	language: TOutLang;
 }
 
+/**
+ * Represents the options for generating code.
+ */
 export interface IGenerateOptions {
+	/**
+	 * The name of the class Automata  to generate.
+	 */
 	className: string;
+
+	/**
+	 * The output language for the generated code.
+	 */
 	outLang: TOutLang;
 }
 
@@ -25,9 +35,13 @@ export interface ITypedObject extends ITypedObjectProps {
 
 export interface ICodegen {
 	getDictionaries(): string;
+
 	getChangeStateHandlers(): string;
+
 	getHandlers(): string;
+
 	getClassTemplate(className: string): string;
+
 	getImports(): string;
 }
 

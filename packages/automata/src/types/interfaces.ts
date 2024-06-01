@@ -75,6 +75,11 @@ export interface IAutomataExtendedStateContainer<
 	setContextValidator(contextValidator?: TValidator<TAutomataStateContext<StateType, ContextType>>): this;
 }
 
+/**
+ * Interface for an Automata extended event container.
+ * @template EventType - The type of the event.
+ * @template EventMetaType - The type of the event metadata.
+ */
 export interface IAutomataExtendedEventContainer<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
@@ -84,6 +89,15 @@ export interface IAutomataExtendedEventContainer<
 	setEventMetaValidator(eventMetaValidator?: TValidator<TAutomataEventMetaType<EventType, EventMetaType>>): this;
 }
 
+/**
+ * Interface for an Automata extended validator container.
+ * @template StateType - The type of the state.
+ * @template ActionType - The type of the action.
+ * @template EventType - The type of the event.
+ * @template ContextType - The type of the context.
+ * @template PayloadType - The type of the payload.
+ * @template EventMetaType - The type of the event metadata.
+ */
 export interface IAutomataExtendedValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -96,6 +110,15 @@ export interface IAutomataExtendedValidatorContainer<
 		IAutomataExtendedEventContainer<EventType, EventMetaType>,
 		IAutomataExtendedStateContainer<StateType, ContextType> {}
 
+/**
+ * Interface for an Automata event adapter.
+ * @template StateType - The type of the state.
+ * @template ActionType - The type of the action.
+ * @template EventType - The type of the event.
+ * @template ContextType - The type of the context.
+ * @template PayloadType - The type of the payload.
+ * @template EventMetaType - The type of the event metadata.
+ */
 export interface IAutomataEventAdapter<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -104,26 +127,82 @@ export interface IAutomataEventAdapter<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends IAutomataValidatorContainer<StateType, ActionType, EventType> {
+	/**
+	 * Adds an event listener for the specified event type.
+	 * @param type - The type of the event.
+	 * @param handler - The event handler function.
+	 * @returns A cancel function to remove the event listener, or null if the event type is invalid.
+	 */
 	addEventListener: <T extends EventType>(
 		type: T,
 		handler: TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>,
 	) => null | TSubscriptionCancelFunction;
+
+	/**
+	 * Adds an event emitter for the specified state type.
+	 * @param on - The state type to listen for.
+	 * @param emitter - The event emitter function.
+	 * @returns A cancel function to remove the event emitter, or null if the state type is invalid.
+	 */
 	addEventEmitter: <T extends StateType>(
 		on: T,
 		emitter: TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>,
 	) => null | TSubscriptionCancelFunction;
+
+	/**
+	 * Handles the specified event and returns the results of the event handlers.
+	 * @param event - The event to handle.
+	 * @returns An array of the results of the event handlers.
+	 */
 	handleEvent: <T extends EventType>(
 		event: TAutomataEventMetaType<T, EventMetaType>,
 	) => Array<ReturnType<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>>;
+
+	/**
+	 * Handles the transition to the specified new state and returns the results of the event emitters.
+	 * @param newState - The new state to transition to.
+	 * @returns An array of the results of the event emitters.
+	 */
 	handleTransition: <T extends StateType>(
 		newState: TAutomataStateContext<T, ContextType>,
 	) => Array<ReturnType<TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>>>;
+
+	/**
+	 * Removes all event listeners for the specified event type.
+	 * @param type - The type of the event, or null to remove all event listeners.
+	 * @returns The event adapter instance.
+	 */
 	removeAllListeners: <T extends EventType>(type: T | null) => this;
+
+	/**
+	 * Removes all event emitters for the specified state type.
+	 * @param type - The type of the state, or null to remove all event emitters.
+	 * @returns The event adapter instance.
+	 */
 	removeAllEmitters: <T extends StateType>(type: T | null) => this;
+
+	/**
+	 * Returns an array of the observed event types.
+	 * @returns An array of the observed event types.
+	 */
 	getObservedEvents: () => EventType[];
+
+	/**
+	 * Returns an array of the observed state types.
+	 * @returns An array of the observed state types.
+	 */
 	getObservedStates: () => StateType[];
 }
 
+/**
+ * Interface for Automata, a state machine.
+ * @template StateType - The type of the state.
+ * @template ActionType - The type of the action.
+ * @template EventType - The type of the event.
+ * @template ContextType - The type of the context.
+ * @template PayloadType - The type of the payload.
+ * @template EventMetaType - The type of the event metadata.
+ */
 export interface IAutomata<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -166,6 +245,10 @@ export interface IAutomata<
 	 */
 	isPaused: () => boolean;
 
+	/**
+	 * Pause the automata.
+	 * @returns The updated automata instance.
+	 */
 	pause: () => this;
 	/**
 	 * Resuming will Collapse the Queue, unless the Instance is Disabled
@@ -213,6 +296,11 @@ export interface IAutomata<
 	dispatch: TAutomataDispatch<StateType, ActionType, ContextType, PayloadType>;
 }
 
+/**
+ * Interface for a dictionary of states.
+ * @template StateType - The type of state.
+ * @template ContextType - The type of context.
+ */
 export interface IStateDictionary<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends {
@@ -311,6 +399,11 @@ export interface IStateDictionary<
 	) => TAutomataStateContext<StateType, ContextType>;
 }
 
+/**
+ * Interface for a dictionary of actions.
+ * @template ActionType - The type of actions.
+ * @template PayloadType - The type of payloads for each action.
+ */
 export interface IActionDictionary<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
@@ -358,12 +451,28 @@ export interface IActionDictionary<
 	getDictionary: (namespace?: string) => TActionDictionaryMapping<ActionType>;
 }
 
+/**
+ * Interface representing a slice of an automata.
+ * @template EventType - The type of events.
+ * @template EventMetaType - The type of event metadata.
+ * @template ModelType - The type of the model.
+ */
 export interface IAutomataSlice<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 	ModelType extends object = Record<string, any>,
 > extends IAutomataEventContainer<EventType> {
+	/**
+	 * A record of machines, where each machine is an instance of `IAutomata`.
+	 */
 	getMachines: Record<string, IAutomata<any, any, EventType>>;
+
+	/**
+	 * Adds a machine to the automata slice.
+	 * @param machineId - The ID of the machine.
+	 * @param automata - The instance of `IAutomata` to add.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	addMachine: <
 		StateType extends TAutomataBaseStateType,
 		ActionType extends TAutomataBaseActionType,
@@ -373,9 +482,25 @@ export interface IAutomataSlice<
 		machineId: string,
 		automata: IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
 	) => this;
+
+	/**
+	 * Removes a machine from the automata slice.
+	 * @param machineId - The ID of the machine to remove.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	removeMachine: (machineId: string) => this;
+
+	/**
+	 * A record of composite states, where each composite state is an instance of `TAutomataStateContext`.
+	 */
 	getCompositeState: Record<string, TAutomataStateContext<any, any>>;
 
+	/**
+	 * Restores a state for a specific machine.
+	 * @param machineId - The ID of the machine.
+	 * @param state - The state object to restore.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	restoreState: <
 		StateType extends TAutomataBaseStateType,
 		ContextType extends { [K in StateType]: any } = Record<StateType, any>,
@@ -384,32 +509,138 @@ export interface IAutomataSlice<
 		state: TAutomataStateContext<StateType, ContextType>,
 	) => this;
 
+	/**
+	 * Restores composite states for all machines.
+	 * @param compositeState - The record of composite states to restore.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	restoreCompositeState: (compositeState: Record<string, TAutomataStateContext<any, any>>) => this;
+
+	/**
+	 * Returns the event matrix, which is a record of events and their corresponding effects.
+	 * @returns The event matrix.
+	 */
 	getEventMatrix: () => Record<EventType, Array<TAutomataEffect<ModelType, EventType>>>;
+
+	/**
+	 * Dispatches an event and triggers its effects.
+	 * @param event - The event object to dispatch.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	dispatchEvent: (event: TAutomataEventMetaType<EventType, EventMetaType>) => this;
+
+	/**
+	 * Starts the automata slice.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	start: () => this;
+
+	/**
+	 * Stops the automata slice.
+	 * @param clearStack - Indicates whether to clear the event stack.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	stop: (clearStack: boolean) => this;
+
+	/**
+	 * Checks if the automata slice is running.
+	 * @returns `true` if the automata slice is running, `false` otherwise.
+	 */
 	isRunning: () => boolean;
+
+	/**
+	 * Returns the event stack.
+	 * @returns The event stack.
+	 */
 	getEventStack: () => TAutomataEventStack<EventType, EventMetaType>;
+
+	/**
+	 * Clears the event stack.
+	 * @returns The current instance of `IAutomataSlice`.
+	 */
 	clearEventStack: () => this;
+
+	/**
+	 * Consumes the event stack and returns the events and their effects.
+	 * @returns An object containing the events and their effects.
+	 */
 	consumeEvent: () => {
 		events: TAutomataEventStack<EventType, EventMetaType>;
 		effects: Array<TAutomataEffect<ModelType, EventType>>;
 	};
+
+	/**
+	 * Returns the effects associated with a specific event.
+	 * @param event - The event for which to retrieve the effects.
+	 * @returns The effects associated with the event.
+	 */
 	getEventEffects: (event: EventType) => Array<TAutomataEffect<ModelType, EventType>>;
 }
 
+/**
+ * Interface for an event bus that supports subscribing and dispatching events.
+ * @template EventType The type of events that can be dispatched.
+ * @template EventMetaType The type of metadata associated with each event.
+ */
 export interface IAutomataEventBus<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
+	/**
+	 * Subscribe  n to an event.
+	 * @param event The event to subscribe to.
+	 * @param callback The callback function to call when the event is dispatched.
+	 * @returns This event bus instance.
+	 */
 	subscribe: (event: EventType, callback: TEventBusHandler<EventType, EventMetaType>) => this;
+	/**
+	 * Unsubscribe  from an event.
+	 * @param event The event to unsubscribe from.
+	 * @param callback The callback function to unsubscribe.
+	 * @returns This event bus instance.
+	 */
 	unsubscribe: (event: EventType, callback: null | TEventBusHandler<EventType, EventMetaType>) => this;
+
+	/**
+	 * Dispatch one or more events.
+	 * @param events The events to dispatch.
+	 * @returns This event bus instance.
+	 */
 	dispatch: (...events: TAutomataEventStack<EventType, EventMetaType>) => this;
+
+	/**
+	 * Get the current event stack.
+	 * @returns The current event stack.
+	 */
 	getEventStack: () => TAutomataEventStack<EventType, EventMetaType>;
+
+	/**
+	 * Clear the event stack.
+	 * @returns This event bus instance.
+	 */
 	clearEventStack: () => this;
+
+	/**
+	 * Pause the event bus.
+	 * @returns This event bus instance.
+	 */
 	pause: () => this;
+
+	/**
+	 * Resume the event bus.
+	 * @returns This event bus instance.
+	 */
 	resume: () => this;
+
+	/**
+	 * Check if the event bus is running.
+	 * @returns True if the event bus is running, false otherwise.
+	 */
 	isRunning: () => boolean;
+
+	/**
+	 * Process the events in the event stack.
+	 * @returns The processed event stack.
+	 */
 	processEvents: () => TAutomataEventStack<EventType, EventMetaType>;
 }
