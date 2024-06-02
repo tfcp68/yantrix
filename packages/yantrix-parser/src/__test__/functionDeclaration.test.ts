@@ -1,7 +1,7 @@
 import { assert, describe, test } from 'vitest';
 import { YantrixParser } from '../yantrixParser.js';
 import { functionsFixtures } from '../fixtures/keyItem.js';
-import { randomString, randomInteger } from '../utils/utils.js';
+import { randomString, randomInteger } from '@yantrix/utils';
 
 const generateCases = () => {
 	const cases: any[] = [];

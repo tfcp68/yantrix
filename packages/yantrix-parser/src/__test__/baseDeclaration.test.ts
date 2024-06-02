@@ -8,7 +8,7 @@ import {
 	baseSubscribe,
 } from '../fixtures/baseDeclarations.js';
 import { expressionProperties } from '../fixtures/expressions.js';
-import { randomString, randomInteger, randomDecimal } from '../utils/utils.js';
+import { randomString, randomInteger, randomDecimal } from '@yantrix/utils';
 import { ReservedList, SpecialCharList } from '../constants/index.js';
 
 const invalidCases = [

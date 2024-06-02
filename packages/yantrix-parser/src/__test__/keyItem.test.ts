@@ -6,10 +6,8 @@ import {
 	getKeyItemsInitialEmpty,
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
-	randomString,
-	randomDecimal,
-	randomInteger,
 } from '../utils/utils.js';
+import { randomString, randomDecimal, randomInteger } from '@yantrix/utils';
 
 const generateCases = () => {
 	const cases: any[] = [];

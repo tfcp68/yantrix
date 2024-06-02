@@ -2,7 +2,7 @@
 import { Map } from 'immutable';
 import { TKeyItems, TKeyItem } from '../types/keyItem.js';
 import { expressions, functions, getExpression, TExpressionTypes } from './expressions.js';
-import { randomString } from '../utils/utils.js';
+import { randomString } from '@yantrix/utils';
 
 export const baseKeyItemDeclaration = (propertyName?: string): TKeyItem => ({
 	KeyItemDeclaration: {
