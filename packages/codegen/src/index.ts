@@ -1,7 +1,6 @@
 import { IGenerateOptions, TStateDiagramSyntaxTree } from './types/common.js';
 import { fmt } from './utils/utils.js';
 import { CodegenCreator } from './core/Codegen.js';
-export * from './constants/index.js';
 
 export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramSyntaxTree, options: IGenerateOptions) => {
 	const creator = new CodegenCreator(diagram);

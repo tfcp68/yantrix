@@ -16,7 +16,8 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run"
+		"test": "pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run",
+		"gen": "tsx bin/codegen.ts"
 	},
 	"description": "Execute jison parser",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
@@ -40,6 +41,11 @@
 	"type": "module",
 	"devDependencies": {
 		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^"
+		"@yantrix/mermaid-parser": "workspace:^",
+		"tsx": "^4.11.0"
+	},
+	"dependencies": {
+		"commander": "^12.1.0",
+		"picocolors": "^1.0.1"
 	}
 }
