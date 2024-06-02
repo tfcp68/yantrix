@@ -223,8 +223,7 @@ export const withProperty = (propertyName?: string, functionName?: string, funct
 					'FunctionDeclaration',
 					'Arguments',
 					0,
-					'Expression',
-					'FunctionProperty',
+					'Property',
 				],
 				(name) => functionPropertyName ?? name,
 			);
@@ -394,8 +393,7 @@ export const multiplyProperty = (
 					'FunctionDeclaration',
 					'Arguments',
 					0,
-					'Expression',
-					'FunctionProperty',
+					'Property',
 				],
 				(name) => funcPropertyName1 ?? name,
 			)
@@ -410,8 +408,7 @@ export const multiplyProperty = (
 					'FunctionDeclaration',
 					'Arguments',
 					1,
-					'Expression',
-					'FunctionProperty',
+					'Property',
 				],
 				(name) => funcPropertyName2 ?? name,
 			);

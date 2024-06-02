@@ -57,10 +57,8 @@ export const functions = {
 			FunctionName: 'func-' + randomString(),
 			Arguments: [
 				{
-					Expression: {
-						FunctionProperty: randomString(),
-						expressionType: ExpressionTypes.FunctionProperty,
-					},
+					Property: randomString(),
+					expressionType: ExpressionTypes.Property,
 				},
 			],
 		},
@@ -85,16 +83,12 @@ export const functions = {
 			FunctionName: 'func-' + randomString(),
 			Arguments: [
 				{
-					Expression: {
-						expressionType: ExpressionTypes.FunctionProperty,
-						FunctionProperty: 'first-' + randomString(),
-					},
+					Property: 'first-' + randomString(),
+					expressionType: ExpressionTypes.Property,
 				},
 				{
-					Expression: {
-						expressionType: ExpressionTypes.FunctionProperty,
-						FunctionProperty: 'second-' + randomString(),
-					},
+					Property: 'second-' + randomString(),
+					expressionType: ExpressionTypes.Property,
 				},
 			],
 		},
