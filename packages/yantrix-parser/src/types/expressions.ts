@@ -1,3 +1,6 @@
+/**
+ * This object contains the different types of expressions that can be used in the parser.
+ */
 export const ExpressionTypes = {
 	Function: 'function',
 	StringDeclaration: 'string',
