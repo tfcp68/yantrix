@@ -11,10 +11,10 @@ const constantsFilePath = path.resolve(constantsPath);
 const outputFilePath = path.resolve(outputPath);
 
 /**
- * Замена импортов в файле грамматики на содержимое файла с константами
- * @param grammarData
- * @param constantsData
- * @returns {*}
+ * Replaces imports in the grammar file with the content of the constants file
+ * @param {string} grammarData - The content of the grammar file
+ * @param {string} constantsData - The content of the constants file
+ * @returns {string} - The updated grammar data with imports replaced
  */
 const replaceImportsInGrammar = (grammarData, constantsData) => {
 	const importRegex = /import\s+\{[^}]+\}\s+from\s+['"]\.\/index\.js['"];?/;
