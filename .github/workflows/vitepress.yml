@@ -3,7 +3,7 @@ name: Deploy docs to Github Pages
 on:
     push:
         branches:
-            - main
+            - feat/add-typedoc
         paths:
             - 'vitepress/**'
             - 'docs/**'
@@ -25,11 +25,17 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '20'
+            - uses: pnpm/action-setup@v4
+              name: Install pnpm
+              with:
+                  version: 8
+                  run_install: false
+            - name: Build dependencies packages
+              run: pnpm install
+            - name: Build packages
+              run: pnpm build
             - name: Install dependencies
               run: npm install
-              working-directory: vitepress
-            - name: Generate typedoc
-              run: npm run docs
               working-directory: vitepress
             - name: Pre build script
               run: sh pre_build.sh
