@@ -37,6 +37,9 @@ jobs:
             - name: Install dependencies
               run: npm install
               working-directory: vitepress
+            - name: Generate typedoc
+              run: npm run docs
+              working-directory: vitepress
             - name: Pre build script
               run: sh pre_build.sh
               working-directory: vitepress
