@@ -3,7 +3,7 @@ name: Deploy docs to Github Pages
 on:
     push:
         branches:
-            - feat/add-typedoc
+            - main
         paths:
             - 'vitepress/**'
             - 'docs/**'
