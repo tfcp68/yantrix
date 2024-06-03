@@ -98,10 +98,8 @@ export const functions = {
 			FunctionName: 'func',
 			Arguments: [
 				{
-					Expression: {
-						FunctionProperty: 'property',
-						expressionType: ExpressionTypes.FunctionProperty,
-					},
+					Property: 'property',
+					expressionType: ExpressionTypes.Property,
 				},
 			],
 		},
@@ -126,16 +124,12 @@ export const functions = {
 			FunctionName: 'func',
 			Arguments: [
 				{
-					Expression: {
-						expressionType: ExpressionTypes.FunctionProperty,
-						FunctionProperty: 'first',
-					},
+					expressionType: ExpressionTypes.Property,
+					Property: 'first',
 				},
 				{
-					Expression: {
-						expressionType: ExpressionTypes.FunctionProperty,
-						FunctionProperty: 'second',
-					},
+					expressionType: ExpressionTypes.Property,
+					Property: 'second',
 				},
 			],
 		},

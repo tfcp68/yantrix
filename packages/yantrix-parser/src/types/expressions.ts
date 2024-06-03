@@ -8,7 +8,6 @@ export const ExpressionTypes = {
 	Constant: 'constant',
 	IntegerDeclaration: 'integer',
 	DecimalDeclaration: 'decimal',
-	FunctionProperty: 'FunctionProperty',
 	Property: 'property',
 } as const;
 
@@ -23,13 +22,10 @@ type TExpressionArray = {
 type TExpressionProperty = {
 	Property: any;
 };
-type TExpressionFunctionProperty = {
-	Property: any;
-};
 type TExpressionNumber = {
 	NumberExpression: number;
 };
-type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
+type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionProperty;
 
 type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -40,7 +36,6 @@ type TExpressionFunction = {
 
 export type TMapped = {
 	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
-	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
 	[ExpressionTypes.Function]: TExpressionFunction;
 	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
 	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
