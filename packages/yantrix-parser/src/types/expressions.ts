@@ -1,10 +1,12 @@
+/**
+ * This object contains the different types of expressions that can be used in the parser.
+ */
 export const ExpressionTypes = {
 	Function: 'function',
 	StringDeclaration: 'string',
 	ArrayDeclaration: 'array',
 	Constant: 'constant',
 	NumberDeclaration: 'number',
-	FunctionProperty: 'FunctionProperty',
 	Property: 'property',
 } as const;
 
@@ -19,13 +21,10 @@ type TExpressionArray = {
 type TExpressionProperty = {
 	Property: any;
 };
-type TExpressionFunctionProperty = {
-	Property: any;
-};
 type TExpressionNumber = {
-	NumberDeclaration: number;
+	NumberExpression: number;
 };
-type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionFunctionProperty;
+type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionProperty;
 
 type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -36,7 +35,6 @@ type TExpressionFunction = {
 
 export type TMapped = {
 	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
-	[ExpressionTypes.FunctionProperty]: TExpressionFunctionProperty;
 	[ExpressionTypes.Function]: TExpressionFunction;
 	[ExpressionTypes.NumberDeclaration]: TExpressionNumber;
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
@@ -44,3 +42,4 @@ export type TMapped = {
 };
 
 export type TMappedKeys = keyof TMapped;
+export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];

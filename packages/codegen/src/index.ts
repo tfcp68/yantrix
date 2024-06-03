@@ -4,6 +4,10 @@ import { CodegenCreator } from './core/Codegen.js';
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
 
+export * from './constants/index.js';
+export * from './types/common.js';
+export * from './core/modules/index.js';
+
 export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMatrix, options: IGenerateOptions) => {
 	const { states, transitions } = diagram;
 	const parserInstance = new YantrixParser();
