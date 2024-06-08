@@ -9,7 +9,7 @@ export const ReservedList = ['end note, +INITIAL'];
 export const SpecialCharList = [
 	'!',
 	'@',
-	'$',
+	'$', // Нужны двойные кавычки, т.к при одинарных некорректно импортируется в грамматику
 	'%',
 	'^',
 	'&',
@@ -34,6 +34,9 @@ export const SpecialCharList = [
 	'\\',
 	'|',
 ];
+/**
+ * This object contains the different types of expressions that can be used in the parser.
+ */
 export const ExpressionTypes = {
 	Function: 'function',
 	StringDeclaration: 'string',

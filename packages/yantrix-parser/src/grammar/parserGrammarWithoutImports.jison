@@ -1,9 +1,15 @@
 %{
-   const ReservedList = ['end note, +INITIAL'];
+  /**
+ * This constant holds a list of reserved words in the  parser.
+ */
+ const ReservedList = ['end note, +INITIAL'];
+/**
+ * This constant holds a list of special characters that are not allowed in yantrix expressions.
+ */
  const SpecialCharList = [
     '!',
     '@',
-    "$",
+    "$", // Нужны двойные кавычки, т.к при одинарных некорректно импортируется в грамматику
     '%',
     '^',
     '&',
@@ -28,6 +34,9 @@
     '\\',
     '|',
 ];
+/**
+ * This object contains the different types of expressions that can be used in the parser.
+ */
  const ExpressionTypes = {
     Function: 'function',
     StringDeclaration: 'string',
