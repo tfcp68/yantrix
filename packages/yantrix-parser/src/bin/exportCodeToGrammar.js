@@ -1,10 +1,9 @@
-import fs, {constants} from 'fs';
+import fs, { constants } from 'fs';
 import path from 'path';
-import ts from 'typescript';
 
-const args = process.argv.slice(2)
+const args = process.argv.slice(2);
 const grammarPath = args[0] ?? 'src/grammar/parserGrammar.jison';
-const constantsPath = args[1] ?? 'src/constants/index.ts';
+const constantsPath = args[1] ?? 'dist/constants/index.js';
 const outputPath = args[2] ?? 'src/grammar/parserGrammarWithoutImports.jison';
 const grammarFilePath = path.resolve(grammarPath);
 const constantsFilePath = path.resolve(constantsPath);
@@ -22,28 +21,23 @@ const replaceImportsInGrammar = (grammarData, constantsData) => {
 
 	const withoutExports = constantsData.replace(exportRegexp, '');
 
-	const { outputText } = ts.transpileModule(withoutExports, {
-		module: ts.ModuleKind.ESNext
-	});
-
-	return grammarData.replace(importRegex, outputText);
-
-}
+	return grammarData.replace(importRegex, withoutExports);
+};
 
 try {
 	const grammarData = fs.readFileSync(grammarFilePath, 'utf8');
 	const constantsData = fs.readFileSync(constantsFilePath, 'utf8');
 	const updatedGrammarData = replaceImportsInGrammar(grammarData, constantsData);
 	fs.access(outputFilePath, constants.F_OK && constants.R_OK, (err) => {
-		if(err) {
-			console.error('File is not writable or does not exist');
-			throw new Error(err)
+		if (err) {
+			console.error('File is not writable or does not exist. Start build process first.');
+			throw new Error(err.message);
 		} else {
 			console.log('File exists and is accessible');
 			fs.writeFileSync(outputFilePath, updatedGrammarData, 'utf8');
 			console.log('Successfully replaced imports with constants content.');
 		}
-	})
+	});
 } catch (err) {
-	console.error(`Error: ${err}`);
+	console.error(`Error: ${err.message}`);
 }

@@ -1,6 +1,6 @@
 %{
-  var ReservedList = ['end note, +INITIAL'];
-var SpecialCharList = [
+   const ReservedList = ['end note, +INITIAL'];
+ const SpecialCharList = [
     '!',
     '@',
     "$",
@@ -28,7 +28,7 @@ var SpecialCharList = [
     '\\',
     '|',
 ];
-var ExpressionTypes = {
+ const ExpressionTypes = {
     Function: 'function',
     StringDeclaration: 'string',
     ArrayDeclaration: 'array',
@@ -38,7 +38,7 @@ var ExpressionTypes = {
     FunctionProperty: 'FunctionProperty',
     Property: 'property',
 };
-
+//# sourceMappingURL=index.js.map
 %}
 
 
