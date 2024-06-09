@@ -22,55 +22,6 @@ const functionCasesAndExpectedTypes = [
 	['#{%s = %s(%s())}', functionsFixtures.recursive],
 ];
 
-// pzdc...
-const generateExpressionStringAndExpectedObject = (
-	args: [string, (prop?: string, func?: string, ...values: any) => any],
-) => {
-	const templateString = args[0];
-	const func = args[1];
-
-	// replacing property and function names with random strings
-	const propertyName = randomString();
-	const functionName = randomString();
-	const templateStringWithNames = templateString.replace('%s', propertyName).replace('%s', functionName);
-
-	// afterwards expecting different objects depending on the regex inside function arguments,
-	// all names and values need to match to pass tests
-	if (templateStringWithNames.match(/"%s"/)) {
-		const val = randomString();
-		return [templateStringWithNames.replace('"%s"', `"${val}"`), func(propertyName, functionName, `"${val}"`)];
-	} else if (templateStringWithNames.match(/%s/)) {
-		const val = randomString();
-		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('$(%s)')) {
-		const val = randomString();
-		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('%i')) {
-		const val = randomInteger();
-		return [templateStringWithNames.replace('%i', val.toString()), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('%d')) {
-		const val = randomDecimal();
-		return [templateStringWithNames.replace('%d', val.toString()), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('%multi')) {
-		const propertyName1 = randomString();
-		const propertyName2 = randomString();
-		return [
-			templateStringWithNames.replace('%multi', `${propertyName1},${propertyName2}`),
-			func(propertyName, functionName, propertyName1, propertyName2),
-		];
-	} else if (templateStringWithNames.match('%arr')) {
-		return [templateStringWithNames.replace('%arr', '[]'), func(propertyName, functionName)];
-	} else if (templateStringWithNames.match('%s()')) {
-		const val = randomString();
-		return [templateStringWithNames.replace('%s()', `${val}()`), func(propertyName, functionName, val)];
-	} else return [templateStringWithNames, func(propertyName, functionName)];
-};
-const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
-	return templates.flatMap((template) => {
-		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
-	});
-};
-
 const validEmptyFunctionsExamples = ['#{%s = %s()}'];
 const invalidEmptyFunctionsExamples = [
 	'#{%s = %s ()}',
@@ -156,6 +107,55 @@ const generateFunctionString = (level: number = 0) => {
 		} else args.push(argsTypes[randomIndex]());
 	}
 	return `${functionName}(${args.join(',')})`;
+};
+
+// pzdc...
+const generateExpressionStringAndExpectedObject = (
+	args: [string, (prop?: string, func?: string, ...values: any) => any],
+) => {
+	const templateString = args[0];
+	const func = args[1];
+
+	// replacing property and function names with random strings
+	const propertyName = randomString();
+	const functionName = randomString();
+	const templateStringWithNames = templateString.replace('%s', propertyName).replace('%s', functionName);
+
+	// afterwards expecting different objects depending on the regex inside function arguments,
+	// all names and values need to match to pass tests
+	if (templateStringWithNames.match(/"%s"/)) {
+		const val = randomString();
+		return [templateStringWithNames.replace('"%s"', `"${val}"`), func(propertyName, functionName, `"${val}"`)];
+	} else if (templateStringWithNames.match(/%s/)) {
+		const val = randomString();
+		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
+	} else if (templateStringWithNames.match('$(%s)')) {
+		const val = randomString();
+		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
+	} else if (templateStringWithNames.match('%i')) {
+		const val = randomInteger();
+		return [templateStringWithNames.replace('%i', val.toString()), func(propertyName, functionName, val)];
+	} else if (templateStringWithNames.match('%d')) {
+		const val = randomDecimal();
+		return [templateStringWithNames.replace('%d', val.toString()), func(propertyName, functionName, val)];
+	} else if (templateStringWithNames.match('%multi')) {
+		const propertyName1 = randomString();
+		const propertyName2 = randomString();
+		return [
+			templateStringWithNames.replace('%multi', `${propertyName1},${propertyName2}`),
+			func(propertyName, functionName, propertyName1, propertyName2),
+		];
+	} else if (templateStringWithNames.match('%arr')) {
+		return [templateStringWithNames.replace('%arr', '[]'), func(propertyName, functionName)];
+	} else if (templateStringWithNames.match('%s()')) {
+		const val = randomString();
+		return [templateStringWithNames.replace('%s()', `${val}()`), func(propertyName, functionName, val)];
+	} else return [templateStringWithNames, func(propertyName, functionName)];
+};
+const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
+	return templates.flatMap((template) => {
+		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+	});
 };
 
 describe('Function declaration', () => {

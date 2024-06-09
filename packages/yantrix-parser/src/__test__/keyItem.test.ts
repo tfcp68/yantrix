@@ -1,5 +1,5 @@
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixParser } from '../yantrixParser.js';
+import { YantrixLexer, YantrixParser } from '../yantrixParser.js';
 import { functionsFixtures, keyItem } from '../fixtures/keyItem.js';
 import {
 	allowedExpressions,
@@ -9,6 +9,17 @@ import {
 } from '../utils/utils.js';
 import { randomString, randomDecimal, randomInteger } from '@yantrix/utils';
 
+// todo need to rework all of this later
+const validCases = [
+	[`#{%s}`, keyItem.declarationKeyItem],
+	[`#{%s} = %s}`, keyItem.withStringInitial],
+	[`#{%s = []}`, keyItem.withArrayInitial],
+	[`#{%s = %i}`, keyItem.withIntegerInitial],
+	[`#{%s = %s}`, keyItem.withPropertyInitial],
+	[`#{%s = %d, %s = "%s", %s = %i}`, keyItem.withMultiplyInitial],
+	[`#{%s = %d}`, keyItem.withDecimalInitial],
+	[`#{%s = %s()}`, functionsFixtures.expression],
+];
 const generateCases = () => {
 	const cases: any[] = [];
 	const [keyItemName, funcName1, propertyName1, propertyName2] = Array.apply(null, Array(4)).map(() =>
@@ -38,20 +49,18 @@ const generateCases = () => {
 };
 
 describe('Key list', () => {
-	describe('single key item', () => {
+	const parser = new YantrixParser();
+
+	describe('Single key item', () => {
 		const cases = generateCases();
-		for (let i = 0; i < cases.length; i++) {
-			const [input, res] = cases[i];
-			test(input, () => {
-				const output = new YantrixParser().parse(input as string);
-				assert.deepOwnInclude(output, res);
-			});
-		}
+		test.each(cases)('%s', (input, res) => {
+			const output = parser.parse(input);
+			assert.deepOwnInclude(output, res);
+		});
 	});
+
 	describe('Random number of keyItem', () => {
 		describe('INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
-			const parser = new YantrixParser();
-
 			Object.entries(allowedExpressions).forEach(([key, value]: [string, any]) => {
 				test(`Data type - ${key}`, () => {
 					for (let index = 0; index < 100; index++) {
