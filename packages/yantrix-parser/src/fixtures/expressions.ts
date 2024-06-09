@@ -15,7 +15,7 @@ const getDecimalExpressionProperties = (value: number = randomDecimal()) => ({
 	expressionType: ExpressionTypes.DecimalDeclaration,
 });
 const getConstantExpressionProperties = (value: string = randomString()) => ({
-	ConstantReference: value.slice(2, -1),
+	ConstantReference: value,
 	expressionType: ExpressionTypes.Constant,
 });
 const getPropertyExpressionProperties = (name: string = randomString()) => ({
@@ -75,6 +75,27 @@ export const functions = {
 		FunctionDeclaration: {
 			FunctionName: 'func-' + randomString(),
 			Arguments: [getIntegerExpressionProperties()],
+		},
+	},
+	withDecimalArgs: {
+		expressionType: ExpressionTypes.Function,
+		FunctionDeclaration: {
+			FunctionName: 'func-' + randomString(),
+			Arguments: [getDecimalExpressionProperties()],
+		},
+	},
+	withArrayArgs: {
+		expressionType: ExpressionTypes.Function,
+		FunctionDeclaration: {
+			FunctionName: 'func-' + randomString(),
+			Arguments: [getArrayExpressionProperties()],
+		},
+	},
+	withConstantArgs: {
+		expressionType: ExpressionTypes.Function,
+		FunctionDeclaration: {
+			FunctionName: 'func-' + randomString(),
+			Arguments: [getConstantExpressionProperties()],
 		},
 	},
 	withMultiplyArgs: {

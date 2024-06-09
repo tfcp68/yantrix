@@ -15,6 +15,18 @@ export const randomInteger = (min: number = 1, max: number = 100): number =>
 
 export const randomDecimal = (min: number = -10000, max: number = 10000) => Math.random() * (max - min) + min;
 
+export const randomValueFunction = () => {
+	const randomValueFunctions = [randomString, randomInteger, randomDecimal];
+	const randomIndex = Math.floor(Math.random() * randomValueFunctions.length);
+	return randomValueFunctions[randomIndex];
+};
+export function randomValue(): number | string {
+	return randomValueFunction()();
+}
+export const randomArray = (valueType: () => any, amount: number = randomInteger(1, 20)) => {
+	return Array.from({ length: amount }, valueType);
+};
+
 export function sampleRange(min = 1, max = 100) {
 	return min + Math.floor(Math.random() * (max - min + 1));
 }

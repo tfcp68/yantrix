@@ -73,8 +73,13 @@ describe('Key list', () => {
 							const targetPropertyInput = strKey.split('=')[0];
 							const targetPropertyValue = strKey.split('=')[1];
 
+							const expected =
+								key != 'constant'
+									? value.output(targetPropertyValue)
+									: value.output(targetPropertyValue.slice(2, -1));
+
 							expect(targetPropertyInput).toBe(TargetProperty);
-							expect(KeyItemDeclaration.Expression).toStrictEqual(value.output(targetPropertyValue));
+							expect(KeyItemDeclaration.Expression).toStrictEqual(expected);
 						});
 					}
 				});

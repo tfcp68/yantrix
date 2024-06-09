@@ -50,15 +50,6 @@ export const getKeyItem = (expression: TExpressionTypes | null) => {
 	return createContextDescription([keyItem]);
 };
 
-/// Base key item declaration
-/*
-const declarationKeyItem = getKeyItem(null);
-export const withStringInitial = getKeyItem(expressions.string);
-export const withArrayInitial = getKeyItem(expressions.array);
-export const withIntegerInitial = getKeyItem(expressions.integer);
-export const withPropertyInitial = getKeyItem(expressions.property);
-*/
-
 export const declarationKeyItem = (propertyName?: string) => {
 	const base = getKeyItem(null);
 	return Map(base)
@@ -190,6 +181,8 @@ export const expression = (propertyName?: string, functionName?: string) => {
 	} else return base;
 };
 
+// TODO MAYBE NEED TO UPDATE FOR MULTIPLE ITEMS
+
 export const withProperty = (propertyName?: string, functionName?: string, functionPropertyName?: string) => {
 	const base = getKeyItem(getExpression(functions.withPropertyArgs));
 	if (propertyName || functionName || functionPropertyName) {
@@ -313,6 +306,116 @@ export const withInteger = (propertyName?: string, functionName?: string, intege
 	} else return base;
 };
 
+export const withDecimal = (propertyName?: string, functionName?: string, decimalValue?: number) => {
+	if (Number.isInteger(decimalValue)) throw new Error();
+	const base = getKeyItem(getExpression(functions.withDecimalArgs));
+	if (propertyName || functionName || decimalValue) {
+		const map = Map(base);
+		const updated = map
+			.updateIn(
+				['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+				(name) => propertyName ?? name,
+			)
+			.updateIn(
+				[
+					'contextDescription',
+					0,
+					'context',
+					0,
+					'KeyItemDeclaration',
+					'Expression',
+					'FunctionDeclaration',
+					'FunctionName',
+				],
+				(name) => functionName ?? name,
+			)
+			.updateIn(
+				[
+					'contextDescription',
+					0,
+					'context',
+					0,
+					'KeyItemDeclaration',
+					'Expression',
+					'FunctionDeclaration',
+					'Arguments',
+					0,
+					'NumberDeclaration',
+				],
+				(v) => decimalValue ?? v,
+			);
+		return updated.toJS();
+	} else return base;
+};
+
+// ???
+export const withArray = (propertyName?: string, functionName?: string) => {
+	const base = getKeyItem(getExpression(functions.withArrayArgs));
+	if (propertyName || functionName) {
+		const map = Map(base);
+		const updated = map
+			.updateIn(
+				['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+				(name) => propertyName ?? name,
+			)
+			.updateIn(
+				[
+					'contextDescription',
+					0,
+					'context',
+					0,
+					'KeyItemDeclaration',
+					'Expression',
+					'FunctionDeclaration',
+					'FunctionName',
+				],
+				(name) => functionName ?? name,
+			);
+		return updated.toJS();
+	} else return base;
+};
+
+export const withConstant = (propertyName?: string, functionName?: string, constantValue?: string) => {
+	const base = getKeyItem(getExpression(functions.withConstantArgs));
+	if (propertyName || functionName || constantValue) {
+		const map = Map(base);
+		const updated = map
+			.updateIn(
+				['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+				(name) => propertyName ?? name,
+			)
+			.updateIn(
+				[
+					'contextDescription',
+					0,
+					'context',
+					0,
+					'KeyItemDeclaration',
+					'Expression',
+					'FunctionDeclaration',
+					'FunctionName',
+				],
+				(name) => functionName ?? name,
+			)
+			.updateIn(
+				[
+					'contextDescription',
+					0,
+					'context',
+					0,
+					'KeyItemDeclaration',
+					'Expression',
+					'FunctionDeclaration',
+					'Arguments',
+					0,
+					'ConstantReference',
+				],
+				(v) => constantValue ?? v,
+			);
+		return updated.toJS();
+	} else return base;
+};
+
 export const recursive = (propertyName?: string, functionName?: string, funcRecursiveName?: string) => {
 	const base = getKeyItem(getExpression(functions.withRecursiveFunction));
 	if (propertyName || functionName || funcRecursiveName) {
@@ -420,6 +523,9 @@ export const functionsFixtures = {
 	expression,
 	recursive,
 	withInteger,
+	withDecimal,
+	withArray,
+	withConstant,
 	withProperty,
 	withString,
 	multiplyProperty,

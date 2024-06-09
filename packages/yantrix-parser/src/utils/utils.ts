@@ -33,10 +33,12 @@ export const allowedExpressions = {
 		output: () => expressionProperties.array(),
 	},
 	constant: {
-		value: () => `$(${randomString()})`,
+		value: () => `${randomString()}`,
 		output: (s: string) => expressionProperties.constant(s),
 	},
 };
+
+const trimConstant = (str: string) => str.slice(2, -1);
 
 const formatStringExpressions = (str: string) => {
 	return `'${str}'`;
@@ -69,6 +71,8 @@ export const getKeyItemsWithInitial = (expression: any) => {
 	return keyItems.map((key) => {
 		if (expression === allowedExpressions.string) {
 			return `${key}=${formatStringExpressions(expression.value())}`;
+		} else if (expression === allowedExpressions.constant) {
+			return `${key}=$(${expression.value()})`;
 		}
 		return `${key}=${expression.value()}`;
 	});
@@ -89,6 +93,11 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 			return {
 				value: `${el}=${formatStringExpressions(str)}`,
 				output: expressions.output(formatStringExpressions(str)),
+			};
+		} else if (expressions === allowedExpressions.constant) {
+			return {
+				value: `${el}=$(${rndValue})`,
+				output: expressions.output(rndValue),
 			};
 		}
 
