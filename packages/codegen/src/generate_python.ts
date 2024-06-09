@@ -29,7 +29,6 @@ export const generatePython = async (diagram: string) => {
                 self.context = {'index': -1}
             
             handler_dict = ${statesDictionary}
-            handler_dict.pop('/~~~END~~~')
             actionToStateDict = []
             
             def root_reducer(self, action, context, payload, state):
