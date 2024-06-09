@@ -1,6 +1,7 @@
 ---
 title: Working with Lerna
 ---
+
 The repository is organized into packages with help of [Lerna](https://lerna.js.org/) is an open source multi-package repository management tool. It allows developers to manage multiple packages in a single monorepository, including versioning, publishing, dependency management, and building.
 
 ## Installation
@@ -77,10 +78,11 @@ lerna version 1.0.0
 ```
 
 Once a version is selected, **Lerna**:
-*  updates **package.json** with the version number
-*  commits the change
-*  adds the appropriate version tag (e.g. v1.0.0)
-*  pushes the commit and the tag to the remote repository.
+
+-   updates **package.json** with the version number
+-   commits the change
+-   adds the appropriate version tag (e.g. v1.0.0)
+-   pushes the commit and the tag to the remote repository.
 
 If you want to update the version of a specific package, use the **`--scope`** flag, for example:
 
@@ -100,19 +102,19 @@ You can also publish packages to a local **NPM** registry using utilities such a
 
 **Lerna** has many [**options**](https://lerna.js.org/docs/api-reference/commands#options), which allow you to customize the behavior of certain commands. Here're some:
 
-- **`--scope`**: allows you to work only with the specified package.
-- **`--ignore`**: allows you to ignore the specified packages.
-- **`--concurrency`**: allows you to configure the number of parallel tasks.
-- **`--no-private`**: excludes private packages (they are enabled by default).
-- **`--since [ref]`**: Include only those packages that were changed after the specified **`ref`** .
+-   **`--scope`**: allows you to work only with the specified package.
+-   **`--ignore`**: allows you to ignore the specified packages.
+-   **`--concurrency`**: allows you to configure the number of parallel tasks.
+-   **`--no-private`**: excludes private packages (they are enabled by default).
+-   **`--since [ref]`**: Include only those packages that were changed after the specified **`ref`** .
 
 ## Using Lerna with Git
 
 Lerna integrates well with **Git**. It can automatically generate commits and tags for package version changes. You can use the following commands to work with **Git** in **Lerna**:
 
-- **`lerna changed`**: Shows packages that were changed in the last commit.
-- **`lerna diff`**: Shows the differences between two versions of the specified package.
-- **`lerna exec <command> --since <last-version>`**: Runs the command for all packages that have changed since the latest version.
+-   **`lerna changed`**: Shows packages that were changed in the last commit.
+-   **`lerna diff`**: Shows the differences between two versions of the specified package.
+-   **`lerna exec <command> --since <last-version>`**: Runs the command for all packages that have changed since the latest version.
 
 ## How to add/remove/update dependencies in packages?
 
@@ -209,9 +211,9 @@ Once you have built your packages, you can use them in other projects by includi
 
 ```json
 {
-  "dependencies": {
-  "my-package": "*"
-  }
+	"dependencies": {
+		"my-package": "*"
+	}
 }
 ```
 

@@ -1,19 +1,22 @@
 import type { ICodegen } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
+import { TStateDiagram } from '@yantrix/mermaid-parser';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
-	protected getHandleStateChangeDeclaration(value: number, body: string) {
-		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}:{state:number|null, action:number, payload:any, context:any}) => {${body}}`;
-	}
-
-	public getImports(): string {
-		return `import { GenericAutomata, TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType } from '@yantrix/automata';`;
+	constructor(diagram: TStateDiagram) {
+		super(diagram);
+		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
 	protected getStateValidator() {
-		return `(s): s is TAutomataBaseStateType => Object.values(statesDictionary).includes(s)`;
+		return `(${super.getStateValidator()}) as TValidator<TAutomataBaseStateType>`;
 	}
+
 	protected getActionValidator() {
-		return `(a): a is TAutomataBaseActionType => Object.values(actionsDictionary).includes(a)`;
+		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
+	}
+
+	protected getIsKeyOf() {
+		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 }

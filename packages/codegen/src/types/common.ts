@@ -36,9 +36,15 @@ export interface ITypedObject extends ITypedObjectProps {
 export interface ICodegen {
 	getDictionaries(): string;
 
-	getChangeStateHandlers(): string;
-
-	getHandlers(): string;
+	/**
+	 * The output of this method should be a string that represents the action to state mapping.
+	 * Example: {
+	 *     state1: {
+	 *            action1: state2
+	 *     }
+	 * }
+	 */
+	getActionToStateFromState(): string;
 
 	getClassTemplate(className: string): string;
 
