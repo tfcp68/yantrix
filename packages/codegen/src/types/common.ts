@@ -37,10 +37,10 @@ export interface ICodegen {
 	getDictionaries(): string;
 
 	/**
-	 * Возвращает объект возможных переходов к состояниям из каждого состояния
-	 * Пример вида {
-	 *     состояние1: {
-	 *            действие1: состояние2
+	 * The output of this method should be a string that represents the action to state mapping.
+	 * Example: {
+	 *     state1: {
+	 *            action1: state2
 	 *     }
 	 * }
 	 */

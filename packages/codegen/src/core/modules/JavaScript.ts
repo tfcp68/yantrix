@@ -31,10 +31,6 @@ export class JavaScriptCodegen implements ICodegen {
 		return this.dictionaries.join('\n');
 	}
 
-	protected getHandleStateChangeDeclaration(id: number, body: string) {
-		return `const handleStateChange${id} = ({payload,action,context:prevContext,state}) => {${body}}`;
-	}
-
 	setupDictionaries() {
 		this.dictionaries.push(
 			`export const statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
@@ -101,10 +97,6 @@ export class JavaScriptCodegen implements ICodegen {
 		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
 
-	/**
-	 * Возвращает объект возможных переходов к состояням из каждого состояния
-	 * Пример вида { состояние1: { действие1: состояние2 } }
-	 */
 	protected getActionToStateFromStateDict() {
 		const actionToStateFromStateDict: Record<number, Record<number, number>> = {};
 		Object.keys(this.diagram.transitions).map((state) => {
@@ -120,10 +112,6 @@ export class JavaScriptCodegen implements ICodegen {
 		return `const actionToStateFromStateDict = ${convertKeysToNumberString(this.getActionToStateFromStateDict())}`;
 	}
 
-	/**
-	 * Возвращает объект возможных переходов к состояниям из каждого действия
-	 * Пример вида { действие1: состояние1 }
-	 */
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
 		const actionToStateDict: Record<number, number> = {};
 		Object.keys(transitions).map((key) => {
