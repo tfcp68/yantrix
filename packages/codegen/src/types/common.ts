@@ -7,8 +7,18 @@ export interface ICodegenOptions {
 	language: TOutLang;
 }
 
+/**
+ * Represents the options for generating code.
+ */
 export interface IGenerateOptions {
+	/**
+	 * The name of the class Automata  to generate.
+	 */
 	className: string;
+
+	/**
+	 * The output language for the generated code.
+	 */
 	outLang: TOutLang;
 }
 
@@ -25,9 +35,19 @@ export interface ITypedObject extends ITypedObjectProps {
 
 export interface ICodegen {
 	getDictionaries(): string;
-	getChangeStateHandlers(): string;
-	getHandlers(): string;
+
+	/**
+	 * The output of this method should be a string that represents the action to state mapping.
+	 * Example: {
+	 *     state1: {
+	 *            action1: state2
+	 *     }
+	 * }
+	 */
+	getActionToStateFromState(): string;
+
 	getClassTemplate(className: string): string;
+
 	getImports(): string;
 }
 

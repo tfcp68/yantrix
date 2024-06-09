@@ -1,5 +1,5 @@
 import { Map } from 'immutable';
-import { ExpressionTypes } from '../types/expressions.js';
+import { ExpressionTypes } from '../constants/index.js';
 import { randomString, randomInteger, randomDecimal } from '@yantrix/utils';
 
 const getStringExpressionProperties = (value: string = randomString()) => ({
