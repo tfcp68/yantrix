@@ -11,9 +11,6 @@ import { generateAutomataFromStateDiagram } from '../dist/index.js';
 const langs = {
 	ts: 'TypeScript',
 	js: 'JavaScript',
-	py: 'Python',
-	kt: 'Kotlin',
-	rs: 'Rust',
 } as const;
 
 interface ICodegenOptions {
