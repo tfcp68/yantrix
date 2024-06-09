@@ -22,7 +22,7 @@ type TExpressionProperty = {
 	Property: any;
 };
 type TExpressionNumber = {
-	NumberExpression: number;
+	NumberDeclaration: number;
 };
 type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionProperty;
 

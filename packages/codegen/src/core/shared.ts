@@ -1,5 +1,7 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+import { ExpressionTypes } from '@yantrix/yantrix-parser';
+import { property } from 'lodash-es';
 
 export const fillDictionaries = (
 	diagram: TStateDiagramMatrixIncludeNotes,
@@ -21,3 +23,21 @@ export const fillDictionaries = (
 		}
 	}
 };
+
+export const Expressions: TExpressionRecord = {
+	[ExpressionTypes.ArrayDeclaration]: () => '[]',
+	[ExpressionTypes.Function]: (value) => {
+		throw new Error(`Not implemented ${ExpressionTypes.Function}`);
+	},
+	[ExpressionTypes.Property]: ({ Property }) => {
+		return `${property}`;
+	},
+
+	[ExpressionTypes.NumberDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
+	},
+
+	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
+		return `${StringDeclaration}`;
+	},
+} as const;

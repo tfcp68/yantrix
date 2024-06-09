@@ -33,7 +33,11 @@ export type TPayloadToContext<T extends TKeyItems = TKeyItems> = {
 } & TContext;
 
 export type TContextDescription = {
-	contextDescription: [TPayloadToContext | TPreviousToContext];
+	contextDescription: [TPayloadToContext | TPreviousToContext | TContext];
 };
 
-export type TNotes = TContextDescription & TSubscribe & TEvents;
+export type TInitialState = {
+	initialState: boolean;
+};
+
+export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents;

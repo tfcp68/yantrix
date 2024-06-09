@@ -59,3 +59,10 @@ export type TOutLang = keyof typeof Modules;
 export type TExpressionRecord = {
 	[K in TMappedKeys]: (arg: TMapped[K]) => string;
 };
+
+export const TAssignTypeDict = {
+	PAYLOAD: 'payload',
+	PREV_CONTEXT: 'prevContext',
+} as const;
+
+export type TAssignTypes = (typeof TAssignTypeDict)[keyof typeof TAssignTypeDict];

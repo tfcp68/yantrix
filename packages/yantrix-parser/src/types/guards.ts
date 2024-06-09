@@ -2,14 +2,10 @@ import { ExpressionTypes, TMapped, TMappedKeys } from './expressions.js';
 import { TKeyItemBase, TKeyItems, TKeyItemWithExpression } from './keyItem.js';
 import { TAction, TPayloadToContext, TPreviousToContext, TSubscribeStatement } from './statements.js';
 
-export const isPrevContext = (
-	obj: TPayloadToContext<TKeyItems> | TPreviousToContext<TKeyItems>,
-): obj is TPreviousToContext => {
+export const isPrevContext = (obj: any): obj is TPreviousToContext => {
 	return Object.keys(obj).includes('prevContext');
 };
-export const isPayloadContext = (
-	obj: TPayloadToContext<TKeyItems> | TPreviousToContext<TKeyItems>,
-): obj is TPayloadToContext => {
+export const isPayloadContext = (obj: any): obj is TPayloadToContext => {
 	return Object.keys(obj).includes('payload');
 };
 

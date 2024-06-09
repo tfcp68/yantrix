@@ -1,11 +1,11 @@
-import { ICodegen, TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import type { TDiagramAction } from '@yantrix/mermaid-parser';
-import { fillDictionaries } from '../shared.js';
+import { Expressions, fillDictionaries } from '../shared.js';
 import {
-	ExpressionTypes,
 	isKeyItemWithExpression,
 	isPayloadContext,
+	isPrevContext,
 	TKeyItem,
 	TKeyItemWithExpression,
 } from '@yantrix/yantrix-parser';
@@ -18,7 +18,6 @@ export class JavaScriptCodegen implements ICodegen {
 	changeStateHandlers: string[];
 	initialState: null | number;
 	dictionaries: string[];
-	expressionsDict: TExpressionRecord;
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
@@ -29,11 +28,9 @@ export class JavaScriptCodegen implements ICodegen {
 		this.changeStateHandlers = [];
 		this.dictionaries = [];
 
-		this.expressionsDict = this.fillExpression();
-
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 
-		this.initialState = Object.values(this.stateDictionary.getDictionary())[0];
+		this.initialState = Object.values(this.stateDictionary.getStateValues({ keys: [this.getInitialState()] }))[0];
 		this.setupHandlers();
 		this.setupDictionaries();
 	}
@@ -79,7 +76,7 @@ export class JavaScriptCodegen implements ICodegen {
   			super();
   			this.init({
   				state: ${this.initialState},
-  				context: { index: -1 },
+  				context: ${this.getInitialContext()},
                 rootReducer: ({ action, context, payload, state }) => {
                   if (!action || payload === null) return { state, context };
                   return handlersDict[state]({action,payload,context,state})
@@ -101,7 +98,9 @@ export class JavaScriptCodegen implements ICodegen {
 					keys: action,
 				});
 
-				return `${actionValue[0]}:{state:${newState[0]}, ${this.getSubsyntaxContext(key || null)}},`;
+				const ctx = this.getSubsyntaxContext(key);
+
+				return `${actionValue[0]}:{state:${newState[0]}, ctx:${ctx ? `{${ctx}}` : 'null'}},`;
 			});
 		});
 	}
@@ -111,23 +110,6 @@ export class JavaScriptCodegen implements ICodegen {
 			keys: [state],
 		})[0];
 		return `${stateValue}: handleStateChange${stateValue}, \n`;
-	}
-
-	protected fillExpression(): TExpressionRecord {
-		return {
-			[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => `${StringDeclaration}`,
-			[ExpressionTypes.NumberDeclaration]: ({ NumberDeclaration }) => `${NumberDeclaration}`,
-			[ExpressionTypes.ArrayDeclaration]: (value) => '[]',
-			[ExpressionTypes.Function]: (value) => {
-				throw new Error(`Not implemented ${ExpressionTypes.Function}`);
-			},
-			[ExpressionTypes.Property]: () => {
-				throw new Error(`Not implemented ${ExpressionTypes.Property}`);
-			},
-			[ExpressionTypes.FunctionProperty]: () => {
-				throw new Error(`Not implemented ${ExpressionTypes.FunctionProperty}`);
-			},
-		};
 	}
 
 	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
@@ -149,66 +131,112 @@ export class JavaScriptCodegen implements ICodegen {
         const newState = reducedState || state
         const ctx = reducedState ? actionToStateDict[action]?.ctx : {...prevContext}
         
-
+ 
 		
-        return {state:newState, context:{...ctx}}
+        return {state:newState, context: ctx === null ? ctx : {...ctx}}
         `,
 		);
 	}
 
 	protected getHandleStateChangeDeclaration(value: number, body: string) {
-		return `const handleStateChange${value} = ({payload,action,context:prevContext,state}) => {${body}}`;
+		return `const handleStateChange${value} = ({payload,action,context:${TAssignTypeDict.PREV_CONTEXT},state}) => {${body}}`;
 	}
 
 	protected getSubsyntaxContext(state: string | null) {
-		const value = this.diagram.states.find((diagramState) => diagramState.id === state);
+		const value = this.diagram.states.find((diagramState) => {
+			return diagramState.id === state;
+		});
 
 		if (!value) {
 			throw new Error(`Invalid state - ${value}`);
 		}
-		if (!value.notes) {
-			return `ctx: null`;
+
+		if (!value.notes || !value.notes.contextDescription.length) {
+			return null;
 		}
+
 		const { contextDescription } = value.notes;
 
 		const res = contextDescription
 			.map((ctx) => {
-				return ctx.context.map((el, index) => {
+				return ctx.context.map(() => {
 					if (isPayloadContext(ctx)) {
-						const { context, payload } = ctx;
+						const { context, payload = [] } = ctx;
 						return context.map((ctxItem, index) => {
 							const boundProperty = payload[index] || null;
-							return this.getContextValues(ctxItem, boundProperty, 'payload');
-						});
-					} else {
-						const { context, prevContext } = ctx;
-						return context.map((ctxItem, index) => {
-							const boundProperty = prevContext[index] || null;
-							return this.getContextValues(ctxItem, boundProperty, 'prevContext');
+							return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
 						});
 					}
+					if (isPrevContext(ctx)) {
+						const { context, prevContext = [] } = ctx;
+						return context.map((ctxItem, index) => {
+							const boundProperty = prevContext[index] || null;
+							return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
+						});
+					}
+					const { context } = ctx;
+					return context.map((ctxItem) => {
+						return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
+					});
 				});
 			})
 			.flatMap((template) => template.flatMap((el) => el));
 
-		return `
-			ctx: {${res.join('\r\n')}}
-		`;
+		return res.join('\r\n');
 	}
 
-	private getContextValues(context: TKeyItem, boundProperty: TKeyItem, type: 'payload' | 'prevContext') {
+	private getInitialContext() {
+		const initialState = this.diagram.states.find((el) => {
+			return el.notes?.initialState;
+		});
+
+		if (!initialState) {
+			return 'null';
+		}
+
+		const initialNotes = this.getSubsyntaxContext(initialState.id);
+
+		if (!initialNotes) {
+			return 'null';
+		}
+		return `{${initialNotes}}`;
+	}
+
+	private getInitialState() {
+		const initialState = this.diagram.states.find((el) => {
+			return el.notes?.initialState;
+		});
+		if (!initialState) {
+			throw new Error('One of the states must be initial');
+		}
+		return initialState.id;
+	}
+
+	private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
 		const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
+
+		if (boundProperty === null) {
+			if (isKeyItemWithExpression(context)) {
+				const value = this.getByExpressionValue(context);
+				return `${LeftTarget}:  ${value},`;
+			}
+			return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'],`;
+		}
+
 		const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
+		const isEmptyInitial = !isKeyItemWithExpression(context);
 
 		const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
-		const isEmptyInitial = !isKeyItemWithExpression(context);
 
 		if (isEmptyBoundExpression && isEmptyInitial) {
 			return `
-				${LeftTarget} : ${type}['${RightTarget}'],;
+				${LeftTarget} : ${type}['${RightTarget}'],
 			`;
 		}
+
+		//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
 		if (isEmptyBoundExpression && !isEmptyInitial) {
+			console.log('a');
 			if (isKeyItemWithExpression(context)) {
 				const value = this.getByExpressionValue(context);
 
@@ -237,7 +265,7 @@ export class JavaScriptCodegen implements ICodegen {
 			Expression: { expressionType, value },
 		},
 	}: TKeyItemWithExpression) {
-		// @ts-ignore - Мужики я честно пытался это пофиксить, но у меня не вышло(
-		return this.expressionsDict[expressionType](value);
+		// @ts-expect-error - idk
+		return Expressions[expressionType](value);
 	}
 }
