@@ -92,10 +92,16 @@ importers:
             commander:
                 specifier: ^12.1.0
                 version: 12.1.0
+            fs-extra:
+                specifier: ^11.2.0
+                version: 11.2.0
             picocolors:
                 specifier: ^1.0.1
                 version: 1.0.1
         devDependencies:
+            '@types/fs-extra':
+                specifier: ^11.0.4
+                version: 11.0.4
             '@yantrix/automata':
                 specifier: workspace:^
                 version: link:../automata
@@ -1705,6 +1711,12 @@ packages:
                 integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==,
             }
 
+    '@types/fs-extra@11.0.4':
+        resolution:
+            {
+                integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==,
+            }
+
     '@types/geojson@7946.0.14':
         resolution:
             {
@@ -1727,6 +1739,12 @@ packages:
         resolution:
             {
                 integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==,
+            }
+
+    '@types/jsonfile@6.1.4':
+        resolution:
+            {
+                integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==,
             }
 
     '@types/keyv@3.1.4':
@@ -8800,6 +8818,11 @@ snapshots:
 
     '@types/estree@1.0.5': {}
 
+    '@types/fs-extra@11.0.4':
+        dependencies:
+            '@types/jsonfile': 6.1.4
+            '@types/node': 20.11.19
+
     '@types/geojson@7946.0.14': {}
 
     '@types/istanbul-lib-coverage@2.0.6': {}
@@ -8807,6 +8830,10 @@ snapshots:
     '@types/js-yaml@4.0.9': {}
 
     '@types/json-schema@7.0.15': {}
+
+    '@types/jsonfile@6.1.4':
+        dependencies:
+            '@types/node': 20.11.19
 
     '@types/keyv@3.1.4':
         dependencies:

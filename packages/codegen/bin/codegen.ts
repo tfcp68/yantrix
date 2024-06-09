@@ -1,4 +1,4 @@
-#!/usr/bin/env -S pnpm tsx
+#!/usr/bin/env node
 
 import { Command } from 'commander';
 import fs from 'fs-extra';
@@ -6,7 +6,7 @@ import path from 'path';
 import { stdout } from 'process';
 import { format } from 'util';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram } from '../dist/index.js';
+import { generateAutomataFromStateDiagram } from '../src/index.js';
 
 const langs = {
 	ts: 'TypeScript',
@@ -15,8 +15,9 @@ const langs = {
 
 interface ICodegenOptions {
 	language: keyof typeof langs;
+	className: string;
 	outdir: string;
-	className?: string;
+	verbose: boolean;
 }
 
 const program = new Command();
@@ -32,6 +33,7 @@ program
 	.option('-o, --outdir <path>', 'Output file path')
 	.option('-l, --language <lang>', 'Output language')
 	.option('-c, --className <className>', 'Generated Automata class name')
+	.option('-verbose', 'Enable verbose mode')
 	.action(async (diagramTextOrFile: string, options: ICodegenOptions) => {
 		let diagramText = diagramTextOrFile;
 
@@ -86,9 +88,9 @@ program
 		try {
 			await fs.ensureDir(outputDirPath);
 
-			const outputFilePath = path.join(outputDirPath, `${className}.${options.language}`);
-			await fs.writeFile(outputFilePath, writable);
-			log(`Generated Automata saved to ${outputFilePath}`);
+			const outputFilePath = path.join(outputDirPath, `${className}_generated.${options.language}`);
+			await fs.writeFile(outputFilePath, writable, { encoding: 'utf-8' });
+			if (options.verbose) log(`Generated Automata saved to ${outputFilePath}`);
 		} catch (err) {
 			if (err instanceof Error) log(`Error: ${err.message}`);
 			process.exit(1);

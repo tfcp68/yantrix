@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"bin": "./bin/codegen.ts",
 	"files": [
 		"dist"
 	],
@@ -16,8 +17,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run",
-		"gen": "tsx bin/codegen.ts"
+		"test": "sh scripts/gen-automata-for-tests.sh && vitest run"
 	},
 	"description": "Execute jison parser",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
@@ -25,6 +25,7 @@
 		"url": "https://github.com/octaharon/yantrix/issues"
 	},
 	"directories": {
+		"bin": "bin",
 		"lib": "src",
 		"test": "__tests__"
 	},
