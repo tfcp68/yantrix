@@ -1,12 +1,4 @@
-export const ExpressionTypes = {
-	Function: 'function',
-	StringDeclaration: 'string',
-	ArrayDeclaration: 'array',
-	Constant: 'constant',
-	IntegerDeclaration: 'integer',
-	DecimalDeclaration: 'decimal',
-	Property: 'property',
-} as const;
+import { ExpressionTypes } from '../constants/index.js';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
