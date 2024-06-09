@@ -5,6 +5,7 @@
 	"description": "Event-Driven FSM Framework",
 	"type": "module",
 	"scripts": {
+		"prepare": "pnpm build",
 		"clean": "lerna exec rimraf dist coverage",
 		"build": "lerna run build",
 		"build:affected": "lerna run build --since=origin/main",

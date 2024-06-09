@@ -1,4 +1,4 @@
-import { ExpressionTypes } from '../../types/expressions.js';
+import { ExpressionTypes } from '../../constants/index.js';
 
 export const primitives = {
 	string: {
