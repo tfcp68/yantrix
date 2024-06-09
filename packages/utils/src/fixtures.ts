@@ -10,7 +10,8 @@ export const randomString = (length: number = 10) => {
 	return result;
 };
 
-export const randomInteger = (min: number = 1, max: number = 100): number => Math.floor(Math.random() * 20000) - 10000;
+export const randomInteger = (min: number = 1, max: number = 100): number =>
+	Math.floor(Math.random() * (max - min)) + min;
 
 export const randomDecimal = (min: number = -10000, max: number = 10000) => Math.random() * (max - min) + min;
 
