@@ -39,8 +39,6 @@ export interface ICodegen {
 	getClassTemplate(className: string): string;
 
 	getImports(): string;
-
-	getUtils?(): string;
 }
 
 export type TOutLang = keyof typeof Modules;

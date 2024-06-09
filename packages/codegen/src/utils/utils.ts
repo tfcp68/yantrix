@@ -39,8 +39,7 @@ export const toTypedObject = <T>(obj: T, name: string) => {
 	} satisfies ITypedObject;
 };
 
-const prettierCfgPath = join(cwd(), '.prettierrc');
-export const fmt = async (code: string) => {
+export const fmt = async (code: string, prettierCfgPath: string) => {
 	try {
 		const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
 		const prettierCfg = JSON.parse(prettierCfgRaw);

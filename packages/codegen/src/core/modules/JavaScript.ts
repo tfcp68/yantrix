@@ -56,7 +56,11 @@ export class JavaScriptCodegen implements ICodegen {
   				actionValidator: ${this.getActionValidator()},
 				});
 			}
+			isKeyOf = ${this.getIsKeyOf()};
 		}`;
+	}
+	protected getIsKeyOf() {
+		return `(key, obj) => key in obj`;
 	}
 
 	protected getRootReducer() {
@@ -74,7 +78,7 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getRootReducerStateValidationHead() {
-		return `if (!(state in actionToStateFromStateDict))`;
+		return `if (!this.isKeyOf(state, actionToStateFromStateDict))`;
 	}
 
 	protected getRootReducerStateValidationError() {
@@ -82,7 +86,7 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getRootReducerActionValidation() {
-		return `if (!(action in actionToStateFromStateDict[state])) return { state, context };`;
+		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
 	}
 
 	protected getRootReducerHandlersDict() {
@@ -102,7 +106,7 @@ export class JavaScriptCodegen implements ICodegen {
 	 * Пример вида { состояние1: { действие1: состояние2 } }
 	 */
 	protected getActionToStateFromStateDict() {
-		let actionToStateFromStateDict: Record<number, Record<number, number>> = {};
+		const actionToStateFromStateDict: Record<number, Record<number, number>> = {};
 		Object.keys(this.diagram.transitions).map((state) => {
 			const transitions = this.diagram.transitions[state];
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];

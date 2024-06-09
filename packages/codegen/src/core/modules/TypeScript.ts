@@ -18,23 +18,8 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
 	}
 
-	public getUtils() {
-		return this.getTypeGuards();
-	}
-
-	protected getTypeGuards() {
-		return this.getIsTypeGuard();
-	}
-
-	protected getIsTypeGuard() {
-		return `const isKeyOf = <T extends Object>(key:any, object: T): key is keyof T => key in object;`;
-	}
-
-	protected getRootReducerStateValidationHead() {
-		return `if (!isKeyOf(state, actionToStateFromStateDict))`;
-	}
-
-	protected getRootReducerActionValidation() {
-		return `if (!isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
+	protected getIsKeyOf() {
+		// return `(key, obj) => key in obj`;
+		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 }
