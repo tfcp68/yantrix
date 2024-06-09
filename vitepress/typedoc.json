@@ -1,0 +1,16 @@
+{
+	"out": "src/API reference",
+	"entryPoints": ["../packages/*"],
+	"name": "Packages Example",
+	"entryPointStrategy": "packages",
+	"includeVersion": false,
+	"plugin": ["typedoc-plugin-markdown"],
+	"readme": "none",
+	"useCodeBlocks": true,
+	"disableSources": true,
+	"textContentMappings": {
+		"title.indexPage": "API Reference"
+	},
+	"outputFileStrategy": "members",
+	"excludeScopesInPaths": true
+}
