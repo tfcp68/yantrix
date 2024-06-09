@@ -10,6 +10,9 @@ export class JavaScriptCodegen implements ICodegen {
 	diagram: TStateDiagram;
 	initialState: null | number;
 	dictionaries: string[];
+	protected imports = {
+		'@yantrix/automata': ['GenericAutomata'],
+	};
 
 	constructor(diagram: TStateDiagram) {
 		this.actionDictionary = new BasicActionDictionary();
@@ -24,7 +27,11 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	public getImports() {
-		return `import { GenericAutomata } from "@yantrix/automata";`;
+		let imports = '';
+		for (const [key, value] of Object.entries(this.imports)) {
+			imports += `import { ${value.join(', ')} } from '${key}';\n`;
+		}
+		return imports;
 	}
 
 	public getDictionaries(): string {
@@ -55,6 +62,7 @@ export class JavaScriptCodegen implements ICodegen {
 			isKeyOf = ${this.getIsKeyOf()};
 		}`;
 	}
+
 	protected getIsKeyOf() {
 		return `(key, obj) => key in obj`;
 	}
@@ -83,10 +91,6 @@ export class JavaScriptCodegen implements ICodegen {
 
 	protected getRootReducerActionValidation() {
 		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
-	}
-
-	protected getRootReducerHandlersDict() {
-		return `handlersDict[state]({action,payload,context,state})`;
 	}
 
 	protected getStateValidator() {

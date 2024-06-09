@@ -1,13 +1,11 @@
 import type { ICodegen } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
+import { TStateDiagram } from '@yantrix/mermaid-parser';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
-	public getImports(): string {
-		return super.getImports() + '\n' + this.getTypeImports();
-	}
-
-	protected getTypeImports() {
-		return `import { TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/automata';`;
+	constructor(diagram: TStateDiagram) {
+		super(diagram);
+		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
 	protected getStateValidator() {
