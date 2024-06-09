@@ -1,73 +1,101 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env -S pnpm tsx
 
-import { program } from 'commander';
-import pc from 'picocolors';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { generateAutomataFromStateDiagram } from '../src/index.js';
-import { TStateDiagramStructure, createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { TStateDiagramSyntaxTree } from '../src/types/common.js';
-import { writeFile } from 'fs/promises';
-import { dirname, resolve } from 'path';
+import { Command } from 'commander';
+import fs from 'fs-extra';
+import path from 'path';
+import { stdout } from 'process';
+import { format } from 'util';
+import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
+import { generateAutomataFromStateDiagram } from '../dist/index.js';
 
-const allowedLangs = ['TypeScript', 'JavaScript', 'C#', 'Java', 'C++', 'C', 'Python', 'PHP', 'Ruby', 'Kotlin'];
+const langs = {
+	ts: 'TypeScript',
+	js: 'JavaScript',
+	py: 'Python',
+	kt: 'Kotlin',
+	rs: 'Rust',
+} as const;
 
-const langExts = {
-	TypeScript: 'ts',
-	JavaScript: 'js',
-	CSharp: 'cs',
-	Java: 'java',
-	CPlusPlus: 'cpp',
-	C: 'c',
-	Python: 'py',
-	Php: 'php',
-	Ruby: 'rb',
-	Kotlin: 'kt',
-};
+interface ICodegenOptions {
+	language: keyof typeof langs;
+	outdir: string;
+	className?: string;
+}
+
+const program = new Command();
+const log = (...data: unknown[]) => stdout.write(format(...data) + '\n');
+
+const checkDisableFlags = ['/* eslint-disable */', '// @ts-nocheck'];
 
 program
 	.name('codegen')
-	.description('CLI to generate temporary Automata for tests')
+	.description('A CLI tool to generate Automata from given mermaid state diagram')
 	.version('1.0.0')
-	.requiredOption('-l, --outLang <lang>', 'Output language for the generated code')
-	.requiredOption('-o, --outFolder <folder>', 'Output folder for the generated Automata file')
-	.requiredOption('-c, --className <name>', 'Class name for the generated Automata')
-	.requiredOption('-i, --inputDiagram <diagram>', 'Input state diagram as a text file or diagram string')
-	.action(async (options) => {
-		try {
-			const { outLang, outFolder, className, inputDiagram } = options;
-			if (!allowedLangs.includes(outLang)) {
-				throw new Error(`Invalid output language: ${outLang}`);
-			}
+	.argument('<diagramTextOrFile>', 'Diagram to be parsed')
+	.option('-o, --outdir <path>', 'Output file path')
+	.option('-l, --language <lang>', 'Output language')
+	.option('-c, --className <className>', 'Generated Automata class name')
+	.action(async (diagramTextOrFile: string, options: ICodegenOptions) => {
+		let diagramText = diagramTextOrFile;
 
-			let parsed: TStateDiagramStructure;
+		if ((await fs.pathExists(diagramTextOrFile)) && (await fs.stat(diagramTextOrFile)).isFile()) {
 			try {
-				const diagramContent = readFileSync(inputDiagram, 'utf8');
-				parsed = await parseStateDiagram(diagramContent);
-			} catch (error) {
-				parsed = await parseStateDiagram(inputDiagram);
+				diagramText = await fs.readFile(diagramTextOrFile, 'utf-8');
+			} catch (err) {
+				if (err instanceof Error) log(`Error reading file: ${err.message}`);
+				process.exit(1);
 			}
-
-			const diagram = (await createStateDiagram(parsed)) as TStateDiagramSyntaxTree;
-			const generatedCode = await generateAutomataFromStateDiagram(diagram, {
-				outLang,
-				className,
-			});
-
-			const filePath = `${outFolder}/${className}_generated.${langExts[outLang]}`;
-			await writeFile(filePath, generatedCode, 'utf8');
-
-			let testPatternContent = readFileSync('bin/test-pattern.txt', 'utf8');
-			testPatternContent = testPatternContent.replace(/\[REPLACE_ME\]/g, className);
-			const testOutputPath = resolve(outFolder, `${className}.test.${langExts[outLang]}`);
-			if (!existsSync(dirname(testOutputPath))) {
-				mkdirSync(dirname(testOutputPath), { recursive: true });
-			}
-
-			writeFileSync(testOutputPath, testPatternContent, 'utf8');
-
-			console.log(pc.green('Automata file generated successfully.'));
-		} catch (error) {
-			console.error(pc.red('Error generating Automata file:'), error);
 		}
-	})
-	.parse(process.argv);
+
+		if (!diagramText || diagramText.trim().length === 0) {
+			log('Error: Diagram cannot be empty.');
+			process.exit(1);
+		}
+
+		if (!options.outdir) {
+			log('Error: Output directory path is required.');
+			process.exit(1);
+		}
+
+		if (!options.language) {
+			log('Error: Output language is required.');
+			process.exit(1);
+		}
+
+		const outLang = langs[options.language];
+		if (!outLang) {
+			log('Error: Invalid output language specified.');
+			process.exit(1);
+		}
+
+		const className = options.className ?? 'GeneratedAutomata';
+		if (!/^[\w]+$/.test(className)) {
+			log('Error: Invalid characters in class name specified.');
+			process.exit(1);
+		}
+
+		const structure = await parseStateDiagram(diagramText);
+		const diagram = await createStateDiagram(structure);
+		const generatedAutomata = await generateAutomataFromStateDiagram(diagram, {
+			outLang,
+			className,
+		});
+
+		const disableFlagLines = checkDisableFlags.join('\n');
+		const writable = `${disableFlagLines}\n\n${generatedAutomata}`;
+
+		const outputDirPath = path.resolve(options.outdir);
+
+		try {
+			await fs.ensureDir(outputDirPath);
+
+			const outputFilePath = path.join(outputDirPath, `${className}.${options.language}`);
+			await fs.writeFile(outputFilePath, writable);
+			log(`Generated Automata saved to ${outputFilePath}`);
+		} catch (err) {
+			if (err instanceof Error) log(`Error: ${err.message}`);
+			process.exit(1);
+		}
+	});
+
+program.parse(process.argv);
