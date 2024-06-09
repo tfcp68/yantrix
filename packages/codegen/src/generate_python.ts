@@ -48,7 +48,7 @@ export const generatePython = async (diagram: string) => {
                 }
 
             def state_validator(self, s):
-            return s in statesDictionary.values()
+                return s in statesDictionary.values()
 
             def action_validator(self, a):
                 return a in actionsDictionary.values()
