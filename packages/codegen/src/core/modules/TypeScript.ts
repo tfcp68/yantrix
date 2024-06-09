@@ -19,7 +19,6 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getIsKeyOf() {
-		// return `(key, obj) => key in obj`;
 		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 }
