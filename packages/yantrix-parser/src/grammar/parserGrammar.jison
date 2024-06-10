@@ -153,7 +153,7 @@ KeyItem  : TargetProperty '=' Expression
             {
                 $$ = {
                     KeyItemDeclaration: {
-                        TargetProperty: $1.toLowerCase()
+                        TargetProperty: $1
                     }
                 };
             };
