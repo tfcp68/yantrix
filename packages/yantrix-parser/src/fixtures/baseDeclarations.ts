@@ -31,7 +31,7 @@ export const createSubscribeStatement = (eventName: string = 'event', actionName
 
 export const createEmitStatement = (
 	eventName: string = 'event',
-	payloadItems: TKeyItems = [baseKeyItemDeclaration('KeyList')],
+	payloadItems: TKeyItems = [baseKeyItemDeclaration('keylist')],
 ) => ({
 	emit: [
 		{

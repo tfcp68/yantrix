@@ -7,52 +7,74 @@ import {
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
 } from '../utils/utils.js';
-import { randomString, randomDecimal, randomInteger } from '@yantrix/utils';
+import { randomString, randomDecimal, randomInteger, randomValue } from '@yantrix/utils';
 
-// todo need to rework all of this later
+// todo maybe need to rework all of this...
 const validCases = [
 	[`#{%s}`, keyItem.declarationKeyItem],
-	[`#{%s} = %s}`, keyItem.withStringInitial],
-	[`#{%s = []}`, keyItem.withArrayInitial],
+	[`#{%s = "%s"}`, keyItem.withStringInitial],
+	[`#{%s = %arr}`, keyItem.withArrayInitial],
 	[`#{%s = %i}`, keyItem.withIntegerInitial],
 	[`#{%s = %s}`, keyItem.withPropertyInitial],
-	[`#{%s = %d, %s = "%s", %s = %i}`, keyItem.withMultiplyInitial],
+	[`#{%s = $(%s)}`, keyItem.withConstantInitial],
+	[`#{%multi}`, keyItem.withMultiplyInitial],
 	[`#{%s = %d}`, keyItem.withDecimalInitial],
 	[`#{%s = %s()}`, functionsFixtures.expression],
 ];
-const generateCases = () => {
-	const cases: any[] = [];
-	const [keyItemName, funcName1, propertyName1, propertyName2] = Array.apply(null, Array(4)).map(() =>
-		randomString().toLowerCase(),
-	) as string[];
-	const stringProperty = `'${randomString().toLowerCase()}'`;
-	const integerProperty = randomInteger();
-	const decimalProperty = randomDecimal();
-	cases.push(
-		[`#{${keyItemName}}`, keyItem.declarationKeyItem(keyItemName)],
-		[`#{${keyItemName} = ${stringProperty}}`, keyItem.withStringInitial(keyItemName, stringProperty)],
-		[`#{${keyItemName} = []}`, keyItem.withArrayInitial(keyItemName)],
-		[`#{${keyItemName} = ${integerProperty}}`, keyItem.withIntegerInitial(keyItemName, integerProperty)],
-		[`#{${keyItemName} = ${propertyName1}}`, keyItem.withPropertyInitial(keyItemName, propertyName1)],
-		[
-			`#{${keyItemName} = ${decimalProperty}, ${propertyName1} = ${stringProperty}, ${propertyName2} = ${integerProperty}}`,
-			keyItem.withMultiplyInitial([
-				[keyItemName, decimalProperty],
-				[propertyName1, stringProperty],
-				[propertyName2, integerProperty],
-			]),
-		],
-		[`#{${keyItemName} = ${decimalProperty}}`, keyItem.withDecimalInitial(keyItemName, decimalProperty)],
-		[`#{${keyItemName} = ${funcName1}()}`, functionsFixtures.expression(keyItemName, funcName1)],
-	);
-	return cases;
+const generateExpressionStringAndExpectedObject = (args: [string, (...args: any) => any]) => {
+	const templateString = args[0];
+	const func = args[1];
+
+	// replacing property name with random string
+	const propertyName = randomString();
+	const templateStringWithName = templateString.replace('%s', propertyName);
+
+	// afterwards expecting different objects depending on the regex inside function arguments,
+	// all names and values need to match to pass tests
+	if (templateStringWithName.match(/"%s"/)) {
+		const val = randomString();
+		return [templateStringWithName.replace('"%s"', `"${val}"`), func(propertyName, `"${val}"`)];
+	} else if (templateStringWithName.match(/%s/)) {
+		const val = randomString();
+		return [templateStringWithName.replace('%s', val), func(propertyName, val)];
+	} else if (templateStringWithName.match('%i')) {
+		const val = randomInteger();
+		return [templateStringWithName.replace('%i', val.toString()), func(propertyName, val)];
+	} else if (templateStringWithName.match('%d')) {
+		const val = randomDecimal();
+		return [templateStringWithName.replace('%d', val.toString()), func(propertyName, val)];
+	} else if (templateStringWithName.match('%multi')) {
+		const properties = [];
+		for (let i = 0; i < randomInteger(1, 5); i++) {
+			const propName = randomString();
+			const propValue = randomValue();
+			properties.push([propName, typeof propValue == 'string' ? `"${propValue}"` : propValue]);
+		}
+		const str = properties.map(([name, value]) => `${name}=${value}`).join(',');
+		return [templateStringWithName.replace('%multi', str), func(properties)];
+	} else if (templateStringWithName.match('%arr')) {
+		return [templateStringWithName.replace('%arr', '[]'), func(propertyName)];
+	} else return [templateStringWithName, func(propertyName)];
+
+	/*
+	
+	else if (templateStringWithName.match('$(%s)')) {
+		const val = randomString();
+		return [templateStringWithName.replace('%s', val), func(propertyName, val)];
+	} 
+	*/
+};
+const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
+	return templates.flatMap((template) => {
+		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+	});
 };
 
 describe('Key list', () => {
 	const parser = new YantrixParser();
 
 	describe('Single key item', () => {
-		const cases = generateCases();
+		const cases = generateExpressionCases(validCases);
 		test.each(cases)('%s', (input, res) => {
 			const output = parser.parse(input);
 			assert.deepOwnInclude(output, res);

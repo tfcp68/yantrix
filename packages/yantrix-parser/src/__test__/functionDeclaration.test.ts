@@ -93,7 +93,7 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 
 // бредово
 const generateFunctionString = (level: number = 0) => {
-	if (level > 8) return;
+	if (level > 8) return; // todo check
 
 	const argsTypes = [randomString, randomInteger, randomDecimal, generateFunctionString];
 	const functionName = randomString();
@@ -129,9 +129,6 @@ const generateExpressionStringAndExpectedObject = (
 	} else if (templateStringWithNames.match(/%s/)) {
 		const val = randomString();
 		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('$(%s)')) {
-		const val = randomString();
-		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
 	} else if (templateStringWithNames.match('%i')) {
 		const val = randomInteger();
 		return [templateStringWithNames.replace('%i', val.toString()), func(propertyName, functionName, val)];
@@ -147,9 +144,6 @@ const generateExpressionStringAndExpectedObject = (
 		];
 	} else if (templateStringWithNames.match('%arr')) {
 		return [templateStringWithNames.replace('%arr', '[]'), func(propertyName, functionName)];
-	} else if (templateStringWithNames.match('%s()')) {
-		const val = randomString();
-		return [templateStringWithNames.replace('%s()', `${val}()`), func(propertyName, functionName, val)];
 	} else return [templateStringWithNames, func(propertyName, functionName)];
 };
 const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {

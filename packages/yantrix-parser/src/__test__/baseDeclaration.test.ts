@@ -142,6 +142,7 @@ const createTuple = (valueFunction: () => string | number) => {
 
 describe('Base grammar declarations', () => {
 	describe('Base constructs creation', () => {
+		const parser = new YantrixParser();
 		const base = [
 			['', baseEmpty],
 			['#{LeftSideProperty} <= (RightSideProperty)', baseContext],
@@ -150,9 +151,8 @@ describe('Base grammar declarations', () => {
 			['emit/event <= (keylist)', baseEmitEvent],
 		] as const;
 		test.each(base)('%s', (input: any, res: any) => {
-			const parser = new YantrixParser().parse(input as string);
-
-			assert.deepOwnInclude(parser, res);
+			const result = parser.parse(input as string);
+			assert.deepOwnInclude(result, res);
 		});
 	});
 	describe('Identical output with ', () => {

@@ -6,7 +6,7 @@ import { randomString } from '@yantrix/utils';
 
 export const baseKeyItemDeclaration = (propertyName?: string): TKeyItem => ({
 	KeyItemDeclaration: {
-		TargetProperty: (propertyName ?? randomString()).toLowerCase(),
+		TargetProperty: propertyName ?? randomString(),
 	},
 });
 export const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
@@ -112,6 +112,20 @@ export const withDecimalInitial = (propertyName?: string, decimalValue?: number)
 		.toJS();
 };
 
+export const withConstantInitial = (propertyName?: string, constantValue?: string) => {
+	const base = getKeyItem(expressions.constant);
+	return Map(base)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'TargetProperty'],
+			(name) => propertyName ?? name,
+		)
+		.updateIn(
+			['contextDescription', 0, 'context', 0, 'KeyItemDeclaration', 'Expression', 'ConstantReference'],
+			(v) => constantValue ?? v,
+		)
+		.toJS();
+};
+
 export const withPropertyInitial = (propertyName?: string, propertyName2?: string) => {
 	const base = getKeyItem(expressions.property);
 	return Map(base)
@@ -126,7 +140,7 @@ export const withPropertyInitial = (propertyName?: string, propertyName2?: strin
 		.toJS();
 };
 
-export const withMultiplyInitial = (properties?: [prop1: string, prop2: any][]) => {
+export const withMultiplyInitial = (properties?: [propName: string, propValue: any][]) => {
 	const base = Map(getKeyItem(null)).deleteIn(['contextDescription', 0, 'context', 0]);
 	properties?.forEach(([name, value]) => {
 		let keyItem = {};
@@ -536,6 +550,7 @@ export const keyItem = {
 	withArrayInitial,
 	withIntegerInitial,
 	withDecimalInitial,
+	withConstantInitial,
 	withPropertyInitial,
 	withMultiplyInitial,
 };
