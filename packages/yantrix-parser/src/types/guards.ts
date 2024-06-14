@@ -1,6 +1,7 @@
-import { ExpressionTypes, TExpressionTypesKeys } from './expressions.js';
+import { TExpressionTypesKeys } from './expressions.js';
 import { TKeyItemBase, TKeyItems, TKeyItemWithExpression } from './keyItem.js';
 import { TAction, TSubscribeStatement } from './statements.js';
+import { ExpressionTypes } from '../constants/index.js';
 
 export function isExpressionType<T extends TExpressionTypesKeys>(
 	expression: any,
