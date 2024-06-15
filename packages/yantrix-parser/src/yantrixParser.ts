@@ -342,7 +342,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				};
 				break;
 			case 22:
-				this.$ = { KeyItemDeclaration: { TargetProperty: $$[$0].toLowerCase() } };
+				this.$ = { KeyItemDeclaration: { TargetProperty: $$[$0] } };
 				break;
 			case 23:
 				this.$ = { value: { ...$$[$0] }, expressionType: ExpressionTypes.Function };

@@ -279,7 +279,7 @@ function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: st
 
 const formattedStartOrEndDict: Record<string, '[*]'> = {
 	'~~~START~~~': '[*]',
-	'~~~END~~~': '[*]',
+	END_STATE: '[*]',
 } as const;
 
 /**

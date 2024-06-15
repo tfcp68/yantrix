@@ -43,7 +43,7 @@ OPEN --> SELECTED: SELECT (index)
 SELECTED --> CLOSED: CLOSE
 note left of CLOSED
 #{ items } <= (list)
-#{ selectedIndex = 0 } <= {index}
+#{ selectedIndex = 0 }
 subscribe/click => OPEN
 emit/dropdownClose
 end note

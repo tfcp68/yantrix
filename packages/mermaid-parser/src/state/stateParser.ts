@@ -16,6 +16,7 @@ import {
 } from './types/index.js';
 
 import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
+import { EndState, StartState } from '../constants/index.js';
 
 /**
  * @brief Function that parses a diagram;
@@ -63,15 +64,15 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 			const st1: string = tempSt1.id;
 			const st2: string = tempSt2.id;
 			if (st1 === '[*]' && st2 === '[*]') {
-				directionI.push('~~~START~~~');
-				directionI.push('~~~END~~~');
+				directionI.push(StartState);
+				directionI.push(EndState);
 			}
 			if (st1 === '[*]') {
-				directionI.push('~~~START~~~');
+				directionI.push(StartState);
 				directionI.push(st2);
 			} else if (st2 === '[*]') {
 				directionI.push(st1);
-				directionI.push('~~~END~~~');
+				directionI.push(EndState);
 			} else {
 				directionI.push(st1);
 				directionI.push(st2);

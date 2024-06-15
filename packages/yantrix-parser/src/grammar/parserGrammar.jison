@@ -143,7 +143,7 @@ ActionStatement
 
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('value')){if($3['value']?.Property === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
-TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1.toLowerCase()}}};
+TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1}}};
 
 Expression
           : FunctionOperator {$$ = {value:{...$1}, expressionType:ExpressionTypes.Function}}

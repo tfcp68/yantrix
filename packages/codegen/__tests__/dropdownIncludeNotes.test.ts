@@ -17,7 +17,7 @@ OPEN --> SELECTED: SELECT (index)
 SELECTED --> CLOSED: CLOSE
 note left of CLOSED
 #{ items } <= (list)
-#{ selectedIndex = 0 } <= {index}
+#{ selectedIndex = 0 }
 subscribe/click => OPEN
 emit/dropdownClose
 end note
@@ -39,6 +39,7 @@ describe('Codegen output', () => {
 		const toClosed = [{ action: actionsDictionary['/RESET (list)'], payload: { list: [1, 2, 3] } }];
 		const toOpen = [...toClosed, { action: actionsDictionary['/OPEN'], payload: {} }];
 		const toSelected = [...toOpen, { action: actionsDictionary['/SELECT (index)'], payload: { index: 2 } }];
+		const toClosedFromSelected = [...toSelected, { action: actionsDictionary['/CLOSE'], payload: {} }];
 
 		beforeEach(() => {
 			vitest.clearAllTimers();
@@ -66,7 +67,10 @@ describe('Codegen output', () => {
 			automata.setActionQueue([...toOpen]);
 			automata.consumeAction(toOpen.length);
 
-			expect(automata.context).toBeNull();
+			expect(automata.context).toStrictEqual({
+				items: [1, 2, 3],
+				selectedIndex: 0,
+			});
 		});
 		test('OPEN --> CLOSED: CLOSE', () => {
 			automata.setActionQueue([...toClosed]);
@@ -81,6 +85,17 @@ describe('Codegen output', () => {
 			automata.setActionQueue([...toSelected]);
 			automata.consumeAction(toSelected.length);
 			expect(automata.state).toBe(statesDictionary['/SELECTED']);
+
+			expect(automata.context).toStrictEqual({
+				selectedIndex: 2,
+				items: [1, 2, 3],
+			});
+		});
+		test('OPEN --> SELECTED: SELECT (index)', () => {
+			automata.setActionQueue([...toClosedFromSelected]);
+			automata.consumeAction(toClosedFromSelected.length);
+			console.log(automata.context);
+			console.log(automata.state);
 		});
 	});
 });

@@ -1,6 +1,6 @@
 import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction } from '@yantrix/mermaid-parser';
+import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { Expressions, fillDictionaries } from '../shared.js';
 import {
 	isKeyItemWithExpression,
@@ -16,7 +16,6 @@ export class JavaScriptCodegen implements ICodegen {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	changeStateHandlers: string[];
-	initialState: null | number;
 	dictionaries: string[];
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
@@ -30,7 +29,6 @@ export class JavaScriptCodegen implements ICodegen {
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 
-		this.initialState = Object.values(this.stateDictionary.getStateValues({ keys: [this.getInitialState()] }))[0];
 		this.setupHandlers();
 		this.setupDictionaries();
 	}
@@ -75,7 +73,7 @@ export class JavaScriptCodegen implements ICodegen {
   		 constructor() {
   			super();
   			this.init({
-  				state: ${this.initialState},
+  				state: ${this.getInitialState()},
   				context: ${this.getInitialContext()},
                 rootReducer: ({ action, context, payload, state }) => {
                   if (!action || payload === null) return { state, context };
@@ -100,7 +98,7 @@ export class JavaScriptCodegen implements ICodegen {
 
 				const ctx = this.getSubsyntaxContext(key);
 
-				return `${actionValue[0]}:{state:${newState[0]}, ctx:${ctx ? `{${ctx}}` : 'null'}},`;
+				return `${actionValue[0]}:{state:${newState[0]}, ctx:{${ctx}}},`;
 			});
 		});
 	}
@@ -152,7 +150,7 @@ export class JavaScriptCodegen implements ICodegen {
 		}
 
 		if (!value.notes || !value.notes.contextDescription.length) {
-			return null;
+			return `...prevContext`;
 		}
 
 		const { contextDescription } = value.notes;
@@ -182,34 +180,52 @@ export class JavaScriptCodegen implements ICodegen {
 			})
 			.flatMap((template) => template.flatMap((el) => el));
 
-		return res.join('\r\n');
+		return ['...prevContext,', ...res].join('\r\n');
 	}
 
 	private getInitialContext() {
-		const initialState = this.diagram.states.find((el) => {
-			return el.notes?.initialState;
+		const startState = this.diagram.states.find((state) => {
+			return state.id === StartState;
 		});
 
-		if (!initialState) {
+		if (!startState?.notes?.initialState) {
 			return 'null';
 		}
 
-		const initialNotes = this.getSubsyntaxContext(initialState.id);
+		const initialNotes = startState.notes.contextDescription
+			.map((ctx) => {
+				if (isPrevContext(ctx) || isPrevContext(ctx)) {
+					return null;
+				} else {
+					const { context } = ctx;
+					return context
+						.map((ctx) => {
+							return this.getInitialValue(ctx);
+						})
+						.flatMap((el) => el);
+				}
+			})
+			.filter((el) => el !== null);
 
-		if (!initialNotes) {
-			return 'null';
-		}
-		return `{${initialNotes}}`;
+		return `{${initialNotes.join(',')}}`;
 	}
 
 	private getInitialState() {
-		const initialState = this.diagram.states.find((el) => {
-			return el.notes?.initialState;
-		});
-		if (!initialState) {
-			throw new Error('One of the states must be initial');
+		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
+	}
+
+	private getInitialValue(context: TKeyItem) {
+		if (isKeyItemWithExpression(context)) {
+			const {
+				KeyItemDeclaration: { TargetProperty },
+			} = context;
+			return `${TargetProperty}: ${this.getByExpressionValue(context)}`;
+		} else {
+			const {
+				KeyItemDeclaration: { TargetProperty },
+			} = context;
+			return `${TargetProperty}: null`;
 		}
-		return initialState.id;
 	}
 
 	private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
@@ -236,7 +252,6 @@ export class JavaScriptCodegen implements ICodegen {
 
 		//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
 		if (isEmptyBoundExpression && !isEmptyInitial) {
-			console.log('a');
 			if (isKeyItemWithExpression(context)) {
 				const value = this.getByExpressionValue(context);
 
