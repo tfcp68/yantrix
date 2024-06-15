@@ -2,9 +2,10 @@ import { DefaultTheme, defineConfig } from 'vitepress';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { withMermaid } from 'vitepress-plugin-mermaid';
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid({
 	description: '',
 	srcDir: './src',
 	ignoreDeadLinks: true,
