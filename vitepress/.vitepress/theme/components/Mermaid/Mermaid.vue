@@ -149,7 +149,7 @@ const closeFullscreen = () => {
 	overflow: auto;
 
 	.diagram {
-		width: 98vw;
+		width: 100%;
 
 		&:deep(svg) {
 			max-width: none !important;
