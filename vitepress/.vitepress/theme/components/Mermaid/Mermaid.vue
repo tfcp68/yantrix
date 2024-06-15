@@ -7,7 +7,7 @@
 	</div>
 	<Teleport to="body">
 		<div class="diagram-full-size" ref="fullSizeDiagramHolderRef">
-			<div v-html="svg" :class="[props.class, 'diagram']" ref="diagram" />
+			<div v-html="svg" :class="[props.class, 'diagram']" ref="fullSizeDiagramRef" />
 			<div class="toolbar">
 				<Resize ref="resizeBtn" @click="closeFullscreen" />
 			</div>
@@ -22,6 +22,7 @@ import { render, init } from './mermaid';
 //get mermaid settings
 import { useData } from 'vitepress';
 import Resize from '../../svgs/Resize.vue';
+import { debounce } from '../../helpers/debounce';
 
 const pluginSettings = ref({
 	securityLevel: 'loose',
@@ -103,16 +104,37 @@ const renderChart = async () => {
 	const salt = Math.random().toString(36).substring(7);
 	svg.value = `${svgCode} <span style="display: none">${salt}</span>`;
 };
+
 const fullSizeDiagramHolderRef = ref(null);
+const fullSizeDiagramRef = ref(null);
 const openInFullscreen = () => {
 	fullSizeDiagramHolderRef.value.classList.add('active');
 	document.body.style.position = 'fixed';
+	flexResize();
 };
 
 const closeFullscreen = () => {
 	fullSizeDiagramHolderRef.value.classList.remove('active');
 	document.body.style.position = 'unset';
 };
+
+const flexResize = () => {
+	if (fullSizeDiagramRef.value.getBoundingClientRect().height > window.innerHeight) {
+		fullSizeDiagramHolderRef.value.classList.remove('flex');
+	} else {
+		fullSizeDiagramHolderRef.value.classList.add('flex');
+	}
+};
+
+const debouncedFlexResize = debounce(flexResize, 200);
+
+onMounted(() => {
+	window.addEventListener('resize', debouncedFlexResize);
+});
+
+onUnmounted(() => {
+	window.removeEventListener('resize', debouncedFlexResize);
+});
 </script>
 
 <style scoped>
@@ -161,6 +183,12 @@ const closeFullscreen = () => {
 
 	&.active {
 		display: block;
+
+		&.flex {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
 	}
 }
 </style>
