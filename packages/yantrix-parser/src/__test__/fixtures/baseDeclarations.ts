@@ -9,14 +9,14 @@ export const baseContext = {
 			context: [
 				{
 					KeyItemDeclaration: {
-						TargetProperty: 'leftsideproperty',
+						TargetProperty: 'LeftSideProperty',
 					},
 				},
 			],
 			payload: [
 				{
 					KeyItemDeclaration: {
-						TargetProperty: 'rightsideproperty',
+						TargetProperty: 'RightSideProperty',
 					},
 				},
 			],
@@ -29,14 +29,14 @@ export const baseContextWithPrevious = {
 			context: [
 				{
 					KeyItemDeclaration: {
-						TargetProperty: 'leftsideproperty',
+						TargetProperty: 'LeftSideProperty',
 					},
 				},
 			],
 			prevContext: [
 				{
 					KeyItemDeclaration: {
-						TargetProperty: 'rightsideproperty',
+						TargetProperty: 'RightSideProperty',
 					},
 				},
 			],
