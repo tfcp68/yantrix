@@ -109,13 +109,13 @@ const fullSizeDiagramHolderRef = ref(null);
 const fullSizeDiagramRef = ref(null);
 const openInFullscreen = () => {
 	fullSizeDiagramHolderRef.value.classList.add('active');
-	document.body.style.position = 'fixed';
+	document.body.style.overflow = 'hidden';
 	flexResize();
 };
 
 const closeFullscreen = () => {
 	fullSizeDiagramHolderRef.value.classList.remove('active');
-	document.body.style.position = 'unset';
+	document.body.style.overflow = '';
 };
 
 const flexResize = () => {
