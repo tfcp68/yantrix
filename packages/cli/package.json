@@ -1,53 +1,50 @@
 {
-	"name": "@yantrix/codegen",
+	"name": "@yantrix/cli",
 	"version": "0.1.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"bin": {
+		"yantrix": "dist/bin/yantrix.js"
+	},
 	"files": [
 		"dist"
 	],
 	"repository": {
-		"directory": "packages/codegen",
+		"directory": "packages/cli",
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
 		"build": "rimraf dist && tsc",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
-		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "sh scripts/gen-automata-for-tests.sh && vitest run"
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
 	},
-	"description": "Generates automata from given mermaid state diagram",
+	"description": "CLI for Yantrix components",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
 	},
 	"directories": {
-		"lib": "src",
-		"test": "__tests__"
-	},
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
+		"bin": "bin",
+		"lib": "src"
 	},
 	"homepage": "https://github.com/octaharon/yantrix",
 	"keywords": [
 		"FSM",
 		"Miely Machine"
 	],
-	"license": "ISC",
-	"type": "module",
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/cli": "workspace:^",
 		"tsx": "^4.11.0"
 	},
 	"dependencies": {
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
-		"picocolors": "^1.0.1"
-	}
+		"picocolors": "^1.0.1",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/codegen": "workspace:^"
+	},
+	"license": "ISC",
+	"type": "module"
 }

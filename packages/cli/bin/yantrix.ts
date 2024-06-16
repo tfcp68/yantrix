@@ -6,7 +6,7 @@ import path from 'path';
 import { stdout } from 'process';
 import { format } from 'util';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram } from '../src/index.js';
+import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 
 const langs = {
 	ts: 'TypeScript',
@@ -26,9 +26,13 @@ const log = (...data: unknown[]) => stdout.write(format(...data) + '\n');
 const checkDisableFlags = ['/* eslint-disable */', '// @ts-nocheck'];
 
 program
-	.name('codegen')
+	.name('yantrix')
 	.description('A CLI tool to generate Automata from given mermaid state diagram')
-	.version('1.0.0')
+	.version('1.0.0');
+
+program
+	.command('codegen')
+	.description('A CLI tool to generate Automata from given mermaid state diagram')
 	.argument('<diagramTextOrFile>', 'Diagram to be parsed')
 	.option('-o, --outdir <path>', 'Output file path')
 	.option('-l, --language <lang>', 'Output language')

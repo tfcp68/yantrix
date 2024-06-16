@@ -20,7 +20,7 @@ for file in $ROOT/__tests__/fixtures/*.txt
 do
 	filename=${file##*/}
 	log "${YELLOW}⌛ Generating Automata from $filename...${RESET}"
-	pnpm tsx $CODEGEN_FILE -l ts -o $OUT_DIR -c "GamePhaseAutomata" $file
+	pnpm yantrix codegen -l ts -o $OUT_DIR -c "GamePhaseAutomata" $file
 	((count++))
 done
 

@@ -87,6 +87,34 @@ importers:
                 specifier: ^1.13.6
                 version: 1.13.6
 
+    packages/cli:
+        dependencies:
+            '@yantrix/automata':
+                specifier: workspace:^
+                version: link:../automata
+            '@yantrix/codegen':
+                specifier: workspace:^
+                version: link:../codegen
+            '@yantrix/mermaid-parser':
+                specifier: workspace:^
+                version: link:../mermaid-parser
+            commander:
+                specifier: ^12.1.0
+                version: 12.1.0
+            fs-extra:
+                specifier: ^11.2.0
+                version: 11.2.0
+            picocolors:
+                specifier: ^1.0.1
+                version: 1.0.1
+        devDependencies:
+            '@types/fs-extra':
+                specifier: ^11.0.4
+                version: 11.0.4
+            tsx:
+                specifier: ^4.11.0
+                version: 4.11.0
+
     packages/codegen:
         dependencies:
             commander:
@@ -105,6 +133,9 @@ importers:
             '@yantrix/automata':
                 specifier: workspace:^
                 version: link:../automata
+            '@yantrix/cli':
+                specifier: workspace:^
+                version: link:../cli
             '@yantrix/mermaid-parser':
                 specifier: workspace:^
                 version: link:../mermaid-parser
@@ -11842,7 +11873,7 @@ snapshots:
     postcss@8.4.35:
         dependencies:
             nanoid: 3.3.7
-            picocolors: 1.0.0
+            picocolors: 1.0.1
             source-map-js: 1.0.2
 
     preferred-pm@3.1.2:
@@ -12578,7 +12609,7 @@ snapshots:
             cac: 6.7.14
             debug: 4.3.4
             pathe: 1.1.2
-            picocolors: 1.0.0
+            picocolors: 1.0.1
             vite: 5.1.4(@types/node@20.11.19)
         transitivePeerDependencies:
             - '@types/node'
