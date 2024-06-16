@@ -54,7 +54,7 @@
 [A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])    {this.begin('Func');return 'FunctionName';}
 
 'emit/'                               {this.begin('EmitStatement'); return 'emit/'}
-<EmitStatement>[^()=<\n]+             {this.popState(); return 'EventName'}
+<EmitStatement>[^()=<\n\s]+             {this.popState(); return 'EventName'}
 
 '#{'                                  {this.begin('KeyList');return '#{'}
 '{'                                   {this.begin('KeyList');return '{'}
@@ -153,13 +153,13 @@ KeyItem  : TargetProperty '=' Expression
             {
                 $$ = {
                     KeyItemDeclaration: {
-                        TargetProperty: $1.toLowerCase()
+                        TargetProperty: $1
                     }
                 };
             };
 Number:
         | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
         ;
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}

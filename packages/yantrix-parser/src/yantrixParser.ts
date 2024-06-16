@@ -355,7 +355,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			case 22:
 				this.$ = {
 					KeyItemDeclaration: {
-						TargetProperty: $$[$0].toLowerCase(),
+						TargetProperty: $$[$0],
 					},
 				};
 
@@ -364,7 +364,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				this.$ = { NumberDeclaration: Number($$[$0]), expressionType: ExpressionTypes.IntegerDeclaration };
 				break;
 			case 25:
-				this.$ = { NumberDeclaration: Number($$[$0]) };
+				this.$ = { NumberDeclaration: Number($$[$0]), expressionType: ExpressionTypes.DecimalDeclaration };
 				break;
 			case 26:
 				this.$ = { ...$$[$0], expressionType: ExpressionTypes.Function };
@@ -428,7 +428,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
 		/^(?:-?[0-9]+)/i,
 		/^(?:[A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(]))/i,
 		/^(?:emit\/)/i,
-		/^(?:[^()=<\n]+)/i,
+		/^(?:[^()=<\n\s]+)/i,
 		/^(?:#\{)/i,
 		/^(?:\{)/i,
 		/^(?:\$\()/i,

@@ -6,63 +6,191 @@ import {
 	baseEmitEvent,
 	baseEmpty,
 	baseSubscribe,
-} from './fixtures/baseDeclarations.js';
-import { primitiveWithValue } from './fixtures/expressions.js';
+} from '../fixtures/baseDeclarations.js';
+import { expressionProperties } from '../fixtures/expressions.js';
+import {
+	randomString,
+	randomInteger,
+	randomDecimal,
+	randomValueFunction,
+	randomValue,
+	randomArray,
+} from '@yantrix/utils';
+import { ReservedList, SpecialCharList } from '../constants/index.js';
 
-import { ReservedList, SpecialCharList } from '../index.js';
-
-const invalidCases = [
-	['#[LeftSideProperty]'],
-	['#{LeftSideProperty} <='],
-	['#{LeftSideProperty} =>'],
-	['#{LeftSideProperty} ='],
-	['#{LeftSideProperty'],
-	['#{123LeftSideProperty'],
-	['#{123}'],
-	['#{!!LeftSideProperty}'],
-	['#{LeftSideProperty!@#}'],
-	['#{Left Side Property}'],
-	['#{,LeftSideProperty'],
-	['#{{LeftSideProperty} =>'],
-	['#{LeftSideProperty} =>'],
-	['#{}'],
-	['#{} => ()'],
-	['#{} => (RightSideProperty)'],
-	['#(LeftSideProperty) <= {RightSideProperty}'],
-	['#{LeftSideProperty = }'],
-	['#{LeftSideProperty,}'],
-	['#{LeftSideProperty = LeftSideProperty}'],
-	['#{LeftSideProperty =} => (RightSideProperty=)'],
-	['#{LeftSideProperty} => (RightSideProperty,)'],
-	['#{LeftSideProperty} => (RightSideProperty)'],
-	['#{LeftSideProperty} <= (Right Side Property)'],
-	['#{Left1,Left2} <= (Right1, Right2, Right3)'],
-	['#{Left1,Left2} <= (Right1, Right2, Right3=5)'],
-	['#{Left1=1,Left2} <= (Right1, Right2, Right3)'],
-	['#{Left1,Left2} => (Right1, Right2)'],
+const validContextStatements = ['#{%s}'];
+const invalidContextStatements = [
+	...ReservedList.map((reservedWord) => `#{${reservedWord}}`),
+	...SpecialCharList.map((char: string) => `${char}{%s}`),
+	'#[%s]',
+	'#(%s)',
 ];
 
-const base = [
-	['', baseEmpty],
-	['#{LeftSideProperty} <= (RightSideProperty)', baseContext],
-	['#{LeftSideProperty} <= {RightSideProperty}', baseContextWithPrevious],
-	['subscribe/event => action', baseSubscribe],
-	['emit/eventName <= (keylist)', baseEmitEvent],
-] as const;
+const validExpressionStatements = [`#{%s = %rand}`];
+const invalidExpressionStatements = [
+	`#{%s - %rand}`,
+	`#{%s  %rand}`,
+	`#{%s == %rand}`,
+	`#{%s -> %rand}`,
+	`#{%s <- %rand}`,
+];
+
+const validStateTransformerStatements = [`#{%s} <= (%s)`, `#{%s} <= {%s}`];
+const invalidStateTransformerStatements = [
+	`#{%s} <= ((%s))`,
+	`#{%s} <= {{%s}}`,
+	`#{{%s}} <= (%s)`,
+	`#{%s} <== (%s)`,
+	`#{%s} <<= (%s)`,
+	`#{%s} <<== (%s)`,
+	`#{%s} <- (%s)`,
+	`#{%s} =< (%s)`,
+	`#{%s} => (%s)`,
+];
+
+const validSubscribeStatements = ['subscribe/%s => %s', 'subscribe/%s => %s (%list)'];
+const invalidSubscribeStatements = [
+	`%s/%s => %s`,
+	`subscribe/%s`,
+	`subscribe\\%s => %s`,
+	`subscribe//%s => %s`,
+	`subscribe/ => %s`,
+	`subscribe/%s => `,
+	`subscribe/%s => ()`,
+	`subscribe/%s => {}`,
+	// `subscribe/%s => []`,     -- special case
+	`subscribe/%s <= %s`,
+	`subscribe/%s => %s [%list]`,
+	`subscribe/%s => %s {%list}`,
+	`subscribe/%s <= %s ()`,
+];
+
+const validEmitStatements = [`emit/%s <= (%list)`, `emit/%s`];
+const invalidEmitStatements = [
+	`emt/%s`,
+	`emit/%s <= %list`,
+	`emit/%s <= ()`,
+	`emit/%s <=`,
+	`emit/%s =>`,
+	`emit/%s <= {%list}`,
+	`emit/%s <= [%list]`,
+	`emit/%s => (%list)`,
+];
+
+const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)) => {
+	return arr.flatMap((template) => {
+		return Array.from({ length: casesAmount }, () =>
+			template
+				.replaceAll('%s', () => randomString())
+				.replaceAll('%i', () => randomInteger().toString())
+				.replaceAll('%d', () => randomDecimal().toString())
+				.replaceAll('%rand', () => randomValue().toString())
+				.replaceAll('%list', () => randomArray(randomString).join(',')),
+		);
+	});
+};
+
+const expressionTemplates = [
+	['#{%s = "%s"}', expressionProperties.string],
+	['#{%s = %i}', expressionProperties.integer],
+	['#{%s = %d}', expressionProperties.decimal],
+	['#{%s = $(%s)}', expressionProperties.constant],
+	['#{%s = %arr}', expressionProperties.array],
+	['#{%s = %s}', expressionProperties.property],
+	['#{%s = %s()}', expressionProperties.function],
+];
+
+const templateFunctions: { [key: string]: (...args: any) => any } = {
+	'"%s"': (templateString: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('"%s"', `"${val}"`), func(val)];
+	},
+	'%s': (templateString: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('%s', val), func(val)];
+	},
+	'%i': (templateString: string, func: (...args: any) => any) => {
+		const val = randomInteger();
+		return [templateString.replace('%i', val.toString()), func(val)];
+	},
+	'%d': (templateString: string, func: (...args: any) => any) => {
+		const val = randomDecimal();
+		return [templateString.replace('%d', val.toString()), func(val)];
+	},
+	'%arr': (templateString: string, func: (...args: any) => any) => {
+		return [templateString.replace('%arr', '[]'), func('[]')];
+	},
+	default: (templateString: string, func: (...args: any) => any) => {
+		return [templateString];
+	},
+};
+
+const generateExpressionStringAndExpectedObject = (args: [string, (value: any) => any]) => {
+	const templateString = args[0];
+	const func = args[1];
+	const templateStringWithName = templateString.replace('%s', randomString());
+
+	for (const regex in templateFunctions) {
+		if (templateStringWithName.match(regex)) {
+			return templateFunctions[regex](templateStringWithName, func);
+		}
+	}
+	return templateFunctions['default'](templateStringWithName, func);
+
+	// if (templateStringWithName.match('"%s"')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('"%s"', `"${val}"`), func(val)];
+	// } else if (templateStringWithName.match('%s')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('%s', val), func(val)];
+	// } else if (templateStringWithName.match('$(%s)')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('%s', val), func(`${val}`)];
+	// } else if (templateStringWithName.match('%i')) {
+	// 	const val = randomInteger();
+	// 	return [templateStringWithName.replace('%i', val.toString()), func(val)];
+	// } else if (templateStringWithName.match('%d')) {
+	// 	const val = randomDecimal();
+	// 	return [templateStringWithName.replace('%d', val.toString()), func(val)];
+	// } else if (templateStringWithName.match(/(\[\])/)) {
+	// 	return [templateStringWithName, func('[]')];
+	// } else if (templateStringWithName.match('%s()')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('%s()', `${val}()`), func(val)];
+	// } else return [];
+};
+const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
+	return templates.flatMap((template) => {
+		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+	});
+};
+
+const createTuple = (valueFunction: () => string | number) => {
+	const values = Array.from({ length: randomInteger(1, 12) }, valueFunction);
+	return [...values] as const;
+};
 
 describe('Base grammar declarations', () => {
-	describe('Correct input', () => {
+	describe('Base constructs creation', () => {
+		const parser = new YantrixParser();
+		const base = [
+			['', baseEmpty],
+			['#{LeftSideProperty} <= (RightSideProperty)', baseContext],
+			['#{LeftSideProperty} <= {RightSideProperty}', baseContextWithPrevious],
+			['subscribe/event => action', baseSubscribe],
+			['emit/event <= (keylist)', baseEmitEvent],
+		] as const;
 		test.each(base)('%s', (input: any, res: any) => {
-			const parser = new YantrixParser().parse(input as string);
-
-			assert.deepOwnInclude(parser, res);
+			const result = parser.parse(input as string);
+			assert.deepOwnInclude(result, res);
 		});
 	});
 	describe('Identical output with ', () => {
 		test('#{Left1, Left2} <= (Right1, Right2) = #{Left2, Left1} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse('#{Left1, Left2} <= (Right1, Right2)');
-			const parsedRight = parser.parse('#{Left2, Left1} <= (Right2, Right1)');
+			const [left1, left2, right1, right2] = new Array(4).map(() => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}} <= (${right1}, ${right2})`);
+			const parsedRight = parser.parse(`#{${left2}, ${left1}} <= (${right2}, ${right1})`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -78,8 +206,9 @@ describe('Base grammar declarations', () => {
 
 		test('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse('#{Left1, Left2, Left3} <= (Right1, Right2)');
-			const parsedRight = parser.parse('#{Left2, Left1, Left3} <= (Right2, Right1)');
+			const [left1, left2, left3, right1, right2] = new Array(5).map(() => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}} <= (${right1}, ${right2})`);
+			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= (${right2}, ${right1})`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -96,8 +225,9 @@ describe('Base grammar declarations', () => {
 		});
 		test('#{Left1, Left2, Left3} = #{     Left1,	Left2      ,   Left3  }', () => {
 			const parser = new YantrixParser();
-			const parsedLeft = parser.parse('#{Left1, Left2, Left3}');
-			const parsedRight = parser.parse('#{     Left1,	Left2      ,   Left3   }');
+			const [left1, left2, left3] = new Array(3).map(() => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}}`);
+			const parsedRight = parser.parse(`#{     ${left1},	${left2}      ,   ${left3}   }`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -109,296 +239,245 @@ describe('Base grammar declarations', () => {
 			});
 		});
 	});
-	describe('Incorrect input', () => {
-		test.each(invalidCases)(' %s  ----- Error', (input) => {
-			expect(() => new YantrixParser().parse(input)).toThrowError();
-		});
-	});
 
-	describe('Context statement has correct format', () => {
+	describe('Context statement creation', () => {
 		const parser = new YantrixParser();
-		const propertyName = 'LeftHandProperty';
-		const correctStatement = `#{${propertyName}}`;
-		const incorrectStatements = [
-			...ReservedList.map((reservedWord) => `#{${reservedWord}}`),
-			...SpecialCharList.map((char) => `${char}{${propertyName}}`),
-			`#[${propertyName}]`,
-			`#(${propertyName})`,
-		];
-		test.each(incorrectStatements)('%s -- ERROR', (input) => {
-			expect(() => parser.parse(input)).toThrowError();
-		});
-		test(`${correctStatement} --- CORRECT`, () => {
-			const result = parser.parse(correctStatement);
-			assert.isOk(result);
-		});
-	});
 
-	describe('Key item descriptor starts only with a letter', () => {
-		const parser = new YantrixParser();
-		const propertyName = 'LeftHandProperty';
-		const correctStatement = `#{${propertyName}}`;
-		describe('Key item descriptor cannot start with or contain a special character', () => {
-			const incorrectStatements = [
-				...SpecialCharList.map((char) => `#{${char}${propertyName}}`),
-				...SpecialCharList.map((char) => `#{${propertyName}${char}}`),
-			];
-			test.each(incorrectStatements)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
-			});
-			test(`${correctStatement} --- CORRECT`, () => {
-				const result = parser.parse(correctStatement);
+		describe('Correct statements', () => {
+			const cases = generateRandomStatementsFromTemplate(validContextStatements);
+			test.each(cases)('%s --- CORRECT', (input) => {
+				const result = parser.parse(input);
 				assert.isOk(result);
 			});
 		});
-		describe('Key item descriptor cannot start with a number, but can contain numbers afterwards', () => {
-			const incorrectStatements = [...Array(10).keys()].map((number) => `#{${number}${propertyName}}`);
-			const correctStatements = [...Array(10).keys()].map((number) => `#{${propertyName}${number}}`);
-			test.each(incorrectStatements)('%s --- ERROR', (input) => {
+
+		describe('Incorrect statements', () => {
+			const cases = generateRandomStatementsFromTemplate(invalidContextStatements);
+			test.each(cases)('%s -- ERROR', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
 			});
-			test.each(correctStatements)('%s --- CORRECT', (input) => {
+		});
+	});
+
+	describe('Key item descriptor creation', () => {
+		const parser = new YantrixParser();
+
+		describe('Key item descriptor cannot start with or contain a special character', () => {
+			const cases = [
+				...SpecialCharList.map((char: string) => `#{${char}${randomString()}}`),
+				...SpecialCharList.map((char: string) => `#{${randomString()}${char}}`),
+			];
+			test.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
+
+		describe('Key item descriptor cannot start with a number', () => {
+			const cases = [...new Array(10).keys()].map((number) => `#{${number}${randomString()}}`);
+			test.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
+
+		describe('Key item descriptor can contain numbers after the first symbol', () => {
+			const descriptorLength = randomInteger();
+			const stringBeforeNumber = randomString(randomInteger(1, descriptorLength));
+			const stringAfterNumber = randomString(descriptorLength - stringBeforeNumber.length);
+			const cases = [...new Array(10).keys()].map(
+				(number) => `#{${stringBeforeNumber}${number}${stringAfterNumber}}`,
+			);
+			test.each(cases)('%s --- CORRECT', (input) => {
 				assert.isOk(parser.parse(input));
 			});
 		});
+
 		describe('Key item descriptor can start with lowercase and uppercase letters', () => {
-			const uppercaseNameStatement = `#{${propertyName.toUpperCase()}}`;
-			const lowercaseNameStatement = `#{${propertyName.toLowerCase()}}`;
-			test(`${uppercaseNameStatement} --- CORRECT`, () => {
-				const result = parser.parse(uppercaseNameStatement);
-				assert.isOk(result);
-			});
-			test(`${lowercaseNameStatement} --- CORRECT`, () => {
-				const result = parser.parse(lowercaseNameStatement);
+			const cases = Array.from({ length: randomInteger() }, () =>
+				Math.random() < 0.5 ? `#{${randomString().toUpperCase()}}` : `#{${randomString().toLowerCase()}}`,
+			);
+			test.each(cases)('%s --- CORRECT', (input) => {
+				const result = parser.parse(input);
 				assert.isOk(result);
 			});
 		});
 	});
 
-	describe('Payload cannot have more arguments than the context', () => {
-		const parser = new YantrixParser();
-		for (let i = 0; i < 100; i++) {
-			const contextArgumentCount = Math.ceil(Math.random() * 50);
-			const payloadArgumentCount = Math.ceil(Math.random() * 100);
-			const contextArguments = Array.apply(null, Array(contextArgumentCount))
-				.map((v, i) => `prop${i}`)
-				.join(',');
-			const payloadArguments = Array.apply(null, Array(payloadArgumentCount))
-				.map((v, i) => `prop${i}`)
-				.join(',');
-			const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
+	describe('Argument count comparisons', () => {
+		describe('Payload cannot have more arguments than the context', () => {
+			const parser = new YantrixParser();
+			const generateCase = (contextArgumentMaxCount: number) => {
+				const contextArgumentCount = Math.ceil(Math.random() * contextArgumentMaxCount);
+				const payloadArgumentCount = contextArgumentCount + randomInteger();
 
-			test(`context args: ${contextArgumentCount}, payload args: ${payloadArgumentCount}`, () => {
-				if (contextArgumentCount >= payloadArgumentCount) {
-					assert.isOk(parser.parse(stringToParse));
-				} else {
-					expect(() => parser.parse(stringToParse)).toThrowError();
-				}
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
+				return stringToParse;
+			};
+			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
+			test.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
 			});
-		}
-	});
-
-	describe('Previous context cannot have more arguments than the current one', () => {
-		const parser = new YantrixParser();
-		for (let i = 0; i < 100; i++) {
-			const contextArgumentCount = Math.ceil(Math.random() * 50);
-			const prevContextArgumentCount = Math.ceil(Math.random() * 100);
-			const contextArguments = Array.apply(null, Array(contextArgumentCount))
-				.map((v, i) => `prop${i}`)
-				.join(',');
-			const prevContextArguments = Array.apply(null, Array(prevContextArgumentCount))
-				.map((v, i) => `prop${i}`)
-				.join(',');
-			const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
-
-			test(`context args: ${contextArgumentCount}, prev.context args: ${prevContextArgumentCount}`, () => {
-				if (contextArgumentCount >= prevContextArgumentCount) {
-					assert.isOk(parser.parse(stringToParse));
-				} else {
-					expect(() => parser.parse(stringToParse)).toThrowError();
-				}
-			});
-		}
-	});
-
-	describe('Expressions are created with the correct format', () => {
-		const parser = new YantrixParser();
-		const correctString = '#{arg=value}';
-		const incorrectStrings = [
-			'#{arg-value}',
-			'#{arg value}',
-			'#{arg==value}',
-			'#{arg->value}',
-			'#{arg<-value}',
-			'#{arg={value}}',
-		];
-		test(`${correctString} --- CORRECT`, () => {
-			const result = parser.parse(correctString);
-			assert.isOk(result.contextDescription[0].context[0].KeyItemDeclaration.Expression);
 		});
-		test.each(incorrectStrings)(`%s --- ERROR`, (input) => {
-			expect(() => parser.parse(input)).toThrowError();
+
+		// !!!
+		describe('Context can have the same or more arguments than the payload', () => {
+			const parser = new YantrixParser();
+			const generateCase = (payloadArgumentMaxCount: number) => {
+				const payloadArgumentCount = Math.ceil(Math.random() * payloadArgumentMaxCount);
+				const contextArgumentCount = payloadArgumentCount + randomInteger();
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
+				return stringToParse;
+			};
+			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
+			test.each(cases)('%s --- CORRECT', (input) => {
+				assert.isOk(parser.parse(input));
+			});
+		});
+
+		describe('Previous context cannot have more arguments than the current one', () => {
+			const parser = new YantrixParser();
+			const generateCase = (contextArgumentMaxCount: number) => {
+				const contextArgumentCount = Math.ceil(Math.random() * contextArgumentMaxCount);
+				const prevContextArgumentCount = contextArgumentCount + randomInteger();
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const prevContextArguments = Array.from(
+					{ length: prevContextArgumentCount },
+					(v, i) => `prop${i}`,
+				).join(',');
+				const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
+				return stringToParse;
+			};
+			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
+			test.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
+
+		describe('Context can have the same or more arguments than the previous context', () => {
+			const parser = new YantrixParser();
+			const generateCase = (prevContextArgumentMaxCount: number) => {
+				const prevContextArgumentCount = Math.ceil(Math.random() * prevContextArgumentMaxCount);
+				const contextArgumentCount = prevContextArgumentCount + randomInteger();
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const prevContextArguments = Array.from(
+					{ length: prevContextArgumentCount },
+					(v, i) => `prop${i}`,
+				).join(',');
+				const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
+				return stringToParse;
+			};
+			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
+			test.each(cases)('%s --- CORRECT', (input) => {
+				assert.isOk(parser.parse(input));
+			});
+		});
+	});
+
+	describe('Expression creation', () => {
+		const parser = new YantrixParser();
+
+		describe('Normal expressions', () => {
+			describe('Correct expressions', () => {
+				const cases = generateRandomStatementsFromTemplate(validExpressionStatements);
+				test.each(cases)('%s --- CORRECT', (input) => {
+					const result = parser.parse(input);
+					assert.isOk(result.contextDescription[0].context[0].KeyItemDeclaration.Expression);
+				});
+			});
+
+			describe('Incorrect expressions', () => {
+				const cases = generateRandomStatementsFromTemplate(invalidExpressionStatements);
+				test.each(cases)(`%s --- ERROR`, (input) => {
+					expect(() => parser.parse(input)).toThrowError();
+				});
+			});
+		});
+
+		describe('Array expressions', () => {
+			describe('Empty array expression can be created', () => {
+				const cases = Array.from({ length: randomInteger() }, () => `#{${randomString()} = []}`);
+				test.each(cases)('%s --- CORRECT', (input) => {
+					const result = parser.parse(input);
+					assert.deepNestedInclude(
+						result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
+						expressionProperties.array(),
+					);
+				});
+			});
+
+			describe('Non-empty array expression cannot be created', () => {
+				// random values of random type
+				const cases = Array.from(
+					{ length: 1000 },
+					() => `#{${randomString()} = [${createTuple(randomValueFunction()).toString()}]}`,
+				);
+				test.each(cases)('%s --- ERROR', (input) => {
+					expect(() => parser.parse(input)).toThrowError();
+				});
+			});
 		});
 	});
 
 	describe('Expression values are separated into strings, integers, decimals, functions etc', () => {
 		const parser = new YantrixParser();
-		test('Expression value is recognized as String', () => {
-			const correctString = '#{arg="test"}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.string('test'),
-			);
 
-			const extraStrings = ['#{arg="1"}', '#{arg="1.01"}', '#{arg="func()"}', '#{arg="[]"}'];
-			extraStrings.forEach((str) =>
-				assert.deepNestedInclude(
-					result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-					primitiveWithValue.string('test'),
-				),
-			);
-		});
-		test('Expression value is recognized as Integer', () => {
-			const correctString = '#{arg=1}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.integer(1),
-			);
-		});
-		test('Expression value is recognized as Decimal', () => {
-			const correctString = '#{val=1.01}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.decimal(1.01),
-			);
-		});
-		test('Expression value is recognized as Constant', () => {
-			const correctString = '#{arg=$(val)}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.constant('$(val)'),
-			);
-		});
-		test('Expression value is recognized as Array', () => {
-			const correctString = '#{arg=[]}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.array(),
-			);
-		});
-		test('Expression value is recognized as Function', () => {
-			const correctString = '#{arg=func()}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.function('func'),
-			);
-		});
-		test('Expression value is recognized as Property', () => {
-			const correctString = '#{arg=prop}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.property('prop'),
-			);
+		const cases = generateExpressionCases(expressionTemplates);
+		test.each(cases)('%s', (input: string, obj) => {
+			const result = parser.parse(input);
+			assert.deepNestedInclude(result.contextDescription[0].context[0].KeyItemDeclaration.Expression, obj);
 		});
 	});
 
-	describe('Array expression is created only with an empty array', () => {
+	describe('State transformer creation', () => {
 		const parser = new YantrixParser();
-		test('Empty array expression can be created', () => {
-			const correctString = '#{arg=[]}';
-			const result = parser.parse(correctString);
-			assert.deepNestedInclude(
-				result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
-				primitiveWithValue.array(),
-			);
+
+		describe('Correct expressions', () => {
+			const cases = generateRandomStatementsFromTemplate(validStateTransformerStatements);
+			test.each(cases)('%s --- CORRECT', (input) => {
+				assert.isOk(parser.parse(input));
+			});
 		});
-		test('Non-empty array expression cannot be created', () => {
-			const incorrectStrings = [
-				'#{arg=[1,2,3]}',
-				'#{arg=[1.01,2.02,2.03]}',
-				'#{arg=["str1", "str2", "str3"]}',
-				'#{arg=[func1(), func2()]}',
-				'#{arg=[prop1, prop2]}',
-				'#{arg=["mixed array", 1, 1.01, func1(), prop1]}',
-			];
-			incorrectStrings.forEach((str) => expect(() => parser.parse(str)).toThrowError());
+
+		describe('Incorrect expressions', () => {
+			const cases = generateRandomStatementsFromTemplate(invalidStateTransformerStatements);
+			test.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
 		});
 	});
 
-	describe('State transformer statement has correct format', () => {
+	describe('Subscribe statements creation', () => {
 		const parser = new YantrixParser();
-		const correctStrings = ['#{arg} <= (val)', '#{arg} <= {val}'];
-		const incorrectStrings = [
-			'#{arg} <= [val]',
-			'#{arg} <= ((val))',
-			'#{arg} <= {{val}}',
-			'#{{arg}} <= (val)',
-			'#{arg} <== (val)',
-			'#{arg} <<= (val)',
-			'#{arg} <<== (val)',
-			'#{arg} <- (val)',
-			'#{arg} =< (val)',
-			'#{arg} => (val)',
-		];
-		test.each(correctStrings)('%s --- CORRECT', (input) => assert.isOk(parser.parse(input)));
-		test.each(incorrectStrings)('%s --- ERROR', (input) => expect(() => parser.parse(input)).toThrowError());
-	});
 
-	describe('Subscribe statements have correct format', () => {
-		const parser = new YantrixParser();
-		const eventName = 'click';
-		const actionName = 'OPEN';
-		const keyList = ['idx1', 'idx2'];
-		const correctStrings = [
-			`subscribe/${eventName} => ${actionName}`,
-			`subscribe/${eventName} => ${actionName} (${keyList.join(',')})`,
-		];
-		const correctString = `subscribe/${eventName} => ${actionName}`;
-		const incorrectStrings = [
-			`subscribe/${eventName}`,
-			`subscrib/${eventName} => ${actionName}`,
-			`subscrb/${eventName} => ${actionName}`,
-			`subscribe\\${eventName} => ${actionName}`,
-			`subscribe//${eventName} => ${actionName}`,
-			`subscribe/ => ${actionName}`,
-			`subscribe/ =>`,
-			`subscribe/${eventName} =>`,
-			`subscribe/${eventName} => ()`,
-			`subscribe/${eventName} => {}`,
-			`subscribe/${eventName} <= ${actionName}`,
-			`subscribe/${eventName} => ${actionName} [${keyList.join(',')}]`,
-			`subscribe/${eventName} => ${actionName} {${keyList.join(',')}}`,
-			`subscribe/${eventName} => ${actionName} ()`,
-		];
-		test(`${correctString} --- CORRECT`, () => {
-			assert.isOk(parser.parse(correctString));
+		describe('Correct expressions', () => {
+			const cases = generateRandomStatementsFromTemplate(validSubscribeStatements);
+			test.each(cases)('%s --- CORRECT', (input) => {
+				assert.isOk(parser.parse(input));
+			});
 		});
-		test.each(incorrectStrings)(`%s --- ERROR`, (str) => expect(() => parser.parse(str)).toThrowError());
+
+		describe('Incorrect expressions', () => {
+			const cases = generateRandomStatementsFromTemplate(invalidSubscribeStatements);
+			test.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
 	});
 
-	describe('Emit statements have correct format', () => {
+	describe('Emit statements creation', () => {
 		const parser = new YantrixParser();
-		const eventName = 'selected';
-		const keyList = ['idx1', 'idx2'];
-		const correctStrings = [`emit/${eventName} <= (${keyList.join(',')})`, `emit/${eventName}`];
-		const incorrectStrings = [
-			`emt/${eventName}`,
-			`emit/${eventName} <= ${keyList.join(',')}`,
-			`emit/${eventName} <= ()`,
-			`emit/${eventName} <=`,
-			`emit/${eventName} =>`,
-			`emit/${eventName} <= {${keyList.join(',')}}`,
-			`emit/${eventName} <= [${keyList.join(',')}]`,
-			`emit/${eventName} => (${keyList.join(',')})`,
-		];
-		test.each(correctStrings)('%s --- CORRECT', (str) => assert.isOk(parser.parse(str)));
-		test.each(incorrectStrings)(`%s --- ERROR`, (str) => expect(() => parser.parse(str)).toThrowError());
+
+		describe('Correct statements', () => {
+			const cases = generateRandomStatementsFromTemplate(validEmitStatements);
+			test.each(cases)('%s --- CORRECT', (str) => assert.isOk(parser.parse(str)));
+		});
+
+		describe('Incorrect statements', () => {
+			const cases = generateRandomStatementsFromTemplate(invalidEmitStatements);
+			test.each(cases)(`%s --- ERROR`, (str) => expect(() => parser.parse(str)).toThrowError());
+		});
 	});
 });

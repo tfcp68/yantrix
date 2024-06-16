@@ -1,19 +1,5 @@
-import { primitiveWithValue } from '../fixtures/expressions.js';
-
-const randomString = (length: number = 10) => {
-	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-	let result = '';
-	for (let i = 0; i < length; i++) {
-		result += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return result;
-};
-const randomInteger = () => `${Math.floor(Math.random() * 20000) - 10000}`;
-
-const randomDecimal = (min: number, max: number, decimalPlaces: number) => {
-	const rand = Math.random() * (max - min) + min;
-	return `${rand.toFixed(decimalPlaces)}`;
-};
+import { expressionProperties } from '../fixtures/expressions.js';
+import { randomString, randomInteger, randomDecimal } from '@yantrix/utils';
 
 const KeyItemsCount = 50;
 
@@ -21,36 +7,38 @@ export const allowedExpressions = {
 	string: {
 		value: randomString,
 		output: (str: string) => {
-			return primitiveWithValue.string(str.slice(1, str.length - 1));
+			return expressionProperties.string(str.slice(1, str.length - 1));
 		},
 	},
 	integer: {
-		value: randomInteger,
-		output: (value: string) => primitiveWithValue.integer(Number(value)),
+		value: () => randomInteger().toString(),
+		output: (value: string) => expressionProperties.integer(Number(value)),
 	},
 	decimal: {
-		value: () => randomDecimal(-10000, 10000, 4),
-		output: (value: string) => primitiveWithValue.decimal(Number(value)),
+		value: () => randomDecimal(-10000, 10000).toFixed(4),
+		output: (value: string) => expressionProperties.decimal(Number(value)),
 	},
 	property: {
 		value: randomString,
-		output: (property: string) => primitiveWithValue.property(property),
+		output: (property: string) => expressionProperties.property(property),
 	},
 	function: {
 		value: () => randomString() + '()',
 		output: (name: string) => {
-			return primitiveWithValue.function(name.slice(0, name.length - 2));
+			return expressionProperties.function(name.slice(0, name.length - 2));
 		},
 	},
 	array: {
 		value: () => '[]',
-		output: () => primitiveWithValue.array(),
+		output: () => expressionProperties.array(),
 	},
 	constant: {
-		value: () => `$(${randomString()})`,
-		output: (s: string) => primitiveWithValue.constant(s),
+		value: () => `${randomString()}`,
+		output: (s: string) => expressionProperties.constant(s),
 	},
 };
+
+const trimConstant = (str: string) => str.slice(2, -1);
 
 const formatStringExpressions = (str: string) => {
 	return `'${str}'`;
@@ -83,6 +71,8 @@ export const getKeyItemsWithInitial = (expression: any) => {
 	return keyItems.map((key) => {
 		if (expression === allowedExpressions.string) {
 			return `${key}=${formatStringExpressions(expression.value())}`;
+		} else if (expression === allowedExpressions.constant) {
+			return `${key}=$(${expression.value()})`;
 		}
 		return `${key}=${expression.value()}`;
 	});
@@ -103,6 +93,11 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 			return {
 				value: `${el}=${formatStringExpressions(str)}`,
 				output: expressions.output(formatStringExpressions(str)),
+			};
+		} else if (expressions === allowedExpressions.constant) {
+			return {
+				value: `${el}=$(${rndValue})`,
+				output: expressions.output(rndValue),
 			};
 		}
 

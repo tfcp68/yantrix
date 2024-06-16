@@ -1,36 +1,97 @@
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixParser } from '../yantrixParser.js';
-import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
+import { YantrixLexer, YantrixParser } from '../yantrixParser.js';
+import { functionsFixtures, keyItem } from '../fixtures/keyItem.js';
 import {
 	allowedExpressions,
 	getKeyItemsInitialEmpty,
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
-} from './utils/utils.js';
+} from '../utils/utils.js';
+import { randomString, randomDecimal, randomInteger, randomValue } from '@yantrix/utils';
 
-const cases = [
-	['#{property}', keyItem.declarationKeyItem],
-	[`#{property  = 'string'}`, keyItem.withStringInitial],
-	[`#{property = []}`, keyItem.withArrayInitial],
-	[`#{property = 3}`, keyItem.withIntegerInitial],
-	[`#{property = func()}`, functionsFixtures.expression],
-	[`#{property = anotherProperty}`, keyItem.withPropertyInitial],
-	[`#{property0 = 3.14, property1 = 'string', property2 = 3}`, keyItem.withMultiplyInitial],
-	[`#{property = 3.14}`, keyItem.withDecimalInitial],
+const validCases = [
+	[`#{%s}`, keyItem.declarationKeyItem],
+	[`#{%s = "%s"}`, keyItem.withStringInitial],
+	[`#{%s = %arr}`, keyItem.withArrayInitial],
+	[`#{%s = %i}`, keyItem.withIntegerInitial],
+	[`#{%s = %s}`, keyItem.withPropertyInitial],
+	[`#{%s = $(%s)}`, keyItem.withConstantInitial],
+	[`#{%multi}`, keyItem.withMultiplyInitial],
+	[`#{%s = %d}`, keyItem.withDecimalInitial],
+	[`#{%s = %s()}`, functionsFixtures.expression],
 ];
 
-describe('Key list', () => {
-	describe('single key item', () => {
-		test.each(cases)('%s', (input, res) => {
-			const output = new YantrixParser().parse(input as string);
+const templateFunctions: { [key: string]: (...args: any) => any } = {
+	'"%s"': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('"%s"', `"${val}"`), func(propertyName, `"${val}"`)];
+	},
+	'%s': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('%s', val), func(propertyName, val)];
+	},
+	'%i': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomInteger();
+		return [templateString.replace('%i', val.toString()), func(propertyName, val)];
+	},
+	'%d': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomDecimal();
+		return [templateString.replace('%d', val.toString()), func(propertyName, val)];
+	},
+	'%multi': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const properties = [];
+		for (let i = 0; i < randomInteger(1, 5); i++) {
+			const propName = randomString();
+			const propValue = randomValue();
+			properties.push([propName, typeof propValue == 'string' ? `"${propValue}"` : propValue]);
+		}
+		const str = properties.map(([name, value]) => `${name}=${value}`).join(',');
+		return [templateString.replace('%multi', str), func(properties)];
+	},
+	'%arr': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		return [templateString.replace('%arr', '[]'), func(propertyName)];
+	},
+	default: (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		return [templateString, func(propertyName)];
+	},
+};
 
+const generateExpressionStringAndExpectedObject = (args: [string, (...args: any) => any]) => {
+	const templateString = args[0];
+	const func = args[1];
+
+	// replacing property name with random string
+	const propertyName = randomString();
+	const templateStringWithName = templateString.replace('%s', propertyName);
+
+	// afterwards expecting different objects depending on the regex inside function arguments,
+	// all names and values need to match to pass tests
+	for (const regex in templateFunctions) {
+		if (templateStringWithName.match(regex)) {
+			return templateFunctions[regex](templateStringWithName, propertyName, func);
+		}
+	}
+	return templateFunctions['default'](templateStringWithName, propertyName, func);
+};
+const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
+	return templates.flatMap((template) => {
+		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+	});
+};
+
+describe('Key list', () => {
+	const parser = new YantrixParser();
+
+	describe('Single key item', () => {
+		const cases = generateExpressionCases(validCases);
+		test.each(cases)('%s', (input, res) => {
+			const output = parser.parse(input);
 			assert.deepOwnInclude(output, res);
 		});
 	});
+
 	describe('Random number of keyItem', () => {
 		describe('INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
-			const parser = new YantrixParser();
-
 			Object.entries(allowedExpressions).forEach(([key, value]: [string, any]) => {
 				test(`Data type - ${key}`, () => {
 					for (let index = 0; index < 100; index++) {
@@ -52,8 +113,13 @@ describe('Key list', () => {
 							const targetPropertyInput = strKey.split('=')[0];
 							const targetPropertyValue = strKey.split('=')[1];
 
+							const expected =
+								key != 'constant'
+									? value.output(targetPropertyValue)
+									: value.output(targetPropertyValue.slice(2, -1));
+
 							expect(targetPropertyInput).toBe(TargetProperty);
-							expect(KeyItemDeclaration.Expression).toStrictEqual(value.output(targetPropertyValue));
+							expect(KeyItemDeclaration.Expression).toStrictEqual(expected);
 						});
 					}
 				});
