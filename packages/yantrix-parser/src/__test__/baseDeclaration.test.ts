@@ -95,38 +95,69 @@ const expressionTemplates = [
 	['#{%s = %i}', expressionProperties.integer],
 	['#{%s = %d}', expressionProperties.decimal],
 	['#{%s = $(%s)}', expressionProperties.constant],
-	['#{%s = []}', expressionProperties.array],
+	['#{%s = %arr}', expressionProperties.array],
 	['#{%s = %s}', expressionProperties.property],
 	['#{%s = %s()}', expressionProperties.function],
 ];
 
-// я обожаю делать закрученную непонятную хрень
-// надо чтоб генерируемая фикстура содержала те же самые имена и значения , что и строка для парсера
+const templateFunctions: { [key: string]: (...args: any) => any } = {
+	'"%s"': (templateString: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('"%s"', `"${val}"`), func(val)];
+	},
+	'%s': (templateString: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('%s', val), func(val)];
+	},
+	'%i': (templateString: string, func: (...args: any) => any) => {
+		const val = randomInteger();
+		return [templateString.replace('%i', val.toString()), func(val)];
+	},
+	'%d': (templateString: string, func: (...args: any) => any) => {
+		const val = randomDecimal();
+		return [templateString.replace('%d', val.toString()), func(val)];
+	},
+	'%arr': (templateString: string, func: (...args: any) => any) => {
+		return [templateString.replace('%arr', '[]'), func('[]')];
+	},
+	default: (templateString: string, func: (...args: any) => any) => {
+		return [templateString];
+	},
+};
+
 const generateExpressionStringAndExpectedObject = (args: [string, (value: any) => any]) => {
 	const templateString = args[0];
 	const func = args[1];
 	const templateStringWithName = templateString.replace('%s', randomString());
-	if (templateStringWithName.match('"%s"')) {
-		const val = randomString();
-		return [templateStringWithName.replace('"%s"', `"${val}"`), func(val)];
-	} else if (templateStringWithName.match('%s')) {
-		const val = randomString();
-		return [templateStringWithName.replace('%s', val), func(val)];
-	} else if (templateStringWithName.match('$(%s)')) {
-		const val = randomString();
-		return [templateStringWithName.replace('%s', val), func(`${val}`)];
-	} else if (templateStringWithName.match('%i')) {
-		const val = randomInteger();
-		return [templateStringWithName.replace('%i', val.toString()), func(val)];
-	} else if (templateStringWithName.match('%d')) {
-		const val = randomDecimal();
-		return [templateStringWithName.replace('%d', val.toString()), func(val)];
-	} else if (templateStringWithName.match(/(\[\])/)) {
-		return [templateStringWithName, func('[]')];
-	} else if (templateStringWithName.match('%s()')) {
-		const val = randomString();
-		return [templateStringWithName.replace('%s()', `${val}()`), func(val)];
-	} else return [];
+
+	for (const regex in templateFunctions) {
+		if (templateStringWithName.match(regex)) {
+			return templateFunctions[regex](templateStringWithName, func);
+		}
+	}
+	return templateFunctions['default'](templateStringWithName, func);
+
+	// if (templateStringWithName.match('"%s"')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('"%s"', `"${val}"`), func(val)];
+	// } else if (templateStringWithName.match('%s')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('%s', val), func(val)];
+	// } else if (templateStringWithName.match('$(%s)')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('%s', val), func(`${val}`)];
+	// } else if (templateStringWithName.match('%i')) {
+	// 	const val = randomInteger();
+	// 	return [templateStringWithName.replace('%i', val.toString()), func(val)];
+	// } else if (templateStringWithName.match('%d')) {
+	// 	const val = randomDecimal();
+	// 	return [templateStringWithName.replace('%d', val.toString()), func(val)];
+	// } else if (templateStringWithName.match(/(\[\])/)) {
+	// 	return [templateStringWithName, func('[]')];
+	// } else if (templateStringWithName.match('%s()')) {
+	// 	const val = randomString();
+	// 	return [templateStringWithName.replace('%s()', `${val}()`), func(val)];
+	// } else return [];
 };
 const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
 	return templates.flatMap((template) => {
@@ -134,7 +165,6 @@ const generateExpressionCases = (templates: any[], casesAmount: number = randomI
 	});
 };
 
-// кортеж может быть одного или разных типов
 const createTuple = (valueFunction: () => string | number) => {
 	const values = Array.from({ length: randomInteger(1, 12) }, valueFunction);
 	return [...values] as const;
@@ -278,8 +308,9 @@ describe('Base grammar declarations', () => {
 			const generateCase = (contextArgumentMaxCount: number) => {
 				const contextArgumentCount = Math.ceil(Math.random() * contextArgumentMaxCount);
 				const payloadArgumentCount = contextArgumentCount + randomInteger();
-				const contextArguments = new Array(contextArgumentCount).map((v, i) => `prop${i}`).join(',');
-				const payloadArguments = new Array(payloadArgumentCount).map((v, i) => `prop${i}`).join(',');
+
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `prop${i}`).join(',');
 				const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
 				return stringToParse;
 			};
@@ -289,19 +320,20 @@ describe('Base grammar declarations', () => {
 			});
 		});
 
+		// !!!
 		describe('Context can have the same or more arguments than the payload', () => {
 			const parser = new YantrixParser();
 			const generateCase = (payloadArgumentMaxCount: number) => {
 				const payloadArgumentCount = Math.ceil(Math.random() * payloadArgumentMaxCount);
 				const contextArgumentCount = payloadArgumentCount + randomInteger();
-				const contextArguments = new Array(contextArgumentCount).map((v, i) => `prop${i}`).join(',');
-				const payloadArguments = new Array(payloadArgumentCount).map((v, i) => `prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `prop${i}`).join(',');
 				const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
 			test.each(cases)('%s --- CORRECT', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+				assert.isOk(parser.parse(input));
 			});
 		});
 
@@ -310,8 +342,11 @@ describe('Base grammar declarations', () => {
 			const generateCase = (contextArgumentMaxCount: number) => {
 				const contextArgumentCount = Math.ceil(Math.random() * contextArgumentMaxCount);
 				const prevContextArgumentCount = contextArgumentCount + randomInteger();
-				const contextArguments = new Array(contextArgumentCount).map((v, i) => `prop${i}`).join(',');
-				const prevContextArguments = new Array(prevContextArgumentCount).map((v, i) => `prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const prevContextArguments = Array.from(
+					{ length: prevContextArgumentCount },
+					(v, i) => `prop${i}`,
+				).join(',');
 				const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
 				return stringToParse;
 			};
@@ -326,14 +361,17 @@ describe('Base grammar declarations', () => {
 			const generateCase = (prevContextArgumentMaxCount: number) => {
 				const prevContextArgumentCount = Math.ceil(Math.random() * prevContextArgumentMaxCount);
 				const contextArgumentCount = prevContextArgumentCount + randomInteger();
-				const contextArguments = new Array(contextArgumentCount).map((v, i) => `prop${i}`).join(',');
-				const prevContextArguments = new Array(prevContextArgumentCount).map((v, i) => `prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const prevContextArguments = Array.from(
+					{ length: prevContextArgumentCount },
+					(v, i) => `prop${i}`,
+				).join(',');
 				const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
 			test.each(cases)('%s --- CORRECT', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+				assert.isOk(parser.parse(input));
 			});
 		});
 	});

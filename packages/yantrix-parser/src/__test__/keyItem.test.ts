@@ -9,7 +9,6 @@ import {
 } from '../utils/utils.js';
 import { randomString, randomDecimal, randomInteger, randomValue } from '@yantrix/utils';
 
-// todo maybe need to rework all of this...
 const validCases = [
 	[`#{%s}`, keyItem.declarationKeyItem],
 	[`#{%s = "%s"}`, keyItem.withStringInitial],
@@ -21,6 +20,42 @@ const validCases = [
 	[`#{%s = %d}`, keyItem.withDecimalInitial],
 	[`#{%s = %s()}`, functionsFixtures.expression],
 ];
+
+const templateFunctions: { [key: string]: (...args: any) => any } = {
+	'"%s"': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('"%s"', `"${val}"`), func(propertyName, `"${val}"`)];
+	},
+	'%s': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('%s', val), func(propertyName, val)];
+	},
+	'%i': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomInteger();
+		return [templateString.replace('%i', val.toString()), func(propertyName, val)];
+	},
+	'%d': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomDecimal();
+		return [templateString.replace('%d', val.toString()), func(propertyName, val)];
+	},
+	'%multi': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const properties = [];
+		for (let i = 0; i < randomInteger(1, 5); i++) {
+			const propName = randomString();
+			const propValue = randomValue();
+			properties.push([propName, typeof propValue == 'string' ? `"${propValue}"` : propValue]);
+		}
+		const str = properties.map(([name, value]) => `${name}=${value}`).join(',');
+		return [templateString.replace('%multi', str), func(properties)];
+	},
+	'%arr': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		return [templateString.replace('%arr', '[]'), func(propertyName)];
+	},
+	default: (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		return [templateString, func(propertyName)];
+	},
+};
+
 const generateExpressionStringAndExpectedObject = (args: [string, (...args: any) => any]) => {
 	const templateString = args[0];
 	const func = args[1];
@@ -31,38 +66,12 @@ const generateExpressionStringAndExpectedObject = (args: [string, (...args: any)
 
 	// afterwards expecting different objects depending on the regex inside function arguments,
 	// all names and values need to match to pass tests
-	if (templateStringWithName.match(/"%s"/)) {
-		const val = randomString();
-		return [templateStringWithName.replace('"%s"', `"${val}"`), func(propertyName, `"${val}"`)];
-	} else if (templateStringWithName.match(/%s/)) {
-		const val = randomString();
-		return [templateStringWithName.replace('%s', val), func(propertyName, val)];
-	} else if (templateStringWithName.match('%i')) {
-		const val = randomInteger();
-		return [templateStringWithName.replace('%i', val.toString()), func(propertyName, val)];
-	} else if (templateStringWithName.match('%d')) {
-		const val = randomDecimal();
-		return [templateStringWithName.replace('%d', val.toString()), func(propertyName, val)];
-	} else if (templateStringWithName.match('%multi')) {
-		const properties = [];
-		for (let i = 0; i < randomInteger(1, 5); i++) {
-			const propName = randomString();
-			const propValue = randomValue();
-			properties.push([propName, typeof propValue == 'string' ? `"${propValue}"` : propValue]);
+	for (const regex in templateFunctions) {
+		if (templateStringWithName.match(regex)) {
+			return templateFunctions[regex](templateStringWithName, propertyName, func);
 		}
-		const str = properties.map(([name, value]) => `${name}=${value}`).join(',');
-		return [templateStringWithName.replace('%multi', str), func(properties)];
-	} else if (templateStringWithName.match('%arr')) {
-		return [templateStringWithName.replace('%arr', '[]'), func(propertyName)];
-	} else return [templateStringWithName, func(propertyName)];
-
-	/*
-	
-	else if (templateStringWithName.match('$(%s)')) {
-		const val = randomString();
-		return [templateStringWithName.replace('%s', val), func(propertyName, val)];
-	} 
-	*/
+	}
+	return templateFunctions['default'](templateStringWithName, propertyName, func);
 };
 const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
 	return templates.flatMap((template) => {

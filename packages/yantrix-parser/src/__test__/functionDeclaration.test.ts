@@ -75,7 +75,6 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s(#{%s})}',
 ];
 
-// чуть бредово
 const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)) => {
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
@@ -91,7 +90,6 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 	});
 };
 
-// бредово
 const generateFunctionString = (level: number = 0) => {
 	if (level > 8) return; // todo check
 
@@ -109,7 +107,39 @@ const generateFunctionString = (level: number = 0) => {
 	return `${functionName}(${args.join(',')})`;
 };
 
-// pzdc...
+const templateFunctions: { [key: string]: (...args: any) => any } = {
+	'"%s"': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('"%s"', `"${val}"`), func(propertyName, functionName, `"${val}"`)];
+	},
+	'%s': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('%s', val), func(propertyName, functionName, val)];
+	},
+	'%i': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		const val = randomInteger();
+		return [templateString.replace('%i', val.toString()), func(propertyName, functionName, val)];
+	},
+	'%d': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		const val = randomDecimal();
+		return [templateString.replace('%d', val.toString()), func(propertyName, functionName, val)];
+	},
+	'%multi': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		const propertyName1 = randomString();
+		const propertyName2 = randomString();
+		return [
+			templateString.replace('%multi', `${propertyName1},${propertyName2}`),
+			func(propertyName, functionName, propertyName1, propertyName2),
+		];
+	},
+	'%arr': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		return [templateString.replace('%arr', '[]'), func(propertyName, functionName)];
+	},
+	default: (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+		return [templateString, func(propertyName, functionName)];
+	},
+};
+
 const generateExpressionStringAndExpectedObject = (
 	args: [string, (prop?: string, func?: string, ...values: any) => any],
 ) => {
@@ -123,29 +153,14 @@ const generateExpressionStringAndExpectedObject = (
 
 	// afterwards expecting different objects depending on the regex inside function arguments,
 	// all names and values need to match to pass tests
-	if (templateStringWithNames.match(/"%s"/)) {
-		const val = randomString();
-		return [templateStringWithNames.replace('"%s"', `"${val}"`), func(propertyName, functionName, `"${val}"`)];
-	} else if (templateStringWithNames.match(/%s/)) {
-		const val = randomString();
-		return [templateStringWithNames.replace('%s', val), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('%i')) {
-		const val = randomInteger();
-		return [templateStringWithNames.replace('%i', val.toString()), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('%d')) {
-		const val = randomDecimal();
-		return [templateStringWithNames.replace('%d', val.toString()), func(propertyName, functionName, val)];
-	} else if (templateStringWithNames.match('%multi')) {
-		const propertyName1 = randomString();
-		const propertyName2 = randomString();
-		return [
-			templateStringWithNames.replace('%multi', `${propertyName1},${propertyName2}`),
-			func(propertyName, functionName, propertyName1, propertyName2),
-		];
-	} else if (templateStringWithNames.match('%arr')) {
-		return [templateStringWithNames.replace('%arr', '[]'), func(propertyName, functionName)];
-	} else return [templateStringWithNames, func(propertyName, functionName)];
+	for (const regex in templateFunctions) {
+		if (templateStringWithNames.match(regex)) {
+			return templateFunctions[regex](templateStringWithNames, propertyName, functionName, func);
+		}
+	}
+	return templateFunctions['default'](templateStringWithNames, propertyName, functionName, func);
 };
+
 const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
 	return templates.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
@@ -194,7 +209,7 @@ describe('Function declaration', () => {
 		});
 	});
 
-	// todo maybe need to add separate describes for each function type, too much unnecessary work for now though
+	// @TODO maybe need to add separate describes for each function type, too much unnecessary work for now though
 	describe('Functions are correctly separated into types: string,decimal,integer etc', () => {
 		const cases = generateExpressionCases(functionCasesAndExpectedTypes);
 		test.each(cases)('%s', (input: string, obj) => {
@@ -203,6 +218,6 @@ describe('Function declaration', () => {
 		});
 	});
 
-	// todo add dedicated recursion tests
+	// @TODO add dedicated recursion tests
 	// need to test limits, should be ~8 levels of nesting, but i think there is actually no limit
 });
