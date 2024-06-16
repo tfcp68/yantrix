@@ -188,7 +188,7 @@ export class JavaScriptCodegen implements ICodegen {
 			return state.id === StartState;
 		});
 
-		if (!startState?.notes?.initialState) {
+		if (!startState?.notes) {
 			return 'null';
 		}
 

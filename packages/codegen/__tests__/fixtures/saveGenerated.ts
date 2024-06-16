@@ -31,31 +31,27 @@ SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
 const input2 = `stateDiagram-v2
-[*] --> CLOSED: RESET (list)
+[*] --> A: UpdateFromPayloadList
 note left of [*]
-+INITIAL
-#{ items = []}
-#{ selectedIndex = 0 }
+#{initialList = [] }
+#{initialInteger = 0 }
+#{InitialString = "test" }
 end note
-CLOSED --> OPEN: OPEN
-OPEN --> CLOSED: CLOSE
-OPEN --> SELECTED: SELECT (index)
-SELECTED --> CLOSED: CLOSE
-note left of CLOSED
-#{ items } <= (list)
-#{ selectedIndex = 0 }
-subscribe/click => OPEN
-emit/dropdownClose
+
+A --> B: UpdateFromPrevContext
+
+
+note left of A
+#{initialList} <= (newList)
+#{initialInteger} <= (newInteger)
+#{initialString} <= (newString)
 end note
-note left of SELECTED
-#{ selectedIndex } <= (index)
-emit/selected <= (index)
-subscribe/selected => CLOSE
-end note
-note right of OPEN
-emit/dropdownOpen
-subscribe/click => SELECT (index)
-subscribe/clickOutside => CLOSE
+
+note left of B
+#{initialList} <= { initialList }
+#{initialInteger} <= { initialInteger }
+#{InitialString} <= { InitialString }
+
 end note
 `;
 
