@@ -1,9 +1,8 @@
-import type { ICodegen } from '../../types/common.js';
+import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
-import { TStateDiagram } from '@yantrix/mermaid-parser';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
-	constructor(diagram: TStateDiagram) {
+	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		super(diagram);
 		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
