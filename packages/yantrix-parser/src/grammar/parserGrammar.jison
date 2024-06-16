@@ -151,13 +151,13 @@ Expression
           | StringDeclaration {$$ = {value:{StringDeclaration:$1.toString()}, expressionType:ExpressionTypes.StringDeclaration}}
           | ConstantDeclaration {$$ = {value:{ConstantReference:$1}, expressionType:ExpressionTypes.Constant}}
           | Array {$$ = {value:{ArrayDeclaration:[]}, expressionType:ExpressionTypes.ArrayDeclaration}}
-          | Number {$$ = {value:{NumberDeclaration: Number($1)}, expressionType:ExpressionTypes.NumberDeclaration}}
+          | Number {$$ = $1}
           ;
 
-Number
-     : integerLiteral
-     | decimalLiteral
-     ;
+Number:
+        | integerLiteral {$$ = {value:{NumberDeclaration: Number($1)}, expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {value:{NumberDeclaration: Number($1)}, expressionType:ExpressionTypes.DecimalDeclaration}}
+        ;
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
         ;

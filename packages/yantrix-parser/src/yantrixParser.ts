@@ -110,6 +110,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 		[31, 1],
 		[31, 1],
 		[31, 1],
+		[36, 0],
 		[36, 1],
 		[36, 1],
 		[32, 4],
@@ -137,7 +138,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			$V9 = [1, 41],
 			$Va = [1, 42],
 			$Vb = [17, 28],
-			$Vc = [2, 32],
+			$Vc = [2, 33],
 			$Vd = [1, 58];
 		const o = JisonParser.expandParseTable;
 		this.table = [
@@ -181,7 +182,19 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			{ 25: 31, 26: [1, 32] },
 			o([5, 8, 9, 14, 20, 21, 23], [2, 13]),
 			{ 27: 33, 29: $V1 },
-			{ 29: $V4, 31: 34, 32: 35, 33: $V5, 34: 38, 35: $V6, 36: 40, 37: $V7, 38: $V8, 39: $V9, 41: $Va },
+			o($V3, [2, 29], {
+				31: 34,
+				32: 35,
+				34: 38,
+				36: 40,
+				29: $V4,
+				33: $V5,
+				35: $V6,
+				37: $V7,
+				38: $V8,
+				39: $V9,
+				41: $Va,
+			}),
 			{ 17: [1, 45], 28: $V2 },
 			{ 19: [1, 46], 28: $V2 },
 			{ 16: 47, 27: 19, 29: $V1 },
@@ -197,8 +210,8 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			o($V3, [2, 28]),
 			{ 15: [1, 49] },
 			{ 42: [1, 50] },
-			o($V3, [2, 29]),
 			o($V3, [2, 30]),
+			o($V3, [2, 31]),
 			o($V0, [2, 11]),
 			o($V0, [2, 12]),
 			{ 17: [1, 51], 28: $V2 },
@@ -221,10 +234,10 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 			o($V0, [2, 15]),
 			{ 17: [1, 56], 28: $V2 },
 			{ 17: [1, 57], 28: $Vd },
-			o($Vb, [2, 33]),
-			o($V3, [2, 35]),
+			o($Vb, [2, 34]),
+			o($V3, [2, 36]),
 			o($V0, [2, 18]),
-			o($V3, [2, 31]),
+			o($V3, [2, 32]),
 			o($Vb, $Vc, {
 				32: 35,
 				34: 38,
@@ -239,7 +252,7 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				39: $V9,
 				41: $Va,
 			}),
-			{ 17: [2, 34], 28: $Vd },
+			{ 17: [2, 35], 28: $Vd },
 		];
 	}
 
@@ -363,24 +376,33 @@ export class YantrixParser extends JisonParser implements JisonParserApi {
 				this.$ = { value: { ArrayDeclaration: [] }, expressionType: ExpressionTypes.ArrayDeclaration };
 				break;
 			case 28:
+				this.$ = $$[$0];
+				break;
+			case 30:
 				this.$ = {
 					value: { NumberDeclaration: Number($$[$0]) },
-					expressionType: ExpressionTypes.NumberDeclaration,
+					expressionType: ExpressionTypes.IntegerDeclaration,
 				};
 				break;
 			case 31:
-				this.$ = { FunctionDeclaration: { FunctionName: $$[$0 - 3], Arguments: [...$$[$0 - 1]] } };
+				this.$ = {
+					value: { NumberDeclaration: Number($$[$0]) },
+					expressionType: ExpressionTypes.DecimalDeclaration,
+				};
 				break;
 			case 32:
-				this.$ = [];
+				this.$ = { FunctionDeclaration: { FunctionName: $$[$0 - 3], Arguments: [...$$[$0 - 1]] } };
 				break;
 			case 33:
-				this.$ = [$$[$0]];
+				this.$ = [];
 				break;
 			case 34:
-				this.$ = [...$$[$0 - 2], ...$$[$0]];
+				this.$ = [$$[$0]];
 				break;
 			case 35:
+				this.$ = [...$$[$0 - 2], ...$$[$0]];
+				break;
+			case 36:
 				this.$ = $$[$0 - 1];
 				break;
 		}

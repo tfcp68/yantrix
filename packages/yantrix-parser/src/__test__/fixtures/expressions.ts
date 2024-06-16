@@ -11,7 +11,7 @@ export const primitives = {
 		value: {
 			NumberDeclaration: 3,
 		},
-		expressionType: ExpressionTypes.NumberDeclaration,
+		expressionType: ExpressionTypes.IntegerDeclaration,
 	},
 	array: {
 		value: {
@@ -44,7 +44,7 @@ export const primitives = {
 		value: {
 			NumberDeclaration: 3.14,
 		},
-		expressionType: ExpressionTypes.NumberDeclaration,
+		expressionType: ExpressionTypes.DecimalDeclaration,
 	},
 };
 
@@ -57,7 +57,7 @@ const getString = (value: string = 'string') => {
 const getInteger = (value: number = 3) => {
 	return {
 		value: { NumberDeclaration: value },
-		expressionType: ExpressionTypes.NumberDeclaration,
+		expressionType: ExpressionTypes.IntegerDeclaration,
 	};
 };
 const getFunction = (name: string = 'func', args: any = []) => {
@@ -90,7 +90,7 @@ const getArray = () => {
 const getDecimal = (value: number = 3.14) => {
 	return {
 		value: { NumberDeclaration: value },
-		expressionType: ExpressionTypes.NumberDeclaration,
+		expressionType: ExpressionTypes.DecimalDeclaration,
 	};
 };
 const getConstant = (value: string = 'constantName') => {

@@ -33,11 +33,13 @@ export const Expressions: TExpressionRecord = {
 		return `${property}`;
 	},
 
-	[ExpressionTypes.NumberDeclaration]: ({ NumberDeclaration }) => {
-		return `${NumberDeclaration}`;
+	[ExpressionTypes.DecimalDeclaration]: ({ NumberExpression }) => {
+		return `${NumberExpression}`;
 	},
-
+	[ExpressionTypes.IntegerDeclaration]: ({ NumberExpression }) => {
+		return `${NumberExpression}`;
+	},
 	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
-		return `${StringDeclaration}`;
+		return `'${StringDeclaration}'`;
 	},
 } as const;
