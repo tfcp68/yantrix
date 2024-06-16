@@ -1,10 +1,11 @@
-import { DefaultTheme, defineConfig } from 'vitepress';
+import { DefaultTheme } from 'vitepress';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { withMermaid } from 'vitepress-plugin-mermaid';
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid({
 	description: '',
 	srcDir: './src',
 	ignoreDeadLinks: true,
@@ -27,11 +28,12 @@ function getMdData(filePath: string) {
 
 function getFolderItem(folderDir: string, link: string): DefaultTheme.SidebarItem {
 	const indexFile = path.join(folderDir, 'index.md');
+	const name = path.basename(folderDir, '.md');
 
 	if (fs.existsSync(indexFile)) {
 		const frontmatter = getMdData(indexFile);
 		return {
-			text: frontmatter.data.title,
+			text: frontmatter.data.title || name,
 			collapsed: true,
 			items: [],
 			link: frontmatter.content.length > 0 ? link : undefined,
