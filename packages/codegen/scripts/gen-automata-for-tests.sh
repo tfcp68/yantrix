@@ -5,7 +5,7 @@ GREEN="\033[1;32m"
 YELLOW="\033[1;33m"
 RESET="\033[0m"
 
-function log() {
+function log {
 	echo -e "$@"
 }
 
