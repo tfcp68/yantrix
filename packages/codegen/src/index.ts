@@ -28,13 +28,10 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 		language: options.outLang ?? 'TypeScript',
 	});
 
-	return fmt(
-		[
-			codegen.getImports(),
-			codegen.getDictionaries(),
-			codegen.getChangeStateHandlers(),
-			codegen.getHandlers(),
-			codegen.getClassTemplate(options.className),
-		].join('\n'),
-	);
+	return [
+		codegen.getImports(),
+		codegen.getDictionaries(),
+		codegen.getActionToStateFromState(),
+		codegen.getClassTemplate(options.className),
+	].join('\n');
 };

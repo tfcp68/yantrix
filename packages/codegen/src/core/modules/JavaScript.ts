@@ -1,7 +1,8 @@
-import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { Expressions, fillDictionaries } from '../shared.js';
+import { fillDictionaries } from '../shared.js';
+import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { convertKeysToNumberString } from '../../utils/utils.js';
 import {
 	isKeyItemWithExpression,
 	isPayloadContext,
@@ -17,6 +18,9 @@ export class JavaScriptCodegen implements ICodegen {
 	handlersDict: string[];
 	changeStateHandlers: string[];
 	dictionaries: string[];
+	protected imports = {
+		'@yantrix/automata': ['GenericAutomata'],
+	};
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
@@ -29,16 +33,15 @@ export class JavaScriptCodegen implements ICodegen {
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 
-		this.setupHandlers();
 		this.setupDictionaries();
 	}
 
 	public getImports() {
-		return `import { GenericAutomata } from "@yantrix/automata";`;
-	}
-
-	public getHandlers(): string {
-		return this.handlersDict.join('\n');
+		let imports = '';
+		for (const [key, value] of Object.entries(this.imports)) {
+			imports += `import { ${value.join(', ')} } from '${key}';\n`;
+		}
+		return imports;
 	}
 
 	public getDictionaries(): string {
@@ -47,16 +50,6 @@ export class JavaScriptCodegen implements ICodegen {
 
 	public getChangeStateHandlers(): string {
 		return this.changeStateHandlers.join('\n');
-	}
-
-	setupHandlers() {
-		this.handlersDict.push('const handlersDict = {');
-
-		Object.keys(this.diagram.transitions).map((state) => {
-			this.handlersDict.push(this.getHandlerDict(state));
-			this.changeStateHandlers.push(this.getHandleStateChanges(this.diagram.transitions[state], state));
-		});
-		this.handlersDict.push(' }');
 	}
 
 	setupDictionaries() {
@@ -75,65 +68,83 @@ export class JavaScriptCodegen implements ICodegen {
   			this.init({
   				state: ${this.getInitialState()},
   				context: ${this.getInitialContext()},
-                rootReducer: ({ action, context, payload, state }) => {
-                  if (!action || payload === null) return { state, context };
-                  return handlersDict[state]({action,payload,context,state})
-  				},
-  				stateValidator: (s) => Object.values(statesDictionary).includes(s),
-  				actionValidator: (a) => Object.values(actionsDictionary).includes(a),
-  				eventValidator: () => {},
-  			});
-  		}
-  	}`;
+                rootReducer: ${this.getRootReducer()},
+  				stateValidator: ${this.getStateValidator()},
+  				actionValidator: ${this.getActionValidator()},
+				});
+			}
+			isKeyOf = ${this.getIsKeyOf()};
+		}`;
+	}
+
+	public getActionToStateFromState() {
+		return `const actionToStateFromStateDict = ${convertKeysToNumberString(this.getActionToStateFromStateDict())}`;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.keys(transitions).map((key) => {
+		const actionToStateDict: Record<number, number> = {};
+		Object.keys(transitions).map((key) => {
 			const { actionsPath } = transitions[key];
-			const newState = this.stateDictionary.getStateValues({ keys: [key] });
-			return actionsPath.map(({ action }) => {
+			const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+			actionsPath.map(({ action }) => {
 				const actionValue = this.actionDictionary.getActionValues({
 					keys: action,
-				});
-
-				const ctx = this.getSubsyntaxContext(key);
-
-				return `${actionValue[0]}:{state:${newState[0]}, ctx:{${ctx}}},`;
+				})[0];
+				if (!actionValue) throw new Error(`Action ${action} not found`);
+				if (!newState) throw new Error(`State ${key} not found`);
+				actionToStateDict[actionValue] = newState;
 			});
 		});
+		return actionToStateDict;
 	}
 
-	getHandlerDict(state: string) {
-		const stateValue = this.stateDictionary.getStateValues({
-			keys: [state],
-		})[0];
-		return `${stateValue}: handleStateChange${stateValue}, \n`;
+	protected getIsKeyOf() {
+		return `(key, obj) => key in obj`;
 	}
 
-	protected getHandleStateChanges(transitions: Record<string, TDiagramAction>, state: string) {
-		const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+	protected getRootReducer() {
+		return `({ action, context, payload, state }) => {
+					if (!action || payload === null) return { state, context };
+					${this.getRootReducerStateValidation()}
+					${this.getRootReducerActionValidation()}
+					const newState = actionToStateFromStateDict[state][action] ?? state;
+					return {state:  newState, context: { ...payload }};
+  				}`;
+	}
 
-		if (!value) {
-			throw new Error(`State ${state} not found`);
-		}
-		return this.getHandleStateChangeDeclaration(
-			value,
-			`
-             const actionToStateDict = {
-              ${this.getActionToStateDict(transitions)
-					.flatMap((el) => el)
-					.join('\n')}     
-         };
-        
-        const reducedState = actionToStateDict[action]?.state ?? null
-        const newState = reducedState || state
-        const ctx = reducedState ? actionToStateDict[action]?.ctx : {...prevContext}
-        
- 
-		
-        return {state:newState, context: ctx === null ? ctx : {...ctx}}
-        `,
-		);
+	protected getRootReducerStateValidation() {
+		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`;
+	}
+
+	protected getRootReducerStateValidationHead() {
+		return `if (!this.isKeyOf(state, actionToStateFromStateDict))`;
+	}
+
+	protected getRootReducerStateValidationError() {
+		return `throw new Error("Invalid state, maybe machine isn't running.")`;
+	}
+
+	protected getRootReducerActionValidation() {
+		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
+	}
+
+	protected getStateValidator() {
+		return `(s) => Object.values(statesDictionary).includes(s)`;
+	}
+
+	protected getActionValidator() {
+		return `(a) => Object.values(actionsDictionary).includes(a)`;
+	}
+
+	protected getActionToStateFromStateDict() {
+		const actionToStateFromStateDict: Record<number, Record<number, number>> = {};
+		Object.keys(this.diagram.transitions).map((state) => {
+			const transitions = this.diagram.transitions[state];
+			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+			if (!value) throw new Error(`State ${state} not found`);
+			actionToStateFromStateDict[value] = this.getActionToStateDict(transitions);
+		});
+		return actionToStateFromStateDict;
 	}
 
 	protected getHandleStateChangeDeclaration(value: number, body: string) {

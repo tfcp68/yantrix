@@ -17,7 +17,8 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm run build && vitest run"
+		"test": "pnpm run build && vitest run",
+		"export-grammar": "node src/bin/exportCodeToGrammar.js"
 	},
 	"description": "Execute jison parser",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
