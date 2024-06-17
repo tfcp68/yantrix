@@ -27,11 +27,12 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	public getImports() {
-		let imports = '';
-		for (const [key, value] of Object.entries(this.imports)) {
-			imports += `from '${key}' import ${value.join(', ')}\n`;
-		}
-		return imports;
+		// let imports = '';
+		// for (const [key, value] of Object.entries(this.imports)) {
+		// 	imports += `from '${key}' import ${value.join(', ')}\n`;
+		// }
+		// return imports;
+		return '';
 	}
 
 	public getDictionaries(): string {
@@ -48,66 +49,73 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	getClassTemplate(className: string) {
-		return `class ${className}(GenericAutomata):
-                    def __init__(self):
-                        self.state = ${this.initialState}
-                        self.context = { 'index': -1 }
-                    ${this.getIsKeyOf()}
-
-                    ${this.getRootReducer()}
-  				    ${this.getStateValidator()}
-  				    ${this.getActionValidator()}
-                `;
+		const content = [`class ${className}(GenericAutomata):`,
+			`\tdef __init__(self):`,
+			`\t\tself.state = ${this.initialState}`,
+			`\t\tself.context = { 'index': -1 }`,
+			`\t${this.getIsKeyOf()}`,
+			`\t${this.getRootReducer()}`,
+			`\t${this.getStateValidator()}`,
+			`\t${this.getActionValidator()}`
+		];
+		return content.join('\n');
 	}
 
 	protected getIsKeyOf() {
-		return `def isKeyOf(self, key, obj):
-    				return key in obj
-				`;
+		const content = [`def isKeyOf(self, key, obj):`,
+			`\t\treturn key in obj`
+		];
+		return content.join('\n');
 	}
 
 	protected getRootReducer() {
-		return `def rootReducer(self, action, context, payload, state):
-					if (not action) or (payload is None):
-                        return {'state': state, 'context': context}
-					${this.getRootReducerStateValidation()}
-					${this.getRootReducerActionValidation()}
-					newState = state
-					if actionToStateDict[state][action] is not None:
-						newState = actionToStateDict[action]
-					return {'state':  newState, 'context': { **payload }}
-  				}`;
+		const content = [`def rootReducer(self, action, context, payload, state):`,
+			`\t\tif (not action) or (payload is None):`,
+			`\t\t\treturn {'state': state, 'context': context}`,
+			`\t\t${this.getRootReducerStateValidation()}`,
+			`\t\t${this.getRootReducerActionValidation()}`,
+			`\t\tnewState = state`,
+			`\t\tif actionToStateDict[state][action] is not None:`,
+			`\t\t\tnewState = actionToStateDict[action]`,
+			`\t\treturn {'state':  newState, 'context': dict({**payload})}`
+		];
+		return content.join('\n');
 	}
 
 	protected getRootReducerStateValidation() {
-		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`;
+		const content = [`${this.getRootReducerStateValidationHead()}`,
+			`\t\t\t${this.getRootReducerStateValidationError()}`
+		];
+		return content.join('\n');
 	}
 
 	protected getRootReducerStateValidationHead() {
-		return `if not self.isKeyOf(state, actionToStateFromStateDict):
-					`;
+		return `if not self.isKeyOf(state, actionToStateFromStateDict):`;
 	}
 
 	protected getRootReducerStateValidationError() {
-		return `raise Error("Invalid state, maybe machine isn't running.")`;
+		return `raise Exception("Invalid state, maybe machine isn't running.")`;
 	}
 
 	protected getRootReducerActionValidation() {
-		return `if not self.isKeyOf(action, actionToStateFromStateDict[state]):
-					return { 'state': state, 'context': context }
-				`;
+		const content = [`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
+			`\t\t\treturn {'state': state, 'context': context }`
+		];
+		return content.join('\n');
 	}
 
 	protected getStateValidator() {
-		return `def state_validator(self, s):
-                    return s in statesDictionary.values()
-                `;
+		const content = [`def state_validator(self, s):`,
+			`\t\treturn s in statesDictionary.values()`
+		];
+		return content.join('\n');
 	}
 
 	protected getActionValidator() {
-		return `def action_validator(self, a):
-                    return a in actionsDictionary.values()
-                `;
+		const content = [`def action_validator(self, a):`,
+			`\t\treturn a in actionsDictionary.values()`
+		];
+		return content.join('\n');
 	}
 
 	protected getActionToStateFromStateDict() {
