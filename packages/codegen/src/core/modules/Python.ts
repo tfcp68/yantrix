@@ -50,43 +50,43 @@ export class PythonCodegen implements ICodegen {
 
 	getClassTemplate(className: string) {
 		const content = [`class ${className}:`,
-			`\tdef __init__(self):`,
-			`\t\tself.state = ${this.initialState}`,
-			`\t\tself.context = { 'index': -1 }`,
-			`\t${this.getIsKeyOf()}`,
-			`\t${this.getRootReducer()}`,
-			`\t${this.getStateValidator()}`,
-			`\t${this.getActionValidator()}`
+			`def __init__(self):`,
+			`\tself.state = ${this.initialState}`,
+			`\tself.context = { 'index': -1 }`,
+			`${this.getIsKeyOf()}`,
+			`${this.getRootReducer()}`,
+			`${this.getStateValidator()}`,
+			`${this.getActionValidator()}`
 		];
-		return content.join('\n');
+		return content.join('\n\t');
 	}
 
 	protected getIsKeyOf() {
 		const content = [`def isKeyOf(self, key, obj):`,
-			`\t\treturn key in obj`
+			`return key in obj`
 		];
-		return content.join('\n');
+		return content.join('\n\t\t');
 	}
 
 	protected getRootReducer() {
 		const content = [`def rootReducer(self, action, context, payload, state):`,
-			`\t\tif (not action) or (payload is None):`,
-			`\t\t\treturn {'state': state, 'context': context}`,
-			`\t\t${this.getRootReducerStateValidation()}`,
-			`\t\t${this.getRootReducerActionValidation()}`,
-			`\t\tnewState = state`,
-			`\t\tif actionToStateDict[state][action] is not None:`,
-			`\t\t\tnewState = actionToStateDict[action]`,
-			`\t\treturn {'state':  newState, 'context': dict({**payload})}`
+			`if (not action) or (payload is None):`,
+			`\treturn {'state': state, 'context': context}`,
+			`${this.getRootReducerStateValidation()}`,
+			`${this.getRootReducerActionValidation()}`,
+			`newState = state`,
+			`if actionToStateDict[state][action] is not None:`,
+			`\tnewState = actionToStateDict[action]`,
+			`return {'state':  newState, 'context': dict({**payload})}`
 		];
-		return content.join('\n');
+		return content.join('\n\t\t');
 	}
 
 	protected getRootReducerStateValidation() {
 		const content = [`${this.getRootReducerStateValidationHead()}`,
-			`\t\t\t${this.getRootReducerStateValidationError()}`
+			`${this.getRootReducerStateValidationError()}`
 		];
-		return content.join('\n');
+		return content.join('\n\t\t\t');
 	}
 
 	protected getRootReducerStateValidationHead() {
@@ -99,23 +99,23 @@ export class PythonCodegen implements ICodegen {
 
 	protected getRootReducerActionValidation() {
 		const content = [`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
-			`\t\t\treturn {'state': state, 'context': context }`
+			`return {'state': state, 'context': context }`
 		];
-		return content.join('\n');
+		return content.join('\n\t\t\t');
 	}
 
 	protected getStateValidator() {
 		const content = [`def state_validator(self, s):`,
-			`\t\treturn s in statesDictionary.values()`
+			`return s in statesDictionary.values()`
 		];
-		return content.join('\n');
+		return content.join('\n\t\t');
 	}
 
 	protected getActionValidator() {
 		const content = [`def action_validator(self, a):`,
-			`\t\treturn a in actionsDictionary.values()`
+			`return a in actionsDictionary.values()`
 		];
-		return content.join('\n');
+		return content.join('\n\t\t');
 	}
 
 	protected getActionToStateFromStateDict() {
