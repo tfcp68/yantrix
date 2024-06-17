@@ -49,7 +49,7 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	getClassTemplate(className: string) {
-		const content = [`class ${className}(GenericAutomata):`,
+		const content = [`class ${className}:`,
 			`\tdef __init__(self):`,
 			`\t\tself.state = ${this.initialState}`,
 			`\t\tself.context = { 'index': -1 }`,
