@@ -95,9 +95,6 @@ importers:
             '@yantrix/mermaid-parser':
                 specifier: workspace:^
                 version: link:../mermaid-parser
-            '@yantrix/yantrix-parser':
-                specifier: workspace:^
-                version: link:../yantrix-parser
 
     packages/mermaid-parser:
         devDependencies:
