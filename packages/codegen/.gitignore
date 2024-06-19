@@ -40,3 +40,4 @@ coverage
 .prettiercache
 .eslintcache
 
+*_generated.ts
