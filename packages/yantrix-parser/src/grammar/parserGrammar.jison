@@ -58,7 +58,7 @@
 [A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])    {this.begin('Func');return 'FunctionName';}
 
 'emit/'                               {this.begin('EmitStatement'); return 'emit/'}
-<EmitStatement>[^()=<\n]+             {this.popState(); return 'EventName'}
+<EmitStatement>[^()=<\n\s]+             {this.popState(); return 'EventName'}
 
 '#{'                                  {this.begin('KeyList');return '#{'}
 '{'                                   {this.begin('KeyList');return '{'}

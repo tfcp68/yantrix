@@ -45,7 +45,9 @@
 		"jison": "0.4.18"
 	},
 	"dependencies": {
+		"@yantrix/utils": "workspace:^",
 		"@ts-jison/lexer": "0.4.1-alpha.1",
-		"@ts-jison/parser": "0.4.1-alpha.1"
+		"@ts-jison/parser": "0.4.1-alpha.1",
+		"immutable": "^4.3.6"
 	}
 }

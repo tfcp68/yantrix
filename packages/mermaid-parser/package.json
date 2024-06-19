@@ -42,7 +42,7 @@
 	"devDependencies": {
 		"@types/d3": "^7.4.0",
 		"@types/dompurify": "^3.0.2",
-		"@yantrix/utils": "*",
+		"@yantrix/utils": "workspace:^",
 		"mermaid": "10.1.0"
 	}
 }
