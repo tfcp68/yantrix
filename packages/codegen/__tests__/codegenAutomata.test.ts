@@ -1,5 +1,6 @@
 import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
+import { writeFile } from './fixtures/saveGenerated.js';
 
 let automata: GamePhaseAutomata;
 

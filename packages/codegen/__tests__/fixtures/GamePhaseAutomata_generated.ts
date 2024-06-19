@@ -23,15 +23,146 @@ export const actionsDictionary = {
 	'/BEGIN_GAME': 1225901225,
 	'/END_GAME': 808645083,
 };
+const getDefaultContext = ({ payload, context: prevContext }) => {
+	return prevContext;
+};
 const actionToStateFromStateDict = {
-	45657535: { 1481692: 1415394173 },
-	487317864: { 45547981: 2004485394, 99594860: 1918712022, 383736638: 1253633506 },
-	1253633506: { 1225901225: 1301012547 },
-	1301012547: { 45547981: 2004485394, 99594860: 1918712022, 808645083: 1404098696 },
-	1404098696: { 45547981: 2004485394, 99594860: 1918712022 },
-	1415394173: { 99594860: 1918712022 },
-	1696941163: { 1423436384: 45657535 },
-	1918712022: { 45547981: 2004485394, 834502202: 487317864, 1546956885: 1918712022, 1675466392: 487317864 },
+	1696941163: {
+		1423436384: {
+			state: 45657535,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	45657535: {
+		1481692: {
+			state: 1415394173,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	1415394173: {
+		99594860: {
+			state: 1918712022,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	1918712022: {
+		45547981: {
+			state: 2004485394,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		1546956885: {
+			state: 1918712022,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		834502202: {
+			state: 487317864,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		1675466392: {
+			state: 487317864,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	487317864: {
+		45547981: {
+			state: 2004485394,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		99594860: {
+			state: 1918712022,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		383736638: {
+			state: 1253633506,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	1253633506: {
+		1225901225: {
+			state: 1301012547,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	1301012547: {
+		45547981: {
+			state: 2004485394,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		808645083: {
+			state: 1404098696,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		99594860: {
+			state: 1918712022,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
+	1404098696: {
+		99594860: {
+			state: 1918712022,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+
+		45547981: {
+			state: 2004485394,
+			getNewContext: ({ payload, context }) => {
+				const prevContext = getDefaultContext({ payload, context });
+				return prevContext;
+			},
+		},
+	},
 };
 export class GamePhaseAutomata extends GenericAutomata {
 	constructor() {
@@ -44,8 +175,9 @@ export class GamePhaseAutomata extends GenericAutomata {
 				if (!this.isKeyOf(state, actionToStateFromStateDict))
 					throw new Error("Invalid state, maybe machine isn't running.");
 				if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
-				const newState = actionToStateFromStateDict[state][action] ?? state;
-				return { state: newState, context: { ...payload } };
+				const { state: newState, getNewContext } = actionToStateFromStateDict[state][action];
+
+				return { state: newState, context: getNewContext({ payload, context }) };
 			},
 			stateValidator: ((s) => Object.values(statesDictionary).includes(s)) as TValidator<TAutomataBaseStateType>,
 			actionValidator: ((a) =>

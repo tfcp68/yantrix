@@ -23,7 +23,7 @@ type TExpressionProperty = {
 	Property: any;
 };
 type TExpressionNumber = {
-	NumberExpression: number;
+	NumberDeclaration: number;
 };
 type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionProperty;
 
@@ -45,3 +45,7 @@ export type TMapped = {
 
 export type TMappedKeys = keyof TMapped;
 export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
+
+export type TExpression<T extends TMappedKeys> = {
+	expressionType: T;
+} & TExpressionMapped<T>;

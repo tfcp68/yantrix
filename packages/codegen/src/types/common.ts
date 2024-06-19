@@ -1,5 +1,5 @@
 import { Modules } from '../core/modules/index.js';
-import { TMapped, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
+import { TExpression, TMapped, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 
 export type TStateDiagramMatrixIncludeNotes = {
@@ -58,12 +58,14 @@ export interface ICodegen {
 	getClassTemplate(className: string): string;
 
 	getImports(): string;
+
+	getDefaultContext(): string;
 }
 
 export type TOutLang = keyof typeof Modules;
 
 export type TExpressionRecord = {
-	[K in TMappedKeys]: (arg: TMapped[K]) => string;
+	[K in TMappedKeys]: (arg: TExpression<K>) => string;
 };
 
 export const TAssignTypeDict = {

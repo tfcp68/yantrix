@@ -33,29 +33,13 @@ SCORE_SCREEN --> [*]: EXIT`;
 const input2 = `stateDiagram-v2
 [*] --> CLOSED: RESET (list)
 note left of [*]
-+INITIAL
-#{ items = []}
-#{ selectedIndex = 0 }
+#{ items = [], selectedIndex = 0}
+#{ AA = 0 } <= { BA }
+#{ BB  } <= { BA }
 end note
 CLOSED --> OPEN: OPEN
-OPEN --> CLOSED: CLOSE
-OPEN --> SELECTED: SELECT (index)
-SELECTED --> CLOSED: CLOSE
-note left of CLOSED
-#{ items } <= (list)
-#{ selectedIndex = 0 }
-subscribe/click => OPEN
-emit/dropdownClose
-end note
-note left of SELECTED
-#{ selectedIndex } <= (index)
-emit/selected <= (index)
-subscribe/selected => CLOSE
-end note
-note right of OPEN
-emit/dropdownOpen
-subscribe/click => SELECT (index)
-subscribe/clickOutside => CLOSE
+note left of CLOSED 
+#{ BB } <= ( payload)
 end note
 `;
 

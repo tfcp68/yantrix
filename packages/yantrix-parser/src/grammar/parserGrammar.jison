@@ -142,22 +142,41 @@ ActionStatement
 }}} ;
 
 KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
-KeyItem  : TargetProperty '=' Expression {if($3.hasOwnProperty('value')){if($3['value']?.Property === $1){throw new Error('The property cannot match the target property')}};$$ = {KeyItemDeclaration: {
-TargetProperty:$1, Expression:$3}}} | TargetProperty {$$={KeyItemDeclaration:{TargetProperty:$1}}};
-
+KeyItem  : TargetProperty '=' Expression
+            {
+                if ($3.hasOwnProperty('Property')) {
+                    if ($3['Property'] === $1) {
+                        throw new Error('The property cannot match the target property');
+                    }
+                }
+                $$ = {
+                    KeyItemDeclaration: {
+                        TargetProperty: $1,
+                        Expression: $3
+                    }
+                };
+            }
+         | TargetProperty
+            {
+                $$ = {
+                    KeyItemDeclaration: {
+                        TargetProperty: $1
+                    }
+                };
+            };
+Number:
+        | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
+        ;
 Expression
-          : FunctionOperator {$$ = {value:{...$1}, expressionType:ExpressionTypes.Function}}
-          | TargetProperty {$$ = {value:{Property:$1}, expressionType:ExpressionTypes.Property}}
-          | StringDeclaration {$$ = {value:{StringDeclaration:$1.toString()}, expressionType:ExpressionTypes.StringDeclaration}}
-          | ConstantDeclaration {$$ = {value:{ConstantReference:$1}, expressionType:ExpressionTypes.Constant}}
-          | Array {$$ = {value:{ArrayDeclaration:[]}, expressionType:ExpressionTypes.ArrayDeclaration}}
-          | Number {$$ = $1}
+          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
+          | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
+          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
+          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
+          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
+          | Number
           ;
 
-Number:
-        | integerLiteral {$$ = {value:{NumberDeclaration: Number($1)}, expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {value:{NumberDeclaration: Number($1)}, expressionType:ExpressionTypes.DecimalDeclaration}}
-        ;
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
         ;
@@ -168,6 +187,5 @@ ArgumentsTypes
              |  Expression {$$=[$1]}
              |  ArgumentsTypes ',' ArgumentsTypes {$$ = [...$1, ...$3]}
              ;
-
 
 ConstantDeclaration : '$(' Constant ')'{ $$ = $2};

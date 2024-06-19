@@ -26,18 +26,18 @@ export const fillDictionaries = (
 
 export const Expressions: TExpressionRecord = {
 	[ExpressionTypes.ArrayDeclaration]: () => '[]',
-	[ExpressionTypes.Function]: (value) => {
+	[ExpressionTypes.Function]: () => {
 		throw new Error(`Not implemented ${ExpressionTypes.Function}`);
 	},
 	[ExpressionTypes.Property]: ({ Property }) => {
-		return `${property}`;
+		return `${Property}`;
 	},
 
-	[ExpressionTypes.DecimalDeclaration]: ({ NumberExpression }) => {
-		return `${NumberExpression}`;
+	[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
 	},
-	[ExpressionTypes.IntegerDeclaration]: ({ NumberExpression }) => {
-		return `${NumberExpression}`;
+	[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
 	},
 	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
 		return `'${StringDeclaration}'`;

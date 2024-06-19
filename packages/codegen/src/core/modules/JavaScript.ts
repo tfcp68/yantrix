@@ -2,13 +2,14 @@ import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { Expressions, fillDictionaries } from '../shared.js';
 import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { convertKeysToNumberString } from '../../utils/utils.js';
 import {
 	isKeyItemWithExpression,
 	isPayloadContext,
 	isPrevContext,
+	isShortContext,
 	TKeyItem,
 	TKeyItemWithExpression,
+	TMappedKeys,
 } from '@yantrix/yantrix-parser';
 
 export class JavaScriptCodegen implements ICodegen {
@@ -48,10 +49,6 @@ export class JavaScriptCodegen implements ICodegen {
 		return this.dictionaries.join('\n');
 	}
 
-	public getChangeStateHandlers(): string {
-		return this.changeStateHandlers.join('\n');
-	}
-
 	setupDictionaries() {
 		this.dictionaries.push(
 			`export const statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
@@ -78,24 +75,35 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	public getActionToStateFromState() {
-		return `const actionToStateFromStateDict = ${convertKeysToNumberString(this.getActionToStateFromStateDict())}`;
+		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		const actionToStateDict: Record<number, number> = {};
-		Object.keys(transitions).map((key) => {
-			const { actionsPath } = transitions[key];
-			const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-			actionsPath.map(({ action }) => {
-				const actionValue = this.actionDictionary.getActionValues({
-					keys: action,
-				})[0];
-				if (!actionValue) throw new Error(`Action ${action} not found`);
-				if (!newState) throw new Error(`State ${key} not found`);
-				actionToStateDict[actionValue] = newState;
-			});
-		});
-		return actionToStateDict;
+		return Object.keys(transitions)
+			.map((key) => {
+				const { actionsPath } = transitions[key];
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+				return actionsPath.map(({ action }) => {
+					const actionValue = this.actionDictionary.getActionValues({
+						keys: action,
+					})[0];
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
+
+					const ctx = this.getSubsyntaxContext(key);
+
+					return `
+				  ${actionValue}: {
+				  	state: ${newState},
+				  	getNewContext: ({payload, context}) => {
+				  			const prevContext = getDefaultContext({payload,context})
+				  			return ${ctx}
+				  	}
+				  },
+				`;
+				});
+			})
+			.flatMap((el) => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf() {
@@ -107,8 +115,10 @@ export class JavaScriptCodegen implements ICodegen {
 					if (!action || payload === null) return { state, context };
 					${this.getRootReducerStateValidation()}
 					${this.getRootReducerActionValidation()}
-					const newState = actionToStateFromStateDict[state][action] ?? state;
-					return {state:  newState, context: { ...payload }};
+					const {state:newState,getNewContext} = actionToStateFromStateDict[state][action]
+					
+							
+					return {state:newState, context: getNewContext({payload,context})};
   				}`;
 	}
 
@@ -137,18 +147,13 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getActionToStateFromStateDict() {
-		const actionToStateFromStateDict: Record<number, Record<number, number>> = {};
-		Object.keys(this.diagram.transitions).map((state) => {
+		return Object.keys(this.diagram.transitions).map((state) => {
 			const transitions = this.diagram.transitions[state];
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
-			actionToStateFromStateDict[value] = this.getActionToStateDict(transitions);
-		});
-		return actionToStateFromStateDict;
-	}
 
-	protected getHandleStateChangeDeclaration(value: number, body: string) {
-		return `const handleStateChange${value} = ({payload,action,context:${TAssignTypeDict.PREV_CONTEXT},state}) => {${body}}`;
+			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
+		});
 	}
 
 	protected getSubsyntaxContext(state: string | null) {
@@ -161,37 +166,35 @@ export class JavaScriptCodegen implements ICodegen {
 		}
 
 		if (!value.notes || !value.notes.contextDescription.length) {
-			return `...prevContext`;
+			return `prevContext`;
 		}
-
 		const { contextDescription } = value.notes;
 
 		const res = contextDescription
-			.map((ctx) => {
-				return ctx.context.map(() => {
-					if (isPayloadContext(ctx)) {
-						const { context, payload = [] } = ctx;
-						return context.map((ctxItem, index) => {
-							const boundProperty = payload[index] || null;
-							return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
-						});
-					}
-					if (isPrevContext(ctx)) {
-						const { context, prevContext = [] } = ctx;
-						return context.map((ctxItem, index) => {
-							const boundProperty = prevContext[index] || null;
-							return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
-						});
-					}
+			.map((ctx, index) => {
+				if (isPayloadContext(ctx)) {
+					const { context, payload = [] } = ctx;
+					return context.map((ctxItem, index) => {
+						const boundProperty = payload[index] || null;
+						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
+					});
+				} else if (isPrevContext(ctx)) {
+					const { context, prevContext = [] } = ctx;
+					return context.map((ctxItem, index) => {
+						const boundProperty = prevContext[index] || null;
+						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
+					});
+				} else if (isShortContext(ctx)) {
 					const { context } = ctx;
 					return context.map((ctxItem) => {
 						return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
 					});
-				});
+				}
+				throw new Error(`Invalid context type - ${ctx}`);
 			})
 			.flatMap((template) => template.flatMap((el) => el));
 
-		return ['...prevContext,', ...res].join('\r\n');
+		return `{${res.join('\r\n')}}`;
 	}
 
 	private getInitialContext() {
@@ -203,24 +206,27 @@ export class JavaScriptCodegen implements ICodegen {
 			return 'null';
 		}
 
-		const initialNotes = startState.notes.contextDescription
-			.map((ctx) => {
-				if (isPrevContext(ctx) || isPrevContext(ctx)) {
-					return null;
-				} else {
-					const { context } = ctx;
-					return context
-						.map((ctx) => {
-							return this.getInitialValue(ctx);
-						})
-						.flatMap((el) => el);
-				}
-			})
-			.filter((el) => el !== null);
+		const initialNotes = startState.notes.contextDescription.map((ctx) => {
+			const { context } = ctx;
+			return context
+				.map((ctx) => {
+					if (isKeyItemWithExpression(ctx)) {
+						return `${ctx.KeyItemDeclaration.TargetProperty}: ${this.getByExpressionValue(ctx)}`;
+					}
+					return `${ctx.KeyItemDeclaration.TargetProperty}: null`;
+				})
+				.flatMap((el) => el);
+		});
 
-		return `{${initialNotes.join(',')}}`;
+		return `{${initialNotes.join(',\n\t')}}`;
 	}
 
+	public getDefaultContext = () => {
+		return `const getDefaultContext = ({payload,context:prevContext}) => {
+			return ${this.getSubsyntaxContext(StartState)}
+		
+		}`;
+	};
 	private getInitialState() {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
@@ -245,7 +251,7 @@ export class JavaScriptCodegen implements ICodegen {
 		if (boundProperty === null) {
 			if (isKeyItemWithExpression(context)) {
 				const value = this.getByExpressionValue(context);
-				return `${LeftTarget}:  ${value},`;
+				return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'] || ${value},`;
 			}
 			return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'],`;
 		}
@@ -279,19 +285,16 @@ export class JavaScriptCodegen implements ICodegen {
 		}
 		if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
 			const leftValue = this.getByExpressionValue(context);
-			const rightValue = this.getByExpressionValue(context);
+			const rightValue = this.getByExpressionValue(boundProperty);
 
 			return `${LeftTarget}: ${type}['${RightTarget}'] || ${rightValue} || ${leftValue},`;
 		}
 		return `${LeftTarget}: null,`;
 	}
 
-	private getByExpressionValue({
-		KeyItemDeclaration: {
-			Expression: { expressionType, value },
-		},
-	}: TKeyItemWithExpression) {
-		// @ts-expect-error - idk
-		return Expressions[expressionType](value);
+	private getByExpressionValue<T extends TMappedKeys>({
+		KeyItemDeclaration: { Expression },
+	}: TKeyItemWithExpression<T>) {
+		return Expressions[Expression.expressionType](Expression);
 	}
 }
