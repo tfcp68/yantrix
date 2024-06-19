@@ -16,7 +16,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm build && pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run"
+		"test": "pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run"
 	},
 	"description": "Execute jison parser",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
