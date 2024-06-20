@@ -12,7 +12,7 @@ function log {
 
 ROOT=$(pwd)
 CODEGEN_FILE="$ROOT/bin/codegen.ts"
-OUT_DIR="$ROOT/__tests__/fixtures"
+OUT_DIR="$ROOT/__tests__/fixtures/GamePhaseAutomata_generated.ts"
 
 count=0
 
@@ -20,7 +20,7 @@ for file in $ROOT/__tests__/fixtures/*.txt
 do
 	filename=${file##*/}
 	log "${YELLOW}⌛ Generating Automata from $filename...${RESET}"
-	pnpm yantrix codegen -l ts -o $OUT_DIR -c "GamePhaseAutomata" $file
+	pnpm yantrix codegen --verbose -l TypeScript -o $OUT_DIR -c "GamePhaseAutomata" $file
 	((count++))
 done
 

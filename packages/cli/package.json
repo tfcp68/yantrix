@@ -12,7 +12,7 @@
 	"repository": {
 		"directory": "packages/cli",
 		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git"
+		"url": "git+https://github.com/tfcp68/yantrix.git"
 	},
 	"scripts": {
 		"build": "rimraf dist && tsc",
@@ -20,15 +20,14 @@
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
 	},
 	"description": "CLI for Yantrix components",
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"bugs": {
-		"url": "https://github.com/octaharon/yantrix/issues"
+		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
 	"directories": {
 		"bin": "bin",
 		"lib": "src"
 	},
-	"homepage": "https://github.com/octaharon/yantrix",
+	"homepage": "https://github.com/tfcp68/yantrix",
 	"keywords": [
 		"FSM",
 		"Miely Machine"
