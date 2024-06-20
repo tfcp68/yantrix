@@ -1,7 +1,6 @@
 import { IGenerateOptions, TStateDiagramSyntaxTree } from './types/common.js';
 import { CodegenCreator } from './core/Codegen.js';
 
-export * from './constants/index.js';
 export * from './types/common.js';
 export * from './core/modules/index.js';
 

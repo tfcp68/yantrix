@@ -40,4 +40,4 @@ coverage
 .prettiercache
 .eslintcache
 
-src/yantrixParser.ts
+*_generated.ts
