@@ -7,8 +7,9 @@ export default defineConfig({
 		coverage: {
 			enabled: true,
 			all: true,
-			provider: 'v8',
-			reporter: ['html-spa', 'clover', 'text', 'text-summary'],
+			reportOnFailure: true,
+			provider: 'istanbul',
+			reporter: ['html', 'json', 'json-summary'],
 			include: ['src'],
 			exclude: [
 				// All ts files that only contain types, due to ALL
