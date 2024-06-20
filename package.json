@@ -20,7 +20,7 @@
 		"publish:local": "pnpm build:clean && pnpm yalc:all",
 		"postinstall": "is-ci || husky install",
 		"upd": "pnpm --interactive update --latest",
-		"vitest": "vitest --coverage --run"
+		"vitest": "vitest --coverage"
 	},
 	"repository": {
 		"type": "git",
