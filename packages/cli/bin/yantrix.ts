@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import path, { dirname } from 'path';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Modules, generateAutomataFromStateDiagram } from '@yantrix/codegen';
+import pc from 'picocolors';
 
 interface ICodegenOptions {
 	language: keyof typeof Modules;
@@ -16,10 +17,10 @@ interface ICodegenOptions {
 
 const program = new Command();
 
-const error = (m: string) => console.error(`\x1b[1m\x1b[31m❌ ${m}\x1b[0m`);
-const warn = (m: string) => console.warn(`\x1b[1m\x1b[33m⚠️ ${m}\x1b[0m`);
-const success = (m: string) => console.info(`\x1b[1m\x1b[32m✅ ${m}\x1b[0m`);
-const wait = (m: string) => console.warn(`\x1b[1m\x1b[33m⌛ ${m}\x1b[0m`);
+const error = (m: string) => console.error(pc.bold(pc.red(`❌ ${m}`)));
+const warn = (m: string) => console.warn(pc.bold(pc.yellow(`⚠️ ${m}`)));
+const success = (m: string) => console.info(pc.bold(pc.green(`✅ ${m}`)));
+const wait = (m: string) => console.warn(pc.bold(pc.yellow(`⌛ ${m}`)));
 
 const checkDisableFlags = ['/* eslint-disable */', '// @ts-nocheck'];
 
