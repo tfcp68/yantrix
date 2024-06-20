@@ -12,7 +12,7 @@ export default defineConfig({
 			clean: true,
 			reportsDirectory: './coverage',
 			provider: 'istanbul',
-			reporter: ['text', 'json-summary', 'json'],
+			reporter: ['text', 'json-summary', 'json', 'html-spa'],
 		},
 	},
 });

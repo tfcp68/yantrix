@@ -53,7 +53,17 @@ jobs:
               with:
                   name: coverage-main
                   path: coverage-main
-            - name: 'Report Coverage'
+            - name: 'Main coverage'
+              if: always()
               uses: davelosert/vitest-coverage-report-action@v2
               with:
-                  json-summary-compare-path: coverage-main/coverage-summary.json
+                  name: 'Main coverage'
+                  json-summary-path: './coverage-main/coverage-summary-frontend.json'
+                  json-final-path: './coverage-main/coverage-final-frontend.json'
+            - name: 'Head coverage'
+              if: always()
+              uses: davelosert/vitest-coverage-report-action@v2
+              with:
+                  name: 'Coverage ${{ github.head_ref }}'
+                  json-summary-path: './coverage-${{ github.head_ref }}/coverage-summary-frontend.json'
+                  json-final-path: './coverage-${{ github.head_ref }}/coverage-final-frontend.json'
