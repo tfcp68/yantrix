@@ -1,0 +1,49 @@
+{
+	"name": "@yantrix/cli",
+	"version": "0.1.0",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"yantrix": "dist/bin/yantrix.js"
+	},
+	"files": [
+		"dist"
+	],
+	"repository": {
+		"directory": "packages/cli",
+		"type": "git",
+		"url": "git+https://github.com/tfcp68/yantrix.git"
+	},
+	"scripts": {
+		"build": "rimraf dist && tsc",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
+	},
+	"description": "CLI for Yantrix components",
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"directories": {
+		"bin": "bin",
+		"lib": "src"
+	},
+	"homepage": "https://github.com/tfcp68/yantrix",
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
+	"devDependencies": {
+		"@types/fs-extra": "^11.0.4",
+		"tsx": "^4.11.0"
+	},
+	"dependencies": {
+		"commander": "^12.1.0",
+		"fs-extra": "^11.2.0",
+		"picocolors": "^1.0.1",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/codegen": "workspace:^"
+	},
+	"license": "ISC",
+	"type": "module"
+}
