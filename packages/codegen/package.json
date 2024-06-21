@@ -16,7 +16,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "bash scripts/gen-automata-for-tests.sh && vitest run"
+		"test": "bash scripts/gen-automata-for-tests.sh && vitest run --coverage"
 	},
 	"description": "Generates automata from given mermaid state diagram",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
