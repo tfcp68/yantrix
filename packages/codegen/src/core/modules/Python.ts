@@ -1,20 +1,20 @@
-import type { ICodegen } from '../../types/common.js';
+import type { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
+import type { TDiagramAction } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
 import { convertKeysToNumberString } from '../../utils/utils.js';
 
 export class PythonCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	diagram: TStateDiagram;
+	diagram: TStateDiagramMatrixIncludeNotes;
 	initialState: null | number;
 	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
 	};
 
-	constructor(diagram: TStateDiagram) {
+	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 
@@ -139,5 +139,8 @@ export class PythonCodegen implements ICodegen {
 			});
 		});
 		return actionToStateDict;
+	}
+	public getDefaultContext(): string {
+		return '';
 	}
 }
