@@ -16,7 +16,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm build",
-		"test": "vitest run"
+		"test": "vitest run --coverage"
 	},
 	"description": "Provides Yantrix abstractions from MermaidJS State and Sequence diagrams",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
