@@ -2,7 +2,7 @@ import { ICodegenOptions, TStateDiagramMatrixIncludeNotes } from '../types/commo
 import { Modules } from './modules/index.js';
 
 export class CodegenCreator {
-	public constructor(private stateDiagramSyntaxTree: TStateDiagramMatrixIncludeNotes) {}
+	public constructor(protected stateDiagramSyntaxTree: TStateDiagramMatrixIncludeNotes) {}
 
 	public createCodegen(options: ICodegenOptions) {
 		return new Modules[options.language](this.stateDiagramSyntaxTree);

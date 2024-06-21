@@ -87,17 +87,61 @@ importers:
                 specifier: ^1.13.6
                 version: 1.13.6
 
-    packages/codegen:
-        devDependencies:
+    packages/cli:
+        dependencies:
             '@yantrix/automata':
                 specifier: workspace:^
                 version: link:../automata
+            '@yantrix/codegen':
+                specifier: workspace:^
+                version: link:../codegen
             '@yantrix/mermaid-parser':
                 specifier: workspace:^
                 version: link:../mermaid-parser
-            '@yantrix/yantrix-parser':
+            commander:
+                specifier: ^12.1.0
+                version: 12.1.0
+            fs-extra:
+                specifier: ^11.2.0
+                version: 11.2.0
+            picocolors:
+                specifier: ^1.0.1
+                version: 1.0.1
+        devDependencies:
+            '@types/fs-extra':
+                specifier: ^11.0.4
+                version: 11.0.4
+            tsx:
+                specifier: ^4.11.0
+                version: 4.15.7
+
+    packages/codegen:
+        dependencies:
+            commander:
+                specifier: ^12.1.0
+                version: 12.1.0
+            fs-extra:
+                specifier: ^11.2.0
+                version: 11.2.0
+            picocolors:
+                specifier: ^1.0.1
+                version: 1.0.1
+        devDependencies:
+            '@types/fs-extra':
+                specifier: ^11.0.4
+                version: 11.0.4
+            '@yantrix/automata':
                 specifier: workspace:^
-                version: link:../yantrix-parser
+                version: link:../automata
+            '@yantrix/cli':
+                specifier: workspace:^
+                version: link:../cli
+            '@yantrix/mermaid-parser':
+                specifier: workspace:^
+                version: link:../mermaid-parser
+            tsx:
+                specifier: ^4.11.0
+                version: 4.15.7
 
     packages/mermaid-parser:
         devDependencies:
@@ -2277,6 +2321,16 @@ packages:
             }
         dev: true
 
+    /@types/fs-extra@11.0.4:
+        resolution:
+            {
+                integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==,
+            }
+        dependencies:
+            '@types/jsonfile': 6.1.4
+            '@types/node': 20.14.6
+        dev: true
+
     /@types/geojson@7946.0.14:
         resolution:
             {
@@ -2289,6 +2343,15 @@ packages:
             {
                 integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==,
             }
+        dev: true
+
+    /@types/jsonfile@6.1.4:
+        resolution:
+            {
+                integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==,
+            }
+        dependencies:
+            '@types/node': 20.14.6
         dev: true
 
     /@types/keyv@3.1.4:
@@ -3607,7 +3670,6 @@ packages:
                 integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==,
             }
         engines: { node: '>=18' }
-        dev: true
 
     /commander@7.2.0:
         resolution:
@@ -5319,7 +5381,6 @@ packages:
             graceful-fs: 4.2.11
             jsonfile: 6.1.0
             universalify: 2.0.1
-        dev: true
 
     /fs-extra@8.1.0:
         resolution:
@@ -5479,6 +5540,15 @@ packages:
                 integrity: sha512-VaUJspBffn/LMCJVoMvSAdmscJyS1auj5Zulnn5UoYcY531UWmdwhRWkcGKnGU93m5HSXP9LP2usOryrBtQowA==,
             }
         engines: { node: '>=16' }
+        dev: true
+
+    /get-tsconfig@4.7.5:
+        resolution:
+            {
+                integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==,
+            }
+        dependencies:
+            resolve-pkg-maps: 1.0.0
         dev: true
 
     /git-raw-commits@2.0.11:
@@ -6816,7 +6886,6 @@ packages:
             universalify: 2.0.1
         optionalDependencies:
             graceful-fs: 4.2.11
-        dev: true
 
     /jsonlint@1.6.0:
         resolution:
@@ -9426,6 +9495,13 @@ packages:
             global-dirs: 0.1.1
         dev: true
 
+    /resolve-pkg-maps@1.0.0:
+        resolution:
+            {
+                integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==,
+            }
+        dev: true
+
     /resolve@1.22.8:
         resolution:
             {
@@ -10416,6 +10492,20 @@ packages:
             }
         dev: true
 
+    /tsx@4.15.7:
+        resolution:
+            {
+                integrity: sha512-u3H0iSFDZM3za+VxkZ1kywdCeHCn+8/qHQS1MNoO2sONDgD95HlWtt8aB23OzeTmFP9IU4/8bZUdg58Uu5J4cg==,
+            }
+        engines: { node: '>=18.0.0' }
+        hasBin: true
+        dependencies:
+            esbuild: 0.21.5
+            get-tsconfig: 4.7.5
+        optionalDependencies:
+            fsevents: 2.3.3
+        dev: true
+
     /tuf-js@1.1.7:
         resolution:
             {
@@ -10619,7 +10709,6 @@ packages:
                 integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==,
             }
         engines: { node: '>= 10.0.0' }
-        dev: true
 
     /upath@2.0.1:
         resolution:
