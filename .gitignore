@@ -25,6 +25,7 @@ dist
 !.vscode/settings.json
 .idea
 tsconfig.tsbuildinfo
+coverage
 
 # Cache
 .prettiercache
