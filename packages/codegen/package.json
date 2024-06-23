@@ -42,6 +42,7 @@
 		"@types/fs-extra": "^11.0.4",
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
 		"@yantrix/cli": "workspace:^",
 		"tsx": "^4.11.0"
 	},
