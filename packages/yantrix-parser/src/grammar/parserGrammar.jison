@@ -1,6 +1,8 @@
+
 %{
   import {ReservedList, ExpressionTypes} from './index.js'
 %}
+
 
 
 
@@ -42,6 +44,8 @@
 '='                                  {return '='}
 \'[^\n#{()=><""]+\'                 {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 \"[^\n#{()=><'']+\"                  {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+
+'+INITIAL'                        {return 'InitialState'}
 
 'subscribe/'                         {this.begin('SubscribeStatement'); return 'subscribe/'}
 <SubscribeStatement>[^/=>\s]+        {this.popState(); return 'EventName'}
@@ -85,10 +89,13 @@ start
 	;
 
 document
-	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
+	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[],initialState:false}}
 	| document line {
            if($2 !== '\n') {
-              $1['contextDescription'].push($2)
+              if($2.hasOwnProperty('initialState')){
+                $1['initialState'] = true
+              }
+              if($2.hasOwnProperty('context'))  $1['contextDescription'].push($2)
               if($2.hasOwnProperty('eventName')) $1['emit'].push($2)
               if($2.hasOwnProperty('event')) $1['subscribe'].push($2)
            }

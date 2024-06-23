@@ -16,7 +16,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "bash scripts/gen-automata-for-tests.sh && vitest run --coverage"
+		"test": "pnpm install && pnpm run build && pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run --coverage"
 	},
 	"description": "Generates automata from given mermaid state diagram",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
@@ -40,14 +40,14 @@
 	"type": "module",
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/cli": "workspace:^",
 		"tsx": "^4.11.0"
 	},
 	"dependencies": {
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
 		"picocolors": "^1.0.1"
 	}
 }

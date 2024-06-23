@@ -3,6 +3,11 @@ export type TActionPath = {
 	note: string[][];
 };
 
+export type TStateDiagramMatrix = {
+	states: TDiagramStatesArray;
+	transitions: TDiagramTransitions;
+};
+
 export type TActionPathArray = TActionPath[];
 
 export type TDiagramState = {
@@ -10,7 +15,7 @@ export type TDiagramState = {
 	caption: string;
 	notes: string[][];
 	actionsPath: TActionPathArray;
-	subtree?: TStateDiagram;
+	subtree?: TStateDiagramMatrix;
 };
 
 export type TDiagramStatesArray = TDiagramState[];
@@ -20,11 +25,6 @@ export type TDiagramAction = {
 };
 
 export type TDiagramTransitions = Record<string, Record<string, TDiagramAction>>;
-
-export type TStateDiagram = {
-	states: TDiagramStatesArray;
-	transitions: TDiagramTransitions;
-};
 
 export type TFromChoice = {
 	choice: string;

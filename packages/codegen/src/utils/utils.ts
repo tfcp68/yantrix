@@ -1,6 +1,4 @@
-import type { ITypedObject, ITypedObjectProps } from '../types/common.js';
-import { join } from 'path';
-import { cwd } from 'node:process';
+import { ITypedObject, ITypedObjectProps } from '../types/common.js';
 import { readFile } from 'fs/promises';
 import { format } from 'prettier';
 
@@ -52,7 +50,7 @@ export const fmt = async (code: string, prettierCfgPath: string) => {
 /**
  * Преобразует ключи объекта в число
  */
-export const convertKeysToNumberString = (obj: Object) => {
+export const convertKeysToNumberString = (obj: object) => {
 	if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
 
 	let result = '{';

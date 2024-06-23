@@ -1,8 +1,10 @@
-import type { TStateDiagram } from '@yantrix/mermaid-parser';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+import { ExpressionTypes } from '@yantrix/yantrix-parser';
+import { property } from 'lodash-es';
 
 export const fillDictionaries = (
-	diagram: TStateDiagram,
+	diagram: TStateDiagramMatrixIncludeNotes,
 	stateDictionary: BasicStateDictionary,
 	actionDictionary: BasicActionDictionary,
 ) => {
@@ -21,3 +23,23 @@ export const fillDictionaries = (
 		}
 	}
 };
+
+export const Expressions: TExpressionRecord = {
+	[ExpressionTypes.ArrayDeclaration]: () => '[]',
+	[ExpressionTypes.Function]: () => {
+		throw new Error(`Not implemented ${ExpressionTypes.Function}`);
+	},
+	[ExpressionTypes.Property]: ({ Property }) => {
+		return `${Property}`;
+	},
+
+	[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
+	},
+	[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
+	},
+	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
+		return `'${StringDeclaration}'`;
+	},
+} as const;

@@ -1,21 +1,23 @@
 import mermaid from 'mermaid';
 import {
-	TStateDiagramStructure,
-	TTransitionsArray,
-	TParsedDiagramArray,
+	TAction,
+	TActionsStructure,
 	TChoice,
 	TChoicesStructure,
 	TFork,
 	TForksStructure,
 	TNote,
 	TNotesStructure,
+	TParsedDiagramArray,
 	TState,
+	TStateDiagramStructure,
 	TStatesStructure,
-	TAction,
-	TActionsStructure,
+	TTransitionsArray,
 } from './types/index.js';
 
-import { InvalidInputError, BlankInputError } from './errors/stateErrors.js';
+import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
+import { EndState, StartState } from '../constants/index.js';
+
 /**
  * @brief Function that parses a diagram;
  * @param diagramText - diagram [string];
@@ -33,8 +35,15 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
 		await mermaid.mermaidAPI.initialize();
 		const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
+
 		return parsedDiagram;
 	} catch (e) {
+		if (e instanceof Error) {
+			if (e.message === 'Diagram stateDiagram already registered.') {
+				mermaid.mermaidAPI.reset();
+				return diagramParser(diagramText);
+			}
+		}
 		throw new InvalidInputError((e as Error).message);
 	}
 }
@@ -44,6 +53,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
  * @param parsedDiagram - a primary diagram dictionary;
  * @returns Returns the transitions from the diagram and their descriptions.
  */
+
 function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 	const transitions: TTransitionsArray = [];
 	for (let i = 0; i < parsedDiagram.length; i++) {
@@ -54,15 +64,15 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 			const st1: string = tempSt1.id;
 			const st2: string = tempSt2.id;
 			if (st1 === '[*]' && st2 === '[*]') {
-				directionI.push('~~~START~~~');
-				directionI.push('~~~END~~~');
+				directionI.push(StartState);
+				directionI.push(EndState);
 			}
 			if (st1 === '[*]') {
-				directionI.push('~~~START~~~');
+				directionI.push(StartState);
 				directionI.push(st2);
 			} else if (st2 === '[*]') {
 				directionI.push(st1);
-				directionI.push('~~~END~~~');
+				directionI.push(EndState);
 			} else {
 				directionI.push(st1);
 				directionI.push(st2);
@@ -191,6 +201,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 	const notes: TNotesStructure = [];
 	const visited: Record<string, number> = {};
 	let visitedCount = 0;
+
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i].stmt === 'state') {
 			const keys = Object.keys(parsedDiagram[i]);
@@ -229,6 +240,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 function generateIdForAnonymousAction(from: string, to: string, num: number) {
 	return from + ', ' + to + ', ' + String(num);
 }
+
 /**
  * @brief This function creates a dictionary of transitions action;
  * @param transitions - array of transitions;

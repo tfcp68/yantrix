@@ -1,20 +1,20 @@
-import type { ICodegen } from '../../types/common.js';
+import type { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
+import type { TDiagramAction } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
 import { convertKeysToNumberString } from '../../utils/utils.js';
 
 export class PythonCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	diagram: TStateDiagram;
+	diagram: TStateDiagramMatrixIncludeNotes;
 	initialState: null | number;
 	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
 	};
 
-	constructor(diagram: TStateDiagram) {
+	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 
@@ -40,36 +40,32 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	setupDictionaries() {
-		this.dictionaries.push(
-			`statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
-		);
-		this.dictionaries.push(
-			`actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
-		);
+		this.dictionaries.push(`statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`);
+		this.dictionaries.push(`actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`);
 	}
 
 	getClassTemplate(className: string) {
-		const content = [`class ${className}:`,
+		const content = [
+			`class ${className}:`,
 			`def __init__(self):`,
 			`\tself.state = ${this.initialState}`,
 			`\tself.context = { 'index': -1 }`,
 			`${this.getIsKeyOf()}`,
 			`${this.getRootReducer()}`,
 			`${this.getStateValidator()}`,
-			`${this.getActionValidator()}`
+			`${this.getActionValidator()}`,
 		];
 		return content.join('\n\t');
 	}
 
 	protected getIsKeyOf() {
-		const content = [`def isKeyOf(self, key, obj):`,
-			`return key in obj`
-		];
+		const content = [`def isKeyOf(self, key, obj):`, `return key in obj`];
 		return content.join('\n\t\t');
 	}
 
 	protected getRootReducer() {
-		const content = [`def rootReducer(self, action, context, payload, state):`,
+		const content = [
+			`def rootReducer(self, action, context, payload, state):`,
 			`if (not action) or (payload is None):`,
 			`\treturn {'state': state, 'context': context}`,
 			`${this.getRootReducerStateValidation()}`,
@@ -77,15 +73,13 @@ export class PythonCodegen implements ICodegen {
 			`newState = state`,
 			`if actionToStateDict[state][action] is not None:`,
 			`\tnewState = actionToStateDict[action]`,
-			`return {'state':  newState, 'context': dict({**payload})}`
+			`return {'state':  newState, 'context': dict({**payload})}`,
 		];
 		return content.join('\n\t\t');
 	}
 
 	protected getRootReducerStateValidation() {
-		const content = [`${this.getRootReducerStateValidationHead()}`,
-			`${this.getRootReducerStateValidationError()}`
-		];
+		const content = [`${this.getRootReducerStateValidationHead()}`, `${this.getRootReducerStateValidationError()}`];
 		return content.join('\n\t\t\t');
 	}
 
@@ -98,23 +92,20 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	protected getRootReducerActionValidation() {
-		const content = [`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
-			`return {'state': state, 'context': context }`
+		const content = [
+			`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
+			`return {'state': state, 'context': context }`,
 		];
 		return content.join('\n\t\t\t');
 	}
 
 	protected getStateValidator() {
-		const content = [`def state_validator(self, s):`,
-			`return s in statesDictionary.values()`
-		];
+		const content = [`def state_validator(self, s):`, `return s in statesDictionary.values()`];
 		return content.join('\n\t\t');
 	}
 
 	protected getActionValidator() {
-		const content = [`def action_validator(self, a):`,
-			`return a in actionsDictionary.values()`
-		];
+		const content = [`def action_validator(self, a):`, `return a in actionsDictionary.values()`];
 		return content.join('\n\t\t');
 	}
 
@@ -148,5 +139,8 @@ export class PythonCodegen implements ICodegen {
 			});
 		});
 		return actionToStateDict;
+	}
+	public getDefaultContext(): string {
+		return '';
 	}
 }

@@ -1,28 +1,39 @@
-import type { ICodegen } from '../../types/common.js';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction, TStateDiagram } from '@yantrix/mermaid-parser';
-import { fillDictionaries } from '../shared.js';
-import { convertKeysToNumberString } from '../../utils/utils.js';
+import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
+import { Expressions, fillDictionaries } from '../shared.js';
+import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import {
+	isKeyItemWithExpression,
+	isPayloadContext,
+	isPrevContext,
+	isShortContext,
+	TKeyItem,
+	TKeyItemWithExpression,
+	TMappedKeys,
+} from '@yantrix/yantrix-parser';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	diagram: TStateDiagram;
-	initialState: null | number;
+	diagram: TStateDiagramMatrixIncludeNotes;
+	handlersDict: string[];
+	changeStateHandlers: string[];
 	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
 	};
 
-	constructor(diagram: TStateDiagram) {
+	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-
 		this.diagram = diagram;
+
+		this.handlersDict = [];
+		this.changeStateHandlers = [];
 		this.dictionaries = [];
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
-		this.initialState = Object.values(this.stateDictionary.getDictionary())[0];
+
 		this.setupDictionaries();
 	}
 
@@ -52,8 +63,8 @@ export class JavaScriptCodegen implements ICodegen {
   		 constructor() {
   			super();
   			this.init({
-  				state: ${this.initialState},
-  				context: { index: -1 },
+  				state: ${this.getInitialState()},
+  				context: ${this.getInitialContext()},
                 rootReducer: ${this.getRootReducer()},
   				stateValidator: ${this.getStateValidator()},
   				actionValidator: ${this.getActionValidator()},
@@ -61,6 +72,38 @@ export class JavaScriptCodegen implements ICodegen {
 			}
 			isKeyOf = ${this.getIsKeyOf()};
 		}`;
+	}
+
+	public getActionToStateFromState() {
+		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
+	}
+
+	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
+		return Object.keys(transitions)
+			.map((key) => {
+				const { actionsPath } = transitions[key];
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+				return actionsPath.map(({ action }) => {
+					const actionValue = this.actionDictionary.getActionValues({
+						keys: action,
+					})[0];
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
+
+					const ctx = this.getSubsyntaxContext(key);
+
+					return `
+				  ${actionValue}: {
+				  	state: ${newState},
+				  	getNewContext: ({payload, context}) => {
+				  			const prevContext = getDefaultContext({payload,context})
+				  			return ${ctx}
+				  	}
+				  },
+				`;
+				});
+			})
+			.flatMap((el) => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf() {
@@ -72,8 +115,10 @@ export class JavaScriptCodegen implements ICodegen {
 					if (!action || payload === null) return { state, context };
 					${this.getRootReducerStateValidation()}
 					${this.getRootReducerActionValidation()}
-					const newState = actionToStateFromStateDict[state][action] ?? state;
-					return {state:  newState, context: { ...payload }};
+					const {state:newState,getNewContext} = actionToStateFromStateDict[state][action]
+					
+							
+					return {state:newState, context: getNewContext({payload,context})};
   				}`;
 	}
 
@@ -102,34 +147,154 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getActionToStateFromStateDict() {
-		const actionToStateFromStateDict: Record<number, Record<number, number>> = {};
-		Object.keys(this.diagram.transitions).map((state) => {
+		return Object.keys(this.diagram.transitions).map((state) => {
 			const transitions = this.diagram.transitions[state];
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
-			actionToStateFromStateDict[value] = this.getActionToStateDict(transitions);
+
+			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
 		});
-		return actionToStateFromStateDict;
 	}
 
-	public getActionToStateFromState() {
-		return `const actionToStateFromStateDict = ${convertKeysToNumberString(this.getActionToStateFromStateDict())}`;
+	protected getSubsyntaxContext(state: string | null) {
+		const value = this.diagram.states.find((diagramState) => {
+			return diagramState.id === state;
+		});
+
+		if (!value) {
+			throw new Error(`Invalid state - ${value}`);
+		}
+
+		if (!value.notes || !value.notes.contextDescription.length) {
+			return `prevContext`;
+		}
+		const { contextDescription } = value.notes;
+
+		const res = contextDescription
+			.map((ctx, index) => {
+				if (isPayloadContext(ctx)) {
+					const { context, payload = [] } = ctx;
+					return context.map((ctxItem, index) => {
+						const boundProperty = payload[index] || null;
+						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
+					});
+				} else if (isPrevContext(ctx)) {
+					const { context, prevContext = [] } = ctx;
+					return context.map((ctxItem, index) => {
+						const boundProperty = prevContext[index] || null;
+						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
+					});
+				} else if (isShortContext(ctx)) {
+					const { context } = ctx;
+					return context.map((ctxItem) => {
+						return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
+					});
+				}
+				throw new Error(`Invalid context type - ${ctx}`);
+			})
+			.flatMap((template) => template.flatMap((el) => el));
+
+		return `{${res.join('\r\n')}}`;
 	}
 
-	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		const actionToStateDict: Record<number, number> = {};
-		Object.keys(transitions).map((key) => {
-			const { actionsPath } = transitions[key];
-			const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-			actionsPath.map(({ action }) => {
-				const actionValue = this.actionDictionary.getActionValues({
-					keys: action,
-				})[0];
-				if (!actionValue) throw new Error(`Action ${action} not found`);
-				if (!newState) throw new Error(`State ${key} not found`);
-				actionToStateDict[actionValue] = newState;
-			});
+	private getInitialContext() {
+		const startState = this.diagram.states.find((state) => {
+			return state.id === StartState;
 		});
-		return actionToStateDict;
+
+		if (!startState?.notes) {
+			return 'null';
+		}
+
+		const initialNotes = startState.notes.contextDescription.map((ctx) => {
+			const { context } = ctx;
+			return context
+				.map((ctx) => {
+					if (isKeyItemWithExpression(ctx)) {
+						return `${ctx.KeyItemDeclaration.TargetProperty}: ${this.getByExpressionValue(ctx)}`;
+					}
+					return `${ctx.KeyItemDeclaration.TargetProperty}: null`;
+				})
+				.flatMap((el) => el);
+		});
+
+		return `{${initialNotes.join(',\n\t')}}`;
+	}
+
+	public getDefaultContext = () => {
+		return `const getDefaultContext = ({payload,context:prevContext}) => {
+			return ${this.getSubsyntaxContext(StartState)}
+		
+		}`;
+	};
+	private getInitialState() {
+		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
+	}
+
+	private getInitialValue(context: TKeyItem) {
+		if (isKeyItemWithExpression(context)) {
+			const {
+				KeyItemDeclaration: { TargetProperty },
+			} = context;
+			return `${TargetProperty}: ${this.getByExpressionValue(context)}`;
+		} else {
+			const {
+				KeyItemDeclaration: { TargetProperty },
+			} = context;
+			return `${TargetProperty}: null`;
+		}
+	}
+
+	private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
+		const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
+
+		if (boundProperty === null) {
+			if (isKeyItemWithExpression(context)) {
+				const value = this.getByExpressionValue(context);
+				return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'] || ${value},`;
+			}
+			return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'],`;
+		}
+
+		const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
+		const isEmptyInitial = !isKeyItemWithExpression(context);
+
+		const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
+
+		if (isEmptyBoundExpression && isEmptyInitial) {
+			return `
+				${LeftTarget} : ${type}['${RightTarget}'],
+			`;
+		}
+
+		//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
+		if (isEmptyBoundExpression && !isEmptyInitial) {
+			if (isKeyItemWithExpression(context)) {
+				const value = this.getByExpressionValue(context);
+
+				return `${LeftTarget}:  ${type}['${RightTarget}'] || ${value},`;
+			}
+		}
+		//	#{ selectedIndex } <= (index=3)
+		if (!isEmptyBoundExpression && isEmptyInitial) {
+			if (isKeyItemWithExpression(boundProperty)) {
+				const value = this.getByExpressionValue(boundProperty);
+
+				return `${LeftTarget}: ${type}['${RightTarget}'] || ${value},`;
+			}
+		}
+		if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
+			const leftValue = this.getByExpressionValue(context);
+			const rightValue = this.getByExpressionValue(boundProperty);
+
+			return `${LeftTarget}: ${type}['${RightTarget}'] || ${rightValue} || ${leftValue},`;
+		}
+		return `${LeftTarget}: null,`;
+	}
+
+	private getByExpressionValue<T extends TMappedKeys>({
+		KeyItemDeclaration: { Expression },
+	}: TKeyItemWithExpression<T>) {
+		return Expressions[Expression.expressionType](Expression);
 	}
 }
