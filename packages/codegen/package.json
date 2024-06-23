@@ -12,11 +12,11 @@
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
-		"build": "pnpm install && rimraf dist && tsc",
+		"build": "rimraf dist && tsc",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm build && bash scripts/gen-automata-for-tests.sh && vitest run --coverage"
+		"test": "pnpm install && bash scripts/gen-automata-for-tests.sh && vitest run --coverage"
 	},
 	"description": "Generates automata from given mermaid state diagram",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
@@ -40,15 +40,15 @@
 	"type": "module",
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
-		"@yantrix/cli": "workspace:^",
 		"tsx": "^4.11.0"
 	},
 	"dependencies": {
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
+		"@yantrix/cli": "workspace:^",
 		"picocolors": "^1.0.1"
 	}
 }
