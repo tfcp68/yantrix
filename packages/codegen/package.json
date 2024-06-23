@@ -49,6 +49,5 @@
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/yantrix-parser": "workspace:^",
-		"@yantrix/cli": "workspace:^"
 	}
 }
