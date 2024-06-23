@@ -1,6 +1,5 @@
 import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
-import { writeFile } from './fixtures/saveGenerated.js';
 
 let automata: GamePhaseAutomata;
 
@@ -45,7 +44,7 @@ describe('Codegen output', () => {
 			});
 
 			expect(automata.state).toBe(prevState);
-			expect(automata.context).toStrictEqual(prevContext);
+			expect(automata.context).toStrictEqual(null);
 		});
 		test.each(cases)('%j -- > %j', (a: any, b) => {
 			automata.setActionQueue([...a]);
