@@ -40,15 +40,15 @@
 	"type": "module",
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
-		"tsx": "^4.11.0"
+		"tsx": "^4.11.0",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
+		"@yantrix/cli": "workspace:^"
 	},
 	"dependencies": {
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
-		"@yantrix/cli": "workspace:^",
 		"picocolors": "^1.0.1"
 	}
 }
