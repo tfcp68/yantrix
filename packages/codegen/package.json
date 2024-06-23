@@ -45,7 +45,7 @@
 	"dependencies": {
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
-		"picocolors": "^1.0.1"
+		"picocolors": "^1.0.1",
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/yantrix-parser": "workspace:^",
