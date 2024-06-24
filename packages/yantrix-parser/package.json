@@ -49,13 +49,13 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rimraf dist && (is-ci || pnpm run create-parser) && tsc",
+		"build": "rimraf dist && pnpm create-parser && tsc",
 		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison > nul 2>&1",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm run build && vitest run --coverage"
+		"test": "pnpm build && vitest run"
 	},
 	"dependencies": {
 		"@ts-jison/lexer": "0.4.1-alpha.1",
