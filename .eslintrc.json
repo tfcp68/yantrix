@@ -5,7 +5,7 @@
 		"browser": true,
 		"es6": true
 	},
-	"ignorePatterns": ["**/dist/*", "**/yantrixParser.ts"],
+	"ignorePatterns": ["**/dist/*", "**/yantrixParser.ts", "**/*generated.{ts,js}"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"project": "tsconfig.json",
