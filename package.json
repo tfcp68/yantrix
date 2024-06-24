@@ -22,13 +22,21 @@
 		"url": "https://github.com/tfcp68/yantrix.git"
 	},
 	"license": "MIT",
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
+	"contributors": [
+		"Alexander Uskov <neolord.tmb@gmail.com>",
+		"Etheresk <etheresked@gmail.com>",
+		"Denis Perevertov <regicuinte@gmail.com>",
+		"Nikita Beliaew <nekitech-x@mail.ru>",
+		"Sin <shulgin.grigoriy@yandex.ru>",
+		"Alexey Geraim <oblivion25565@gmail.com>",
+		"Саша <https://github.com/22sasha>"
+	],
 	"type": "module",
 	"workspaces": [
 		"packages/*"
 	],
 	"scripts": {
-		"build": "lerna run build",
+		"build": "lerna run build --verbose",
 		"build:affected": "lerna run build --since=origin/main",
 		"build:clean": "pnpm clean && pnpm build",
 		"clean": "lerna exec rimraf dist coverage",

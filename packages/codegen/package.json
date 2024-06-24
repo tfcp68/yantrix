@@ -17,7 +17,6 @@
 		"directory": "packages/codegen"
 	},
 	"license": "MIT",
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"contributors": [
 		"Alexander Uskov <neolord.tmb@gmail.com>",
 		"Etheresk <etheresked@gmail.com>",
