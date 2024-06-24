@@ -49,8 +49,8 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rimraf dist && pnpm create-parser && tsc",
-		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison > nul 2>&1",
+		"build": "rimraf dist && cross-env OUTPUT_REDIRECT=true pnpm create-parser && tsc",
+		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
