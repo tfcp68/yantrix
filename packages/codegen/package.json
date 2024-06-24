@@ -28,8 +28,16 @@
 	],
 	"type": "module",
 	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
+		".": {
+			"require": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
 	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
