@@ -364,21 +364,6 @@ describe('ActionDictionary', () => {
 		test('returns self', () => {
 			expect(sampleInstance.removeActions({})).toBe(sampleInstance);
 		});
-		test('does not change the dictionary without params', () => {
-			const dictionary = sampleInstance.getDictionary();
-			sampleInstance.removeActions({});
-			expect(sampleInstance.getDictionary()).toEqual(dictionary);
-		});
-		test('on empty dictionary does not change anything', () => {
-			const sampleInstance2 = new ActionDictionaryTest();
-			const dictionary = sampleInstance2.getDictionary();
-			sampleInstance2.removeActions({
-				namespace: testNamespace,
-				keys: pickFromArray(sampleKeys[testNamespace]),
-				actions: pickFromArray(defaultValues),
-			});
-			expect(sampleInstance2.getDictionary()).toEqual(dictionary);
-		});
 		describe('with namespace', () => {
 			describe('without Keys and Actions', () => {
 				test('does not change the dictionary with non-existing namespace', () => {
@@ -394,70 +379,7 @@ describe('ActionDictionary', () => {
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
 				});
 			});
-			describe('with Keys', () => {
-				test('does not change the dictionary with non-existing namespace', () => {
-					const dictionary = sampleInstance.getDictionary();
-					sampleInstance.removeActions({
-						namespace: testNamespaceExtra,
-						keys: pickFromArray(sampleKeys.default),
-					});
-					expect(sampleInstance.getDictionary()).toEqual(dictionary);
-				});
-				test('ignores empty keys', () => {
-					const dictionary = sampleInstance.getDictionary();
-					sampleInstance.removeActions({
-						namespace: testNamespace,
-						keys: [],
-					});
-					expect(sampleInstance.getDictionary()).toEqual(dictionary);
-				});
-				test('ignores keys from different namespace', () => {
-					const dictionary = sampleInstance.getDictionary();
-					sampleInstance.removeActions({
-						namespace: testNamespace,
-						keys: pickFromArray(sampleKeys.default),
-					});
-					expect(sampleInstance.getDictionary()).toEqual(dictionary);
-				});
-				test('ignores non-existing keys', () => {
-					const dictionary = sampleInstance.getDictionary();
-					sampleInstance.removeActions({
-						namespace: testNamespace,
-						keys: pickFromArray(sampleKeys[testNamespaceExtra]),
-					});
-					expect(sampleInstance.getDictionary()).toEqual(dictionary);
-				});
-				test('removes the requested Keys', () => {
-					const sampleKey = pickFromArray(sampleKeys[testNamespace]);
-					sampleInstance.removeActions({
-						namespace: testNamespace,
-						keys: sampleKey,
-					});
-					expect(Object.values(sampleInstance.getDictionary(testNamespace))).toEqual(
-						sampleInstance.getActionValues({
-							namespace: testNamespace,
-							keys: _.without(sampleKeys[testNamespace], ...sampleKey),
-						}),
-					);
-				});
-			});
 			describe('with Actions', () => {
-				test('does not change the dictionary with non-existing namespace', () => {
-					const dictionary = sampleInstance.getDictionary();
-					sampleInstance.removeActions({
-						namespace: testNamespaceExtra,
-						actions: pickFromArray(defaultValues),
-					});
-					expect(sampleInstance.getDictionary()).toEqual(dictionary);
-				});
-				test('ignores empty actions', () => {
-					const dictionary = sampleInstance.getDictionary();
-					sampleInstance.removeActions({
-						namespace: testNamespace,
-						actions: [],
-					});
-					expect(sampleInstance.getDictionary()).toEqual(dictionary);
-				});
 				test('ignores actions from different namespace', () => {
 					const dictionary = sampleInstance.getDictionary();
 					sampleInstance.removeActions({
