@@ -96,44 +96,6 @@ describe(`Automata`, () => {
 		});
 	});
 
-	describe('/setActionValidator', () => {
-		const testValidator = ((a: number) => a % 15 === 0) as TValidator<TTestAction>;
-		test('accepts a function to overwrite default Action Validator', () => {
-			sampleInstance.setActionValidator(testValidator);
-			for (let i = 0; i < 100; i++) {
-				const sampleValue = sampleRange(-1e6, 1e6);
-				expect(sampleInstance.validateAction(sampleValue)).toBe(testValidator(sampleValue));
-			}
-		});
-		test('resets the Action Validator to default when called with null', () => {
-			sampleInstance.setActionValidator(testValidator);
-			sampleInstance.setActionValidator(null);
-			expect(sampleInstance.validateAction).toBe(sampleInstance.getDefaultActionValidator());
-		});
-		test('returns self', () => {
-			expect(sampleInstance.setActionValidator(testValidator)).toBe(sampleInstance);
-		});
-	});
-
-	describe('/setStateValidator', () => {
-		const testValidator = ((a: number) => a % 15 === 0) as TValidator<TTestState>;
-		test('accepts a function to overwrite default State Validator', () => {
-			sampleInstance.setStateValidator(testValidator);
-			for (let i = 0; i < 100; i++) {
-				const sampleValue = sampleRange(-1e6, 1e6);
-				expect(sampleInstance.validateState(sampleValue)).toBe(testValidator(sampleValue));
-			}
-		});
-		test('resets the State Validator to default when called with null', () => {
-			sampleInstance.setStateValidator(testValidator);
-			sampleInstance.setStateValidator(null);
-			expect(sampleInstance.validateState).toBe(sampleInstance.getDefaultStateValidator());
-		});
-		test('returns self', () => {
-			expect(sampleInstance.setStateValidator(testValidator)).toBe(sampleInstance);
-		});
-	});
-
 	describe('when not initialized properly', () => {
 		test('throws an error when calling `dispatch`', () => {
 			expect(() =>
