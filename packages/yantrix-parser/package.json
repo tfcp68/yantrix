@@ -41,8 +41,8 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rimraf dist && pnpm create-parser && tsc",
-		"create-parser": "bash -c 'ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison'",
+		"build": "rimraf dist && (pnpm run create-parser || true) && tsc",
+		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
