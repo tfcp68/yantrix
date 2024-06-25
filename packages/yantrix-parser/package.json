@@ -49,7 +49,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rimraf dist && (pnpm create-parser || echo -e 'ERORRAOAWOROAWROAWROAWOAWOROAo') && tsc",
+		"build": "rimraf dist && pnpm create-parser && pnpm exec tsc",
 		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
