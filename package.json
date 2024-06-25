@@ -23,12 +23,12 @@
 	},
 	"license": "MIT",
 	"contributors": [
-		"Alexander Uskov <neolord.tmb@gmail.com>",
-		"Etheresk <etheresked@gmail.com>",
-		"Denis Perevertov <regicuinte@gmail.com>",
-		"Nikita Beliaew <nekitech-x@mail.ru>",
-		"Sin <shulgin.grigoriy@yandex.ru>",
-		"Alexey Geraim <oblivion25565@gmail.com>",
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Etheresk <https://github.com/Etheresk>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
 		"Саша <https://github.com/22sasha>"
 	],
 	"type": "module",
