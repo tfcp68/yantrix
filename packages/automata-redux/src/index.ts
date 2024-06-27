@@ -1,32 +1,4 @@
-// export function dispatchToFSM (
-// 	dispatch: Redux.Dispatch,
-// 	actionGenerator:
-// 		(fsmState) => ActionWithPayload
-// ) =>
-// (actions:keyof typeof actionsDictionary, payload:any )=>ActionWithPayload
-
-//// import * from redux
-// // import {Store} from './redux-store
-// // import {dispatchToFsm, actionsDictionary} from './generatedAutomata123'
-// const actionGenerator=(state)=>{action:'dispatchFromFSM',payload:{state});
-// const dispatchToFsm=dispatchToFsm( Store.dispatch, actionGenerator);
-// //...
-// dispatchToFsm({action: actionsDictionary['/START'], payload: {...}});
-// => {action:'dispatchFromFSM', payload: {state:{...}}}
-
 import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
-
-const rootReducer = combineReducers({});
-
-const store = configureStore({
-	reducer: rootReducer,
-	middleware: (gDM) =>
-		gDM().concat(() => {
-			return (next) => (action) => {
-				return next(action);
-			};
-		}),
-});
 
 type TActionGenerator = (actionFromFSM: any) => {
 	type: string;
@@ -42,6 +14,18 @@ export function dispatchFSMActionToReduxGenerator(dispatch: Dispatch, actionGene
 }
 
 // client code
+const rootReducer = combineReducers({});
+
+const store = configureStore({
+	reducer: rootReducer,
+	middleware: (gDM) =>
+		gDM().concat(() => {
+			return (next) => (action) => {
+				return next(action);
+			};
+		}),
+});
+
 const dispatchFSMActionToRedux = dispatchFSMActionToReduxGenerator(store.dispatch, (state) => ({
 	type: 'dispatchFromFSM',
 	payload: {
