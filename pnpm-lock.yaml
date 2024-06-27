@@ -92,6 +92,9 @@ importers:
             '@reduxjs/toolkit':
                 specifier: ^2.2.5
                 version: 2.2.5(react@16.14.0)
+            '@yantrix/automata':
+                specifier: workspace:^
+                version: link:../automata
 
     packages/codegen:
         devDependencies:

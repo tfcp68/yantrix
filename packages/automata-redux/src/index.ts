@@ -1,17 +1,26 @@
 import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
+import { GenericAutomata, TAutomataActionPayload } from '@yantrix/automata';
+import { GamePhaseAutomata } from './GamePhaseAutomata_generated.js';
 
-type TActionGenerator = (actionFromFSM: any) => {
+type TActionGenerator = (actionFromFSM: TAutomataActionPayload<number, Record<number, any>>) => {
 	type: string;
 	payload?: any;
 };
 
-export function dispatchFSMActionToReduxGenerator(dispatch: Dispatch, actionGenerator: TActionGenerator) {
-	return ({ action, payload }: { action: any; payload: any }) => {
-		const reduxAction = actionGenerator(action);
-		Object.assign(reduxAction.payload, payload, reduxAction.payload);
-		return dispatch(actionGenerator(reduxAction));
-	};
-}
+const getAutomataWithReduxDispatch = (props: {
+	Automata: typeof GenericAutomata;
+	reduxDispatch: Dispatch;
+	reduxActionGenerator: TActionGenerator;
+}) => {
+	class NewAutomata extends props.Automata {
+		dispatch: typeof GenericAutomata.prototype.dispatch = (action) => {
+			const dispatched = super.dispatch(action);
+			props.reduxDispatch(props.reduxActionGenerator(action));
+			return dispatched;
+		};
+	}
+	return NewAutomata;
+};
 
 // client code
 const rootReducer = combineReducers({});
@@ -26,11 +35,16 @@ const store = configureStore({
 		}),
 });
 
-const dispatchFSMActionToRedux = dispatchFSMActionToReduxGenerator(store.dispatch, (state) => ({
-	type: 'dispatchFromFSM',
-	payload: {
-		state,
-	},
-}));
+const Automata = getAutomataWithReduxDispatch({
+	Automata: GamePhaseAutomata,
+	reduxDispatch: store.dispatch,
+	reduxActionGenerator: (action) => ({
+		type: 'dispatchFromFSM',
+		payload: {
+			...action.payload,
+		},
+	}),
+});
 
-dispatchFSMActionToRedux({ action: 'action', payload: 'asfas' });
+const automata = new Automata();
+automata.dispatch({ action: 1, payload: {} });

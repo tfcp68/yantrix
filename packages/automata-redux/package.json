@@ -39,6 +39,7 @@
 	"license": "ISC",
 	"type": "module",
 	"devDependencies": {
+		"@yantrix/automata": "workspace:^",
 		"@reduxjs/toolkit": "^2.2.5"
 	}
 }
