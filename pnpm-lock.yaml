@@ -87,6 +87,12 @@ importers:
                 specifier: ^1.13.6
                 version: 1.13.6
 
+    packages/automata-redux:
+        devDependencies:
+            '@reduxjs/toolkit':
+                specifier: ^2.2.5
+                version: 2.2.5(react@16.14.0)
+
     packages/codegen:
         devDependencies:
             '@yantrix/automata':
@@ -1014,6 +1020,20 @@ packages:
                 integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==,
             }
         engines: { node: ^12.20.0 || ^14.18.0 || >=16.0.0 }
+
+    '@reduxjs/toolkit@2.2.5':
+        resolution:
+            {
+                integrity: sha512-aeFA/s5NCG7NoJe/MhmwREJxRkDs0ZaSqt0MxhWUrwCf1UQXpwR87RROJEql0uAkLI6U7snBOYOcKw83ew3FPg==,
+            }
+        peerDependencies:
+            react: ^16.9.0 || ^17.0.0 || ^18
+            react-redux: ^7.2.1 || ^8.1.3 || ^9.0.0
+        peerDependenciesMeta:
+            react:
+                optional: true
+            react-redux:
+                optional: true
 
     '@rollup/rollup-android-arm-eabi@4.12.0':
         resolution:
@@ -4091,6 +4111,12 @@ packages:
             }
         engines: { node: '>= 4' }
 
+    immer@10.1.1:
+        resolution:
+            {
+                integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==,
+            }
+
     immutable@4.3.6:
         resolution:
             {
@@ -6251,6 +6277,20 @@ packages:
             }
         engines: { node: '>=8' }
 
+    redux-thunk@3.1.0:
+        resolution:
+            {
+                integrity: sha512-NW2r5T6ksUKXCabzhL9z+h206HQw/NJkcLm1GPImRQ8IzfXwRGqjVhKJGauHirT0DAuyy6hjdnMZaRoAcy0Klw==,
+            }
+        peerDependencies:
+            redux: ^5.0.0
+
+    redux@5.0.1:
+        resolution:
+            {
+                integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==,
+            }
+
     registry-auth-token@4.2.2:
         resolution:
             {
@@ -6283,6 +6323,12 @@ packages:
         resolution:
             {
                 integrity: sha512-uuoJ1hU/k6M0779t3VMVIYpb2VMJk05cehCaABFhXaibcbvfgR8wKiozLjVFSzJPmQMRqIcO0HMyTFqfV09V6Q==,
+            }
+
+    reselect@5.1.1:
+        resolution:
+            {
+                integrity: sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==,
             }
 
     resolve-cwd@3.0.0:
@@ -8207,6 +8253,15 @@ snapshots:
         optional: true
 
     '@pkgr/core@0.1.1': {}
+
+    '@reduxjs/toolkit@2.2.5(react@16.14.0)':
+        dependencies:
+            immer: 10.1.1
+            redux: 5.0.1
+            redux-thunk: 3.1.0(redux@5.0.1)
+            reselect: 5.1.1
+        optionalDependencies:
+            react: 16.14.0
 
     '@rollup/rollup-android-arm-eabi@4.12.0':
         optional: true
@@ -10164,6 +10219,8 @@ snapshots:
 
     ignore@5.3.1: {}
 
+    immer@10.1.1: {}
+
     immutable@4.3.6: {}
 
     import-fresh@3.3.0:
@@ -11642,6 +11699,12 @@ snapshots:
             indent-string: 4.0.0
             strip-indent: 3.0.0
 
+    redux-thunk@3.1.0(redux@5.0.1):
+        dependencies:
+            redux: 5.0.1
+
+    redux@5.0.1: {}
+
     registry-auth-token@4.2.2:
         dependencies:
             rc: 1.2.8
@@ -11655,6 +11718,8 @@ snapshots:
     require-from-string@2.0.2: {}
 
     require-package-name@2.0.1: {}
+
+    reselect@5.1.1: {}
 
     resolve-cwd@3.0.0:
         dependencies:
