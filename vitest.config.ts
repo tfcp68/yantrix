@@ -1,7 +1,10 @@
 import { defineConfig } from 'vitest/config';
+import { VitestMarkdownReporter } from 'vitest-markdown-reporter';
 
 export default defineConfig({
 	test: {
+		reporters: ['default', new VitestMarkdownReporter()],
+		outputFile: 'report/tests.md',
 		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache', '.yarn', '**/fixtures'],
 		passWithNoTests: true,
 		globals: true,
