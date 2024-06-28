@@ -47,40 +47,41 @@ export class PythonCodegen implements ICodegen {
 	getClassTemplate(className: string) {
 		const content = [
 			`class ${className}:`,
-			`def __init__(self):`,
-			`\tself.state = ${this.initialState}`,
-			`\tself.context = { 'index': -1 }`,
+			`def __init__(self, action, payload):`,
+			`	self.state = ${this.initialState}`,
+			`	self.context = { 'index': -1 }`,
+			`	self.root_reducer = self.rootReducer(action, self.context, payload, self.state)`,
 			`${this.getIsKeyOf()}`,
 			`${this.getRootReducer()}`,
 			`${this.getStateValidator()}`,
 			`${this.getActionValidator()}`,
 		];
-		return content.join('\n\t');
+		return content.join('\n	');
 	}
 
 	protected getIsKeyOf() {
 		const content = [`def isKeyOf(self, key, obj):`, `return key in obj`];
-		return content.join('\n\t\t');
+		return content.join('\n		');
 	}
 
 	protected getRootReducer() {
 		const content = [
 			`def rootReducer(self, action, context, payload, state):`,
 			`if (not action) or (payload is None):`,
-			`\treturn {'state': state, 'context': context}`,
+			`	return {'state': state, 'context': context}`,
 			`${this.getRootReducerStateValidation()}`,
 			`${this.getRootReducerActionValidation()}`,
 			`newState = state`,
 			`if actionToStateDict[state][action] is not None:`,
-			`\tnewState = actionToStateDict[action]`,
+			`	newState = actionToStateDict[action]`,
 			`return {'state':  newState, 'context': dict({**payload})}`,
 		];
-		return content.join('\n\t\t');
+		return content.join('\n		');
 	}
 
 	protected getRootReducerStateValidation() {
 		const content = [`${this.getRootReducerStateValidationHead()}`, `${this.getRootReducerStateValidationError()}`];
-		return content.join('\n\t\t\t');
+		return content.join('\n			');
 	}
 
 	protected getRootReducerStateValidationHead() {
@@ -96,17 +97,17 @@ export class PythonCodegen implements ICodegen {
 			`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
 			`return {'state': state, 'context': context }`,
 		];
-		return content.join('\n\t\t\t');
+		return content.join('\n			');
 	}
 
 	protected getStateValidator() {
 		const content = [`def state_validator(self, s):`, `return s in statesDictionary.values()`];
-		return content.join('\n\t\t');
+		return content.join('\n		');
 	}
 
 	protected getActionValidator() {
 		const content = [`def action_validator(self, a):`, `return a in actionsDictionary.values()`];
-		return content.join('\n\t\t');
+		return content.join('\n		');
 	}
 
 	protected getActionToStateFromStateDict() {
