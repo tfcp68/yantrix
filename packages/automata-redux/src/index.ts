@@ -20,5 +20,3 @@ export const getAutomataWithReduxDispatch = (props: {
 	}
 	return NewAutomata;
 };
-
-// client code

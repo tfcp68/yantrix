@@ -52,8 +52,8 @@ console.log(automata.context);
 console.log(store.getState());
 
 automata.dispatch({
-	action: actionsDictionary['/RESET'],
-	payload: { players: 3, score: 0 },
+	action: actionsDictionary['/RUN'],
+	payload: { players: 100, score: 0 },
 });
 
 console.log(automata.context);
