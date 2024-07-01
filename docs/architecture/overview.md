@@ -2,6 +2,8 @@
 title: APIs Overview
 ---
 
+# APIs
+
 #### Data Model
 
 All the App states are stored in a single anemic object structure, which is persisted between runs and deterministically describe the behavior of the App. Designing the proper `Data Model` is the essential and the most important step to start laying out logic using `Events` and `Slices`.

@@ -2,6 +2,8 @@
 title: Repository Structure
 ---
 
+# Working with the repository
+
 The repository is organized into packages with help of [Lerna](https://lerna.js.org/): an open source multi-package repository management tool. It allows developers to manage multiple packages in a single monorepository, including versioning, publishing, dependency management, and building.
 
 ## Installation

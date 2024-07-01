@@ -2,6 +2,8 @@
 title: Constants
 ---
 
+# Constants
+
 ## Type system
 
 As of now, data contracts in diagrams do not have typings.
@@ -19,7 +21,8 @@ For other languages Yantrix aims to provide compatibility with elementary types,
 
 All but **Object** types can be created in-place, assigning a member of `Context` or `Payload` or as a `Function` argument
 
--   `'foo'` creates a String
+- `1` or `1.05` is the way to create a Number. Other numeric representations (e.g. hex, exponential, etc.) are supported as long as the target language supports them
+- `'foo'` creates a String primitive
 -   `[]` creates an empty List
 -   `$(foo)` is a compile-time Constant, that is passed to a Codegen along with a Mermaid diagram, primarily being used for behaviour that is dependent on environment and/or CI/CD operations.
 
