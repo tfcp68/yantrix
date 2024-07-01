@@ -7,11 +7,11 @@ import { IActionDictionary } from './types/interfaces.js';
 
 export function createActionDictionary<
 	ActionType extends TAutomataBaseActionType,
-	PayloadType extends { [K in ActionType]: any },
+	PayloadType extends { [K in ActionType]: any }
 >() {
 	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(Base: BaseType) =>
 		class AbstractActionDictionary extends DictionaryContainer<ActionType>()(
-			ExtendedActionContainer<ActionType, PayloadType>()(Base),
+			ExtendedActionContainer<ActionType, PayloadType>()(Base)
 		) {
 			getActionKeys({
 				actions = [],
@@ -30,7 +30,7 @@ export function createActionDictionary<
 				return this._clearItems(namespace);
 			}
 
-			removeActions({ namespace, actions = [], keys = [] }: TActionLookupParams<ActionType>) {
+			removeActions({ namespace, actions, keys }: TActionLookupParams<ActionType>) {
 				const actionsToDelete = [
 					...actions.filter(this.validateAction),
 					...keys.map((actionKey) => this._findItem(actionKey as string, namespace)),
