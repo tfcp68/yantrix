@@ -1,8 +1,8 @@
 ---
-title: Working with Lerna
+title: Repository Structure
 ---
 
-The repository is organized into packages with help of [Lerna](https://lerna.js.org/) is an open source multi-package repository management tool. It allows developers to manage multiple packages in a single monorepository, including versioning, publishing, dependency management, and building.
+The repository is organized into packages with help of [Lerna](https://lerna.js.org/): an open source multi-package repository management tool. It allows developers to manage multiple packages in a single monorepository, including versioning, publishing, dependency management, and building.
 
 ## Installation
 
@@ -116,9 +116,9 @@ Lerna integrates well with **Git**. It can automatically generate commits and ta
 -   **`lerna diff`**: Shows the differences between two versions of the specified package.
 -   **`lerna exec <command> --since <last-version>`**: Runs the command for all packages that have changed since the latest version.
 
-## How to add/remove/update dependencies in packages?
+## Managing dependencies
 
-You can use the installation commands of your package managers to add a dependency that will be used by all packages. For example, if you want to install **[lodash-es](https://www.npmjs.com/package/lodash-es)**, you can use one of the following commands in the root of the monorepository:
+You can use your preferred package manager to add a dependency that will be used by all packages. For example, if you want to install **[lodash-es](https://www.npmjs.com/package/lodash-es)**, you can use one of the following commands in the root of the repo:
 
 ```bash
 npm install lodash-es
@@ -185,7 +185,7 @@ and run it in the root of your monorepository with the **`--update`** flag:
 npm-check --update
 ```
 
-An interactive interface similar to the update interface **`yarn upgrade-interactive`** will appear in the terminal.
+An interactive interface (similar to that of **`yarn upgrade-interactive`**) will appear in the terminal.
 
 ## How to build packages?
 
@@ -205,7 +205,7 @@ IMPORTANT! Specify only the name specified in the **name** field in the **packag
 
 **Lerna** also allows you to define specific scripts for each package in a monorepository. To do this, you can add scripts with the **`lerna`** prefix (for example, **`lerna:build`**) in the **`package.json`** file of each package. You can then use the **`lerna run`** command to run these scripts for all packages in the monorepository.
 
-## Local packages installation?
+## How to install packages locally?
 
 Once you have built your packages, you can use them in other projects by including them as dependencies. Depending on where your monorepository is located, you can use different methods to install dependencies. If you use packages in the same monorepository (for example, for other packages in the **packages/** folder). Then you can simply specify **`*`** as the package source, for example:
 

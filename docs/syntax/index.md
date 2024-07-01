@@ -2,11 +2,24 @@
 title: Syntax
 ---
 
-## Constants and Object constructors
+## Mermaid
 
--   `'foo'` defines a string
--   `[]` creates an empty array
--   `$(foo)` references a Constant named foo
+Yantrix extends [MermaidJS](https://mermaid.js.org/) syntax to describe business logic, which is then transpiled into one of popular programming languages. This allows to effortlessly visualize data flow and control states, blending well into [Documentation-As-Code](https://www.writethedocs.org/guide/docs-as-code/) and [Everything-As-Code](https://hackernoon.com/everything-as-code-explained-0ibg32a3) paradigms.
+
+Yantrix currently supports [State Diagrams](https://mermaid.js.org/syntax/stateDiagram.html) and aims to support [Sequence Diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html) and [Class Diagrams](https://mermaid.js.org/syntax/classDiagram.html) as well.
+
+## Subsyntax
+
+There's a embedded subsyntax to describe data flow, effects and event model, which makes Yantrix itself a programming language that requires a bit of learning to use efficiently. The syntax reflects the state-machine lifecycle and mostly translates to or from fold reducers implemented via code generation.
+
+Subsyntax is extendable in a functional way, and comes with most programming primitives typical for reactive (event-driven) functional frameworks:
+
+-   [Constants](constants.html)
+-   [Variables](variables.html)
+-   [Expressions](expressions.html)
+-   [Functions](functions.html)
+-   [Events](events.html)
+-   [Side Effects](effects.html)
 
 ## Expressions
 
