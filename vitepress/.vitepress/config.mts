@@ -1,20 +1,29 @@
-import { DefaultTheme } from 'vitepress';
+import {DefaultTheme} from 'vitepress';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { withMermaid } from 'vitepress-plugin-mermaid';
+import {withMermaid} from 'vitepress-plugin-mermaid';
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
-	description: '',
+	description: 'Yantrix - lowcode finite state machines',
 	srcDir: './src',
 	ignoreDeadLinks: true,
 	base: '/yantrix',
 	assetsDir: './public',
 	title: 'Yantrix',
 	appearance: 'force-dark',
+	lastUpdated: true,
+	search: {
+		provider: 'local'
+	},
+	head: [
+		['meta', {name: 'theme-color', content: '#000000'}],
+		['link', {rel: 'icon', href: '/favicon.ico', sizes: '48x48'}],
+	],
 	themeConfig: {
 		// https://vitepress.dev/reference/default-theme-config
+		logo: '/icon-black.png',
 		siteTitle: false,
 		socialLinks: [],
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
@@ -65,7 +74,12 @@ function getFileItem(filePath: string, link: string): DefaultTheme.SidebarItem {
  */
 function sortFiles(files: string[]) {
 	const indexMd = files.filter((file) => file === 'index.md');
-	const md = files.filter((file) => file.endsWith('.md') && file !== 'index.md');
+	const md = files.filter((file) => file.endsWith('.md') && file !== 'index.md').sort((a, b) => {
+		const index1 = a.split('_')[0];
+		const index2 = b.split('_')[0];
+		const diff = parseInt(index1) - parseInt(index2);
+		return isNaN(diff) ? 0 : diff;
+	});
 	const other = files.filter((file) => !file.endsWith('.md'));
 
 	return [...indexMd, ...md, ...other];

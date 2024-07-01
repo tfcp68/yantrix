@@ -90,8 +90,7 @@ When used on both sides of a transaction, the `Source Object` default value take
 code `#{a = 1} <= {b = 2}` is processed in the following manner:
 
 - `b` is read from the `previousContext`. If it's not there, the expressions resolves to `2`
-- the result of expression is assigned to `newContext.a`. If it was not there, it would save as `1`. However, it would
-  have already be assigned `2` from the right side.
+- the result of expression is assigned to `newContext.a`. If it was not there, it would save as `1`. However, it would have already be assigned `2` from the right side.
 
 ## Referencing objects
 

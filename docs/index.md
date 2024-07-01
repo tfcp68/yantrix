@@ -1,6 +1,8 @@
 ---
-title: Yantrix — Lowcode FSM framework
+title: Introduction
 ---
+
+# Yantrix
 
 Yantrix is a TypeScript framework that provides a set of tools to create robust and self-documented functional applications by code generation.
 The business logic is represented by declarative, event-driven [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine), while the application state is an [Anemic Domain Model](https://en.wikipedia.org/wiki/Anemic_domain_model), making it great a counterpart to any traditional state manager like [Redux](https://redux.js.org/), while allowing devs to focus on describing contracts and workflows, rather than writing and debugging the
