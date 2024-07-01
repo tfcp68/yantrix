@@ -1,6 +1,7 @@
 # Packages
 node_modules
 .nx
+.yarn
 
 # Log files
 logs
