@@ -4,6 +4,10 @@ import path from 'path';
 import matter from 'gray-matter';
 import {withMermaid} from 'vitepress-plugin-mermaid';
 
+
+const menuOrder = ['', 'architecture', 'syntax', 'contributing']
+
+
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
 	description: 'Yantrix - lowcode finite state machines',
@@ -24,7 +28,7 @@ export default withMermaid({
 	themeConfig: {
 		// https://vitepress.dev/reference/default-theme-config
 		logo: '/icon-black.png',
-		siteTitle: true,
+		siteTitle: 'Yantrix',
 		socialLinks: [],
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
 	},
@@ -33,6 +37,13 @@ export default withMermaid({
 function getMdData(filePath: string) {
 	const fileContent = fs.readFileSync(filePath, 'utf-8');
 	return matter(fileContent);
+}
+
+function getSortIndex(path: string) {
+	const order = parseInt(path.basename(path, '.md').split('_')[0]) || 0;
+	const prefix = path.split('/')[0]?.toLowerCase();
+	const dirOrder = menuOrder.indexOf(prefix);
+	return order + ((dirOrder > 0) ? dirOrder * 1000 : 0);
 }
 
 function getFolderItem(folderDir: string, link: string): DefaultTheme.SidebarItem {
@@ -45,12 +56,14 @@ function getFolderItem(folderDir: string, link: string): DefaultTheme.SidebarIte
 			text: frontmatter.data.title || name,
 			collapsed: true,
 			items: [],
+			rel: getSortIndex(folderDir),
 			link: frontmatter.content.length > 0 ? link : undefined,
 		};
 	} else {
 		return {
 			text: path.basename(folderDir),
 			collapsed: true,
+			rel: getSortIndex(folderDir),
 			items: [],
 		};
 	}
@@ -61,6 +74,7 @@ function getFileItem(filePath: string, link: string): DefaultTheme.SidebarItem {
 	const name = path.basename(filePath).replace('.md', '');
 	return {
 		text: frontmatter.data.title || name,
+		rel: getSortIndex(filePath),
 		link,
 	};
 }
@@ -74,12 +88,7 @@ function getFileItem(filePath: string, link: string): DefaultTheme.SidebarItem {
  */
 function sortFiles(files: string[]) {
 	const indexMd = files.filter((file) => file === 'index.md');
-	const md = files.filter((file) => file.endsWith('.md') && file !== 'index.md').sort((a, b) => {
-		const index1 = a.split('_')[0];
-		const index2 = b.split('_')[0];
-		const diff = parseInt(index1) - parseInt(index2);
-		return isNaN(diff) ? 0 : diff;
-	});
+	const md = files.filter((file) => file.endsWith('.md') && file !== 'index.md');
 	const other = files.filter((file) => !file.endsWith('.md'));
 
 	return [...indexMd, ...md, ...other];
@@ -115,5 +124,7 @@ function getSidebarItems(startDir: string, baseDir = '') {
 
 	const root = getFolderItem(startDir, '/');
 
-	return [root, ..._getSidebarItems()];
+	return [root, ..._getSidebarItems().sort((a, b) =>
+		parseInt(b.rel) - parseInt(a.rel)
+	)];
 }
