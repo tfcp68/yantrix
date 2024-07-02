@@ -19,12 +19,12 @@ export default withMermaid({
 	},
 	head: [
 		['meta', {name: 'theme-color', content: '#000000'}],
-		['link', {rel: 'icon', href: '/favicon.ico', sizes: '48x48'}],
+		['link', {rel: 'icon', href: '/public/favicon.ico', sizes: '48x48'}],
 	],
 	themeConfig: {
 		// https://vitepress.dev/reference/default-theme-config
 		logo: '/icon-black.png',
-		siteTitle: false,
+		siteTitle: true,
 		socialLinks: [],
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
 	},
