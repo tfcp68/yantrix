@@ -23,7 +23,7 @@ export default withMermaid({
     },
     head: [
         ['meta', {name: 'theme-color', content: '#000000'}],
-        ['link', {rel: 'icon', href: '/public/favicon.ico', sizes: '48x48'}],
+        ['link', {rel: 'icon', href: '/yantrix/public/favicon.ico', sizes: '64x64'}],
     ],
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
@@ -41,9 +41,9 @@ function getMdData(filePath: string) {
 
 function getSortIndex(filePath: string) {
     const order = parseInt(path.basename(filePath, '.md').split('_')[0]) || 0;
-    const prefix = filePath.split('/')[0]?.toLowerCase();
+    const prefix = filePath.replace(/^\//, '').split('/')[0]?.toLowerCase() || '';
     const dirOrder = menuOrder.indexOf(prefix);
-    return order + ((dirOrder > 0) ? dirOrder * 1000 : 0);
+    return order + dirOrder * 1000;
 }
 
 function getFolderItem(folderDir: string, link: string): DefaultTheme.SidebarItem {
