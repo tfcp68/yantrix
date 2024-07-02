@@ -28,10 +28,10 @@ stateDiagram-v2
     end note
 ```
 
-Every `State` has its own shape of `Context`, but if they have identical &ndash; names - they are copied by default. Members that are not listed explicitly are not copied
+Every `State` has its own shape of `Context`, but if they are explicitly listed and have identical names &ndash; they are copied by default. Members that are not mentioned are not copied
 ```mermaid
 stateDiagram-v2
-    direction LR
+    direction TB
     A-->B: ACTION
     B-->A: ACTION
     note left of A
@@ -52,7 +52,7 @@ If you define a member on a default node (`[*]`), it will be copied through ever
 
 ```mermaid
 stateDiagram-v2
-    direction LR
+    direction TB
     [*]-->A: RESET
     A-->B: ACTION
     B-->A: ACTION
@@ -92,6 +92,7 @@ code `#{a = 1} <= {b = 2}` is processed in the following manner:
 
 ```mermaid
 stateDiagram-v2
+    direction TB
     [*] --> INIT: START (counter = 10)
     INIT --> WORKING: START (counter = 10)
     state isFinished <<choice>>
