@@ -5,7 +5,7 @@ import matter from 'gray-matter';
 import {withMermaid} from 'vitepress-plugin-mermaid';
 
 
-const menuOrder = ['', 'architecture', 'syntax', 'contributing']
+const menuOrder = ['', 'architecture', 'syntax', 'contributing', 'api reference']
 
 
 // https://vitepress.dev/reference/site-config
@@ -41,7 +41,11 @@ function getMdData(filePath: string) {
 
 function getSortIndex(filePath: string) {
     const order = parseInt(path.basename(filePath, '.md').split('_')[0]) || 0;
-    const prefix = filePath.replace(/^\//, '').split('/').filter(t => menuOrder.includes(t))[0];
+    const prefix = filePath
+        .replace(/^\//, '')
+        .split('/').map(
+            t => t.replaceAll('-', ' ').toLowerCase())
+        .filter(t => menuOrder.includes(t))[0];
     const dirOrder = menuOrder.indexOf(prefix);
     return order + dirOrder * 1000;
 }
@@ -125,6 +129,6 @@ function getSidebarItems(startDir: string, baseDir = '') {
     const root = getFolderItem(startDir, '/');
 
     return [root, ..._getSidebarItems().sort((a, b) =>
-        parseInt(b.rel) - parseInt(a.rel)
+        parseInt(a.rel) - parseInt(b.rel)
     )];
 }
