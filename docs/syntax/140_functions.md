@@ -1,28 +1,51 @@
 ---
-title: Expressions
+title: Functions
 ---
 
-# Expressions
+# Functions
 
-Expressions are function chains applied to particular values, most often during transitions. Expressions can include [Transformers](functions.html#transformers) and [Predicates](functions.html#predicates), and are generally just nested function calls around some property key, so `Expression` is either a `<PROPERTY_NAME>`, a `<FUNC_OPERATOR>(<PROPERTY_NAME>[,<CONSTANT_ARGS>...])` or a `<FUNC_OPERATOR>(<FUNC_OPERATOR>)`, i.e.
+Functions come in several flavors:
 
--   `index` : returns value of `index` key in a related source object
--   `sum(index,2)` : returns arithmetic result `index+2`, where `index` is converted to decimal
--   `round(sum(index,2))` : return the rounded result of a previous operation
+## Predicates
 
-In any case, an `Expression` has a primary operand which is hereby called `Bound Property`. The `Property` is always the first (leftmost) argument in the tree of calls.
+`Predicates` are functions that return a Boolean value and are used to fork the flow of operations inside `FSMs`.
+All `Predicates` are high-order functions that allow composition.
 
-## Recursion
+### Built-in Predicates
 
-Using recursion is allowed, however, maximum depth of stack in any `Expression` is 8. This limitation is intentional, forcing you to explicitly define complex composition of functions as a new function.
+Bundled within Yantrix grammar, they are used to combine other `Predicates` and implement logical operations
+like `not`, `and` and so on.
 
-## Multiple properties
+### Model Predicates
 
-An `Expression` can reference more than one property as arguments of functions, but all except for the leftmost one are not considered `Bound Properties`
+Are declared as a part of `Data Model` are supposed to implement conditions that rely on the current state
+of `Application`. They can be written in the language of integration and injected into `FSM`s at runtime. This can be
+useful to taylor primitives to a specific Integration
 
-## Null Property
+### Context Predicates
 
-If the most deeply nested function of an `Expression` does not require a parameter, the `Bound Property` is considered to equal `Null` for the sake of unification. This value would be passed as an argument to the function if its definition does actually have a parameter. Example:
+Are declared within a `Slice` and its `State Dictionary`, and have a `State`/`Context` pair as a dependency. It's
+designed to create decision branching within `Forks` and create domein-specific logic
 
--   `random()`: returns `Math.random()` value, compare to `random`, which would be a property reference
--   `if(greater(random(),0.5),f1(some_property),f2(some_property))`: applies one of two functions `f1`,`f2` to `some_property` randomly with 50% chance. However, since the leftmost argument is absend, the `Bound Property` is `Null`
+## Transformers
+
+`Transformers` are projection-type functions that come with `Slice` and translate the same types between each other.
+
+### `Generic Transformers`
+
+There are built-in pure functions that operate on any contract type and map the values. They are the basic building
+blocks of data manipulation. They can be user-defined and are injected at build-time
+
+### Context Transformers
+
+They translate `Contexts` between each other and are used inside [`Reducers`](100_reducers.html) to update internal data
+of the `FSM` when changing `States`. They are defined as a part of `State Dictionary`
+
+### Reducer Transformers
+
+Function that translate from `State`+`Action/Payload` to `State/Context` can be injected into `FSM`s at runtime.
+
+### Model Transformers
+
+Model transformers are a subtype of `Effects` that are context-free and are basically functions that mutates
+the `Data Model`. They can be composed with `Predicates` to produce `Effects`

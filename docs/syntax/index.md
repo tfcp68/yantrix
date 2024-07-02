@@ -1,5 +1,5 @@
 ---
-title: Syntax
+title: Diagram Syntax
 ---
 
 # Yantrix diagram syntax
@@ -60,64 +60,29 @@ presented for demonstration purposes.
 
 ## State Machine
 
-The first layer of syntax is describing a `FSM` - Finite State Machine, that is a control object, that:
+The first layer of syntax is describing a `FSM` - [Finite State Machine](../architecture/200_fsm.html).
 
-- has a limited list of control states, named just `State`
-- stores local `Context` for every `State` and can modify it when transitioning to another `State`
-- reacts to dispatched `Actions`, atomically transitioning to another `State`, based on current `Context` and
-  dispatched `Payload`
-- reacts to observed `Events`, translating them into `Actions`
-- can emit `Events` when transitioning to certain `States`
+The diagram above creates a `FSM` with 3 `States`:
 
-### States
+- **LOOP_ITERATION**
+- **LOOP_REPEAT**
+- **LOOP_END**
 
-the diagram above creates a `FSM` with 3 `States`:
+They are written in uppercase on purpose, to be easily identified in a diagram source, but generally can be any alphanumeric identifiers.
 
-- LOOP_ITERATION
-- LOOP_REPEAT
-- LOOP_END
+The diagram also defines 2 `Actions`:
 
-They are written in uppercase on purpose, to be easily identified in a diagram source, but generally can be any
-alphanumeric identifiers.
+- **START_LOOP** with a `Payload` that carries a single `counter` variable
+- **ITERATE** without a `Payload`
 
-### Actions
+Since **ITERATE** can be invoked in two of three `States`(**LOOP_ITERATION** and **LOOP_REPEAT**), `LOOP_END` has no transitions out of it. However, an `Action` that is coming ot ouf a default node (`[*]`) can be dispatched from any `State`. Thus, **START_LOOP** `Action` effectively resets the whole machine to starting conditions. That is a very useful pattern for proper `FSM` designs 
 
-`Actions` are dispatched to `FSM` via:
+Invoking **ITERATE** `Action` at **LOOP_REPEAT** `State` leads to a `Fork`, which has to calculate the predicate `greaterThan(${counter}, 0)`. If its truthy, the transition leads to **LOOP_END**. If not, the remaining transition makes a loop, invoking **LOOP_REPEAT** -> **LOOP_REPEAT** transition, yet again executing all operations in `notes` blocks, as described below.
 
-- an [API](),
-- using [Integrations](../integrations/index.html)
-- from `Event Bus` using `Event Adapter` and mappings, declared in the diagram
-
-The `States` are switching as a reaction to an `Action` that might also carry a `Payload`. In the diagram `Actions` are
-declared as names of `State` transitions. If not specified, `Action` name is assigned automatically based on its
-traversal path
-
-The diagram aboves declares 2 `Actions`:
-
-- START_LOOP with a `Payload` that carries a single `counter` variable
-- ITERATE without a `Payload`
-
-Note that by default declared `Actions` can only be dispatched when the `FSM` is in relevant `State`, otherwise
-the `Action` is ignored. If an `Action` is declared as transition from `[*]`, it can be invoked from any `State` and
-performs the corresponding transition.
-
-### Forks
-
-Nodes that are declared using Mermaid's `<<choice>>` directive are not translated into `States`, but rather represent a
-conditional transition, that can resolve into different `States` and attached transition rules. To define a fork:
-
-- create a `<<choice>>` node
-- define an `Action` in the transition incoming to that node
-- label the outgoing transitions from that node with a `Predicate` that can draw properties both from current `Context`
-  and the incoming `Payload`.
-
-**Notice:** `Predicates` are being validated in order of appearance, so mind the sequence.
 
 ## Subsyntax
 
-Yantrix adds on top of Mermaid syntax for State Machines: there's an embedded subsyntax to describe data flow, effects
-and event model, which makes Yantrix itself a programming language that requires a bit of learning in order to use
-efficiently. The syntax reflects the state-machine lifecycle and mostly translates to or from reducers implemented via
+Yantrix diagrams are built on top of Mermaid syntax for State Machines: there's an embedded subsyntax to describe data flow, effects and event model. That makes Yantrix itself a programming language that requires a bit of learning in order to use efficiently. The syntax reflects the state-machine lifecycle and mostly translates to or from reducers implemented via
 code generation.
 
 Yantrix subsyntax is a functional language by design, and each line of it is supposed to be independent of the others.
