@@ -70,21 +70,33 @@ stateDiagram-v2
 
 ## Default values
 
-Default values are assigned to vars when the requested property is missing in a `Data Object`. To assign a default value
+Default values are assigned to vars when the requested property is present in a `Data Object` but equals to `Null` (empty pointer). To assign a default value
 the `KEY_ITEM` is followed by `=` and a [`Constant`](constants.html) or [`Expression`](expressions.html). For instance:
 
 ```
-#{anyValue, stringValue = 'foobar', numericValue = 3.14}
+#{anyValue, stringValue = 'foobar', numericValue = cos(3.14/6)}
 ```
 
-Default values can be used both in `Source Objects` and in `Target Objects`
+Default values can be used both in `Source Objects` and in `Target Objects`, but they are assigned only if the referenced key exists in it. For example:
+
+```
+''' here `value1` and `value2` will not be set to 1 the first time Context is created
+#{value1, value2} <= {value1 = 1, value 2 = 1 } 
+
+``` and here they will
+#{value1 = 1, value2 = 1} <= {value1, value2}
+
+''' likewise, Payload default values are not applied, if there's no such property in Payload  
+#{value1, value2} <= (value1 = 1, value 2 = 1 ) 
+```
 
 When used on both sides of a transaction, the `Source Object` default value takes priority. I.e. the
-code `#{a = 1} <= {b = 2}` is processed in the following manner:
+code `#{a = 1} <= (b = 2)` is processed in the following manner:
 
-- `b` is read from the `previousContext`. If it's not there, the expressions resolves to `2`
-- the result of expression is assigned to `newContext.a`. If it was not there, it would save as `1`. However, it would
-  have already be assigned `2` from the right side.
+- `b` is read from `Payload`. If it's there but `Null`, the expressions resolves to `2`. Otherwise it's an unset value
+- the result of expression is assigned to `newContext.a`. If it's an unset value, it resolves to `1`
+
+Thus, if no `Payload` was given, or it doesn't have `b` key, `Context`.`a` will resolve to `1`
 
 ## Creating Payload
 
@@ -93,10 +105,10 @@ code `#{a = 1} <= {b = 2}` is processed in the following manner:
 ```mermaid
 stateDiagram-v2
     direction TB
-    [*] --> INIT: START (counter = 10)
-    INIT --> WORKING: START (counter = 10)
+    [*] --> INIT: START (counter)
+    INIT --> WORKING: START (counter)
     state isFinished <<choice>>
-    WORKING --> isFinished: REDUCE (value = 1)
+    WORKING --> isFinished: REDUCE (value)
     isFinished --> END: greaterThan($(value), ${counter})
     isFinished --> WORKING
     note right of INIT

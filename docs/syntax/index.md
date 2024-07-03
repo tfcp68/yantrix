@@ -75,7 +75,7 @@ The diagram also defines 2 `Actions`:
 - **START_LOOP** with a `Payload` that carries a single `counter` variable
 - **ITERATE** without a `Payload`
 
-Since **ITERATE** can be invoked in two of three `States`(**LOOP_ITERATION** and **LOOP_REPEAT**), `LOOP_END` has no transitions out of it. However, an `Action` that is coming ot ouf a default node (`[*]`) can be dispatched from any `State`. Thus, **START_LOOP** `Action` effectively resets the whole machine to starting conditions. That is a very useful pattern for proper `FSM` designs 
+Since **ITERATE** can be invoked in two of three `States`(**LOOP_ITERATION** and **LOOP_REPEAT**), **LOOP_END** has no transitions out of it. However, an `Action` that is coming ot ouf a default node (`[*]`) can be dispatched from any `State`. Thus, **START_LOOP** `Action` effectively resets the whole machine to starting conditions. That is a very useful pattern for proper `FSM` designs 
 
 Invoking **ITERATE** `Action` at **LOOP_REPEAT** `State` leads to a `Fork`, which has to calculate the predicate `greaterThan(${counter}, 0)`. If its truthy, the transition leads to **LOOP_END**. If not, the remaining transition makes a loop, invoking **LOOP_REPEAT** -> **LOOP_REPEAT** transition, yet again executing all operations in `notes` blocks, as described below.
 
