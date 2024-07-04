@@ -2,6 +2,8 @@ name: tests
 on:
     pull_request:
         branches: [main]
+    push:
+        branches: [main]
 jobs:
     Integration-tests:
         runs-on: ubuntu-latest
