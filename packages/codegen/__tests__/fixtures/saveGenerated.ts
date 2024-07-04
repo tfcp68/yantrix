@@ -27,29 +27,75 @@ IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
+const includeNotesInput = `
+stateDiagram-v2
+[*] --> A: toA (a1,a2,a3)
+A --> AA: toAA
+[*] --> B: toB (a1,a2,a3)
+[*] --> C: toC (newInteger)
+[*] --> D: toD (a1='string', a2=3, a3=[])
+[*] --> F: toF (a1='string', a2=3, a3=[])
+[*] --> G: toG (a1, a2, a3)
+[*] --> H: toH (a1, a2, a3)
+[*] --> J: toJ (a1, a2, a3)
+note left of A
+#{a1,a2,a3} <= (a1,a2,a3)
+end note
+
+note left of AA
+#{a1,a2,a3}
+end note
+
+note left of H
+#{a1='string',a2=3,a3=[]} <= (a1,a2,a3)
+end note
+
+note left of F
+#{a1=[],a2='string',a3=3} <= (a1='string',a2=3,a3=[])
+end note
+
+note left of G
+#{a1=[],a2='string',a3=3} <= (a1,a2,a3)
+end note
+
+note left of D
+#{a1,a2,a3} <= (a1='string',a2=3,a3=[])
+end note
+
+note left of B
+#{a1,a2,a3} <= (a1,a2,a3)
+end note
+
+note left of C
+#{integer} <= (newInteger)
+end note
+
+note left of [*]
+#{integer=3, string="str", array=[]}
+end note
+`;
+
 const diagramsInput = {
 	gameDiagram: {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
 	},
+	includeNotes: {
+		value: includeNotesInput,
+		automataName: 'AutomataIncludeNotes',
+	},
 } as const;
 
-const fixturesList = [diagramsInput];
-
-fixturesList.forEach(async (fixture) => {
-	const stateDiagramStructure = await parseStateDiagram(fixture.gameDiagram.value);
+Object.values(diagramsInput).forEach(async (fixture) => {
+	const stateDiagramStructure = await parseStateDiagram(fixture.value);
 	const stateDiagram = await createStateDiagram(stateDiagramStructure);
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
-		className: fixture.gameDiagram.automataName,
+		className: fixture.automataName,
 		outLang: 'TypeScript',
 	});
 
-	fs.writeFileSync(
-		path.resolve(pathSave, `${fixture.gameDiagram.automataName}_generated.ts`),
-		generatedAutomataOutput,
-		{
-			encoding: 'utf8',
-		},
-	);
+	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), generatedAutomataOutput, {
+		encoding: 'utf8',
+	});
 });

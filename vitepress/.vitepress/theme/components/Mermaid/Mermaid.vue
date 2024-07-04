@@ -1,8 +1,13 @@
 <template>
 	<div class="diagram-holder">
-		<div v-html="svg" :class="props.class" ref="diagram" />
+		<div v-html="svg" :class="props.class" ref="diagram" v-if="!showCode" />
 		<div class="toolbar">
 			<Resize ref="resizeBtn" @click="openInFullscreen" />
+			<Code @click="showCode = !showCode" />
+			<CopyButton :text-to-copy="codeToCopy" />
+		</div>
+		<div v-if="showCode">
+			<div v-html="svgCodeDisplay" />
 		</div>
 	</div>
 	<Teleport to="body">
@@ -18,11 +23,12 @@
 <script setup>
 import { onMounted, onUnmounted, ref, toRaw } from 'vue';
 import { render, init } from './mermaid';
-
-//get mermaid settings
+import { codeToHtml } from 'shiki';
 import { useData } from 'vitepress';
 import Resize from '../../svgs/Resize.vue';
 import { debounce } from '../../helpers/debounce';
+import Code from '../../svgs/code.vue';
+import CopyButton from './CopyButton.vue';
 
 const pluginSettings = ref({
 	securityLevel: 'loose',
@@ -50,7 +56,10 @@ const props = defineProps({
 });
 
 const svg = ref(null);
+const svgCodeDisplay = ref(null);
+let showCode = ref(false);
 let mut = null;
+const codeToCopy = ref(null);
 
 onMounted(async () => {
 	await init(pluginSettings.value.externalDiagrams);
@@ -95,13 +104,25 @@ const renderChart = async () => {
 	if (mermaidPageTheme) mermaidConfig.theme = mermaidPageTheme;
 	if (hasDarkClass) mermaidConfig.theme = 'dark';
 
-	let svgCode = await render(props.id, decodeURIComponent(props.graph), mermaidConfig);
+	const decodedGraph = decodeURIComponent(props.graph);
+
+	let svgCode = await render(props.id, decodedGraph, mermaidConfig);
 	// This is a hack to force v-html to re-render, otherwise the diagram disappears
 	// when **switching themes** or **reloading the page**.
 	// The cause is that the diagram is deleted during rendering (out of Vue's knowledge).
 	// Because svgCode does NOT change, v-html does not re-render.
 	// This is not required for all diagrams, but it is required for c4c, mindmap and zenuml.
 	const salt = Math.random().toString(36).substring(7);
+	const code = await codeToHtml(decodedGraph, {
+		lang: 'mermaid',
+		theme: 'github-dark',
+	});
+	codeToCopy.value = decodedGraph;
+	let htmlCode = `<div class="language-ts vp-adaptive-theme">${code}</div>`;
+	htmlCode = htmlCode
+		.replaceAll('shiki github-dark', 'shiki shiki-themes github-light github-dark vp-code')
+		.replaceAll('style="background-color:#24292e;color:#e1e4e8"', '');
+	svgCodeDisplay.value = htmlCode;
 	svg.value = `${svgCode} <span style="display: none">${salt}</span>`;
 };
 
@@ -142,18 +163,39 @@ onUnmounted(() => {
 	position: absolute;
 	top: 0;
 	right: 0;
+	z-index: 2;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
 	& > * {
-		width: 40px;
+		width: fit-content;
 		height: 40px;
+		min-width: 40px;
 		cursor: pointer;
+		opacity: 0;
+		border: 1px solid var(--vp-code-copy-code-border-color);
+		border-radius: 4px;
+		background-color: var(--vp-code-copy-code-bg);
+		fill: rgba(128, 128, 128, 1);
+		transition:
+			border-color 0.25s,
+			background-color 0.25s,
+			opacity 0.25s;
 	}
-	transition: 0.1s;
-	opacity: 0.1;
 }
 
-.diagram-holder {
+.diagram-holder,
+.diagram-full-size {
 	position: relative;
-	&:hover .toolbar {
+	&:hover .toolbar > * {
+		opacity: 0.4;
+		&:hover {
+			border-color: var(--vp-code-copy-code-hover-border-color) !important;
+			background-color: var(--vp-code-copy-code-hover-bg) !important;
+		}
+	}
+	.toolbar:hover > * {
 		opacity: 1;
 	}
 }

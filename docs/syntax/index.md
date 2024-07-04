@@ -1,67 +1,109 @@
 ---
-title: Syntax
+title: Diagram Syntax
 ---
 
-## Constants and Object constructors
+# Yantrix diagram syntax
 
--   `'foo'` defines a string
--   `[]` creates an empty array
--   `$(foo)` references a Constant named foo
+## Mermaid
 
-## Expressions
+Yantrix extends [MermaidJS](https://mermaid.js.org/) syntax to describe business logic, which is then transpiled into
+one of popular programming languages. This allows to effortlessly visualize data flow and control states, blending well
+into [Documentation-As-Code](https://www.writethedocs.org/guide/docs-as-code/)
+and [Everything-As-Code](https://hackernoon.com/everything-as-code-explained-0ibg32a3) paradigms.
 
-Expressions are function chains applied to particular values, most often during transitions. Expressions can include [Transformers](#transformers) and [Predicates](#predicates), and are generally just nested function calls around some property key, so Expression is either a `<PROPERTY_NAME>`, a `<FUNC_OPERATOR>(<PROPERTY_NAME>[,<CONSTANT_ARGS>...])` or a `<FUNC_OPERATOR>(<FUNC_OPERATOR>)`, i.e.
+Yantrix currently supports [State Diagrams](https://mermaid.js.org/syntax/stateDiagram.html) and aims to
+support [Sequence Diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html)
+and [Class Diagrams](https://mermaid.js.org/syntax/classDiagram.html) as well.
 
--   `index` : returns value of `index` key in a related source object
--   `sum(index,2)` : returns arithmetic result `index+2`, where `index` is converted to decimal
--   `round(sum(index,2))` : return the rounded result of a previous operation
-
-In any case, an `Expression` has a primary operand which is hereby called `Bound Property`. The `Property` is always the first (leftmost) argument in the tree of calls.
-
-## Recursion
-
-Using recursion is allowed, however, maximum depth of stack in any `Expression` is 8. This limitation is intentional, forcing you to explicitly define complex composition of functions as a new function.
-
-## Multiple properties
-
-An `Expression` can reference more than one property as arguments of functions, but all except for the leftmost one are not considered `Bound Properties`
-
-## Null Property
-
-If the most deeply nested function of an `Expression` does not require a parameter, the `Bound Property` is considered to equal `Null` for the sake of unification. This value would be passed as an argument to the function if its definition does actually have a parameter. Example:
-
--   `random()`: returns `Math.random()` value, compare to `random`, which would be a property reference
--   `if(greater(random(),0.5),f1(some_property),f2(some_property))`: applies one of two functions `f1`,`f2` to `some_property` randomly with 50% chance. However, since the leftmost argument is absend, the `Bound Property` is `Null`
-
-## Key Lists
-
-Many operations revolve around mapping data objects, which is achieved by enumerating affected source and target object keys (properties) and their transformations. Key list is defined as the following:
+Example of a State Diagram, implementing an `until` loop:
 
 ```
-KEY_ITEM::=<TARGET_PROPERTY>[=<SOURCE_EXPRESSION>]
-KEY_LIST::=KEY_ITEM[,KEY_ITEM...]
+[*] --> LOOP_ITERATION: START_LOOP(counter)
+LOOP_ITERATION --> LOOP_REPEAT: ITERATE
+state loop_ends <<choice>>
+LOOP_REPEAT --> loop_ends: ITERATE
+loop_ends --> LOOP_REPEAT: greaterThan(${counter},0)
+loop_ends --> LOOP_END
+note right of LOOP_ITERATION
+    #{ counter } <= ( counter = 1 )
+end note
+note left of LOOP_REPEAT
+    #{ counter } <= ( add(counter, -1) )
+    emit/nextIteration
+    subscribe/nextIteration => ITERATE
+end note
 ```
 
-`SOURCE_EXPRESSION` is an `Expression` derived from source object properties, bound to any of them. The particular meaning of _"source"_ and _"target"_ here is contextual and depends on where the Key List is used. Examples:
+And this is how Mermaid renders it:
 
--   `id,name` : copies corresponding fields from a source object to target
--   `id,name=trim(name)` : does the same, but applies `String.trim()` to source value
--   `id,name=concat(trim(name),' ',trim(lastname))`: extracts two properties from the source object, trims them and joins them with a predefined string constant
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> LOOP_ITERATION: START_LOOP(counter)
+    LOOP_ITERATION --> LOOP_REPEAT: ITERATE
+    state loop_ends <<choice>>
+    LOOP_REPEAT --> loop_ends: ITERATE
+    loop_ends --> LOOP_REPEAT: greaterThan(${counter},0)
+    loop_ends --> LOOP_END
+    note right of LOOP_ITERATION
+        #{ counter } <= ( counter = 1 )
+    end note
+    note left of LOOP_REPEAT
+        #{ counter } <= ( add(counter, -1) )
+        emit/nextIteration
+        subscribe/nextIteration => ITERATE
+    end note
+```
 
-## State Transformers
+**Notice:** Please be informed that this partucular diagram is not a good application of Yantrix, but rather is
+presented for demonstration purposes.
 
-To project values between `Action Paylowd` and `State Context` the following syntax is used:
+## State Machine
 
--   `#{<KEY_LIST>}<=(<KEY_LIST>)` : maps `Payload` to `Context`, where `Payload` keys referenced on the right side, and `Context` keys are referenced on the left side- `#(<KEY_LIST>)<=(<KEY_LIST>)` : maps previous `Context` to `Context`, where the previous `Context` keys referenced on the right side
+The first layer of syntax is describing a `FSM` - [Finite State Machine](../architecture/200_fsm.html).
 
-## Event Subscriptions
+The diagram above creates a `FSM` with 3 `States`:
 
-`subscribe/<EVENT_NAME> => <ACTION_NAME> [(<KEY_LIST>)]`
+- **LOOP_ITERATION**
+- **LOOP_REPEAT**
+- **LOOP_END**
 
-## Event Emitters
+They are written in uppercase on purpose, to be easily identified in a diagram source, but generally can be any alphanumeric identifiers.
 
-`emit/<EVENT_NAME> [<= (<KEY_LIST>)]`
+The diagram also defines 2 `Actions`:
 
-## Side Effects
+- **START_LOOP** with a `Payload` that carries a single `counter` variable
+- **ITERATE** without a `Payload`
 
-`effect/<EFFECT_NAME> [<= (<KEY_LIST>)]`
+Since **ITERATE** can be invoked in two of three `States`(**LOOP_ITERATION** and **LOOP_REPEAT**), **LOOP_END** has no transitions out of it. However, an `Action` that is coming ot ouf a default node (`[*]`) can be dispatched from any `State`. Thus, **START_LOOP** `Action` effectively resets the whole machine to starting conditions. That is a very useful pattern for proper `FSM` designs 
+
+Invoking **ITERATE** `Action` at **LOOP_REPEAT** `State` leads to a `Fork`, which has to calculate the predicate `greaterThan(${counter}, 0)`. If its truthy, the transition leads to **LOOP_END**. If not, the remaining transition makes a loop, invoking **LOOP_REPEAT** -> **LOOP_REPEAT** transition, yet again executing all operations in `notes` blocks, as described below.
+
+
+## Subsyntax
+
+Yantrix diagrams are built on top of Mermaid syntax for State Machines: there's an embedded subsyntax to describe data flow, effects and event model. That makes Yantrix itself a programming language that requires a bit of learning in order to use efficiently. The syntax reflects the state-machine lifecycle and mostly translates to or from reducers implemented via
+code generation.
+
+Yantrix subsyntax is a functional language by design, and each line of it is supposed to be independent of the others.
+The best comparison could be Excel/Google Sheets formulas, that are:
+
+- are computed derivatives of the state
+- are executed and calculated in rounds
+- can depend on each other but not within one round of calculation
+
+So despite lines of code are written in order, the result of their transpilation should not be dependent on line order
+as much as it goes.
+
+Every line starts with a `Directive` which defines the character of operation and is the most basic semantic entity in
+Yantrix:
+
+- [**Reducers**](100_reducers.html)
+    - [Data Objects](110_data_objects.html)
+    - [Values and Constants](120_values_and_constants.html)
+    - [Expressions](130_expressions.html)
+    - [Functions](140_functions.html)
+- [**Event pub/sub**](200_events.html)
+    - [subscribe](210_subscribe.html)
+    - [emit](220_emit.html)
+- [**Side Effects**](300_side_effects.html)
