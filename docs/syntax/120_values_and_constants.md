@@ -19,7 +19,7 @@ For other languages Yantrix aims to provide compatibility with elementary types,
 - **Lists (Tuples)**: Lists and Tuples are processed as similarly as possible for a given language. They also are
   immutable and can only be a read-only argument of the calling function
 - **Objects(Dictionaries)**: implementation is highly language-dependent and aims to reproduce the behaviour of
-  Typescript [`Record`](../API%-reference/automata/interfaces/IAutomata.html) implementation as closely as possible.
+  Typescript [`Record`](../API-reference/automata/interfaces/IAutomata.html) implementation as closely as possible.
   For `Functions` implementation **Object** arguments should be defined as immutable and read-only.
 
 ## Constant declaration
