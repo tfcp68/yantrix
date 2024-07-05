@@ -58,7 +58,7 @@ export function createEventDictionary<
 		};
 }
 
-export default class BasicEventDictionary
+export class BasicEventDictionary
 	extends createEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
 	implements IEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>
 {
@@ -66,3 +66,5 @@ export default class BasicEventDictionary
 		super();
 	}
 }
+
+export default BasicEventDictionary;

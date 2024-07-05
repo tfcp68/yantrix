@@ -32,14 +32,15 @@ export type TActionLookupParams<ActionType extends TAutomataBaseActionType> = Pa
 >;
 
 export type TEventKeysCollection<EventType extends TAutomataBaseEventType> = {
-	keys: string[];
+	keys: Array<null | string>;
 	namespace?: string;
 };
 
 export type TEventValuesCollection<EventType extends TAutomataBaseEventType> = {
-	events: EventType[];
+	events: Array<null | number>;
 	namespace?: string;
 };
 
-export type TEventLookupParams<EventType extends TAutomataBaseEventType> = TEventKeysCollection<EventType> &
-	TEventValuesCollection<EventType>;
+export type TEventLookupParams<EventType extends TAutomataBaseEventType> = Partial<
+	TEventKeysCollection<EventType> & TEventValuesCollection<EventType>
+>;
