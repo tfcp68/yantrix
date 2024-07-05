@@ -1,5 +1,5 @@
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixParser } from '../yantrixParser';
+import { YantrixParser } from '../yantrixParser.js';
 import { functionsFixtures } from '../fixtures/keyItem.js';
 import {
 	randomString,
