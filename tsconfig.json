@@ -42,7 +42,7 @@
 
 		// Language and Environment
 		"experimentalDecorators": true,
-		"lib": ["ESNext", "ES2015"],
+		"lib": ["ESNext"],
 		"target": "ESNext",
 		"useDefineForClassFields": true,
 		"skipLibCheck": true
