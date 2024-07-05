@@ -18,8 +18,8 @@
 		// Modules
 		"allowArbitraryExtensions": false,
 		"allowImportingTsExtensions": false,
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 		"resolveJsonModule": true,
 		"resolvePackageJsonExports": true,
 		"resolvePackageJsonImports": true,

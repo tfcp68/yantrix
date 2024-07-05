@@ -27,8 +27,6 @@
 		"Саша <https://github.com/22sasha>"
 	],
 	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"bin": {
 		"yantrix": "dist/bin/yantrix.js"
 	},
@@ -40,7 +38,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "rimraf dist && tsc",
+		"build": "tsc --noEmit && tsup",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
 	},
