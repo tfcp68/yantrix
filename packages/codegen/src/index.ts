@@ -14,7 +14,6 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 	const statesIncludingNotes = states.map((state) => {
 		const input = state.notes.flatMap((e) => e.join('\n')).join(' ');
 		if (input === '') return { ...state, notes: null };
-
 		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
 	});
 

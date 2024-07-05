@@ -17,6 +17,8 @@ export class JavaScriptCodegen implements ICodegen {
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
+	initialContext: string;
+	initialContextKeys: string[];
 	changeStateHandlers: string[];
 	dictionaries: string[];
 	protected imports = {
@@ -31,9 +33,11 @@ export class JavaScriptCodegen implements ICodegen {
 		this.handlersDict = [];
 		this.changeStateHandlers = [];
 		this.dictionaries = [];
+		this.initialContextKeys = [];
+
+		this.initialContext = this.getInitialContext();
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
-
 		this.setupDictionaries();
 	}
 
@@ -64,7 +68,7 @@ export class JavaScriptCodegen implements ICodegen {
   			super();
   			this.init({
   				state: ${this.getInitialState()},
-  				context: ${this.getInitialContext()},
+  				context: ${this.initialContext},
                 rootReducer: ${this.getRootReducer()},
   				stateValidator: ${this.getStateValidator()},
   				actionValidator: ${this.getActionValidator()},
@@ -170,8 +174,18 @@ export class JavaScriptCodegen implements ICodegen {
 		}
 		const { contextDescription } = value.notes;
 
+		const flattedContext = contextDescription.flatMap((e) => e.context.flatMap((e) => e));
+
+		const unusedInitialKeys = this.initialContextKeys.filter(
+			(key) => flattedContext.filter((e) => e.KeyItemDeclaration.TargetProperty === key).length === 0,
+		);
+
+		const normalizedUnusedKeys = unusedInitialKeys.map((property) => {
+			return `${property}: ${TAssignTypeDict.PREV_CONTEXT}['${property}'],`;
+		});
+
 		const res = contextDescription
-			.map((ctx, index) => {
+			.map((ctx) => {
 				if (isPayloadContext(ctx)) {
 					const { context, payload = [] } = ctx;
 					return context.map((ctxItem, index) => {
@@ -194,7 +208,7 @@ export class JavaScriptCodegen implements ICodegen {
 			})
 			.flatMap((template) => template.flatMap((el) => el));
 
-		return `{${res.join('\r\n')}}`;
+		return `{${[...normalizedUnusedKeys, ...res].join('\r\n')}}`;
 	}
 
 	private getInitialContext() {
@@ -210,6 +224,8 @@ export class JavaScriptCodegen implements ICodegen {
 			const { context } = ctx;
 			return context
 				.map((ctx) => {
+					this.initialContextKeys.push(ctx.KeyItemDeclaration.TargetProperty);
+
 					if (isKeyItemWithExpression(ctx)) {
 						return `${ctx.KeyItemDeclaration.TargetProperty}: ${this.getByExpressionValue(ctx)}`;
 					}
@@ -223,26 +239,15 @@ export class JavaScriptCodegen implements ICodegen {
 
 	public getDefaultContext = () => {
 		return `const getDefaultContext = ({payload,context:prevContext}) => {
-			return ${this.getSubsyntaxContext(StartState)}
-		
+			const initialContext = ${this.getSubsyntaxContext(StartState)}
+			return {
+				...initialContext,
+				...prevContext
+			}
 		}`;
 	};
 	private getInitialState() {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
-	}
-
-	private getInitialValue(context: TKeyItem) {
-		if (isKeyItemWithExpression(context)) {
-			const {
-				KeyItemDeclaration: { TargetProperty },
-			} = context;
-			return `${TargetProperty}: ${this.getByExpressionValue(context)}`;
-		} else {
-			const {
-				KeyItemDeclaration: { TargetProperty },
-			} = context;
-			return `${TargetProperty}: null`;
-		}
 	}
 
 	private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
@@ -263,7 +268,7 @@ export class JavaScriptCodegen implements ICodegen {
 
 		if (isEmptyBoundExpression && isEmptyInitial) {
 			return `
-				${LeftTarget} : ${type}['${RightTarget}'],
+				${LeftTarget} : ${type}['${RightTarget}'] || null,
 			`;
 		}
 
