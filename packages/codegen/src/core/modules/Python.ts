@@ -65,10 +65,11 @@ export class PythonCodegen implements ICodegen {
 			`def __init__(self):`,
 			`\tself.state = ${this.getInitialState()}`,
 			`\tself.context = ${this.initialContext}`,
-			`\tself.rootReducer' = ${this.getRootReducer()}`,
-			`\tself.stateValidator = ${this.getStateValidator()}`,
-			`\tself.actionValidator = ${this.getActionValidator()}`,
+			`\tself.root_reducer = self.rootReducer(action, context, payload, state)`,
+			`${this.getRootReducer()}`,
 			`${this.getIsKeyOf()}`,
+			`${this.getStateValidator()}`,
+			`${this.getActionValidator()}`,
 		];
 		return content.join('\n\t');
 	}
@@ -122,7 +123,11 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	protected getRootReducerStateValidation() {
-		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`;
+		const context = [
+			`${this.getRootReducerStateValidationHead()}`,
+			`\t\t\t${this.getRootReducerStateValidationError()}`,
+		];
+		return context.join('\n');
 	}
 
 	protected getRootReducerStateValidationHead() {
@@ -142,12 +147,12 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	protected getStateValidator() {
-		const content = [`def state_validator(self, s):`, `return s in statesDictionary.values()`];
+		const content = [`def stateValidator(self, s):`, `return s in statesDictionary.values()`];
 		return content.join('\n\t\t');
 	}
 
 	protected getActionValidator() {
-		const content = [`def action_validator(self, a):`, `return a in actionsDictionary.values()`];
+		const content = [`def actionValidator(self, a):`, `return a in actionsDictionary.values()`];
 		return content.join('\n\t\t');
 	}
 
@@ -240,9 +245,9 @@ export class PythonCodegen implements ICodegen {
 
 	public getDefaultContext = () => {
 		const context = [
-			`def getDefaultContext(payload, prev_context):`,
-			`\tinitial_context = ${this.getSubsyntaxContext(StartState)}`,
-			`\treturn {**initial_context, **prev_context}`,
+			`def getDefaultContext(payload, prevContext):`,
+			`\tinitialContext = ${this.getSubsyntaxContext(StartState)}`,
+			`\treturn {**initialContext, **prevContext}`,
 		];
 
 		return context.join('\n');
