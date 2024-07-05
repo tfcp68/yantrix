@@ -14,6 +14,11 @@ export function createEventDictionary<
 		class AbstractEventDictionary extends DictionaryContainer<EventType>()(
 			ExtendedEventContainer<EventType, EventMetaType>()(Base),
 		) {
+			/**
+			 * Retrieves event keys bound to the namespace
+			 * @param obj - object with list of events to get keys for and associated namespace
+			 * @returns Array of event keys
+			 */
 			getEventKeys({
 				events = [],
 				namespace = undefined,
@@ -27,10 +32,20 @@ export function createEventDictionary<
 				});
 			}
 
+			/**
+			 * Clears all events bound to the namespace
+			 * @param namespace
+			 * @returns dictionary
+			 */
 			clearEvents(namespace?: string) {
 				return this._clearItems(namespace);
 			}
 
+			/**
+			 * Removes specified events from the dictionary
+			 * @param obj - object with namespace, list of events/keys to delete
+			 * @returns dictionary
+			 */
 			removeEvents({ namespace, events = [], keys = [] }: TEventLookupParams<EventType>) {
 				const eventsToDelete = [
 					...events.filter(this.validateEvent),
@@ -45,6 +60,11 @@ export function createEventDictionary<
 				return this;
 			}
 
+			/**
+			 * Retrieves event values bound to the namespace
+			 * @param obj - object with list of keys to get events from and associated namespace
+			 * @returns Array of event values
+			 */
 			getEventValues({
 				namespace = undefined,
 				keys = [],
@@ -52,6 +72,11 @@ export function createEventDictionary<
 				return (keys ?? []).map((eventKey) => this._findItem(eventKey as string, namespace));
 			}
 
+			/**
+			 * Add events to the namespace
+			 * @param obj - object with list of keys to get events from and associated namespace
+			 * @returns Array of added events
+			 */
 			addEvents({ namespace = undefined, keys }: TEventKeysCollection<EventType>) {
 				return (keys || []).map((k) => this._addItemKey(k as string, namespace));
 			}
