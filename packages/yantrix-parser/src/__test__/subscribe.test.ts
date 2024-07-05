@@ -1,5 +1,5 @@
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixParser } from '../yantrixParser.js';
+import { YantrixParser } from '../yantrixParser';
 
 describe('Subscribe', () => {
 	test('should be throw error without event name ', () => {

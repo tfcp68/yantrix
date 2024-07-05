@@ -1,5 +1,5 @@
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixLexer, YantrixParser } from '../yantrixParser.js';
+import { YantrixLexer, YantrixParser } from '../yantrixParser';
 import { functionsFixtures, keyItem } from '../fixtures/keyItem.js';
 import {
 	allowedExpressions,
@@ -43,7 +43,7 @@ const templateFunctions: { [key: string]: (...args: any) => any } = {
 		for (let i = 0; i < randomInteger(1, 5); i++) {
 			const propName = randomString();
 			const propValue = randomValue();
-			properties.push([propName, typeof propValue == 'string' ? `"${propValue}"` : propValue]);
+			properties.push([propName, typeof propValue === 'string' ? `"${propValue}"` : propValue]);
 		}
 		const str = properties.map(([name, value]) => `${name}=${value}`).join(',');
 		return [templateString.replace('%multi', str), func(properties)];
