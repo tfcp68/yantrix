@@ -17,7 +17,8 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm run build && vitest run"
+		"test": "pnpm run build && vitest run --coverage",
+		"export-grammar": "node src/bin/exportCodeToGrammar.js "
 	},
 	"description": "Execute jison parser",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
@@ -44,7 +45,9 @@
 		"jison": "0.4.18"
 	},
 	"dependencies": {
+		"@yantrix/utils": "workspace:^",
 		"@ts-jison/lexer": "0.4.1-alpha.1",
-		"@ts-jison/parser": "0.4.1-alpha.1"
+		"@ts-jison/parser": "0.4.1-alpha.1",
+		"immutable": "^4.3.6"
 	}
 }

@@ -1,6 +1,4 @@
-import type { ITypedObject, ITypedObjectProps } from '../types/common.js';
-import { join } from 'path';
-import { cwd } from 'node:process';
+import { ITypedObject, ITypedObjectProps } from '../types/common.js';
 import { readFile } from 'fs/promises';
 import { format } from 'prettier';
 
@@ -39,8 +37,7 @@ export const toTypedObject = <T>(obj: T, name: string) => {
 	} satisfies ITypedObject;
 };
 
-const prettierCfgPath = join(cwd(), '.prettierrc');
-export const fmt = async (code: string) => {
+export const fmt = async (code: string, prettierCfgPath: string) => {
 	try {
 		const prettierCfgRaw = await readFile(prettierCfgPath, 'utf-8');
 		const prettierCfg = JSON.parse(prettierCfgRaw);
@@ -48,4 +45,21 @@ export const fmt = async (code: string) => {
 	} catch {
 		return code;
 	}
+};
+
+/**
+ * Преобразует ключи объекта в число
+ */
+export const convertKeysToNumberString = (obj: object) => {
+	if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
+
+	let result = '{';
+	let first = true;
+	for (const [key, value] of Object.entries(obj)) {
+		if (!first) result += ',';
+		first = false;
+		result += `${Number(key)}:${convertKeysToNumberString(value)}`;
+	}
+	result += '}';
+	return result;
 };
