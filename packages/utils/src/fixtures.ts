@@ -18,7 +18,7 @@ export const randomDecimal = (min: number = -10000, max: number = 10000) => Math
 export const randomValueFunction = () => {
 	const randomValueFunctions = [randomString, randomInteger, randomDecimal];
 	const randomIndex = Math.floor(Math.random() * randomValueFunctions.length);
-	return randomValueFunctions[randomIndex];
+	return randomValueFunctions[randomIndex]!;
 };
 export function randomValue(): number | string {
 	return randomValueFunction()();

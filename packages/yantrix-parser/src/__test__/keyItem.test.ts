@@ -43,7 +43,7 @@ const templateFunctions: { [key: string]: (...args: any) => any } = {
 		for (let i = 0; i < randomInteger(1, 5); i++) {
 			const propName = randomString();
 			const propValue = randomValue();
-			properties.push([propName, typeof propValue == 'string' ? `"${propValue}"` : propValue]);
+			properties.push([propName, typeof propValue === 'string' ? `"${propValue}"` : propValue]);
 		}
 		const str = properties.map(([name, value]) => `${name}=${value}`).join(',');
 		return [templateString.replace('%multi', str), func(properties)];

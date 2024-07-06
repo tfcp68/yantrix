@@ -22,9 +22,13 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
 	mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
 	await mermaid.mermaidAPI.initialize();
 	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+
+	// @ts-expect-error IMPLEMENTATION BUG
 	const parsedArray: any = diagram.db.getMessages();
 
 	const parsedMessages: TParsedMessagesArray = [];
+
+	// @ts-expect-error IMPLEMENTATION BUG
 	const parsedActors: TActorsArray = diagram.db.getActorKeys();
 	const parsedNotes: TParsedNotesArray = [];
 	const parsedOtherElements: TParsedOtherElementsArray = [];
@@ -102,18 +106,18 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 
 	for (let i = 0; i < parsedMessages.length; i++) {
 		const recievedMessage = parsedMessages[i].message;
-		let from_index = actors.indexOf(parsedMessages[i].from);
-		const to_index = actors.indexOf(parsedMessages[i].to);
+		let fromIndex = actors.indexOf(parsedMessages[i].from);
+		const toIndex = actors.indexOf(parsedMessages[i].to);
 
-		while (from_index !== to_index + 1) {
-			const from = actors[from_index];
+		while (fromIndex !== toIndex + 1) {
+			const from = actors[fromIndex];
 
 			if (notes[from] === null) {
 				notes[from] = [recievedMessage];
 			} else {
 				notes[from]?.push(recievedMessage);
 			}
-			from_index++;
+			fromIndex++;
 		}
 	}
 	return notes;
