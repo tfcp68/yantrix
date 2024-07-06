@@ -1,53 +1,78 @@
 {
+	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/codegen",
 	"version": "0.1.0",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"files": [
-		"dist"
-	],
-	"repository": {
-		"directory": "packages/codegen",
-		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git"
-	},
-	"scripts": {
-		"build": "rimraf dist && tsc",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
-		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "rimraf ./__tests__/fixtures/*.generated && pnpm install && pnpm run build && pnpx tsx ./__tests__/fixtures/saveGenerated.ts && vitest run --coverage"
-	},
 	"description": "Generates automata from given mermaid state diagram",
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"bugs": {
-		"url": "https://github.com/octaharon/yantrix/issues"
-	},
-	"directories": {
-		"lib": "src",
-		"test": "__tests__"
-	},
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
-	},
-	"homepage": "https://github.com/octaharon/yantrix",
 	"keywords": [
 		"FSM",
 		"Miely Machine"
 	],
-	"license": "ISC",
+	"homepage": "https://github.com/tfcp68/yantrix",
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/codegen"
+	},
+	"license": "MIT",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Etheresk <https://github.com/Etheresk>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
 	"type": "module",
+	"exports": {
+		".": {
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			},
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc --noEmit && tsup",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
+		"prepack": "pnpm lint && pnpm test && pnpm build",
+		"test": "tsx ./__tests__/fixtures/saveGenerated.ts && vitest run"
+	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
+		"commander": "^12.1.0",
+		"fs-extra": "^11.2.0",
+		"picocolors": "^1.0.1"
+	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
 		"tsx": "^4.11.0"
 	},
-	"dependencies": {
-		"commander": "^12.1.0",
-		"fs-extra": "^11.2.0",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
-		"picocolors": "^1.0.1"
+	"engines": {
+		"node": ">=18"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
 	}
 }

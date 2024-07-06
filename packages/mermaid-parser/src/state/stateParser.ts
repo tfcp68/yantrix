@@ -34,6 +34,8 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
 		});
 		await mermaid.mermaidAPI.initialize();
 		const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+
+		// @ts-expect-error IMPLEMENTATION BUG
 		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
 
 		return parsedDiagram;

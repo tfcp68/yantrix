@@ -1,49 +1,64 @@
 {
+	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/cli",
 	"version": "0.1.0",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"bin": {
-		"yantrix": "dist/bin/yantrix.js"
-	},
-	"files": [
-		"dist"
-	],
-	"repository": {
-		"directory": "packages/cli",
-		"type": "git",
-		"url": "git+https://github.com/tfcp68/yantrix.git"
-	},
-	"scripts": {
-		"build": "rimraf dist && tsc",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
-	},
 	"description": "CLI for Yantrix components",
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"directories": {
-		"bin": "bin",
-		"lib": "src"
-	},
-	"homepage": "https://github.com/tfcp68/yantrix",
 	"keywords": [
 		"FSM",
 		"Miely Machine"
 	],
+	"homepage": "https://github.com/tfcp68/yantrix",
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/cli"
+	},
+	"license": "MIT",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Etheresk <https://github.com/Etheresk>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"type": "module",
+	"bin": {
+		"yantrix": "dist/bin/yantrix.js"
+	},
+	"directories": {
+		"lib": "src",
+		"bin": "bin"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc --noEmit && tsup",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
+	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"commander": "^12.1.0",
+		"fs-extra": "^11.2.0",
+		"picocolors": "^1.0.1"
+	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
 		"tsx": "^4.11.0"
 	},
-	"dependencies": {
-		"commander": "^12.1.0",
-		"fs-extra": "^11.2.0",
-		"picocolors": "^1.0.1",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/codegen": "workspace:^"
+	"engines": {
+		"node": ">=18"
 	},
-	"license": "ISC",
-	"type": "module"
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
 }
