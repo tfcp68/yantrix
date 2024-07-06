@@ -1,17 +1,17 @@
 # Test Report
 
-| 🕙 Start time         | ⌛ Duration |
-| --------------------- | ----------: |
-| 6/28/2024, 4:03:03 PM |     2.224 s |
+| 🕙 Start time | ⌛ Duration |
+| --- | ---: |
+| 7/5/2024, 5:03:34 PM | 3.861 s |
 
-|             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
-| ----------- | --------: | --------: | ---------: | ------: | -------: |
-| Test Suites |        70 |         0 |          0 |       0 |       70 |
-| Tests       |       183 |         0 |          0 |       0 |      183 |
+| | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
+| --- | ---: | ---: | ---: | ---: | ---: |
+|Test Suites|70|0|0|0|70|
+|Tests|183|0|0|0|183|
 
-## ✅ <a id="file0" href="#file0">**tests**/actionDictionary.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/65fdacc89735e3836a7ed1c6805deef8590ef24b/packages/automata/__tests__/actionDictionary.test.ts)]
+## ✅ <a id="file0" href="#file0">__tests__\actionDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 21 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 39 s
 
 ```
 ✅ ActionDictionary › constructor
@@ -110,9 +110,9 @@
 ✅ ActionDictionary
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**/automata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/65fdacc89735e3836a7ed1c6805deef8590ef24b/packages/automata/__tests__/automata.test.ts)]
+## ✅ <a id="file1" href="#file1">__tests__\automata.test.ts</a>
 
-68 passed, 0 failed, 0 skipped, 0 todo, done in 28 s
+68 passed, 0 failed, 0 skipped, 0 todo, done in 40 s
 
 ```
 ✅ Automata › constructor
@@ -148,8 +148,8 @@
    ✅ when Disabled, computes the specified quantity of Actions from the Queue without changing the internal state
    ✅ when Enabled, consumes of Actions from the Queue and changes the state
 ✅ Automata › /consumeAction
-   ✅ with empty Action Queue returns the current Context
-   ✅ with empty Action Queue returns the current Context when called with parameter
+   ✅ with empty Action Queue returns the current Context 
+   ✅ with empty Action Queue returns the current Context when called with parameter 
    ✅ when Disabled, doesn't alter the Action Queue but returns computed Context
    ✅ when Enabled, pops the Action Queue and returns computed Context
 ✅ Automata › /dispatch › when Unpaused, Enabled
@@ -211,9 +211,9 @@
 ✅ Automata
 ```
 
-## ✅ <a id="file2" href="#file2">**tests**/eventAdapter.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/65fdacc89735e3836a7ed1c6805deef8590ef24b/packages/automata/__tests__/eventAdapter.test.ts)]
+## ✅ <a id="file2" href="#file2">__tests__\eventAdapter.test.ts</a>
 
-46 passed, 0 failed, 0 skipped, 0 todo, done in 23 s
+46 passed, 0 failed, 0 skipped, 0 todo, done in 38 s
 
 ```
 ✅ EventAdapter › constructor

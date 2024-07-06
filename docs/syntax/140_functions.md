@@ -4,80 +4,95 @@ title: Functions
 
 # Functions
 
-Functions come in several flavors:
+Functions are [first-class citizens](https://en.wikipedia.org/wiki/First-class_citizen) used
+in [Expressions](130_expressions.html). Being a first-class citizen means that a `Function` can be an argument of
+another `Function`, leading to [composition](https://en.wikipedia.org/wiki/Function_composition) and generally allowing
+for [higher-order functions](https://en.wikipedia.org/wiki/Higher-order_function), similar to most functional languages,
+Excel formulas included.
 
-## Predicates
+Almost every `Function` used in Yantrix is a [pure function](https://en.wikipedia.org/wiki/Pure_function), i.e. it does
+not mutate its arguments or whatsoever, with the only exception being [`Model Transformers`](160_transformers.md).
 
-`Predicates` are functions that return a Boolean value and are used to fork the flow of operations inside `FSMs`.
-All `Predicates` are high-order functions that allow composition.
+## Function Classes
 
-## Built-in Predicates
+The purpose of functions is to provide declarative and deterministic way of transforming data in `FSM` and `Model`
+during transitions. Functions are categorized into three varieties:
 
-Bundled within Yantrix grammar, they are used to combine other `Predicates` and implement logical operations
-like `not`, `and` and so on.
+* `Higher-Order Functions` or just `HOF`s are mostly built-in and are used to control the execution flow, taking place
+  of **operators** and **keywords** in imperative programming languages.
+* `Predicates` &mdash; `Functions` that have a binary output and validate some condition. Most often than not they are
+  used to introduce cyclomatic complexity and logic branching.
+* `Transformers` &mdash; are `Functions` that project one data space to another, like mapping
+  between `Payload`, `Context`, `Event Meta` or primitive types.
+
+## Polymorphism
+
+`Functions` can implement parameter polymorphism, i.e. they can declare several similar signatures operating different
+types. However a function can not have polymorphic return type, and it has limited options depending on which class
+the `Function` belongs to:
+
+* `Higher-Order Functions` can return any primitive type
+* `Predicates` return **Binary**
+* `Transformers` can return any primitive type
 
 ### Examples
-- check the oddity of value: `isEven(value)`
-- compare two numbers: `isGreater(value, reference)`
-- compare with a constant: `isLowerOrEqual(value, 0)`
-- test if a sample is in the set: `includes(listValue, sample)`
-- test if any condition succeeds: 
+
+`contains` is a [`Predicate`](150_predicates.html) that always returns a **Binary**, but can be called with different
+argument types:
+
 ```
-oneOf(isGreater(value, 0), not(includes(listValue, 'sample')), isGreater(len(stringValue), 0))
+''' if "var" is an Object, checks if a "keyName" property exists in it
+contains(var, keyName = 'propertyName')
+
+''' if "var" is a List, it checks for an index existence instead
+contains(var, index = 1) 
+
+''' if "var" is a String, checks if it contains a substring
+contains(var, substring = 'searchString')
 ```
 
-## Model Predicates
+## Built-Ins: Conditional operations
 
-Are declared as a part of `Data Model` are supposed to implement conditions that rely on the current state
-of `Application`. They can be written in the language of integration and injected into `FSM`s at runtime. This can be
-useful to taylor primitives to a specific Integration
+| Function(s) |                       Signature                       |                                      Arguments                                      | Returns                                                                                                  |
+|:------------|:-----------------------------------------------------:|:-----------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------|
+| `if`        |             (**Binary**, any, any) => any             | a condition to check, a value to return if it's truthy, a value to return otherwise | the first argument, if condition is truthy; the second argument in the other case                        |
+| `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any |        condition 1, return value 1, condition 2, return value 2, ... , else         | the result of the expression, following a truthy condition; or the latest expression, if none is present |
+| `coalesce`  |                   (any, ..) => any                    |                           any collection of `Expressions`                           | first non-Null value in the list of arguments                                                            |
+| `random`    |                   () => **Number**                    |                                                                                     | a uniform random number between 0 and 1, that is easily used as a **Binary**                             |
+| `random`    |        (**Number**, **Number**) => **Number**         |                                                                                     | a uniform random number between the first and the second arguments                                       |
 
-### Examples
-- `isUserAuthorized(user_id)`
-- `isEqual(getHeader(headers, 'Origin'), $[allowed_origin]))`
-- `effect/colorize <= {if(isEven(counter), 'red','green'}}`
+## Built-Ins: Binary Operations
 
-## Context Predicates
+Most elementary logic is builtin into Yantrix, i.e. those functions can be used in any `Reducer` or `Expression`:
 
-Are declared within a `Slice` and its `State Dictionary`, and have a `State`/`Context` pair as a dependency. It's
-designed to create decision branching within `Forks` and create domain-specific logic
+| Function(s)  |                 Signature                  |        Arguments         | Returns                             |
+|:-------------|:------------------------------------------:|:------------------------:|-------------------------------------|
+| `and`, `all` | (**Binary**, **Binary**, ..) => **Binary** | Any number of conditions | a boolean conjuction of conditions  |
+| `or`, `any`  | (**Binary**, **Binary**, ..) => **Binary** | Any number of conditions | a boolean disjunction of conditions |
+| `not`        |         (**Binary**) => **Binary**         |    A single condition    | a boolean negation                  |
+| `none`       | (**Binary**, **Binary**, ..) => **Binary** | Any number of conditions | equivalent to `not(and(...))`       |
 
-### Examples
-- `isRequestComplete()`
-- `isFocused(input_id)`
-- `hasItemsinQueue(queue)`
+## Built-Ins: Numeric comparison
 
-## Transformers
+| Function(s)        |               Signature                |    Arguments    | Returns                                                               |
+|:-------------------|:--------------------------------------:|:---------------:|-----------------------------------------------------------------------|
+| `isEven`           |       (**Number**) => **Binary**       | A numeric value | truthy if the number is even                                          |
+| `isOdd`            |       (**Number**) => **Binary**       | A numeric value | truthy if the number is odd                                           |
+| `isInteger`        |       (**Number**) => **Binary**       | A numeric value | truthy if the number is integer                                       |
+| `isEqual`          |        (any, any) => **Binary**        |   Any values    | truthy if the arguments are of the same type and have identical value |
+| `isGreater`        | (**Number**, **Number**) => **Binary** |   Two numbers   | truthy if the first number1 > number2                                 |
+| `isGreaterOrEqual` | (**Number**, **Number**) => **Binary** |   Two numbers   | truthy if the first number1 > number2                                 |
+| `isLess`           | (**Number**, **Number**) => **Binary** |   Two numbers   | truthy if the first number1 < number2                                 |
+| `isLessOrEqual`    | (**Number**, **Number**) => **Binary** |   Two numbers   | truthy if the first number1 <= number2                                |
+| `isNegative`       |       (**Number**) => **Binary**       | A numeric value | truthy if the number is less than 0                                   |
+| `isPositive`       |       (**Number**) => **Binary**       | A numeric value | truthy if the number is greater or equal to 0                         |
 
-`Transformers` are projection-type functions that come with `Slice` and translate the same types between each other.
+## Built-Ins: Key/Value lookup
 
-## Generic Transformers
-
-There are built-in pure functions that operate on any contract type and map the values. They are the basic building
-blocks of data manipulation. They can be user-defined and are injected at build-time
-
-### Examples
-- `add(value1, value2)`
-- `find(listValue, 'id', 4)`
-- `mult(mean(listValue), ${count})`
-
-## Context Transformers
-
-They translate `Contexts` between each other and are used inside [`Reducers`](100_reducers.html) to update internal data of the `FSM` when changing `States`. They are defined as a part of `State Dictionary` and can be injected at compile time.
-
-### Examples
-- `#{stepIndex} <= {nextStep(stepIndex)}`
-- `#{email, password, input_error} <= {sanitize(email), sanitize(password), validate(email,password)}`
-
-## Reducer Transformers
-
-Function that translate from `State`+`Action/Payload` to `State/Context` can be injected into `FSM`s at compile time.
-- `#{propertyA, propertyB} = {reducerA(propertyA, $(payloadA), reducerB(propertyB, $(payloadB))}`
-
-## Model Transformers
-
-Model transformers are a subtype of `Effects` that are context-free and are basically functions that mutates the `Data Model`. 
-
-- `#{counter} <= { add(counter, increaseGlobalCounter($(value))) }`
-
-They can be composed with `Predicates` to create conditional mutations, but this approach is not recommended, since it splits the responsibility of `Effects`.
+| Function(s) |               Signature                |                    Arguments                    | Returns                                                                             |
+|:------------|:--------------------------------------:|:-----------------------------------------------:|-------------------------------------------------------------------------------------|
+| `contains`  | (**String**, **String**) => **Binary** |                   two strings                   | truthy if the string1 includes string2, compared bytewise                           |
+| `contains`  |     (**List**, any) => **Binary**      |  an array-like structure and a value to search  | truthy if the the **List** includes the second value, compared by type and bytewise |
+| `contains`  | (**Object**, **String**) => **Binary** | A dictionary-like structure and a search string | truthy if the the **Object** has a _value_ with a name of the **String** parameter  |
+| `has`       |  (**List**, **Number**) => **Binary**  |   an array-like structure and a search index    | truthy if the the **List** has an _index_ equal to **Number**                       |
+| `has`       | (**Object**, **String**) => **Binary** | A dictionary-like structure and a search string | truthy if the the **Object** has a _key_ with a name of the **String** parameter    |
