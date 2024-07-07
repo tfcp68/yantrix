@@ -6,6 +6,7 @@ import path, { dirname } from 'path';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Modules, generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import pc from 'picocolors';
+import { isString } from 'lodash-es';
 
 interface ICodegenOptions {
 	language: keyof typeof Modules;
@@ -40,7 +41,7 @@ program
 	.action(async (diagramFile: string, options: ICodegenOptions) => {
 		let diagramText = '';
 
-		if (options.eval) {
+		if (isString(options.eval)) {
 			if (diagramFile && options.verbose) {
 				warn('Ignoring diagram file path because -e/--eval flag is set.');
 			}
