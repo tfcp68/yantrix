@@ -31,7 +31,7 @@ program
 	.description('Generate Automata from given state diagram')
 	.argument('[diagramFile]', 'Diagram file to be parsed', '')
 	.addOption(new Option('-l, --language <lang>', 'Output file language').choices(Object.keys(Modules)))
-	.requiredOption('-o, --outfile <path>', 'Output file path')
+	.option('-o, --outfile <path>', 'Output file path')
 	.option('-c, --className <className>', 'Generating Automata class name')
 	.option('-e, --eval <diagramText>', 'Evaluate the given state diagram')
 	.option('--verbose', 'Enable verbose mode')
