@@ -1,5 +1,5 @@
 import { createTsupConfig } from '../../tsup.config.js';
 
 export default createTsupConfig({
-	entry: ['bin/yantrix.ts', 'src/index.ts'],
+	entry: ['bin/yantrix.ts'],
 });
