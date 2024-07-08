@@ -3,16 +3,16 @@
 	// Mapped from https://www.typescriptlang.org/tsconfig
 	"compilerOptions": {
 		// Type Checking
-		"allowUnreachableCode": true,
+		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
-		"exactOptionalPropertyTypes": false,
+		"exactOptionalPropertyTypes": true,
 		"noFallthroughCasesInSwitch": true,
-		"noImplicitOverride": false,
+		"noImplicitOverride": true,
 		"noImplicitReturns": true,
 		"noPropertyAccessFromIndexSignature": false,
-		"noUncheckedIndexedAccess": false,
-		"noUnusedLocals": false,
-		"noUnusedParameters": false,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"strict": true,
 
 		// Modules
@@ -36,7 +36,7 @@
 
 		// Interop Constraints
 		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
+		"esModuleInterop": false,
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
 
