@@ -99,22 +99,23 @@ program
 			}
 		};
 
-		const generateAutomata = async () => {
-			if (options.verbose) {
-				wait('Parsing given state diagram: ');
-				for (const line of diagramText.split('\n')) wait(line);
-			}
+		const [genErr, generatedAutomata] = await withError(
+			(async () => {
+				if (options.verbose) {
+					wait('Parsing given state diagram: ');
+					for (const line of diagramText.split('\n')) wait(line);
+				}
 
-			const structure = await parseStateDiagram(diagramText);
-			const diagram = await createStateDiagram(structure);
+				const structure = await parseStateDiagram(diagramText);
+				const diagram = await createStateDiagram(structure);
 
-			return generateAutomataFromStateDiagram(diagram, {
-				outLang: options.language,
-				className,
-			});
-		};
+				return generateAutomataFromStateDiagram(diagram, {
+					outLang: options.language,
+					className,
+				});
+			})(),
+		);
 
-		const [genErr, generatedAutomata] = await withError(generateAutomata());
 		if (genErr) {
 			error(`Failed to parse state diagram. ${genErr.message}`);
 			error(genErr.stack ?? '');
@@ -125,7 +126,7 @@ program
 		const textToWrite = `${disableFlagLines}\n\n${generatedAutomata}`;
 		const outputFilePath = path.resolve(options.outfile);
 
-		const saveGeneratedAutomata = async () => {
+		try {
 			if (options.verbose) {
 				wait(`Saving generated Automata to ${outputFilePath}`);
 			}
@@ -136,11 +137,8 @@ program
 			if (options.verbose) {
 				success(`Generated Automata saved to ${outputFilePath}`);
 			}
-		};
-
-		const [saveErr] = await withError(saveGeneratedAutomata());
-		if (saveErr) {
-			error(`Failed to save generated Automata. ${saveErr.message}`);
+		} catch (err) {
+			if (err instanceof Error) error(err.message);
 			process.exit(1);
 		}
 	});
