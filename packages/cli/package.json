@@ -28,10 +28,9 @@
 	],
 	"type": "module",
 	"bin": {
-		"yantrix": "dist/bin/yantrix.js"
+		"yantrix": "dist/yantrix.js"
 	},
 	"directories": {
-		"lib": "src",
 		"bin": "bin"
 	},
 	"files": [
@@ -40,7 +39,8 @@
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src"
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
+		"prepack": "pnpm lint && pnpm test && pnpm build"
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",

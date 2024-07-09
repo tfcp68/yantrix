@@ -6,6 +6,7 @@ import path, { dirname } from 'path';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Modules, generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import pc from 'picocolors';
+import { isString } from 'lodash-es';
 
 interface ICodegenOptions {
 	language: keyof typeof Modules;
@@ -24,37 +25,40 @@ const wait = (m: string) => console.warn(pc.bold(pc.yellow(`⌛ ${m}`)));
 
 const checkDisableFlags = ['/* eslint-disable */', '// @ts-nocheck'];
 
-program
-	.name('yantrix')
-	.description('A CLI tool to generate Automata from given mermaid state diagram')
-	.version('1.0.0');
+program.name('yantrix').description('Set of CLI tools for Yantrix').version('1.0.0');
 
 program
 	.command('codegen')
-	.description('A CLI tool to generate Automata from given mermaid state diagram')
-	.argument('<diagramFile>', 'Diagram file to be parsed')
-	.option('-o, --outfile <path>', 'Output file path')
+	.description('Generate Automata from given state diagram')
+	.argument('[diagramFile]', 'Diagram file to be parsed', '')
 	.addOption(new Option('-l, --language <lang>', 'Output file language').choices(Object.keys(Modules)))
-	.option('-c, --className <className>', 'Generated Automata class name')
-	.option('-e, --eval <diagramText>', 'Evaluate the given mermaid state diagram')
+	.option('-o, --outfile <path>', 'Output file path')
+	.option('-c, --className <className>', 'Generating Automata class name')
+	.option('-e, --eval <diagramText>', 'Evaluate the given state diagram')
 	.option('--verbose', 'Enable verbose mode')
-	.allowUnknownOption()
+	.allowExcessArguments(true)
+	.allowUnknownOption(true)
 	.action(async (diagramFile: string, options: ICodegenOptions) => {
 		let diagramText = '';
 
-		if (diagramFile) {
-			if (options.eval) {
-				if (options.verbose) warn('Ignoring diagram file path because -e/--eval flag is set.');
-				diagramText = options.eval;
-			} else {
-				const filePath = path.resolve(diagramFile);
-				if (options.verbose) wait(`Reading diagram from ${filePath}...`);
-				try {
-					diagramText = fs.readFileSync(filePath, 'utf-8');
-				} catch (err) {
-					if (err instanceof Error) error(err.message);
-					process.exit(1);
-				}
+		if (isString(options.eval)) {
+			if (diagramFile && options.verbose) {
+				warn('Ignoring diagram file path because -e/--eval flag is set.');
+			}
+
+			diagramText = options.eval;
+		} else {
+			if (!diagramFile) {
+				error('Diagram file path is required.');
+				process.exit(1);
+			}
+			const filePath = path.resolve(diagramFile);
+			if (options.verbose) wait(`Reading diagram from ${filePath}...`);
+			try {
+				diagramText = fs.readFileSync(filePath, 'utf-8');
+			} catch (err) {
+				if (err instanceof Error) error(err.message);
+				process.exit(1);
 			}
 		}
 
@@ -64,18 +68,19 @@ program
 		}
 
 		if (!options.outfile) {
-			error('Output file path is required.');
+			error('Output file path flag is required: -o, --outfile <path>');
 			process.exit(1);
 		}
 
 		if (!options.language) {
-			error('Output language is required.');
+			error('Output language flag is required: -l, --language <lang>');
 			process.exit(1);
 		}
 
 		const allowedLangs = Object.keys(Modules);
 		if (!allowedLangs.includes(options.language)) {
-			error(`Invalid output language specified. Allowed languages: ${allowedLangs.join(', ')}`);
+			const allowedMsg = `Allowed languages: ${allowedLangs.join(', ')}`;
+			error(`Invalid output language specified. ${allowedMsg}`);
 			process.exit(1);
 		}
 
@@ -85,36 +90,55 @@ program
 			process.exit(1);
 		}
 
-		let generatedAutomata;
-		try {
-			if (options.verbose) wait('Parsing given state diagram...');
+		const withError = async <T>(promise: Promise<T>) => {
+			const [settled] = await Promise.allSettled([promise]);
+			if (settled.status === 'rejected') {
+				return [settled.reason as Error, null] as const;
+			} else {
+				return [null, settled.value] as const;
+			}
+		};
 
-			const structure = await parseStateDiagram(diagramText);
-			const diagram = await createStateDiagram(structure);
-			generatedAutomata = await generateAutomataFromStateDiagram(diagram, {
-				outLang: options.language,
-				className,
-			});
-		} catch (err) {}
+		const [genErr, generatedAutomata] = await withError(
+			(async () => {
+				if (options.verbose) {
+					wait('Parsing given state diagram: ');
+					for (const line of diagramText.split('\n')) wait(line);
+				}
 
-		if (!generatedAutomata) {
-			error(`Failed to parse state diagram. Please check if the given state diagram is valid.`);
+				const structure = await parseStateDiagram(diagramText);
+				const diagram = await createStateDiagram(structure);
+
+				return generateAutomataFromStateDiagram(diagram, {
+					outLang: options.language,
+					className,
+				});
+			})(),
+		);
+
+		if (genErr) {
+			error(`Failed to parse state diagram. ${genErr.message}`);
+			error(genErr.stack ?? '');
 			process.exit(1);
 		}
 
 		const disableFlagLines = checkDisableFlags.join('\n');
 		const textToWrite = `${disableFlagLines}\n\n${generatedAutomata}`;
 		const outputFilePath = path.resolve(options.outfile);
-		// const outputFileName = outputFilePath.replace(/^.*[\\/]/, '');
 
 		try {
+			if (options.verbose) {
+				wait(`Saving generated Automata to ${outputFilePath}`);
+			}
+
 			fs.ensureDirSync(dirname(outputFilePath));
-			fs.writeFileSync(outputFilePath, textToWrite, {
-				encoding: 'utf-8',
-			});
-			if (options.verbose) success(`Generated Automata saved to ${outputFilePath}`);
+			fs.writeFileSync(outputFilePath, textToWrite, { encoding: 'utf-8' });
+
+			if (options.verbose) {
+				success(`Generated Automata saved to ${outputFilePath}`);
+			}
 		} catch (err) {
-			error(`Failed to write generated Automata. ${err instanceof Error ? err.message : ''}`);
+			if (err instanceof Error) error(err.message);
 			process.exit(1);
 		}
 	});
