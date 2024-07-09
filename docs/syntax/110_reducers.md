@@ -86,7 +86,7 @@ in any expressions using symbols:
 
 ```
 #{ bar, jazz } <= sum($payloadA), coalesce(#jazz, $payloadB)
-#{ binaryValue } <= lookup(#accumulatedValue, $payloadB)
+#{ value } <= lookup(#accumulatedValue, $payloadB)
 ```
 
 

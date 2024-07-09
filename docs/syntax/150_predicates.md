@@ -33,8 +33,8 @@ useful to taylor primitives to a specific Integration
 ### Examples
 
 - `isUserAuthorized(user_id)`
-- `isEqual(getHeader(headers, 'Origin'), $[allowed_origin]))`
-- `effect/colorize <= {if(isEven(counter), 'red','green'}}`
+- `isEqual(getHeader(headers, 'Origin'), %%allowed_origin))`
+- `effect/colorize <= #{if(isEven(counter), 'red','green'}}`
 
 ## Context Predicates
 

@@ -13,9 +13,9 @@ blocks of data manipulation. They can be user-defined and are injected at build-
 
 ### Examples
 
-- `add(value1, value2)`
-- `find(listValue, 'id', 4)`
-- `mult(mean(listValue), ${count})`
+- `add($value1, $value2)`
+- `find(#listValue, 'id', 4)`
+- `mult(mean(#listValue), $count)`
 
 ## Context Transformers
 
@@ -25,21 +25,21 @@ time.
 
 ### Examples
 
-- `#{stepIndex} <= {nextStep(stepIndex)}`
-- `#{email, password, input_error} <= {sanitize(email), sanitize(password), validate(email,password)}`
+- `#{stepIndex} <= nextStep(#stepIndex)`
+- `#{email, password, input_error} <= sanitize(#email), sanitize(#password), validate(#email, #password)}`
 
 ## Reducer Transformers
 
 Function that translate from `State`+`Action/Payload` to `State/Context` can be injected into `FSM`s at compile time.
 
-- `#{propertyA, propertyB} = {reducerA(propertyA, $(payloadA), reducerB(propertyB, $(payloadB))}`
+- `#{propertyA, propertyB} = reducerA(#propertyA, $payloadA, reducerB(#propertyB, $payloadB)`
 
 ## Model Transformers
 
 Model transformers are a subtype of `Effects` that are context-free and are basically functions that mutates
 the `Data Model`.
 
-- `#{counter} <= { add(counter, increaseGlobalCounter($(value))) }`
+- `#{counter} <= add(№counter, increaseGlobalCounter($value))`
 
 They can be composed with `Predicates` to create conditional mutations, but this approach is not recommended, since it
 splits the responsibility of `Effects`.

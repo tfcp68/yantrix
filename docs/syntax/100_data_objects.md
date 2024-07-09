@@ -17,7 +17,49 @@ Each of those is represented as keyed object (dictionary, record, etc.) with eac
 In most cases variables are immutable and their names are basically labels for the results
 of [Expressions](130_expressions.html) calculation assignment.
 
+## Declaring States
+
+Each node of Mermaid State diagram creates a State and must hava an unique name. It's allowed to use note aliases, bit
+they are ignored by Yantrix, and `States` are named with node's literal name.
+
+```mermaid
+stateDiagram-v2
+    B: RenamedNode (identified as "B")
+    A --> B
+```
+
+Therefore, this diagram will create a `FSM` with two `States` **A** and **B**, regardless of node **B** title.
+
+## Declaring Actions
+
+In fact, an `Action` is created automatically with every transition between `States`. If not specified, it's given a
+descriptive name based on its starting and ending `State`. However, it's wiser to specify names for transitions. They
+will be then be exported as [`ActionDictionary`](../API-Reference/automata/interfaces/IActionDictionary.html), allowing
+for
+better typing and [Integrations](../integrations/). `Actions` can be dispatched directly into `FSM` API, or be generated
+automatically by the attached `Event Adapter`, that translates an `Event` from `Event Bus` to an `Action`
+with `Payload`.
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    A --> B: AtoB
+    A --> A: Loop
+    B --> C: BtoC
+    [*] --> A: Reset
+```
+
+This diagram is exported as `FSM` with 4 `Actions`:
+
+- **AtoB**
+- **BtoC**
+- **Loop**
+- **Reset**
+
 ## Creating Context
+
+To access the `Context` of a given `State`, one should create a `note` for this `State` and
+use [`Reducers`](110_reducers.html).
 
 Whenever you list a value on the left side of a `Reducer`, it is added to a `Context` of an attached `State`:
 
@@ -86,7 +128,7 @@ stateDiagram-v2
     INIT --> WORKING: START (counter)
     state isFinished <<choice>>
     WORKING --> isFinished: REDUCE (value)
-    isFinished --> END: greaterThan($value, #counter)
+    isFinished --> END: isGreater($value, #counter)
     isFinished --> WORKING
     note right of INIT
         +ByPass
@@ -94,7 +136,7 @@ stateDiagram-v2
         #{counter} <= $counter = 10
     end note
     note left of WORKING
-        #{counter} <= sub(#counter), $value = 1
+        #{counter} <= sub(coalesce($counter, #counter), $value = 1)
     end note
     note right of END
         #{counter} <= 0
@@ -105,6 +147,14 @@ Here, whenever a **START** Action is dispatched into a `FSM`, `Payload` _must_ c
 always brings the FSM to **INIT** `State` and sets `Context` property with the same name. **INIT** `State` itself is
 in `ByPass` (see [below](#bypass)), so `FSM` will transition through it synchronously. That means, it is never in
 that `State`, so receiving a **START** `Action` will trigger the next transition with that `Action` attached.
+
+## Forks
+
+In the last diagram there is a `Fork` following **WORKING** `State`. Dispatching a **REDUCE** `Action` at that state
+will transition to one of two `States` depending on the [`Predicate`](150_predicates.html) execution result.
+If `isGreater(#value,#counter)` resolves to a truthy **Binary**,
+this `Action` will transition the `FSM` into **END** `State`.
+If not, the same `Payload` will be invoked upon **WORKING** `State` again
 
 ## State Flags
 

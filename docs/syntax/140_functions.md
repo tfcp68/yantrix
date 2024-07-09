@@ -25,6 +25,10 @@ during transitions. Functions are categorized into three varieties:
 * `Transformers` &mdash; are `Functions` that project one data space to another, like mapping
   between `Payload`, `Context`, `Event Meta` or primitive types.
 
+## Function definition
+
+A `Function` can be defined "inline" at default diagram node or as an injection to Codegen:
+
 ## Polymorphism
 
 `Functions` can implement parameter polymorphism, i.e. they can declare several similar signatures operating different
@@ -61,7 +65,7 @@ contains(var, substring = 'searchString')
 | `random`    |                   () => **Number**                    |                                                                                     | a uniform random number between 0 and 1, that is easily used as a **Binary**                             |
 | `random`    |        (**Number**, **Number**) => **Number**         |                                                                                     | a uniform random number between the first and the second arguments                                       |
 
-## Built-Ins: Binary Operations
+## Built-Ins: Binary Predicates
 
 Most elementary logic is builtin into Yantrix, i.e. those functions can be used in any `Reducer` or `Expression`:
 
@@ -72,7 +76,7 @@ Most elementary logic is builtin into Yantrix, i.e. those functions can be used 
 | `not`        |         (**Binary**) => **Binary**         |    A single condition    | a boolean negation                  |
 | `none`       | (**Binary**, **Binary**, ..) => **Binary** | Any number of conditions | equivalent to `not(and(...))`       |
 
-## Built-Ins: Numeric comparison
+## Built-Ins: Numeric Predicates
 
 | Function(s)        |               Signature                |    Arguments    | Returns                                                               |
 |:-------------------|:--------------------------------------:|:---------------:|-----------------------------------------------------------------------|
@@ -87,7 +91,7 @@ Most elementary logic is builtin into Yantrix, i.e. those functions can be used 
 | `isNegative`       |       (**Number**) => **Binary**       | A numeric value | truthy if the number is less than 0                                   |
 | `isPositive`       |       (**Number**) => **Binary**       | A numeric value | truthy if the number is greater or equal to 0                         |
 
-## Built-Ins: Key/Value lookup
+## Built-Ins: Lookup Predicates
 
 | Function(s) |               Signature                |                    Arguments                    | Returns                                                                             |
 |:------------|:--------------------------------------:|:-----------------------------------------------:|-------------------------------------------------------------------------------------|
@@ -96,3 +100,10 @@ Most elementary logic is builtin into Yantrix, i.e. those functions can be used 
 | `contains`  | (**Object**, **String**) => **Binary** | A dictionary-like structure and a search string | truthy if the the **Object** has a _value_ with a name of the **String** parameter  |
 | `has`       |  (**List**, **Number**) => **Binary**  |   an array-like structure and a search index    | truthy if the the **List** has an _index_ equal to **Number**                       |
 | `has`       | (**Object**, **String**) => **Binary** | A dictionary-like structure and a search string | truthy if the the **Object** has a _key_ with a name of the **String** parameter    |
+
+## Built-Ins: List Transformers
+
+| Function(s) |                  Signature                  |                            Arguments                             | Returns                                                                                                             |
+|:------------|:-------------------------------------------:|:----------------------------------------------------------------:|---------------------------------------------------------------------------------------------------------------------|
+| `lookup`    |       (**List**, **any**) => **any**        |            An Array-like structure and a search value            | returns the second argument if it's present in the **List**, `Null` otherwise                                       |
+| `filter`    | (**List**, **String**, **any**) => **List** | An Array-like structure of objects, property name and seek value | returns new **List** with objects from the passed the **List**, which have the named property equal to passed value |

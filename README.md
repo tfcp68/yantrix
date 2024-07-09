@@ -14,19 +14,32 @@ tools for developers, like [n8n](https://github.com/n8n-io/n8n).
 
 ## Installation
 
-To install Yantrix, you can use NPM, Yarn or PNPM:
+To install Yantrix end-to-end command line tool, you can use NPM, Yarn or PNPM:
 
-```bash
-npm install yantrix
+```shell
+npm install @yantrix/cli
 # or
-yarn add yantrix
+yarn add @yantrix/cli
 # or
+pnpm install @yantrix/cli
+```
+
+If your main language is TypeScript, you may prefer to install all available APIs or list only those you require
+
+```shell
 pnpm install yantrix
+npm install @yantrix/automata @yantrix/utils @yantrix/yantrix-parser
 ```
 
 ## Usage
 
-See [API Reference](https://tfcp68.github.io/yantrix/API-Reference/)
+[📚 Documentation](https://tfcp68.github.io/yantrix/)
+
+Basically, you turn diagrams into a code module in required language
+
+```shell
+yantrix codegen --outfile ../yantrix-generated.ts --language TypeScript --className SampleFSM --eval "A-->B"
+```
 
 ## Sample Diagrams
 
@@ -64,7 +77,7 @@ subscribe/clickOutside CLOSE
 end note
 ```
 
-- `+Initial` marks that **INIT** is the initial `State` of the `FSM`. `+ByPass` also implies that transition through
+- `+Init` marks that **INIT** is the initial `State` of the `FSM`. `+ByPass` also implies that transition through
   this `State` is synchronous
 - `#{items, selectedIndex}` describes a shape of `Context` for all `States`. `items` is the list of dropdown values,
   and `selectedIndex` stores currently selected item. Without extra expressions these values are copied from the

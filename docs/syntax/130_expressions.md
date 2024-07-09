@@ -13,8 +13,12 @@ a `<FUNC_OPERATOR>(<PROPERTY_NAME>[,<CONSTANT_ARGS>...])` or a `<FUNC_OPERATOR>(
 - `sum(index,2)` : returns arithmetic result `index+2`, where `index` is converted to decimal
 - `round(sum(index,2))` : return the rounded result of a previous operation
 
+## Bound Property
+
 In any case, an `Expression` has a primary operand which is hereby called `Bound Property`. The `Property` is always the
-first (leftmost) argument in the tree of calls.
+first (leftmost) argument in the tree of calls. `Bound Property` is the one that will receive a default value, if set.
+Other properties used in an `Expression` can't have a default value. This limitation is intentional and aims to force
+explicitness and reduce the probability of an undesired fallthrough in code.
 
 ## Recursion
 
