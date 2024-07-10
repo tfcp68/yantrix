@@ -2,16 +2,16 @@
 
 | 🕙 Start time | ⌛ Duration |
 | --- | ---: |
-| 7/7/2024, 12:31:28 AM | 0.616 s |
+| 7/9/2024, 8:07:03 PM | 0.554 s |
 
 | | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | --- | ---: | ---: | ---: | ---: | ---: |
 |Test Suites|9|0|0|0|9|
 |Tests|18|0|0|0|18|
 
-## ✅ <a id="file0" href="#file0">__tests__\codegenAutomata.test.ts</a>
+## ✅ <a id="file0" href="#file0">__tests__\codegenAutomata.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\codegen/__tests__\codegenAutomata.test.ts)]
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 5 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 7 s
 
 ```
 ✅ Codegen output › GamePhaseAutomata
@@ -27,9 +27,9 @@
 ✅ Codegen output
 ```
 
-## ✅ <a id="file1" href="#file1">__tests__\codegenNotes.test.ts</a>
+## ✅ <a id="file1" href="#file1">__tests__\codegenNotes.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\codegen/__tests__\codegenNotes.test.ts)]
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 6 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 9 s
 
 ```
 ✅ Automata include notes › Initial context

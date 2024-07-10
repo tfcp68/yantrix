@@ -22,15 +22,15 @@ Example of a State Diagram, implementing an `until` loop:
 LOOP_ITERATION --> LOOP_REPEAT: ITERATE
 state loop_ends <<choice>>
 LOOP_REPEAT --> loop_ends: ITERATE
-loop_ends --> LOOP_REPEAT: greaterThan(${counter},0)
+loop_ends --> LOOP_REPEAT: isGreater($counter,0)
 loop_ends --> LOOP_END
 note right of LOOP_ITERATION
-    #{ counter } <= ( counter = 1 )
+    #{ counter } <= #counter = 1
 end note
 note left of LOOP_REPEAT
-    #{ counter } <= ( add(counter, -1) )
+    #{ counter } <= add(#counter, -1)
     emit/nextIteration
-    subscribe/nextIteration => ITERATE
+    subscribe/nextIteration ITERATE
 end note
 ```
 
@@ -38,24 +38,24 @@ And this is how Mermaid renders it:
 
 ```mermaid
 stateDiagram-v2
-    direction LR
-    [*] --> LOOP_ITERATION: START_LOOP(counter)
-    LOOP_ITERATION --> LOOP_REPEAT: ITERATE
-    state loop_ends <<choice>>
-    LOOP_REPEAT --> loop_ends: ITERATE
-    loop_ends --> LOOP_REPEAT: greaterThan(${counter},0)
-    loop_ends --> LOOP_END
-    note right of LOOP_ITERATION
-        #{ counter } <= ( counter = 1 )
-    end note
-    note left of LOOP_REPEAT
-        #{ counter } <= ( add(counter, -1) )
-        emit/nextIteration
-        subscribe/nextIteration => ITERATE
-    end note
+	direction LR
+	[*] --> LOOP_ITERATION: START_LOOP(counter)
+	LOOP_ITERATION --> LOOP_REPEAT: ITERATE
+	state loop_ends <<choice>>
+	LOOP_REPEAT --> loop_ends: ITERATE
+	loop_ends --> LOOP_REPEAT: isGreater($counter,0)
+	loop_ends --> LOOP_END
+	note right of LOOP_ITERATION
+		#{ counter } <= #counter = 1
+	end note
+	note left of LOOP_REPEAT
+		#{ counter } <= add(#counter, -1)
+		emit/nextIteration
+		subscribe/nextIteration ITERATE
+	end note
 ```
 
-**Notice:** Please be informed that this partucular diagram is not a good application of Yantrix, but rather is
+**Notice:** Please be informed that this particular diagram is not a good application of Yantrix, but rather is
 presented for demonstration purposes.
 
 ## State Machine
@@ -108,13 +108,13 @@ Every line starts with a `Directive` which defines the character of operation an
 Yantrix:
 
 - [**Data Objects**](100_data_objects.html)
-    - [Reducers](110_reducers.html)
-    - [Values and Constants](120_values_and_constants.html)
-    - [Expressions](130_expressions.html)
-    - [Functions](140_functions.md)
-    - [Predicates](150_predicates.html)
-    - [Transformers](160_transformers.html)
+	- [Reducers](110_reducers.html)
+	- [Values and Constants](120_values_and_constants.html)
+	- [Expressions](130_expressions.html)
+	- [Functions](140_functions.md)
+	- [Predicates](150_predicates.html)
+	- [Transformers](160_transformers.html)
 - [**Event pub/sub**](200_events.html)
-    - [subscribe](210_subscribe.html)
-    - [emit](220_emit.html)
+	- [subscribe](210_subscribe.html)
+	- [emit](220_emit.html)
 - [**Side Effects**](300_side_effects.html)
