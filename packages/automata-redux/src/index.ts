@@ -6,15 +6,24 @@ type TActionGenerator = (actionFromFSM: TAutomataActionPayload<number, Record<nu
 	payload?: any;
 };
 
-export const getAutomataWithReduxDispatch = (props: {
-	Automata: typeof GenericAutomata;
+export const DispatchFromFSMToReduxGenerator = (dispatchToFSMGeneratorProps: {
 	reduxDispatch: Dispatch;
 	reduxActionGenerator: TActionGenerator;
+}) => {
+	return (action: TAutomataActionPayload<number, Record<number, any>>) => {
+		const reduxAction = dispatchToFSMGeneratorProps.reduxActionGenerator(action);
+		return dispatchToFSMGeneratorProps.reduxDispatch(reduxAction);
+	};
+};
+
+export const getAutomataWithReduxDispatch = (props: {
+	Automata: typeof GenericAutomata;
+	dispatchFromFSMToRedux: ReturnType<typeof DispatchFromFSMToReduxGenerator>;
 }) => {
 	class NewAutomata extends props.Automata {
 		dispatch: typeof GenericAutomata.prototype.dispatch = (action) => {
 			const dispatched = super.dispatch(action);
-			props.reduxDispatch(props.reduxActionGenerator(action));
+			props.dispatchFromFSMToRedux(action);
 			return dispatched;
 		};
 	}
