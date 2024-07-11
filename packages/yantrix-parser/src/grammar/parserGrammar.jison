@@ -164,10 +164,7 @@ KeyItem  : TargetProperty '=' Expression
                     }
                 };
             };
-Number:
-        | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
-        ;
+
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
           | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
@@ -176,16 +173,20 @@ Expression
           | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
           | Number
           ;
+Number
+        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
+        ;          
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}}}
         ;
 
 
 ArgumentsTypes
-             :  /* empty */ {$$ = []}
-             |  Expression {$$=[$1]}
-             |  ArgumentsTypes ',' ArgumentsTypes {$$ = [...$1, ...$3]}
+             :  Expression {$$=[$1]}
+             |  ArgumentsTypes ',' Expression {$$ = [...$1, $3]}
              ;
 
 ConstantDeclaration : '$(' Constant ')'{ $$ = $2};
