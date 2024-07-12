@@ -1,7 +1,7 @@
 import { combineReducers, configureStore, createSlice } from '@reduxjs/toolkit';
-import { actionsDictionary, GamePhaseAutomata } from './GamePhaseAutomata_generated.js';
 import { connectReduxAutomata, useReduxAutomata } from '../src/index.js';
 import { describe, expect, test, beforeEach } from 'vitest';
+import { actionsDictionary, GamePhaseAutomata } from './fixtures/GamePhaseAutomata_generated.js';
 
 describe('dispatchFromFSM', () => {
 	const reducerInitialState = {

@@ -16,7 +16,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "vitest run"
+		"test": "cd ../codegen && pnpm test && cd ../redux && cp ../codegen/__tests__/fixtures/GamePhaseAutomata_generated.ts ./__tests__/fixtures/GamePhaseAutomata_generated.ts && vitest run"
 	},
 	"description": "Redux automata integration for Redux",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
