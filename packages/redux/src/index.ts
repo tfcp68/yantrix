@@ -24,13 +24,17 @@ export const connectReduxAutomata = (props: {
 	reduxActionGenerator: TActionGenerator;
 }) => {
 	const dispatch: typeof GenericAutomata.prototype.dispatch = (action) => {
-		const newDispatchedContext = props.automata.dispatch(action);
-		dispatchToRedux({
-			reduxDispatch: props.reduxDispatch,
-			reduxActionGenerator: props.reduxActionGenerator,
-			automataContext: newDispatchedContext,
-		});
-		return newDispatchedContext;
+		let newContext = props.automata.context;
+		try {
+			newContext = props.automata.dispatch(action);
+			return newContext;
+		} finally {
+			dispatchToRedux({
+				reduxDispatch: props.reduxDispatch,
+				reduxActionGenerator: props.reduxActionGenerator,
+				automataContext: newContext,
+			});
+		}
 	};
 	const automataId = uniqId(10);
 	reduxConnectedAutomata[automataId] = {

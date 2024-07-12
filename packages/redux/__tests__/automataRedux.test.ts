@@ -1,12 +1,10 @@
 import { combineReducers, configureStore, createSlice } from '@reduxjs/toolkit';
 import { connectReduxAutomata, useReduxAutomata } from '../src/index.js';
 import { describe, expect, test, beforeEach } from 'vitest';
-import { actionsDictionary, GamePhaseAutomata } from './fixtures/GamePhaseAutomata_generated.js';
+import { actionsDictionary, AutomataIncludeNotes } from './fixtures/AutomataIncludeNotes_generated';
 
 describe('dispatchFromFSM', () => {
 	const reducerInitialState = {
-		players: 0,
-		score: 0,
 		callCount: 0,
 	};
 	const testReducer = createSlice({
@@ -14,9 +12,11 @@ describe('dispatchFromFSM', () => {
 		initialState: reducerInitialState,
 		reducers: {
 			dispatchFromFSM(state, action) {
-				state.callCount += 1;
-				state.players = action.payload.players;
-				state.score = action.payload.score;
+				const callCount = state.callCount;
+				state = {
+					...action.payload,
+					callCount: callCount + 1,
+				};
 				return state;
 			},
 			resetState(state) {
@@ -46,7 +46,7 @@ describe('dispatchFromFSM', () => {
 		store.dispatch(testReducer.actions.resetState());
 		gamePhaseAutomataReduxId = connectReduxAutomata({
 			reduxDispatch: store.dispatch,
-			automata: new GamePhaseAutomata(),
+			automata: new AutomataIncludeNotes(),
 			reduxActionGenerator: (automataStateContext) => {
 				return {
 					type: 'testReducer/dispatchFromFSM',
@@ -56,23 +56,32 @@ describe('dispatchFromFSM', () => {
 		});
 	});
 
-	test('should save state in redux', () => {
+	test('should save state in redux /toA (a1,a2,a3)', () => {
 		const [automata, dispatch] = useReduxAutomata(gamePhaseAutomataReduxId);
 		dispatch({
-			action: actionsDictionary['/RESET'],
+			action: actionsDictionary['/toA (a1,a2,a3)'],
 			payload: {
-				players: 3,
-				score: 0,
+				a1: 1,
+				a2: 2,
+				a3: 3,
 			},
 		});
 		expect(automata.context).deep.equal({
-			players: 3,
-			score: 0,
+			a1: 1,
+			a2: 2,
+			a3: 3,
+			string: 'str',
+			array: [],
+			integer: 3,
 		});
 		expect(store.getState()).deep.equal({
 			testReducer: {
-				players: 3,
-				score: 0,
+				a1: 1,
+				a2: 2,
+				a3: 3,
+				string: 'str',
+				array: [],
+				integer: 3,
 				callCount: 1,
 			},
 		});
@@ -83,20 +92,17 @@ describe('dispatchFromFSM', () => {
 		try {
 			dispatch({
 				action: -111,
-				payload: {
-					players: 3,
-					score: 0,
-				},
+				payload: {},
 			});
 		} catch (e) {}
 		expect(automata.context).deep.equal({
-			index: -1,
+			string: 'str',
+			array: [],
+			integer: 3,
 		});
 		expect(store.getState()).deep.equal({
 			testReducer: {
-				players: 0,
-				score: 0,
-				callCount: 0,
+				callCount: 1,
 			},
 		});
 	});
@@ -104,28 +110,38 @@ describe('dispatchFromFSM', () => {
 	test('should save actual state in redux via early action', () => {
 		const [automata, dispatch] = useReduxAutomata(gamePhaseAutomataReduxId);
 		dispatch({
-			action: actionsDictionary['/RESET'],
+			action: actionsDictionary['/toA (a1,a2,a3)'],
 			payload: {
-				players: 6,
-				score: 8,
-			},
-		});
-		dispatch({
-			action: actionsDictionary['/MENU_HOVER'],
-			payload: {
-				players: 3,
-				score: 0,
+				a1: 1,
+				a2: 2,
+				a3: 3,
 			},
 		});
 
 		expect(automata.context).deep.equal({
-			players: 6,
-			score: 8,
+			a1: 1,
+			a2: 2,
+			a3: 3,
+			string: 'str',
+			array: [],
+			integer: 3,
+		});
+		dispatch({
+			action: actionsDictionary['/toB (a1,a2,a3)'],
+			payload: {
+				a1: 1,
+				a2: 2,
+				a3: 3,
+			},
 		});
 		expect(store.getState()).deep.equal({
 			testReducer: {
-				players: 6,
-				score: 8,
+				a1: 1,
+				a2: 2,
+				a3: 3,
+				string: 'str',
+				array: [],
+				integer: 3,
 				callCount: 2,
 			},
 		});
