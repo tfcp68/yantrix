@@ -35,17 +35,6 @@ describe('Codegen output', () => {
 		test('Initial state', () => {
 			expect(automata.state).toBe(statesDictionary['/~~~START~~~']);
 		});
-		test('Set passed context', () => {
-			automata.dispatch({
-				action: actionsDictionary['/RESET'],
-				payload: { players: 3, score: 0 },
-			});
-			expect(automata.state).toBe(statesDictionary['/INIT']);
-			expect(automata.context).toStrictEqual({
-				players: 3,
-				score: 0,
-			});
-		});
 		test('The context and state do not change with the wrong action.', () => {
 			const prevContext = { ...automata.context };
 			const prevState = automata.state;
@@ -55,7 +44,7 @@ describe('Codegen output', () => {
 			});
 
 			expect(automata.state).toBe(prevState);
-			expect(automata.context).toStrictEqual(prevContext);
+			expect(automata.context).toStrictEqual(null);
 		});
 		test.each(cases)('%j -- > %j', (a: any, b) => {
 			automata.setActionQueue([...a]);

@@ -1,6 +1,8 @@
+
 %{
   import {ReservedList, ExpressionTypes} from './index.js'
 %}
+
 
 
 
@@ -42,6 +44,8 @@
 '='                                  {return '='}
 \'[^\n#{()=><""]+\'                 {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 \"[^\n#{()=><'']+\"                  {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
+
+'+INITIAL'                        {return 'InitialState'}
 
 'subscribe/'                         {this.begin('SubscribeStatement'); return 'subscribe/'}
 <SubscribeStatement>[^/=>\s]+        {this.popState(); return 'EventName'}
@@ -85,10 +89,13 @@ start
 	;
 
 document
-	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
+	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[],initialState:false}}
 	| document line {
            if($2 !== '\n') {
-              $1['contextDescription'].push($2)
+              if($2.hasOwnProperty('initialState')){
+                $1['initialState'] = true
+              }
+              if($2.hasOwnProperty('context'))  $1['contextDescription'].push($2)
               if($2.hasOwnProperty('eventName')) $1['emit'].push($2)
               if($2.hasOwnProperty('event')) $1['subscribe'].push($2)
            }
@@ -157,10 +164,7 @@ KeyItem  : TargetProperty '=' Expression
                     }
                 };
             };
-Number:
-        | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
-        ;
+
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
           | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
@@ -169,16 +173,20 @@ Expression
           | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
           | Number
           ;
+Number
+        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
+        ;          
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}}}
         ;
 
 
 ArgumentsTypes
-             :  /* empty */ {$$ = []}
-             |  Expression {$$=[$1]}
-             |  ArgumentsTypes ',' ArgumentsTypes {$$ = [...$1, ...$3]}
+             :  Expression {$$=[$1]}
+             |  ArgumentsTypes ',' Expression {$$ = [...$1, $3]}
              ;
 
 ConstantDeclaration : '$(' Constant ')'{ $$ = $2};

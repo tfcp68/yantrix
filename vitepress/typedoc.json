@@ -1,7 +1,7 @@
 {
-	"out": "src/API reference",
+	"out": "src/API-Reference",
 	"entryPoints": ["../packages/*"],
-	"name": "Packages Example",
+	"name": "Yantrix API",
 	"entryPointStrategy": "packages",
 	"includeVersion": false,
 	"plugin": ["typedoc-plugin-markdown"],

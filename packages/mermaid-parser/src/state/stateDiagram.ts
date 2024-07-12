@@ -1,15 +1,15 @@
-import { TStateDiagramStructure, TActionsStructure } from './types/index.js';
+import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
 import {
-	TDiagramState,
-	TDiagramAction,
-	TDiagramTransitions,
-	TStateDiagram,
-	TDiagramStatesArray,
-	TFromChoice,
 	TActionPathArray,
-	TNotesId,
 	TChoicesId,
+	TDiagramAction,
+	TDiagramState,
+	TDiagramStatesArray,
+	TDiagramTransitions,
+	TFromChoice,
 	TFromChoiceArray,
+	TNotesId,
+	TStateDiagramMatrix,
 } from './types/stateDiagramTypes.js';
 
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
@@ -25,6 +25,7 @@ function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
 
 	for (let i = 0; i < notes.length; i++) {
 		const note = notes[i];
+
 		if (!Object.keys(notesId).includes(note.over)) {
 			notesId[note.over] = [];
 		}
@@ -276,6 +277,11 @@ function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: st
 	return actionsPath;
 }
 
+const formattedStartOrEndDict: Record<string, '[*]'> = {
+	'~~~START~~~': '[*]',
+	END_STATE: '[*]',
+} as const;
+
 /**
  * @brief This function get states from transitions and stateDiagramStructure;
  * @param stateDiagramStructure - state diagram structure;
@@ -296,9 +302,13 @@ function getStates(
 			continue;
 		}
 		let notes: string[][] = [];
-		if (notesIdKeys.includes(stateId)) {
-			notes = notesId[stateId];
+
+		const stateIdFormatted = formattedStartOrEndDict[stateId] || stateId;
+
+		if (notesIdKeys.includes(stateIdFormatted)) {
+			notes = notesId[stateIdFormatted];
 		}
+
 		const actionsPath: TActionPathArray = getActionsPathesForStates(transitions, stateId);
 		const state: TDiagramState = {
 			id: stateId,
@@ -316,7 +326,7 @@ function getStates(
  * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
  */
-export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagram> {
+export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagramMatrix> {
 	const transitions = getTransitions(stateDiagramStructure);
 	const states = getStates(stateDiagramStructure, transitions);
 	return {
