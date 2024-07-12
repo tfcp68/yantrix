@@ -18,12 +18,12 @@ not mutate its arguments or whatsoever, with the only exception being [`Model Tr
 The purpose of functions is to provide declarative and deterministic way of transforming data in `FSM` and `Model`
 during transitions. Functions are categorized into three varieties:
 
-* `Higher-Order Functions` or just `HOF`s are mostly built-in and are used to control the execution flow, taking place
-  of **operators** and **keywords** in imperative programming languages.
-* `Predicates` &mdash; `Functions` that have a binary output and validate some condition. Most often than not they are
-  used to introduce cyclomatic complexity and logic branching.
-* `Transformers` &mdash; are `Functions` that project one data space to another, like mapping
-  between `Payload`, `Context`, `Event Meta` or primitive types.
+-   `Higher-Order Functions` or just `HOF`s are mostly built-in and are used to control the execution flow, taking place
+    of **operators** and **keywords** in imperative programming languages.
+-   `Predicates` &mdash; `Functions` that have a binary output and validate some condition. Most often than not they are
+    used to introduce cyclomatic complexity and logic branching.
+-   `Transformers` &mdash; are `Functions` that project one data space to another, like mapping
+    between `Payload`, `Context`, `Event Meta` or primitive types.
 
 ## Function definition
 
@@ -35,9 +35,9 @@ A `Function` can be defined "inline" at default diagram node or as an injection 
 types. However a function can not have polymorphic return type, and it has limited options depending on which class
 the `Function` belongs to:
 
-* `Higher-Order Functions` can return any primitive type
-* `Predicates` return **Binary**
-* `Transformers` can return any primitive type
+-   `Higher-Order Functions` can return any primitive type
+-   `Predicates` return **Binary**
+-   `Transformers` can return any primitive type
 
 ### Examples
 
@@ -49,7 +49,7 @@ argument types:
 contains(var, keyName = 'propertyName')
 
 ''' if "var" is a List, it checks for an index existence instead
-contains(var, index = 1) 
+contains(var, index = 1)
 
 ''' if "var" is a String, checks if it contains a substring
 contains(var, substring = 'searchString')
@@ -58,7 +58,7 @@ contains(var, substring = 'searchString')
 ## Built-Ins: Conditional operations
 
 | Function(s) |                       Signature                       |                                      Arguments                                      | Returns                                                                                                  |
-|:------------|:-----------------------------------------------------:|:-----------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------|
+| :---------- | :---------------------------------------------------: | :---------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
 | `if`        |             (**Binary**, any, any) => any             | a condition to check, a value to return if it's truthy, a value to return otherwise | the first argument, if condition is truthy; the second argument in the other case                        |
 | `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any |        condition 1, return value 1, condition 2, return value 2, ... , else         | the result of the expression, following a truthy condition; or the latest expression, if none is present |
 | `coalesce`  |                   (any, ..) => any                    |                           any collection of `Expressions`                           | first non-Null value in the list of arguments                                                            |
@@ -70,7 +70,7 @@ contains(var, substring = 'searchString')
 Most elementary logic is builtin into Yantrix, i.e. those functions can be used in any `Reducer` or `Expression`:
 
 | Function(s)  |                 Signature                  |        Arguments         | Returns                             |
-|:-------------|:------------------------------------------:|:------------------------:|-------------------------------------|
+| :----------- | :----------------------------------------: | :----------------------: | ----------------------------------- |
 | `and`, `all` | (**Binary**, **Binary**, ..) => **Binary** | Any number of conditions | a boolean conjuction of conditions  |
 | `or`, `any`  | (**Binary**, **Binary**, ..) => **Binary** | Any number of conditions | a boolean disjunction of conditions |
 | `not`        |         (**Binary**) => **Binary**         |    A single condition    | a boolean negation                  |
@@ -79,7 +79,7 @@ Most elementary logic is builtin into Yantrix, i.e. those functions can be used 
 ## Built-Ins: Numeric Predicates
 
 | Function(s)        |               Signature                |    Arguments    | Returns                                                               |
-|:-------------------|:--------------------------------------:|:---------------:|-----------------------------------------------------------------------|
+| :----------------- | :------------------------------------: | :-------------: | --------------------------------------------------------------------- |
 | `isEven`           |       (**Number**) => **Binary**       | A numeric value | truthy if the number is even                                          |
 | `isOdd`            |       (**Number**) => **Binary**       | A numeric value | truthy if the number is odd                                           |
 | `isInteger`        |       (**Number**) => **Binary**       | A numeric value | truthy if the number is integer                                       |
@@ -94,7 +94,7 @@ Most elementary logic is builtin into Yantrix, i.e. those functions can be used 
 ## Built-Ins: Lookup Predicates
 
 | Function(s) |               Signature                |                    Arguments                    | Returns                                                                             |
-|:------------|:--------------------------------------:|:-----------------------------------------------:|-------------------------------------------------------------------------------------|
+| :---------- | :------------------------------------: | :---------------------------------------------: | ----------------------------------------------------------------------------------- |
 | `contains`  | (**String**, **String**) => **Binary** |                   two strings                   | truthy if the string1 includes string2, compared bytewise                           |
 | `contains`  |     (**List**, any) => **Binary**      |  an array-like structure and a value to search  | truthy if the the **List** includes the second value, compared by type and bytewise |
 | `contains`  | (**Object**, **String**) => **Binary** | A dictionary-like structure and a search string | truthy if the the **Object** has a _value_ with a name of the **String** parameter  |
@@ -104,6 +104,6 @@ Most elementary logic is builtin into Yantrix, i.e. those functions can be used 
 ## Built-Ins: List Transformers
 
 | Function(s) |                  Signature                  |                            Arguments                             | Returns                                                                                                             |
-|:------------|:-------------------------------------------:|:----------------------------------------------------------------:|---------------------------------------------------------------------------------------------------------------------|
+| :---------- | :-----------------------------------------: | :--------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------- |
 | `lookup`    |       (**List**, **any**) => **any**        |            An Array-like structure and a search value            | returns the second argument if it's present in the **List**, `Null` otherwise                                       |
 | `filter`    | (**List**, **String**, **any**) => **List** | An Array-like structure of objects, property name and seek value | returns new **List** with objects from the passed the **List**, which have the named property equal to passed value |

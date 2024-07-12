@@ -64,17 +64,17 @@ The first layer of syntax is describing a `FSM` - [Finite State Machine](../arch
 
 The diagram above creates a `FSM` with 3 `States`:
 
-- **LOOP_ITERATION**
-- **LOOP_REPEAT**
-- **LOOP_END**
+-   **LOOP_ITERATION**
+-   **LOOP_REPEAT**
+-   **LOOP_END**
 
 They are written in uppercase on purpose, to be easily identified in a diagram source, but generally can be any
 alphanumeric identifiers.
 
 The diagram also defines 2 `Actions`:
 
-- **START_LOOP** with a `Payload` that carries a single `counter` variable
-- **ITERATE** without a `Payload`
+-   **START_LOOP** with a `Payload` that carries a single `counter` variable
+-   **ITERATE** without a `Payload`
 
 Since **ITERATE** can be invoked in two of three `States`(**LOOP_ITERATION** and **LOOP_REPEAT**), **LOOP_END** has no
 transitions out of it. However, an `Action` that is coming ot ouf a default node (`[*]`) can be dispatched from
@@ -97,9 +97,9 @@ code generation.
 Yantrix subsyntax is a functional language by design, and each line of it is supposed to be independent of the others.
 The best comparison could be Excel/Google Sheets formulas, that are:
 
-- are computed derivatives of the state
-- are executed and calculated in rounds
-- can depend on each other but not within one round of calculation
+-   are computed derivatives of the state
+-   are executed and calculated in rounds
+-   can depend on each other but not within one round of calculation
 
 So despite lines of code are written in order, the result of their transpilation should not be dependent on line order
 as much as it goes.
@@ -107,14 +107,14 @@ as much as it goes.
 Every line starts with a `Directive` which defines the character of operation and is the most basic semantic entity in
 Yantrix:
 
-- [**Data Objects**](100_data_objects.html)
-	- [Reducers](110_reducers.html)
-	- [Values and Constants](120_values_and_constants.html)
-	- [Expressions](130_expressions.html)
-	- [Functions](140_functions.md)
-	- [Predicates](150_predicates.html)
-	- [Transformers](160_transformers.html)
-- [**Event pub/sub**](200_events.html)
-	- [subscribe](210_subscribe.html)
-	- [emit](220_emit.html)
-- [**Side Effects**](300_side_effects.html)
+-   [**Data Objects**](100_data_objects.html)
+    -   [Reducers](110_reducers.html)
+    -   [Values and Constants](120_values_and_constants.html)
+    -   [Expressions](130_expressions.html)
+-   [**Functions**](140_functions.md)
+    -   [Predicates](150_predicates.html)
+    -   [Transformers](160_transformers.html)
+-   [**Event pub/sub**](200_events.html)
+    -   [subscribe](210_subscribe.html)
+    -   [emit](220_emit.html)
+-   [**Side Effects**](300_side_effects.html)

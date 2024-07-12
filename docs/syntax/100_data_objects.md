@@ -8,10 +8,10 @@ Yantrix implies that business logic is deterministic and is built upon a single 
 controller, meanwhile, consists of small building blocks described as Dictionaries/Records. Most notable of those blocks
 are
 
-- `Context`: current condition of a `FSM`, including it's control state and various meta fields
-- `Payload`: a useful data transferred to a `FSM` with each dispatched `Action`, including its id and various meta
-  fields
-- `Event Meta`: the same as `Payload` but for `Events` &mdash; messages dispatched through `Event Bus` between `FSMs`
+-   `Context`: current condition of a `FSM`, including it's control state and various meta fields
+-   `Payload`: a useful data transferred to a `FSM` with each dispatched `Action`, including its id and various meta
+    fields
+-   `Event Meta`: the same as `Payload` but for `Events` &mdash; messages dispatched through `Event Bus` between `FSMs`
 
 Each of those is represented as keyed object (dictionary, record, etc.) with each key being processed as a separate var.
 In most cases variables are immutable and their names are basically labels for the results
@@ -51,10 +51,10 @@ stateDiagram-v2
 
 This diagram is exported as `FSM` with 4 `Actions`:
 
-- **AtoB**
-- **BtoC**
-- **Loop**
-- **Reset**
+-   **AtoB**
+-   **BtoC**
+-   **Loop**
+-   **Reset**
 
 ## Creating Context
 
@@ -173,4 +173,3 @@ This is the same as emitting an `Event` and subscribing to it at the same time, 
 used whenever a control `State` must be switched through without any information getting out of the `FSM`. Also note,
 that a `+ByPass` `State` can have any number of incoming and outcoming transitions, but every incoming `Action` must be
 reflected with at least one outcoming `Action` of the same signature
-

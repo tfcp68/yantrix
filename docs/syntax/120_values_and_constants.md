@@ -13,20 +13,20 @@ along with [Automata](../API-reference/automata/) instance.
 
 For other languages Yantrix aims to provide compatibility with elementary types, existing in most languages:
 
-- **Numbers**: integer and floats are processed as similarly as possible for a given language
-- **Strings**: strings are processed as immutables, i.e. every string function should return a new string rather than
-  modify one of its arguments
-- **Lists (Tuples)**: Lists and Tuples are processed as similarly as possible for a given language. They also are
-  immutable and can only be a read-only argument of the calling function
-- **Objects(Dictionaries)**: implementation is highly language-dependent and aims to reproduce the behaviour of
-  Typescript [`Record`](../API-reference/automata/interfaces/IAutomata.html) implementation as closely as possible.
-  For `Functions` implementation **Object** arguments should be defined as immutable and read-only.
-- **Binary** &mdash; a special type that is used for conditions check. It is essentially a **Number** but is interpreted
-  as a boolean by the following rules:
-    - If the value is `Null` or unset, the `Binary` is falsy
-    - If the value is 0 or less, the `Binary` is falsy
-    - If the value is 1 or greater, the `Binary` is truthy
-    - Otherwise, the value is rounded by mathematic rules and then is compared again
+-   **Numbers**: integer and floats are processed as similarly as possible for a given language
+-   **Strings**: strings are processed as immutables, i.e. every string function should return a new string rather than
+    modify one of its arguments
+-   **Lists (Tuples)**: Lists and Tuples are processed as similarly as possible for a given language. They also are
+    immutable and can only be a read-only argument of the calling function
+-   **Objects(Dictionaries)**: implementation is highly language-dependent and aims to reproduce the behaviour of
+    Typescript [`Record`](../API-reference/automata/interfaces/IAutomata.html) implementation as closely as possible.
+    For `Functions` implementation **Object** arguments should be defined as immutable and read-only.
+-   **Binary** &mdash; a special type that is used for conditions check. It is essentially a **Number** but is interpreted
+    as a boolean by the following rules:
+    -   If the value is `Null` or unset, the `Binary` is falsy
+    -   If the value is 0 or less, the `Binary` is falsy
+    -   If the value is 1 or greater, the `Binary` is truthy
+    -   Otherwise, the value is rounded by mathematic rules and then is compared again
 
 ## Properties
 
@@ -58,7 +58,7 @@ directive, the property reference is set to `Null`, unless provided with a [defa
 `#{KEY_LIST}` is used to reference numerous properties of `Context`, mostly in [`Reducers`](110_reducers.html)
 and [`Event Emitters`](220_emit.html).
 
-``` 
+```
 ''' declare a Context with three members
 #{a,b,c}
 ''' Declare a Context with three more members, that copy value from previous ones
@@ -74,7 +74,7 @@ in the calling
 directive, the property reference is set to `Null`, unless provided with a [default value](#default-values)
 
 `(KEY_LIST)` is used to reference numerous properties of `Payload` on the left side of `<=`
-of [`subscribe`](210_subscribe.html)  directives
+of [`subscribe`](210_subscribe.html) directives
 
 ```
 ''' Expression that invokes a Function upon a Payload property
@@ -82,7 +82,7 @@ func($payloadValue)
 ''' assign three Payload properties to respective Context properties
 #{a,b,c} <= $payloadA, $payloadB, $payloadC
 ''' Translate an Event with its Meta to Action with Payload
-subscribe/someEvent SomeAction ( payloadValue ) <= ( eventMetaValue ) 
+subscribe/someEvent SomeAction ( payloadValue ) <= ( eventMetaValue )
 ```
 
 ## Default values
@@ -98,22 +98,22 @@ the `KEY_ITEM` is followed by `=` and a [`Constant`](constants.html) or [`Expres
 Default values can be used both in `Source Objects` and in `Target Objects`, but they are assigned only if the
 referenced key exists in it. For example:
 
-```
+````
 ''' here `value1` and `value2` will not be set to 1 the first time Context is created
-#{value1, value2} <= #value1 = 1, #value 2 = 1 
+#{value1, value2} <= #value1 = 1, #value 2 = 1
 
 ``` and here they will
 #{value1 = 1, value2 = 1} <= {value1, value2}
 
-''' likewise, Payload default values are not applied, if there's no such property in Payload  
+''' likewise, Payload default values are not applied, if there's no such property in Payload
 #{value1, value2} <= $value1 = 1, $value 2 = 1
-```
+````
 
 When used on both sides of a transaction, the `Source Object` default value takes priority. I.e. the
 code `#{a = 1} <= $b = 2` is processed in the following manner:
 
-- `b` is read from `Payload`. If it's there but `Null`, the expressions resolves to `2`. Otherwise it's an unset value
-- the result of expression is assigned to `newContext.a`. If it's an unset value, it resolves to `1`
+-   `b` is read from `Payload`. If it's there but `Null`, the expressions resolves to `2`. Otherwise it's an unset value
+-   the result of expression is assigned to `newContext.a`. If it's an unset value, it resolves to `1`
 
 Thus, if no `Payload` was given, or it doesn't have `b` key, `Context`.`a` will resolve to `1`
 
@@ -122,13 +122,13 @@ Thus, if no `Payload` was given, or it doesn't have `b` key, `Context`.`a` will 
 All but **Object** types can be created in-place, as the default value of `Context` or `Payload` property or as
 a `Function` argument
 
-- `1` or `1.05` is the way to create a **Number**. Other numeric representations (e.g. hex, exponential, etc.) are
-  supported
-  as long as the target language supports them. Numbers are automatically typecasted to **Binary** if needed
-- `'foo'` creates a **String** primitive
-- `[]` creates an empty List
-- `%%foo` is a compile-time Constant, that is passed to a Codegen along with a Mermaid diagram, primarily being used
-  for behaviour that is dependent on environment and/or CI/CD operations.
+-   `1` or `1.05` is the way to create a **Number**. Other numeric representations (e.g. hex, exponential, etc.) are
+    supported
+    as long as the target language supports them. Numbers are automatically typecasted to **Binary** if needed
+-   `'foo'` creates a **String** primitive
+-   `[]` creates an empty List
+-   `%%foo` is a compile-time Constant, that is passed to a Codegen along with a Mermaid diagram, primarily being used
+    for behaviour that is dependent on environment and/or CI/CD operations.
 
 ## Examples
 
@@ -150,22 +150,9 @@ object: `#{newA,newB} <= someFunction(#oldA), #oldB = 2` does the following:
 
 More lifelike examples:
 
-- `#{id, name}` : copies corresponding fields from previous `Context`
-- `#{id, name} <= #id, trim(#name)` does the same, but applies `String.trim()` to source value
-- `#{id, name} <= #id, concat(trim(#name),' ',trim(#lastname))`: extracts two properties from the source object, trims
-  them and joins them with a predefined string constant
-- `#{counter} <= add(#counter, $increment)`: adds `increment` property of a `Payload` to the `Context`'s `counter`
-  property
-
-## Languages typings map
-
-| Language | Language Type | Yantrix Type |
-|----------|---------------|--------------|
-| JS/TS    | String        | String       |
-| JS/TS    | Number        | Number       |
-| JS/TS    | Array         | List         |
-| JS/TS    | Object        | Object       |
-| Python   | String        | String       |
-| Python   | ??            | Number       |
-| Python   | ??            | List         |
-| Python   | Dictionary    | Object       |
+-   `#{id, name}` : copies corresponding fields from previous `Context`
+-   `#{id, name} <= #id, trim(#name)` does the same, but applies `String.trim()` to source value
+-   `#{id, name} <= #id, concat(trim(#name),' ',trim(#lastname))`: extracts two properties from the source object, trims
+    them and joins them with a predefined string constant
+-   `#{counter} <= add(#counter, $increment)`: adds `increment` property of a `Payload` to the `Context`'s `counter`
+    property
