@@ -34,7 +34,7 @@ For instance, **`lerna create my-package`** creates a directory **packages/my-pa
 
 ## Installing dependencies
 
-Starting from `7.0.0`, **Lerna** has deprecated certain ways of managing packages, such as**`bootstrap`**, **`add`**, and **`link`**. It's now recommended to use your favorite package manager (**`npm`**, **`yarn`**, **`pnpm`**) for building and linking packages.
+Starting from `7.0.0`, **Lerna** has deprecated certain ways of managing packages, such as**`bootstrap`**,**`add`**, and**`link`**. It's now recommended to use your favorite package manager (**`npm`**,**`yarn`**,**`pnpm`**) for building and linking packages.
 
 Now, to install the dependencies of all packages in the root of your monorepository, just run one of the following commands:
 

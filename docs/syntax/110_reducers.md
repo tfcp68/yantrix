@@ -1,11 +1,10 @@
 ---
 title: Reducers
-
 ---
 
 # Reducers
 
-Reducers are a subset of [fold functions](https://en.wikipedia.org/wiki/Fold_(higher-order_function)) that have
+Reducers are a subset of [fold functions](<https://en.wikipedia.org/wiki/Fold_(higher-order_function)>) that have
 signature of
 
 ```
@@ -30,7 +29,7 @@ Reducers in Yantrix starts with `#` directive followed by braces:
 #{ newState } <= $actionPayload
 ```
 
-Here, `{}` braces group `#` operation, which is a reference to the  `State` attribute, usually called a `Context`,
+Here, `{}` braces group `#` operation, which is a reference to the `State` attribute, usually called a `Context`,
 while `$` operation is dereferencing an `Action` meta information, usually called a `Payload`.
 
 Because the result of `Reducer` is new `State` and `Context`, braces on the left side of assignment are not technically
@@ -80,16 +79,11 @@ There's a `#{}` dereferencing construction in a reducer, and it's on the left si
 the `Reducer` is supposed to return `Context` properties. However, `Context` and `Payload` properties can be referenced
 in any expressions using symbols:
 
-- `#prop` dereferences a `Context` property named `prop`
-- `$prop2` dereferences a `Payload` property named `prop2`
-- `%%value` dereferences a build-time [Constant](120_values_and_constants.md) named `value`
+-   `#prop` dereferences a `Context` property named `prop`
+-   `$prop2` dereferences a `Payload` property named `prop2`
+-   `%%value` dereferences a build-time [Constant](120_values_and_constants.md) named `value`
 
 ```
 #{ bar, jazz } <= sum($payloadA), coalesce(#jazz, $payloadB)
 #{ value } <= lookup(#accumulatedValue, $payloadB)
 ```
-
-
-
-
-

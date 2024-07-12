@@ -21,10 +21,9 @@ cd ./yantrix
 ```
 
 Install dependencies, which automatically builds and links packages:
+
 ```shell
 pnpm install
 ```
 
 2. See [Working with repository](1_working_with_repo.html) section
-
-

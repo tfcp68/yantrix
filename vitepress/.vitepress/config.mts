@@ -5,7 +5,8 @@ import matter from 'gray-matter';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
 
-const menuOrder = ['', 'architecture', 'syntax', 'contributing', 'api reference'];
+const menuOrder = ['', 'architecture', 'syntax', 'integrations', 'contributing', 'api' +
+' reference'];
 
 
 // https://vitepress.dev/reference/site-config
