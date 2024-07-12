@@ -2,16 +2,16 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 12.07.2024, 11:27:39 |      2.54 s |
+| 12.07.2024, 16:01:14 |      2.44 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
 | Test Suites |        10 |         0 |          0 |       0 |       10 |
 | Tests       |        34 |         0 |          0 |       0 |       34 |
 
-## ✅ <a id="file0" href="#file0">**tests**/stateDiagram.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/mermaid-parser/__tests__/stateDiagram.test.ts)]
+## ✅ <a id="file0" href="#file0">**tests**/stateDiagram.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/2e42788043a9e2bfd7432bdc724442dbbb6da77a/packages/mermaid-parser/__tests__/stateDiagram.test.ts)]
 
-15 passed, 0 failed, 0 skipped, 0 todo, done in 500 s
+15 passed, 0 failed, 0 skipped, 0 todo, done in 351 s
 
 ```
 ✅ State Diagram Parser › Common
@@ -33,9 +33,9 @@
 ✅ State Diagram Parser
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**/stateParser.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/mermaid-parser/__tests__/stateParser.test.ts)]
+## ✅ <a id="file1" href="#file1">**tests**/stateParser.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/2e42788043a9e2bfd7432bdc724442dbbb6da77a/packages/mermaid-parser/__tests__/stateParser.test.ts)]
 
-19 passed, 0 failed, 0 skipped, 0 todo, done in 528 s
+19 passed, 0 failed, 0 skipped, 0 todo, done in 374 s
 
 ```
 ✅ State Diagram Parser › Common

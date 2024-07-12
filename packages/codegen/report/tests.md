@@ -2,16 +2,16 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 12.07.2024, 11:27:45 |     0.261 s |
+| 12.07.2024, 16:01:22 |     0.752 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
 | Test Suites |         9 |         0 |          0 |       0 |        9 |
 | Tests       |        18 |         0 |          0 |       0 |       18 |
 
-## ✅ <a id="file0" href="#file0">**tests**/codegenAutomata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/codegen/__tests__/codegenAutomata.test.ts)]
+## ✅ <a id="file0" href="#file0">**tests**/codegenAutomata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/2e42788043a9e2bfd7432bdc724442dbbb6da77a/packages/codegen/__tests__/codegenAutomata.test.ts)]
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 5 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 8 s
 
 ```
 ✅ Codegen output › GamePhaseAutomata
@@ -27,9 +27,9 @@
 ✅ Codegen output
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**/codegenNotes.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/codegen/__tests__/codegenNotes.test.ts)]
+## ✅ <a id="file1" href="#file1">**tests**/codegenNotes.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/2e42788043a9e2bfd7432bdc724442dbbb6da77a/packages/codegen/__tests__/codegenNotes.test.ts)]
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 5 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 8 s
 
 ```
 ✅ Automata include notes › Initial context

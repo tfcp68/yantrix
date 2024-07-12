@@ -89,12 +89,12 @@ describe('dispatchFromFSM', () => {
 
 	test("should't save state in redux via error action", () => {
 		const [automata, dispatch] = useReduxAutomata(gamePhaseAutomataReduxId);
-		try {
+		expect(() => {
 			dispatch({
 				action: -111,
 				payload: {},
 			});
-		} catch (e) {}
+		}).toThrowError();
 		expect(automata.context).deep.equal({
 			string: 'str',
 			array: [],

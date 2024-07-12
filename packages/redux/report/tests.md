@@ -2,16 +2,16 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 12.07.2024, 11:27:45 |     0.426 s |
+| 12.07.2024, 16:01:22 |     0.899 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
 | Test Suites |         2 |         0 |          0 |       0 |        2 |
 | Tests       |         4 |         0 |          0 |       0 |        4 |
 
-## ✅ <a id="file0" href="#file0">**tests**/automataRedux.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/redux/__tests__/automataRedux.test.ts)]
+## ✅ <a id="file0" href="#file0">**tests**/automataRedux.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/2e42788043a9e2bfd7432bdc724442dbbb6da77a/packages/redux/__tests__/automataRedux.test.ts)]
 
-4 passed, 0 failed, 0 skipped, 0 todo, done in 6 s
+4 passed, 0 failed, 0 skipped, 0 todo, done in 8 s
 
 ```
 ✅ dispatchFromFSM
