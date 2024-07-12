@@ -111,7 +111,7 @@ Yantrix:
     -   [Reducers](110_reducers.html)
     -   [Values and Constants](120_values_and_constants.html)
     -   [Expressions](130_expressions.html)
-    -   [Functions](140_functions.md)
+-   [**Functions**](140_functions.md)
     -   [Predicates](150_predicates.html)
     -   [Transformers](160_transformers.html)
 -   [**Event pub/sub**](200_events.html)

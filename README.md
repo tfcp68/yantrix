@@ -16,19 +16,19 @@ tools for developers, like [n8n](https://github.com/n8n-io/n8n).
 
 To install Yantrix end-to-end command line tool, you can use NPM, Yarn or PNPM:
 
-```shell
-npm install @yantrix/cli
+```bash
+$ npm install @yantrix/cli
 # or
-yarn add @yantrix/cli
+$ yarn add @yantrix/cli
 # or
-pnpm install @yantrix/cli
+$ pnpm install @yantrix/cli
 ```
 
 If your main language is TypeScript, you may prefer to install all available APIs or list only those you require
 
-```shell
-pnpm install yantrix
-npm install @yantrix/automata @yantrix/utils @yantrix/yantrix-parser
+```bash
+$ pnpm install yantrix
+$ npm install @yantrix/automata @yantrix/utils @yantrix/yantrix-parser
 ```
 
 ## Usage
@@ -37,8 +37,8 @@ npm install @yantrix/automata @yantrix/utils @yantrix/yantrix-parser
 
 Basically, you turn diagrams into a code module in required language
 
-```shell
-yantrix codegen --outfile ../yantrix-generated.ts --language TypeScript --className SampleFSM --eval "A-->B"
+```bash
+$ yantrix codegen --outfile ../yantrix-generated.ts --language TypeScript --className SampleFSM --eval "A-->B"
 ```
 
 ## Sample Diagrams
@@ -47,7 +47,7 @@ yantrix codegen --outfile ../yantrix-generated.ts --language TypeScript --classN
 
 ```mermaid
 stateDiagram-v2
-    [*] --> INIT: RESET (optionsList)
+	[*] --> INIT: RESET (optionsList)
 note left of [*]
 #( items = [], selectedIndex = 0 }
 end note

@@ -156,16 +156,3 @@ More lifelike examples:
     them and joins them with a predefined string constant
 -   `#{counter} <= add(#counter, $increment)`: adds `increment` property of a `Payload` to the `Context`'s `counter`
     property
-
-## Languages typings map
-
-| Language | Language Type | Yantrix Type |
-| -------- | ------------- | ------------ |
-| JS/TS    | String        | String       |
-| JS/TS    | Number        | Number       |
-| JS/TS    | Array         | List         |
-| JS/TS    | Object        | Object       |
-| Python   | String        | String       |
-| Python   | ??            | Number       |
-| Python   | ??            | List         |
-| Python   | Dictionary    | Object       |
