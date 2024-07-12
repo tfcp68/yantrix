@@ -178,6 +178,9 @@ importers:
             '@yantrix/automata':
                 specifier: workspace:^
                 version: link:../automata
+            tsx:
+                specifier: ^4.11.0
+                version: 4.11.0
 
     packages/utils:
         devDependencies:

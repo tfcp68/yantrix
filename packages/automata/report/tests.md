@@ -2,16 +2,16 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 12.07.2024, 10:45:05 |     2.032 s |
+| 12.07.2024, 11:27:39 |     2.077 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
 | Test Suites |        70 |         0 |          0 |       0 |       70 |
 | Tests       |       183 |         0 |          0 |       0 |      183 |
 
-## ✅ <a id="file0" href="#file0">**tests**/actionDictionary.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/c855fa62ac9ca33ab60bd6440119466f5a2a6be2/packages/automata/__tests__/actionDictionary.test.ts)]
+## ✅ <a id="file0" href="#file0">**tests**/actionDictionary.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/automata/__tests__/actionDictionary.test.ts)]
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 66 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 60 s
 
 ```
 ✅ ActionDictionary › constructor
@@ -110,9 +110,9 @@
 ✅ ActionDictionary
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**/automata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/c855fa62ac9ca33ab60bd6440119466f5a2a6be2/packages/automata/__tests__/automata.test.ts)]
+## ✅ <a id="file1" href="#file1">**tests**/automata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/automata/__tests__/automata.test.ts)]
 
-68 passed, 0 failed, 0 skipped, 0 todo, done in 73 s
+68 passed, 0 failed, 0 skipped, 0 todo, done in 45 s
 
 ```
 ✅ Automata › constructor
@@ -211,9 +211,9 @@
 ✅ Automata
 ```
 
-## ✅ <a id="file2" href="#file2">**tests**/eventAdapter.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/c855fa62ac9ca33ab60bd6440119466f5a2a6be2/packages/automata/__tests__/eventAdapter.test.ts)]
+## ✅ <a id="file2" href="#file2">**tests**/eventAdapter.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/d778af225da86b3d04ba6e01d536ffc489cf7f88/packages/automata/__tests__/eventAdapter.test.ts)]
 
-46 passed, 0 failed, 0 skipped, 0 todo, done in 69 s
+46 passed, 0 failed, 0 skipped, 0 todo, done in 68 s
 
 ```
 ✅ EventAdapter › constructor
