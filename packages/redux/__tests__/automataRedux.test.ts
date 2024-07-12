@@ -2,7 +2,6 @@ import { combineReducers, configureStore, createSlice } from '@reduxjs/toolkit';
 import { actionsDictionary, GamePhaseAutomata } from './GamePhaseAutomata_generated.js';
 import { connectReduxAutomata, useReduxAutomata } from '../src/index.js';
 import { describe, expect, test, beforeEach } from 'vitest';
-import automata from '@yantrix/automata/dist/Automata.js';
 
 describe('dispatchFromFSM', () => {
 	const reducerInitialState = {
