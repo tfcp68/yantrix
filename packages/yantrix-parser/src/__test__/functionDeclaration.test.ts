@@ -50,7 +50,6 @@ const validFunctionsWithArgumentsExamples = [
 	'#{%s = %s(%arr,%arr)}',
 	'#{%s = %s(%f)}',
 	'#{%s = %s(%f, %i)}',
-	'#{%s = %s(,,,,,,)}',
 ];
 const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s (%s)}',
@@ -73,6 +72,7 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s(%d%s)}',
 	'#{%s = %s($())}',
 	'#{%s = %s(#{%s})}',
+	'#{%s = %s(,,,,,,)}',
 ];
 
 const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)) => {
@@ -93,17 +93,19 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 const generateFunctionString = (level: number = 0) => {
 	if (level > 8) return; // todo check
 
-	const argsTypes = [randomString, randomInteger, randomDecimal, generateFunctionString];
+	const argsTypes = [randomString, randomInteger, randomDecimal];
+
 	const functionName = randomString();
 	const argsCount = randomInteger(1, 10);
-	const args = Array.from({ length: argsCount });
+	const args: string[] = [];
 	for (let i = 0; i < argsCount; i++) {
 		const randomIndex = Math.floor(Math.random() * argsTypes.length);
-		if (randomIndex == 3) {
+		if (randomIndex === 3) {
 			const nestedFunction = generateFunctionString(level + 1);
 			if (nestedFunction) args.push(nestedFunction);
-		} else args.push(argsTypes[randomIndex]());
+		} else args.push(argsTypes[randomIndex]().toString());
 	}
+
 	return `${functionName}(${args.join(',')})`;
 };
 

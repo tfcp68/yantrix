@@ -39,5 +39,3 @@ coverage
 # Cache
 .prettiercache
 .eslintcache
-
-src/yantrixParser.ts

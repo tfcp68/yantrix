@@ -4,11 +4,11 @@ import path from 'path';
 import matter from 'gray-matter';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
-const menuOrder = ['', 'architecture', 'syntax', 'contributing', 'api reference'];
+const menuOrder = ['', 'architecture', 'syntax', 'integrations', 'contributing', 'api' + ' reference'];
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
-	description: 'Yantrix - lowcode finite state machines',
+	description: 'Yantrix - Low-Code Finite State Machines',
 	srcDir: './src',
 	ignoreDeadLinks: true,
 	base: '/yantrix',
@@ -21,11 +21,40 @@ export default withMermaid({
 	},
 	head: [
 		['meta', { name: 'theme-color', content: '#000000' }],
-		['link', { rel: 'icon', href: '/yantrix/favicon.ico', sizes: '64x64' }],
+		['meta', { property: 'og:image', content: '/yantrix/logo.png' }],
+		['meta', { property: 'og:image:width', content: '512' }],
+		['meta', { property: 'og:image:height', content: '512' }],
+		['meta', { property: 'og:title', content: 'Yantrix Documentation' }],
+		[
+			'meta',
+			{
+				property: 'og:description',
+				content: 'Low-Code Finite State' + ' Machines',
+			},
+		],
+		['link', { rel: 'icon', href: '/yantrix/favicon.ico' }],
+		[
+			'link',
+			{
+				rel: 'icon',
+				type: 'image/png',
+				href: '/yantrix/icon-white.png',
+				sizes: '64x64',
+			},
+		],
+		[
+			'link',
+			{
+				rel: 'icon',
+				type: 'image/png',
+				href: '/yantrix/logo.png',
+				sizes: '512x512',
+			},
+		],
 	],
 	themeConfig: {
 		// https://vitepress.dev/reference/default-theme-config
-		logo: '/icon-black.png',
+		logo: '/icon-white.png',
 		siteTitle: 'Yantrix',
 		socialLinks: [],
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
