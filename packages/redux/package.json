@@ -7,7 +7,7 @@
 		"dist"
 	],
 	"repository": {
-		"directory": "packages/automata",
+		"directory": "packages/redux",
 		"type": "git",
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
@@ -18,7 +18,7 @@
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run"
 	},
-	"description": "Miely Machine representation with bus adapters",
+	"description": "Redux automata integration for Redux",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"bugs": {
 		"url": "https://github.com/octaharon/yantrix/issues"
@@ -38,6 +38,9 @@
 	],
 	"license": "ISC",
 	"type": "module",
+	"dependencies": {
+		"@yantrix/utils": "workspace:^"
+	},
 	"devDependencies": {
 		"@yantrix/automata": "workspace:^",
 		"@reduxjs/toolkit": "^2.2.5"

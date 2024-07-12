@@ -87,15 +87,6 @@ importers:
                 specifier: ^1.13.6
                 version: 1.13.6
 
-    packages/automata-redux:
-        devDependencies:
-            '@reduxjs/toolkit':
-                specifier: ^2.2.5
-                version: 2.2.5(react@16.14.0)
-            '@yantrix/automata':
-                specifier: workspace:^
-                version: link:../automata
-
     packages/codegen:
         devDependencies:
             '@yantrix/automata':
@@ -119,6 +110,19 @@ importers:
             mermaid:
                 specifier: 10.1.0
                 version: 10.1.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+
+    packages/redux:
+        dependencies:
+            '@yantrix/utils':
+                specifier: workspace:^
+                version: link:../utils
+        devDependencies:
+            '@reduxjs/toolkit':
+                specifier: ^2.2.5
+                version: 2.2.5(react@16.14.0)
+            '@yantrix/automata':
+                specifier: workspace:^
+                version: link:../automata
 
     packages/utils: {}
 
