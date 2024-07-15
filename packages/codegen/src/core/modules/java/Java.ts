@@ -1,7 +1,7 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { Expressions, fillDictionaries } from '../shared.js';
-import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { Expressions, fillDictionaries } from '../../shared.js';
+import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../../types/common.js';
 import {
 	isKeyItemWithExpression,
 	isPayloadContext,
