@@ -1,16 +1,16 @@
 package org.example;
 
-import org.example.types.*;
-//import org.example.types.TAutomataBaseContext;
-//import org.example.types.TAutomataBaseState;
+import org.example.misc.AutomataPayloadContext;
+import org.example.misc.AutomataStateTransitionResult;
+import org.example.types.TAutomataBaseAction;
+import org.example.types.TAutomataBaseContext;
+import org.example.types.TAutomataBaseState;
+import org.example.types.automata.AutomataTypes.IAutomataReducer;
+import org.example.types.automata.AutomataTypes.TAutomataParams;
+import org.example.types.automata.AutomataTypes.TAutomataStateContext;
 import org.example.types.automata.*;
-import org.example.types.automata.AutomataTypes.*;
-//import org.example.types.automata.AutomataTypes.TAutomataEvent;
-//import org.example.types.automata.AutomataTypes.TAutomataParams;
-//import org.example.types.automata.AutomataTypes.TAutomataStateContext;
 
 import java.util.Map;
-import java.util.Objects;
 
 public final class GeneratedAutomata
         extends GenericAutomata<
@@ -43,58 +43,64 @@ public final class GeneratedAutomata
             "/END_GAME", TAutomataBaseAction.of(808645083L)
     );
 
+    private final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix =
+        Map.ofEntries(
+            Map.entry(TAutomataBaseState.of(1696941163L), Map.of(
+                    TAutomataBaseAction.of(826759815L),
+                    new AutomataStateTransitionResult(
+                            TAutomataBaseState.of(132123L),
+                            (payloadContext) -> {
+                                var pc = getDefaultContext(payloadContext);
+                                return new TAutomataBaseContext(Map.ofEntries(
+                                        Map.entry("integer", pc.get("integer")),
+                                        Map.entry("string", pc.get("string")),
+                                        Map.entry("array", pc.get("array")),
+                                        Map.entry("a1", payloadContext.payload().get("a1")),
+                                        Map.entry("a2", payloadContext.payload().get("a2")),
+                                        Map.entry("a3", payloadContext.payload().get("a3"))
+                                ));
+                            }
+                    )
+            ))
+        );
 
-    private final Map<TAutomataBaseStateType, IAutomataReducer<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType>> handlersDict = Map.of(
-            TAutomataBaseState.of(1696941163L), this::handleStateChange1696941163,
-            TAutomataBaseState.of(45657535L), this::handleStateChange45657535,
-            TAutomataBaseState.of(1415394173L), this::handleStateChange1415394173
-    );
-
-    private TAutomataStateContext<TAutomataBaseStateType, TAutomataContextType> handleStateChange1696941163(TAutomataEvent<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> arg) {
-        Map<TAutomataBaseActionType, TAutomataBaseStateType> actionToStateDict = Map.of(
-                TAutomataBaseAction.of(1423436384L), TAutomataBaseState.of(45657535L)
-        );
-        TAutomataBaseStateType newState = actionToStateDict.getOrDefault(arg.action, arg.state);
-        boolean isNewState = !Objects.equals(newState, arg.state);
-        return TAutomataStateContext.of(
-                isNewState ? newState : arg.state,
-                isNewState ? TAutomataBaseContext.fromPayload(arg.payload) : arg.context
-        );
-    }
-
-    private TAutomataStateContext<TAutomataBaseStateType, TAutomataContextType> handleStateChange45657535(TAutomataEvent<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> arg) {
-        Map<TAutomataBaseActionType, TAutomataBaseStateType> actionToStateDict = Map.of(
-                TAutomataBaseAction.of(1481692L), TAutomataBaseState.of(1415394173L)
-        );
-        TAutomataBaseStateType newState = actionToStateDict.getOrDefault(arg.action, arg.state);
-        boolean isNewState = !Objects.equals(newState, arg.state);
-        return TAutomataStateContext.of(
-                isNewState ? newState : arg.state,
-                isNewState ? TAutomataBaseContext.fromPayload(arg.payload) : arg.context
-        );
-    }
-
-    private TAutomataStateContext<TAutomataBaseStateType, TAutomataContextType> handleStateChange1415394173(TAutomataEvent<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> arg) {
-        Map<TAutomataBaseActionType, TAutomataBaseStateType> actionToStateDict = Map.of(
-                TAutomataBaseAction.of(99594860L), TAutomataBaseState.of(1918712022L)
-        );
-        TAutomataBaseStateType newState = actionToStateDict.getOrDefault(arg.action, arg.state);
-        boolean isNewState = !Objects.equals(newState, arg.state);
-        return TAutomataStateContext.of(
-                isNewState ? newState : arg.state,
-                isNewState ? TAutomataBaseContext.fromPayload(arg.payload) : arg.context
-        );
+    private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
+        TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
+        TAutomataBaseContext initialContext = new TAutomataBaseContext(Map.ofEntries(
+                Map.entry("integer", prevContext.getOrDefault("integer", 3)),
+                Map.entry("string", prevContext.getOrDefault("string", "str")),
+                Map.entry("array", prevContext.getOrDefault("array", new Object[]{}))
+        ));
+        prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
+        return initialContext;
     }
 
     public GeneratedAutomata() {
         super();
         TAutomataBaseStateType initialState = TAutomataBaseState.of(1696941163L);
-        TAutomataContextType context = new TAutomataBaseContext();
+        TAutomataContextType context = new TAutomataBaseContext(Map.ofEntries(
+                Map.entry("integer", 3),
+                Map.entry("string", "str"),
+                Map.entry("array", new Object[]{})
+        ));
         IAutomataReducer<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> rootReducer = (event) -> {
             if(event.action == null || event.payload == null) {
                 return TAutomataStateContext.of(event.state, event.context);
             }
-            else return handlersDict.get(initialState).reduce(event);
+            if(!stateTransitionMatrix.containsKey(event.state)) {
+                throw new RuntimeException("Invalid state, maybe machine isn't running");
+            }
+            if(!stateTransitionMatrix.get(event.state).containsKey(event.action)) {
+                return TAutomataStateContext.of(
+                        event.state,
+                        event.context
+                );
+            }
+            AutomataStateTransitionResult res = stateTransitionMatrix.get(event.state).get(event.action);
+            return TAutomataStateContext.of(
+                    res.newState(),
+                    res.getNewContext().apply(new AutomataPayloadContext(event.payload, event.context))
+            );
         };
         TAutomataParams<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataBaseEventType,
                 TAutomataContextType, TAutomataPayloadType, TAutomataEventMetaType> params =
