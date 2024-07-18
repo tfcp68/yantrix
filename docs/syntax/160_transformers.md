@@ -43,3 +43,31 @@ the `Data Model`.
 
 They can be composed with `Predicates` to create conditional mutations, but this approach is not recommended, since it
 splits the responsibility of `Effects`.
+
+## Built-Ins: Number Transformers
+
+| Function(s) |                  Signature                  |         Arguments         | Returns                                                                      |
+| :---------- | :-----------------------------------------: | :-----------------------: | ---------------------------------------------------------------------------- |
+| `add`       | (**Number**, **Number**, ...) => **Number** | Any amount of **Numbers** | sum of passed values                                                         |
+| `inc`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `add(value,1)`                                                  |
+| `dec`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `add(value,-1)`                                                 |
+| `pow`       |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument to the power of the second one                                |
+| `mult`      | (**Number**, **Number**, ...) => **Number** | Any amount of **Numbers** | product of passed values                                                     |
+| `neg`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `mult(value,-1)`                                                |
+| `diff`      |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument substracted from the second one                               |
+| `div`       |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument divided by the second one                                     |
+| `inv`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `div(1, value)`                                                 |
+| `mod`       |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument [modulo](https://en.wikipedia.org/wiki/Modulo) the second one |
+| `trunc`     |         (**Number**) => **Number**          | a single **Number** value | a nearest integer less than the argument                                     |
+| `ceil`      |         (**Number**) => **Number**          | a single **Number** value | a nearest integer greater than the argument                                  |
+| `round`     |         (**Number**) => **Number**          | a single **Number** value | mathematically rounded argument                                              |
+| `sqrt`      |         (**Number**) => **Number**          | a single **Number** value | sinus of argument                                                            |
+| `sin`       |         (**Number**) => **Number**          | a single **Number** value | sinus of argument                                                            |
+| `cos`       |         (**Number**) => **Number**          | a single **Number** value | sinus of argument                                                            |
+
+## Built-Ins: List Transformers
+
+| Function(s) |                  Signature                  |                            Arguments                             | Returns                                                                                                             |
+| :---------- | :-----------------------------------------: | :--------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------- |
+| `lookup`    |       (**List**, **any**) => **any**        |            An Array-like structure and a search value            | returns the second argument if it's present in the **List**, `Null` otherwise                                       |
+| `filter`    | (**List**, **String**, **any**) => **List** | An Array-like structure of objects, property name and seek value | returns new **List** with objects from the passed the **List**, which have the named property equal to passed value |

@@ -88,7 +88,7 @@ subscribe/someEvent SomeAction ( payloadValue ) <= ( eventMetaValue )
 ## Default values
 
 Default values are assigned to vars when the requested property is present in a `Data Object` but equals to `Null` (
-empty pointer). To assign a default value
+an empty pointer). To assign a default value
 the `KEY_ITEM` is followed by `=` and a [`Constant`](constants.html) or [`Expression`](expressions.html). For instance:
 
 ```
@@ -103,10 +103,10 @@ referenced key exists in it. For example:
 #{value1, value2} <= #value1 = 1, #value 2 = 1
 
 ``` and here they will
-#{value1 = 1, value2 = 1} <= {value1, value2}
+#{value1 = 1, value2 = 1} <= #value1, #value2
 
 ''' likewise, Payload default values are not applied, if there's no such property in Payload
-#{value1, value2} <= $value1 = 1, $value 2 = 1
+#{value1, value2} <= $value1 = 1, $value2 = 1
 ````
 
 When used on both sides of a transaction, the `Source Object` default value takes priority. I.e. the
