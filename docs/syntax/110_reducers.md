@@ -56,7 +56,7 @@ If there're more properties in `Source Object` than in `Target Object`, such a d
 # { property1, property2, property 3 } <= $payloadA, $payloadB, $payloadC
 
 ''' throws an error due to excessive properties on the right side
-# { property1, property 2} <= $payloadA, $payloadB, $payloadC )
+# { property1, property 2} <= $payloadA, $payloadB, $payloadC
 ```
 
 As high-order functions, `Reducers` can invoke other `Functions`, including those which can dereference both at the same
