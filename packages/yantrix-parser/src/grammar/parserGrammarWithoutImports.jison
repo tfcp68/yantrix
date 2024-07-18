@@ -205,10 +205,7 @@ KeyItem  : TargetProperty '=' Expression
                     }
                 };
             };
-Number:
-        | integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
-        ;
+
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
           | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
@@ -218,15 +215,20 @@ Expression
           | Number
           ;
 
+Number
+        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
+        ;
+
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
+        | FunctionName '(' ')' {$$ = {FunctionDeclaration:{FunctionName: $1, Arguments: []}}}
         ;
 
 
 ArgumentsTypes
-             :  /* empty */ {$$ = []}
              |  Expression {$$=[$1]}
-             |  ArgumentsTypes ',' ArgumentsTypes {$$ = [...$1, ...$3]}
+             |  ArgumentsTypes ',' Expression {$$ = [...$1, ...$3]}
              ;
 
 ConstantDeclaration : '$(' Constant ')'{ $$ = $2};

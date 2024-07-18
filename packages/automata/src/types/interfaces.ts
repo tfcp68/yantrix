@@ -7,6 +7,10 @@ import {
 	TStateKeysCollection,
 	TStateLookupParams,
 	TStateValuesCollection,
+	TEventDictionaryMapping,
+	TEventKeysCollection,
+	TEventLookupParams,
+	TEventValuesCollection,
 } from './dictionaries.js';
 import {
 	TAutomataActionPayload,
@@ -449,6 +453,53 @@ export interface IActionDictionary<
 	 * @return {[string]:Action}
 	 */
 	getDictionary: (namespace?: string) => TActionDictionaryMapping<ActionType>;
+}
+
+export interface IEventDictionary<
+	EventType extends TAutomataBaseEventType,
+	PayloadType extends { [K in EventType]: any },
+> extends IAutomataExtendedEventContainer<EventType, PayloadType> {
+	/**
+	 * Add new Events to the dictionary, possibly scope them to namespace
+	 * @param {keys:string[],namespace?:string} actions
+	 * @return {EventType[]} a list of Keys for newly added Events
+	 */
+	addEvents: (Events: TEventKeysCollection<EventType>) => EventType[];
+
+	/**
+	 * Get Keys of selected Events, possibly scoped to namespace
+	 * @param {Events:EventType[],namespace?:string} Events
+	 * @return {string[], null if not found}
+	 */
+	getEventKeys: (Events: TEventValuesCollection<EventType>) => Array<string | null>;
+
+	/**
+	 * Get all Events for selected Keys, possibly scoped to namespace
+	 * @param {keys:string[],namespace?:string} Events
+	 * @return {Event[]}
+	 */
+	getEventValues: (Events: TEventKeysCollection<EventType>) => Array<EventType | null>;
+
+	/**
+	 * remove Events from the Dictionary, possibly scoping them to namespace.
+	 * @param {TEventLookupParams<EventType>} Search Events: Namespace and Events or Keys to remove
+	 * @return {this}
+	 */
+	removeEvents: (Events: TEventLookupParams<EventType>) => this;
+
+	/**
+	 * remove all Events from the Dictionary, possibly scoping them to namespace.
+	 * @param {string} namespace
+	 * @return {this}
+	 */
+	clearEvents: (namespace?: string) => this;
+
+	/**
+	 * Get all mapped Event Types with their corresponding Keys, possibly filtered by Namespace
+	 * @param {string} namespace
+	 * @return {[string]:Event}
+	 */
+	getDictionary: (namespace?: string) => TEventDictionaryMapping<EventType>;
 }
 
 /**
