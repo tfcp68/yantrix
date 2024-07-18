@@ -75,7 +75,19 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s(,,,,,,)}',
 ];
 
-const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)) => {
+const multiplyNestedFunctionsArguments = [
+	`#{%s = %s(%s(%s()))}`,
+	`#{%s = %s(%s(%s(%s(%s(%s(%s()))))))}`,
+	`#{%s = %s(%s(%s(%s(%s(%s(%s())), %f, %f))), %f)}`,
+	`#{%s = %s(%s(%s(%arr,%d)), %i, %f)}`,
+];
+/**
+ * Генерирует массив выражений на основе массива темплейтов, получаемого на входе
+ * @param arr
+ * @param casesAmount
+ * @return string[]
+ */
+const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)): string[] => {
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
 			template
@@ -91,9 +103,9 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 };
 
 const generateFunctionString = (level: number = 0) => {
-	if (level > 8) return; // todo check
+	if (level > 8) return ''; // todo check
 
-	const argsTypes = [randomString, randomInteger, randomDecimal];
+	const argsTypes = [randomString, randomInteger, randomDecimal, generateFunctionString];
 
 	const functionName = randomString();
 	const argsCount = randomInteger(1, 10);
@@ -222,4 +234,10 @@ describe('Function declaration', () => {
 
 	// @TODO add dedicated recursion tests
 	// need to test limits, should be ~8 levels of nesting, but i think there is actually no limit
+	describe('multi-nested arguments as functions', () => {
+		const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments);
+		test.each(cases)('%s', (input: string) => {
+			assert.isOk(parser.parse(input));
+		});
+	});
 });
