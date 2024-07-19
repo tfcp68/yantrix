@@ -1,8 +1,9 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram } from '../../src/index.js';
+import { generateAutomataFromStateDiagram, generateJavaAutomata } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { json } from 'stream/consumers';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -98,4 +99,13 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), generatedAutomataOutput, {
 		encoding: 'utf8',
 	});
+});
+
+const diagram = await createStateDiagram(await parseStateDiagram(input1));
+const automata = await generateJavaAutomata(diagram, {
+	className: 'GeneratedAutomata',
+	outLang: 'Java',
+});
+fs.writeFileSync(path.resolve(pathSave, 'GeneratedAutomata_generated.java'), automata, {
+	encoding: 'utf-8',
 });

@@ -46,14 +46,14 @@ export class JavaCodegen implements ICodegen {
 	// Package declaration and imports necessary for the automata to function
 	getImports(): string {
 		const lines: string[] = [
-			`package ${this.package}`,
-			`import ${this.package}.types.*`,
-			`import ${this.package}.types.automata.*`,
-			`import ${this.package}.types.automata.AutomataTypes.*`,
-			`import java.util.Map`,
-			`import java.util.Objects`,
+			`package ${this.package};`,
+			`import ${this.package}.types.*;`,
+			`import ${this.package}.types.automata.*;`,
+			`import ${this.package}.types.automata.AutomataTypes.*;`,
+			`import java.util.Map;`,
+			`import java.util.Objects;`,
 		];
-		return lines.join(';\n');
+		return lines.join('\n');
 	}
 
 	getDictionaries(): string {
@@ -64,7 +64,7 @@ export class JavaCodegen implements ICodegen {
 		return `private final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix = 
 			Map.ofEntries(
 				${this.getStateTransitionMatrix()}
-			)
+			);
 		`;
 	}
 
@@ -114,7 +114,7 @@ export class JavaCodegen implements ICodegen {
 					`;
 				});
 			})
-			.flatMap((el) => `${el.join('\n\t')}`);
+			.flatMap((el) => `${el.join(',\n\t')}`);
 	}
 
 	getDefaultContext(): string {
@@ -193,7 +193,7 @@ export class JavaCodegen implements ICodegen {
                 super();
                 TAutomataBaseStateType initialState = TAutomataBaseState.of(${this.getInitialState()}L);
                 TAutomataContextType context = ${this.getInitialContext()};
-                IAutomataReducer<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> rootReducer = ${this.getRootReducer};
+                IAutomataReducer<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> rootReducer = ${this.getRootReducer()};
                 TAutomataParams<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataBaseEventType,
                         TAutomataContextType, TAutomataPayloadType, TAutomataEventMetaType> params =
                         new TAutomataParams<>(
@@ -215,19 +215,19 @@ export class JavaCodegen implements ICodegen {
 		// states dictionary text representation
 		this.dictionaries.push(`
             private final Map<String, TAutomataBaseStateType> statesDictionary = Map.of(
-                ${Object.entries(this.stateDictionary)
-					.map(([key, value]) => `${key}, TAutomataBaseState.of(${value}L)`)
+                ${Object.entries(this.stateDictionary.getDictionary())
+					.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
 					.join(',\n')}
-            )
+            );
         `);
 
 		// actions dictionary text representation
 		this.dictionaries.push(`
             private final Map<String, TAutomataBaseActionType> actionsDictionary = Map.of(
-                ${Object.entries(this.actionDictionary)
-					.map(([key, value]) => `${key}, TAutomataBaseAction.of(${value}L)`)
+                ${Object.entries(this.actionDictionary.getDictionary())
+					.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
 					.join(',\n')}
-            )
+            );
         `);
 	}
 
@@ -259,8 +259,8 @@ export class JavaCodegen implements ICodegen {
 	private getRootReducerStateValidation() {
 		return `
             // state validation
-            if(!statesDictionary.containsValue(event.state)) {
-                throw new RuntimeException("Invalid state");
+            if(!stateTransitionMatrix.containsKey(event.state)) {
+                throw new RuntimeException("Invalid state, maybe machine isn't running");
             }
         `;
 	}
@@ -270,8 +270,11 @@ export class JavaCodegen implements ICodegen {
 	private getRootReducerActionValidation() {
 		return `
             // action validation
-            if(!actionsDictionary.containsValue(event.action)) {
-                throw new RuntimeException("Invalid action");
+            if(!stateTransitionMatrix.get(event.state).containsKey(event.action)) {
+                return TAutomataStateContext.of(
+                        event.state,
+                        event.context
+                );
             }
         `;
 	}
