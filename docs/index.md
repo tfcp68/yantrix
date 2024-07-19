@@ -64,7 +64,7 @@ const SLIDER_MIN = -1000;
 const SliderController = new Slider();
 
 SliderController.dispatch(
-	Slider.getAction('RESET', {
+	Slider.createAction('RESET', {
 		min: SLIDER_MIN,
 		max: SLIDER_MAX,
 	}),
@@ -73,13 +73,13 @@ SliderController.dispatch(
 /* somewhere later on in UI */
 
 // bind these to buttons and/or keys
-const rightHandler = () => SliderController.dispatch(Slider.getAction('INCREASE', { by: 50 }));
-const leftHandler = () => SliderController.dispatch(Slider.getAction('DECREASE', { by: 50 }));
+const rightHandler = () => SliderController.dispatch(Slider.createAction('INCREASE', { by: 50 }));
+const leftHandler = () => SliderController.dispatch(Slider.createAction('DECREASE', { by: 50 }));
 
 // bind this to a click handler, using relative coordinate
 const setHandler = (percentage) =>
 	SliderController.dispatch(
-		Slider.getAction('SET', {
+		Slider.createAction('SET', {
 			value: SLIDER_MIN + percentage * (SLIDER_MAX - SLIDER_MIN),
 		}),
 	);
