@@ -24,8 +24,8 @@ they are ignored by Yantrix, and `States` are named with node's literal name.
 
 ```mermaid
 stateDiagram-v2
-    B: RenamedNode (identified as "B")
-    A --> B
+	B: RenamedNode (identified as "B")
+	A --> B
 ```
 
 Therefore, this diagram will create a `FSM` with two `States` **A** and **B**, regardless of node **B** title.
@@ -42,11 +42,11 @@ with `Payload`.
 
 ```mermaid
 stateDiagram-v2
-    direction LR
-    A --> B: AtoB
-    A --> A: Loop
-    B --> C: BtoC
-    [*] --> A: Reset
+	direction LR
+	A --> B: AtoB
+	A --> A: Loop
+	B --> C: BtoC
+	[*] --> A: Reset
 ```
 
 This diagram is exported as `FSM` with 4 `Actions`:
@@ -65,10 +65,10 @@ Whenever you list a value on the left side of a `Reducer`, it is added to a `Con
 
 ```mermaid
 stateDiagram-v2
-    A
-    note left of A
-        #{value}
-    end note
+	A
+	note left of A
+		#{value}
+	end note
 ```
 
 Every `State` has its own shape of `Context`, but if they are explicitly listed and have identical names &ndash; they
@@ -76,17 +76,17 @@ are copied by default. Members that are not mentioned are not copied
 
 ```mermaid
 stateDiagram-v2
-    direction TB
-    A --> B: ACTION
-    B --> A: ACTION
-    note left of A
-        ''' value1 is copied, value3 is lost
-        #{ value1, value2 = '' }
-    end note
-    note right of B
-        ''' value1 is copied, value2 is lost
-        #{ value1, value3 = 0 }
-    end note
+	direction TB
+	A --> B: ACTION
+	B --> A: ACTION
+	note left of A
+		''' value1 is copied, value3 is lost
+		#{ value1, value2 = '' }
+	end note
+	note right of B
+		''' value1 is copied, value2 is lost
+		#{ value1, value3 = 0 }
+	end note
 ```
 
 ## Default Context
@@ -100,10 +100,10 @@ default `Context`
 
 ```mermaid
 stateDiagram-v2
-    direction TB
-    [*] --> A: RESET
-    A --> B: ACTION
-    B --> A: ACTION
+	direction TB
+	[*] --> A: RESET
+	A --> B: ACTION
+	B --> A: ACTION
 note left of [*]
 #{ value1 = 0 }
 end note
@@ -123,24 +123,24 @@ identical `Payload` signature, and this signature is enclosed in brackets (`()`)
 
 ```mermaid
 stateDiagram-v2
-    direction TB
-    [*] --> INIT: START (counter)
-    INIT --> WORKING: START (counter)
-    state isFinished <<choice>>
-    WORKING --> isFinished: REDUCE (value)
-    isFinished --> END: isGreater($value, #counter)
-    isFinished --> WORKING
-    note right of INIT
-        +ByPass
-        +Init
-        #{counter} <= $counter = 10
-    end note
-    note left of WORKING
-        #{counter} <= sub(coalesce($counter, #counter), $value = 1)
-    end note
-    note right of END
-        #{counter} <= 0
-    end note
+	direction TB
+	[*] --> INIT: START (counter)
+	INIT --> WORKING: START (counter)
+	state isFinished <<choice>>
+	WORKING --> isFinished: REDUCE (value)
+	isFinished --> END: isGreater($value, #counter)
+	isFinished --> WORKING
+	note right of INIT
+		+ByPass
+		+Init
+		#{counter} <= $counter = 10
+	end note
+	note left of WORKING
+		#{counter} <= sub(coalesce($counter, #counter), $value = 1)
+	end note
+	note right of END
+		#{counter} <= 0
+	end note
 ```
 
 Here, whenever a **START** Action is dispatched into a `FSM`, `Payload` _must_ contain a `counter` property, which
@@ -167,9 +167,21 @@ A created `FSM` will have this `State` at initialization. A diagram can't have m
 ### +ByPass
 
 A bypassed `State` automatically propagates the acquired `Action` to the next `State`, if such connection exists in the
-diagram. The attached `Reducers` are run beforehand
+diagram. The attached `Reducers` are run beforehand, and then the reducers of the outbound `State` are run next.
+
+**WARNING:** `Payload` is not propagated through `ByPass` nodes and must be consumed in them.
 
 This is the same as emitting an `Event` and subscribing to it at the same time, except for this is shorter and must be
 used whenever a control `State` must be switched through without any information getting out of the `FSM`. Also note,
-that a `+ByPass` `State` can have any number of incoming and outcoming transitions, but every incoming `Action` must be
-reflected with at least one outcoming `Action` of the same signature
+that a `+ByPass` `State` can have any number of incoming transitions, but only one outgoing, which is not an `Action`, but is rather coded with `[-]` label:
+
+```mermaid
+stateDiagram-v2
+	direction LR
+	A --> BYPASS: Action1
+	B --> BYPASS: Action2
+	BYPASS --> EXIT: [-]
+	note right of BYPASS
+		+ByPass
+	end note
+```
