@@ -1,54 +1,54 @@
+
 %{
-  /**
- * This constant holds a list of reserved words in the  parser.
- */
- const ReservedList = ['end note, +INITIAL'];
-/**
- * This constant holds a list of special characters that are not allowed in yantrix expressions.
- */
- const SpecialCharList = [
-    '!',
-    '@',
-    "$", // Нужны двойные кавычки, т.к при одинарных некорректно импортируется в грамматику
-    '%',
-    '^',
-    '&',
-    '*',
-    '"',
-    '№',
-    '(',
-    ')',
-    '[',
-    ']',
-    '{',
-    '}',
-    '+',
-    '-',
-    '=',
-    ';',
-    ':',
-    '?',
-    '.',
-    ',',
-    '/',
-    '\\',
-    '|',
+  // src/constants/index.ts
+var ReservedList = ["end note, +INITIAL"];
+var SpecialCharList = [
+  "!",
+  "@",
+  "$",
+  // Нужны двойные кавычки, т.к при одинарных некорректно импортируется в грамматику
+  "%",
+  "^",
+  "&",
+  "*",
+  '"',
+  "\u2116",
+  "(",
+  ")",
+  "[",
+  "]",
+  "{",
+  "}",
+  "+",
+  "-",
+  "=",
+  ";",
+  ":",
+  "?",
+  ".",
+  ",",
+  "/",
+  "\\",
+  "|"
 ];
-/**
- * This object contains the different types of expressions that can be used in the parser.
- */
- const ExpressionTypes = {
-    Function: 'function',
-    StringDeclaration: 'string',
-    ArrayDeclaration: 'array',
-    Constant: 'constant',
-    IntegerDeclaration: 'integer',
-    DecimalDeclaration: 'decimal',
-    FunctionProperty: 'FunctionProperty',
-    Property: 'property',
+var ExpressionTypes = {
+  Function: "function",
+  StringDeclaration: "string",
+  ArrayDeclaration: "array",
+  Constant: "constant",
+  IntegerDeclaration: "integer",
+  DecimalDeclaration: "decimal",
+  FunctionProperty: "FunctionProperty",
+  Property: "property"
+};
+ {
+  ExpressionTypes,
+  ReservedList,
+  SpecialCharList
 };
 //# sourceMappingURL=index.js.map
 %}
+
 
 
 
@@ -91,6 +91,8 @@
 \'[^\n#{()=><""]+\'                 {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 \"[^\n#{()=><'']+\"                  {yytext=yytext.slice(1,-1);return 'StringDeclaration';}
 
+'+INITIAL'                        {return 'InitialState'}
+
 'subscribe/'                         {this.begin('SubscribeStatement'); return 'subscribe/'}
 <SubscribeStatement>[^/=>\s]+        {this.popState(); return 'EventName'}
 
@@ -102,7 +104,7 @@
 [A-Za-z]{1,}[A-Za-z0-9\.]+(?=[(])    {this.begin('Func');return 'FunctionName';}
 
 'emit/'                               {this.begin('EmitStatement'); return 'emit/'}
-<EmitStatement>[^()=<\n]+             {this.popState(); return 'EventName'}
+<EmitStatement>[^()=<\n\s]+             {this.popState(); return 'EventName'}
 
 '#{'                                  {this.begin('KeyList');return '#{'}
 '{'                                   {this.begin('KeyList');return '{'}
@@ -133,10 +135,13 @@ start
 	;
 
 document
-	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[]}}
+	: /* empty */ {$$={contextDescription:[],emit:[],subscribe:[],initialState:false}}
 	| document line {
            if($2 !== '\n') {
-              $1['contextDescription'].push($2)
+              if($2.hasOwnProperty('initialState')){
+                $1['initialState'] = true
+              }
+              if($2.hasOwnProperty('context'))  $1['contextDescription'].push($2)
               if($2.hasOwnProperty('eventName')) $1['emit'].push($2)
               if($2.hasOwnProperty('event')) $1['subscribe'].push($2)
            }
@@ -201,7 +206,7 @@ KeyItem  : TargetProperty '=' Expression
             {
                 $$ = {
                     KeyItemDeclaration: {
-                        TargetProperty: $1.toLowerCase()
+                        TargetProperty: $1
                     }
                 };
             };
@@ -214,21 +219,20 @@ Expression
           | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
           | Number
           ;
-
 Number
         : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1)}}
-        ;
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
+        ;          
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
-        | FunctionName '(' ')' {$$ = {FunctionDeclaration:{FunctionName: $1, Arguments: []}}}
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}}}
         ;
 
 
 ArgumentsTypes
-             |  Expression {$$=[$1]}
-             |  ArgumentsTypes ',' Expression {$$ = [...$1, ...$3]}
+             :  Expression {$$=[$1]}
+             |  ArgumentsTypes ',' Expression {$$ = [...$1, $3]}
              ;
 
 ConstantDeclaration : '$(' Constant ')'{ $$ = $2};
