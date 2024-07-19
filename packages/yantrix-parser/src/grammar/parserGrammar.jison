@@ -1,4 +1,3 @@
-
 %{
   import {ReservedList, ExpressionTypes} from './index.js'
 %}
@@ -141,7 +140,8 @@ ActionStatement
     payload:$3
 }}} ;
 
-KeyList  : KeyItem {$$ = [$1]; } | KeyList ',' KeyItem {$1.push($3)};
+KeyList  : KeyItem {$$ = [$1]; $$['functionDepth'] = $1.functionDepth; }
+         | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression
             {
                 if ($3.hasOwnProperty('Property')) {
@@ -153,7 +153,8 @@ KeyItem  : TargetProperty '=' Expression
                     KeyItemDeclaration: {
                         TargetProperty: $1,
                         Expression: $3
-                    }
+                    },
+                    functionDepth: $3.functionDepth
                 };
             }
          | TargetProperty
@@ -161,7 +162,8 @@ KeyItem  : TargetProperty '=' Expression
                 $$ = {
                     KeyItemDeclaration: {
                         TargetProperty: $1
-                    }
+                    },
+                    functionDepth: $3.functionDepth
                 };
             };
 
@@ -176,11 +178,20 @@ Expression
 Number
         : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
         | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
-        ;          
+        ;
 
 FunctionOperator
-        : FunctionName '(' ArgumentsTypes ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}}
-        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}}}
+        : FunctionName '(' ArgumentsTypes ')' {
+            $$={FunctionDeclaration:{
+                FunctionName:$1,
+                Arguments:[...$3],
+                functionDepth: Math.max(...$3.map(arg => arg.functionDepth)) + 1}};
+            if($$.functionDepth > 6) {
+                throw new Error('nested limit');
+            }
+
+        }
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[], functionDepth:1}}}
         ;
 
 
