@@ -163,7 +163,7 @@ KeyItem  : TargetProperty '=' Expression
                     KeyItemDeclaration: {
                         TargetProperty: $1
                     },
-                    functionDepth: $3.functionDepth
+                    functionDepth: $1.functionDepth
                 };
             };
 
@@ -182,7 +182,7 @@ Number
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {
-            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map(arg => arg.functionDepth)) + 1};
+            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map((arg: any) => arg.functionDepth)) + 1};
 
             if($$.functionDepth > 8) {
                 throw new Error('nested limit');
