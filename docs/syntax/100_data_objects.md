@@ -125,7 +125,7 @@ identical `Payload` signature, and this signature is enclosed in brackets (`()`)
 stateDiagram-v2
 	direction TB
 	[*] --> INIT: START (counter)
-	INIT --> WORKING: START (counter)
+	INIT --> WORKING: [-]
 	state isFinished <<choice>>
 	WORKING --> isFinished: REDUCE (value)
 	isFinished --> END: isGreater($value, #counter)
@@ -136,7 +136,7 @@ stateDiagram-v2
 		#{counter} <= $counter = 10
 	end note
 	note left of WORKING
-		#{counter} <= sub(coalesce($counter, #counter), $value = 1)
+		#{counter} <= sub(#counter, $value = 1)
 	end note
 	note right of END
 		#{counter} <= 0

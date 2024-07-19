@@ -26,24 +26,24 @@ stateDiagram-v2
 	INCREMENT --> ENABLED: [-]
 	ENABLED --> DECREMENT: DECREASE (by=1)
 	DECREMENT --> ENABLED: [-]
+	note left of ENABLED
+		+Init
+		#{min, max}<=$min, $max
+	end note
+	note right of SETTING
+		+ByPass
+		#{value}<=min(#max,max(#min,$value))
+	end note
+	note right of INCREMENT
+		+ByPass
+		#{value}<=min(#max,max(#min,add(#value,$by))
+	end note
+	note right of DECREMENT
+		+ByPass
+		#{value}<=min(#max,max(#min,diff($by,#value))
+	end note
 note right of [*]
 #{min, max, value}
-end note
-note left of ENABLED
-+Init
-#{min, max}<=$min, $max
-end note
-note right of SETTING
-+ByPass
-#{value}<=min(#max,max(#min,$value))
-end note
-note right of INCREMENT
-+ByPass
-#{value}<=min(#max,max(#min,add(#value,$by))
-end note
-note right of DECREMENT
-+ByPass
-#{value}<=min(#max,max(#min,diff($by,#value))
 end note
 ```
 
@@ -95,7 +95,11 @@ Or you can use one of the available [Integrations](./integrations/) with a frame
 
 ## Syntax Breakdown
 
-Let's see what's happening in depth. The diagram describes an [`FSM`](./architecture/200_FSM.html), &ndash; a finite state machine, a control object that is characterized by a limited set of `States`, and it always resides in one and only one of them. Every `State` is independent on another and difference between `States` is _qualitative_, i.e. they represent some orthodox scenarios in App:
+Let's see what's happening in depth. The diagram describes an [`FSM`](./architecture/200_FSM.html), &ndash; a finite state machine, a control object that is characterized by a limited set of `States`, and it always resides in one and only one of them.
+
+### States
+
+Every `State` is independent on another and difference between `States` is _qualitative_, i.e. they represent some orthodox scenarios in App:
 
 -   Slider is usable and idle (enabled)
 -   Slider can't be interacted with (disabled)
@@ -111,6 +115,8 @@ stateDiagram-v2
 	INCREMENT
 	DECREMENT
 ```
+
+### Actions
 
 To change the `State` of the machine, an `Action` must be invoked. Every `Action` has a unique name, and the first layer of diagram is essentially a graph that depicts which `Actions` lead to which `States`.
 
@@ -129,6 +135,8 @@ Also note that not every `Action` can be invoked from every `State` by default. 
 | _any_        | RESET   |          |
 | **ENABLED**  |         | DISABLE  |
 | **DISABLED** | ENABLE  |          |
+
+### Payload
 
 Every `Action` can carry a `Payload`, which is a plain data object that represents some _quantitative_ properties of the current `State`. For instance, when resetting (instantiating) a Slider, it's wise to provide it's min and max values. `Payload` is represented with a list of parameters in parentheses, each possible having a default value:
 
@@ -151,7 +159,11 @@ stateDiagram-v2
 	ENABLED --> ENABLED: MODIFY(value, diff)
 ```
 
-However, different behaviours are better to be represented with different `States`. While `FSM` is transactional and synchronous (i.e. no further computation is done until the invoked `Action` has been processed), most interactions are asynchronous by nature, and they have some in-between state, usually called "pending" in this context.
+However, different behaviours are better to be represented with different `States`.
+
+### Intermediary States
+
+While `FSM` is transactional and synchronous (i.e. no further computation is done until the invoked `Action` has been processed), most interactions are asynchronous by nature, and they have some in-between state, usually called "pending" in this context.
 
 In fact, even synchronous operations could have an intermediate `State` which actually does computations, and this would be an advised design pattern. As you can guess, those operations then could be easily plugged in with async functionality, behaving as a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 
@@ -211,6 +223,8 @@ Our Transition Matrix now looks like this:
 | DECREMENT | DECREASE |          |           |           |         |
 | SETTING   | SET      |          |           |           |         |
 
+### Context
+
 Now, we need to define `Context` &mdash; values that are stored within `FSM` along with the current `State`. We define it with [Reducers](./syntax/110_reducers.html) along with `State`, and they are calculated whenever the `FSM` is switched to that `State`. The `Reducers` defined at `[*]` node are run on **every** transition, and the `Context` properties found there are persistent through every `Action`, unless specified otherwise.
 
 ```mermaid
@@ -225,17 +239,17 @@ stateDiagram-v2
 	INCREMENT --> ENABLED: [-]
 	ENABLED --> DECREMENT: DECREASE (by=1)
 	DECREMENT --> ENABLED: [-]
+	note right of SETTING
+		+ByPass
+	end note
+	note right of INCREMENT
+		+ByPass
+	end note
+	note right of DECREMENT
+		+ByPass
+	end note
 note left of [*]
 #{min, max, value}
-end note
-note right of SETTING
-+ByPass
-end note
-note right of INCREMENT
-+ByPass
-end note
-note right of DECREMENT
-+ByPass
 end note
 ```
 
@@ -244,6 +258,8 @@ here we have defined 3 `Context` properties, that are copied from the previous v
 -   **value** stores current Slider position
 -   **min** stores minimal selectable value
 -   **max** stores maximal selectable value
+
+### Initial Context
 
 When **RESET** `Action` is invoked, a new **min** and **max** values can be set with `Payload`. Since that `Action` resolves to **ENABLED** `State`, that's where the related `Reducer` belongs:
 
@@ -259,25 +275,27 @@ stateDiagram-v2
 	INCREMENT --> ENABLED: [-]
 	ENABLED --> DECREMENT: DECREASE (by=1)
 	DECREMENT --> ENABLED: [-]
+	note left of ENABLED
+		+Init
+		#{min, max} <= $min, $max
+	end note
+	note right of SETTING
+		+ByPass
+	end note
+	note right of INCREMENT
+		+ByPass
+	end note
+	note right of DECREMENT
+		+ByPass
+	end note
 note right of [*]
 #{min, max, value}
-end note
-note left of ENABLED
-+Init
-#{min, max} <= $min, $max
-end note
-note right of SETTING
-+ByPass
-end note
-note right of INCREMENT
-+ByPass
-end note
-note right of DECREMENT
-+ByPass
 end note
 ```
 
 Here we have also specified that **ENABLED** is the starting `State` of the `FSM` with [Init flag](/syntax/100_data_objects.html#init).
+
+### Operations on data
 
 Now we specify the arithmetics for intermediate "nudge" `States` **INCREMENT** and **DECREMENT**, which will add or substract, respectively, the provided `Payload` property **by** to/from stored **value** in `Context` :
 
@@ -293,23 +311,23 @@ stateDiagram-v2
 	INCREMENT --> ENABLED: [-]
 	ENABLED --> DECREMENT: DECREASE (by=1)
 	DECREMENT --> ENABLED: [-]
+	note left of ENABLED
+		+Init
+		#{min, max}<=$min, $max
+	end note
+	note right of SETTING
+		+ByPass
+	end note
+	note right of INCREMENT
+		+ByPass
+		#{value}<=min(#max,max(#min,add(#value,$by))
+	end note
+	note right of DECREMENT
+		+ByPass
+		#{value}<=min(#max,max(#min,diff($by,#value))
+	end note
 note right of [*]
 #{min, max, value}
-end note
-note left of ENABLED
-+Init
-#{min, max}<=$min, $max
-end note
-note right of SETTING
-+ByPass
-end note
-note right of INCREMENT
-+ByPass
-#{value}<=min(#max,max(#min,add(#value,$by))
-end note
-note right of DECREMENT
-+ByPass
-#{value}<=min(#max,max(#min,diff($by,#value))
 end note
 ```
 
@@ -329,24 +347,24 @@ stateDiagram-v2
 	INCREMENT --> ENABLED: [-]
 	ENABLED --> DECREMENT: DECREASE (by=1)
 	DECREMENT --> ENABLED: [-]
+	note left of ENABLED
+		+Init
+		#{min, max} <= $min, $max
+	end note
+	note right of SETTING
+		+ByPass
+		#{value} <= min(#max, max(#min, $value))
+	end note
+	note right of INCREMENT
+		+ByPass
+		#{value} <= min(#max, max(#min, add(#value, $by))
+	end note
+	note right of DECREMENT
+		+ByPass
+		#{value} <= min(#max, max(#min, diff($by, #value))
+	end note
 note right of [*]
 #{min, max, value}
-end note
-note left of ENABLED
-+Init
-#{min, max} <= $min, $max
-end note
-note right of SETTING
-+ByPass
-#{value} <= min(#max, max(#min, $value))
-end note
-note right of INCREMENT
-+ByPass
-#{value} <= min(#max, max(#min, add(#value, $by))
-end note
-note right of DECREMENT
-+ByPass
-#{value} <= min(#max, max(#min, diff($by, #value))
 end note
 ```
 
@@ -359,37 +377,37 @@ Now, it's only about dispatching proper `Payloads` to the `FSM`.
 ```mermaid
 stateDiagram-v2
 	[*] --> INIT: RESET (optionsList)
+	INIT --> CLOSED: [-]
+	CLOSED --> OPEN: OPEN
+	OPEN --> CLOSED: CLOSE
+	OPEN --> SELECTED: SELECT (index)
+	SELECTED --> CLOSED: CLOSE
+	note right of INIT
+		+Init
+		+ByPass
+		#{ items, selectedIndex } <= sortBy($optionsList, 'id'), 0
+	end note
+	note left of CLOSED
+		subscribe/click => OPEN
+		emit/dropdownClose
+	end note
+	note left of SELECTED
+		#{ selectedIndex } <= (index)
+		emit/selected (index) <= #{ selectedIndex }
+		subscribe/selected CLOSE
+	end note
+	note right of OPEN
+		emit/dropdownOpen
+		subscribe/click SELECT (index)
+		subscribe/clickOutside CLOSE
+	end note
 note left of [*]
 #( items = [], selectedIndex = 0 }
-end note
-INIT --> CLOSED: RESET (optionsList)
-CLOSED --> OPEN: OPEN
-OPEN --> CLOSED: CLOSE
-OPEN --> SELECTED: SELECT (index)
-SELECTED --> CLOSED: CLOSE
-note right of INIT
-+Init
-+ByPass
-#{ items, selectedIndex } <= sortBy($optionsList, 'id'), 0
-end note
-note left of CLOSED
-subscribe/click => OPEN
-emit/dropdownClose
-end note
-note left of SELECTED
-#{ selectedIndex } <= (index)
-emit/selected (index) <= #{ selectedIndex }
-subscribe/selected CLOSE
-end note
-note right of OPEN
-emit/dropdownOpen
-subscribe/click SELECT (index)
-subscribe/clickOutside CLOSE
 end note
 ```
 
 -   `+Init` marks that **INIT** is the initial `State` of the `FSM`. `+ByPass` also implies that transition through
-    this `State` is synchronous
+    this `State` is synchronous, i.e. the `State` is [intermediary](#intermediary-states)
 -   `#{items, selectedIndex}` describes a shape of `Context` for all `States`. `items` is the list of dropdown values,
     and `selectedIndex` stores currently selected item. Without extra expressions these values are copied from the
     preceding `Context`
@@ -405,7 +423,7 @@ end note
     original `State` (**CLOSED**)
 -   Both **CLOSED** and **OPEN** `States` emit corresponding `Events`, that are pipelined into `Event Bus` and connect the
     component to others.
--   **SELECTED** is a transitional `State`: while `emit/selected (index) <= #{ selectedIndex }` lets the `Event Bus` know
+-   **SELECTED** is another sort of [intermediary State](#intermediary-states): while `emit/selected (index) <= #{ selectedIndex }` lets the `Event Bus` know
     which item was selected, at the same time `subscribe/selected => CLOSE` transitions the `FSM`
     back to **CLOSED** `State` via **CLOSE** `Action`. It behaves similar to **INIT** `State` &ndash; the `FSM` goes
     through it. However, unlike that case, here it will emit `Event` and wait for its settlement before it runs further
