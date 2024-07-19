@@ -138,7 +138,7 @@ Also note that not every `Action` can be invoked from every `State` by default. 
 
 ### Payload
 
-Every `Action` can carry a `Payload`, which is a plain data object that represents some _quantitative_ properties of the current `State`. For instance, when resetting (instantiating) a Slider, it's wise to provide it's min and max values. `Payload` is represented with a list of parameters in parentheses, each possible having a default value:
+Every `Action` can carry a `Payload`, which is a plain data object that represents some meta information about the change requested by it. For instance, when resetting (instantiating) a Slider, it's wise to provide it's min and max values. `Payload` is represented with a list of parameters in parentheses, each possible having a default value:
 
 ```mermaid
 stateDiagram-v2
@@ -225,7 +225,7 @@ Our Transition Matrix now looks like this:
 
 ### Context
 
-Now, we need to define `Context` &mdash; values that are stored within `FSM` along with the current `State`. We define it with [Reducers](./syntax/110_reducers.html) along with `State`, and they are calculated whenever the `FSM` is switched to that `State`. The `Reducers` defined at `[*]` node are run on **every** transition, and the `Context` properties found there are persistent through every `Action`, unless specified otherwise.
+Now, we need to define `Context` &mdash; values that are stored within `FSM` along with the current `State` and represent some of its _quantitative_ properties. We define it with [Reducers](./syntax/110_reducers.html) along with `State`, and they are calculated whenever the `FSM` is switched to that `State`. The `Reducers` defined at `[*]` node are run on **every** transition, and the `Context` properties found there are persistent through every `Action`, unless specified otherwise.
 
 ```mermaid
 stateDiagram-v2
