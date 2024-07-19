@@ -60,14 +60,115 @@ export class JavaCodegen implements ICodegen {
 		return this.dictionaries.join('\n');
 	}
 
-	// ????
+	public getActionToStateFromState() {
+		return `private final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix = 
+			Map.ofEntries(
+				${this.getStateTransitionMatrix()}
+			)
+		`;
+	}
+
 	// State transition matrix
-	getActionToStateFromState(): string {
-		throw new Error('Method not implemented.');
+	getStateTransitionMatrix(): string {
+		return Object.keys(this.diagram.transitions)
+			.map((state) => {
+				const transitions = this.diagram.transitions[state];
+				const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
+				if (!value) throw new Error(`State ${state} not found`);
+
+				return `
+				Map.entry(
+					TAutomataBaseState.of(${value}L),
+					Map.of(
+						${this.getTransitions(transitions).join(',\n')}
+					)
+				)
+			`;
+			})
+			.join(',\n');
+	}
+
+	getTransitions(transitions: Record<string, TDiagramAction>) {
+		return Object.keys(transitions)
+			.map((key) => {
+				const { actionsPath } = transitions[key];
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+				return actionsPath.map(({ action }) => {
+					const actionValue = this.actionDictionary.getActionValues({
+						keys: action,
+					})[0];
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
+
+					const ctx = this.getSubsyntaxContext(key);
+
+					return `
+						TAutomataBaseAction.of(${actionValue}L),
+						new AutomataStateTransitionResult(
+								TAutomataBaseState.of(${newState}L),
+								(payloadContext) -> {
+									var pc = getDefaultContext(payloadContext);
+									return ${ctx};
+								}
+						)
+					`;
+				});
+			})
+			.flatMap((el) => `${el.join('\n\t')}`);
 	}
 
 	getDefaultContext(): string {
-		throw new Error('Method not implemented.');
+		// return `
+		// 	private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
+		// 		TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
+		// 		TAutomataBaseContext initialContext = ${this.getSubsyntaxContext(StartState)};
+		// 		prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
+		// 		return initialContext;
+		// 	}
+		// `;
+
+		return `
+			private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
+				return (TAutomataBaseContext) arg.context();
+			}
+		`;
+	}
+
+	private getSubsyntaxContext(state: string | null) {
+		const value = this.diagram.states.find((diagramState) => {
+			return diagramState.id === state;
+		});
+
+		if (!value) {
+			throw new Error(`Invalid state - ${value}`);
+		}
+
+		if (!value.notes || !value.notes.contextDescription.length) {
+			return `prevContext`;
+		}
+		const { contextDescription } = value.notes;
+
+		const flattedContext = contextDescription.flatMap((e) => e.context.flatMap((e) => e));
+
+		const unusedInitialKeys = this.initialContextKeys.filter(
+			(key) => flattedContext.filter((e) => e.KeyItemDeclaration.TargetProperty === key).length === 0,
+		);
+
+		const normalizedUnusedKeys = unusedInitialKeys.map((property) => {
+			return `${property}: ${TAssignTypeDict.PREV_CONTEXT}['${property}'],`;
+		});
+
+		// return `
+		// 	new TAutomataBaseContext(Map.ofEntries(
+		// 		Map.entry("integer", prevContext.getOrDefault("integer", 3)),
+		// 		Map.entry("string", prevContext.getOrDefault("string", "str")),
+		// 		Map.entry("array", prevContext.getOrDefault("array", new Object[]{}))
+		// 	))
+		// `
+
+		return `
+			new TAutomataBaseContext();
+		`;
 	}
 
 	// Full class declaration with all dictionaries and handlers inside
@@ -79,7 +180,7 @@ export class JavaCodegen implements ICodegen {
                 TAutomataContextType, TAutomataPayloadType, TAutomataEventMetaType
             > {
                 ${this.getDictionaries()}
-                // todo add handlers/transition matrix
+				${this.getActionToStateFromState()}
                 ${this.getDefaultConstructor(className)}
             }
         `;
@@ -91,7 +192,7 @@ export class JavaCodegen implements ICodegen {
             public ${className}() {
                 super();
                 TAutomataBaseStateType initialState = TAutomataBaseState.of(${this.getInitialState()}L);
-                TAutomataContextType context = ${this.getInitialContext};
+                TAutomataContextType context = ${this.getInitialContext()};
                 IAutomataReducer<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> rootReducer = ${this.getRootReducer};
                 TAutomataParams<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataBaseEventType,
                         TAutomataContextType, TAutomataPayloadType, TAutomataEventMetaType> params =
@@ -147,18 +248,11 @@ export class JavaCodegen implements ICodegen {
                 if(event.action == null || event.payload == null) {
                     return TAutomataStateContext.of(event.state, event.context);
                 }
-                else return handlersDict.get(initialState).reduce(event);
+				${this.getRootReducerStateValidation()}
+				${this.getRootReducerActionValidation()}
+                return handlersDict.get(initialState).reduce(event);
             }
         `;
-		return `({ action, context, payload, state }) => {
-					if (!action || payload === null) return { state, context };
-					${this.getRootReducerStateValidation()}
-					${this.getRootReducerActionValidation()}
-					const {state:newState,getNewContext} = actionToStateFromStateDict[state][action]
-					
-							
-					return {state:newState, context: getNewContext({payload,context})};
-  				}`;
 	}
 
 	// Checks if state can be found in dictionary for the automata
@@ -195,11 +289,5 @@ export class JavaCodegen implements ICodegen {
 	// Event validator is taken from GenericAutomata , which inherits it from BasicValidatorContainer
 	private getEventValidator() {
 		return `this.getEventValidator()`;
-	}
-
-	private getByExpressionValue<T extends TMappedKeys>({
-		KeyItemDeclaration: { Expression },
-	}: TKeyItemWithExpression<T>) {
-		return Expressions[Expression.expressionType](Expression);
 	}
 }

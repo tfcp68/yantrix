@@ -65,16 +65,15 @@ public final class GeneratedAutomata
         );
 
     private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
-        TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
-        TAutomataBaseContext initialContext = new TAutomataBaseContext(Map.ofEntries(
-                Map.entry("integer", prevContext.getOrDefault("integer", 3)),
-                Map.entry("string", prevContext.getOrDefault("string", "str")),
-                Map.entry("array", prevContext.getOrDefault("array", new Object[]{}))
-        ));
-        prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
-        return initialContext;
+            TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
+            TAutomataBaseContext initialContext = new TAutomataBaseContext(Map.ofEntries(
+                            Map.entry("integer", prevContext.getOrDefault("integer", 3)),
+                            Map.entry("string", prevContext.getOrDefault("string", "str")),
+                            Map.entry("array", prevContext.getOrDefault("array", new Object[] {}))));
+            prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
+            return initialContext;
     }
-
+    
     public GeneratedAutomata() {
         super();
         TAutomataBaseStateType initialState = TAutomataBaseState.of(1696941163L);
