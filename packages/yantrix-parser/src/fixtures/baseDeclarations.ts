@@ -23,7 +23,7 @@ export const createSubscribeStatement = (eventName: string = 'event', actionName
 		{
 			event: eventName,
 			action: {
-				actionName: actionName,
+				actionName,
 			},
 		},
 	],
@@ -35,7 +35,7 @@ export const createEmitStatement = (
 ) => ({
 	emit: [
 		{
-			eventName: eventName,
+			eventName,
 			payload: [...payloadItems],
 		},
 	],

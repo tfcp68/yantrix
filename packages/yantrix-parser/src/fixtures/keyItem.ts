@@ -140,7 +140,7 @@ export const withPropertyInitial = (propertyName?: string, propertyName2?: strin
 		.toJS();
 };
 
-export const withMultiplyInitial = (properties?: [propName: string, propValue: any][]) => {
+export const withMultiplyInitial = (properties?: Array<[propName: string, propValue: any]>) => {
 	const base = Map(getKeyItem(null)).deleteIn(['contextDescription', 0, 'context', 0]);
 	properties?.forEach(([name, value]) => {
 		let keyItem = {};

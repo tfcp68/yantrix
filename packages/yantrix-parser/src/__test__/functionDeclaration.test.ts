@@ -10,7 +10,20 @@ import {
 	randomArray,
 } from '@yantrix/utils';
 
-const functionCasesAndExpectedTypes = [
+type TCaseFunction = [
+	string,
+	(
+		propertyName?: string,
+		functionName?: string,
+		value?: any,
+	) => {
+		[p: string]: Array<{ context: unknown }>;
+		[p: number]: Array<{ context: unknown }>;
+		[p: symbol]: Array<{ context: unknown }>;
+	},
+];
+
+const functionCasesAndExpectedTypes: TCaseFunction[] = [
 	['#{%s = %s()}', functionsFixtures.expression],
 	['#{%s = %s(%s)}', functionsFixtures.withProperty],
 	['#{%s = %s("%s")}', functionsFixtures.withString],
@@ -181,6 +194,10 @@ const generateExpressionCases = (templates: any[], casesAmount: number = randomI
 	});
 };
 
+const generateExpressionCase = (template: any, casesAmount: number = randomInteger(1, 50)) => {
+	return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+};
+
 describe('Function declaration', () => {
 	const parser = new YantrixParser();
 
@@ -225,10 +242,14 @@ describe('Function declaration', () => {
 
 	// @TODO maybe need to add separate describes for each function type, too much unnecessary work for now though
 	describe('Functions are correctly separated into types: string,decimal,integer etc', () => {
-		const cases = generateExpressionCases(functionCasesAndExpectedTypes);
-		test.each(cases)('%s', (input: string, obj) => {
-			const result = parser.parse(input);
-			assert.deepOwnInclude(result, obj);
+		functionCasesAndExpectedTypes.forEach((template) => {
+			describe(`Function case - ${template[0]}`, () => {
+				const cases = generateExpressionCase(template);
+				test.each(cases)('%s', (input: string, obj) => {
+					const result = parser.parse(input);
+					assert.deepOwnInclude(result, obj);
+				});
+			});
 		});
 	});
 
