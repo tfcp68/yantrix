@@ -163,33 +163,40 @@ KeyItem  : TargetProperty '=' Expression
                     KeyItemDeclaration: {
                         TargetProperty: $1
                     },
-                    functionDepth: $1.functionDepth
+                    functionDepth: 0
                 };
             };
 
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
-          | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
-          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
-          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
-          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
+          | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property, functionDepth: 0}}
+          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration, functionDepth: 0}}
+          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant, functionDepth: 0}}
+          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration, functionDepth: 0}}
           | Number
           ;
 Number
-        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
+        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration, functionDepth: 0}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration, functionDepth: 0}}
         ;
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {
-            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map((arg: any) => arg.functionDepth)) + 1};
+            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map((arg: any) => {
+                if(arg.hasOwnProperty('FunctionDeclaration') {
+                    return arg.functionDepth;
+                } else {
+                    return 0;
+                }
+            })) + 1};
+
 
             if($$.functionDepth > 8) {
                 throw new Error('nested limit');
             }
 
         }
-        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}, functionDepth: 1}}
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}, functionDepth: 0}}
         ;
 
 
