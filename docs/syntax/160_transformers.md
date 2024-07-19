@@ -46,28 +46,47 @@ splits the responsibility of `Effects`.
 
 ## Built-Ins: Number Transformers
 
-| Function(s) |                  Signature                  |         Arguments         | Returns                                                                      |
-| :---------- | :-----------------------------------------: | :-----------------------: | ---------------------------------------------------------------------------- |
-| `add`       | (**Number**, **Number**, ...) => **Number** | Any amount of **Numbers** | sum of passed values                                                         |
-| `inc`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `add(value,1)`                                                  |
-| `dec`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `add(value,-1)`                                                 |
-| `pow`       |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument to the power of the second one                                |
-| `mult`      | (**Number**, **Number**, ...) => **Number** | Any amount of **Numbers** | product of passed values                                                     |
-| `neg`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `mult(value,-1)`                                                |
-| `diff`      |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument substracted from the second one                               |
-| `div`       |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument divided by the second one                                     |
-| `inv`       |         (**Number**) => **Number**          | A single **Number** value | shortcut for `div(1, value)`                                                 |
-| `mod`       |   (**Number**, **Number**) => **Number**    |      Two **Numbers**      | first argument [modulo](https://en.wikipedia.org/wiki/Modulo) the second one |
-| `trunc`     |         (**Number**) => **Number**          | a single **Number** value | a nearest integer less than the argument                                     |
-| `ceil`      |         (**Number**) => **Number**          | a single **Number** value | a nearest integer greater than the argument                                  |
-| `round`     |         (**Number**) => **Number**          | a single **Number** value | mathematically rounded argument                                              |
-| `sqrt`      |         (**Number**) => **Number**          | a single **Number** value | sinus of argument                                                            |
-| `sin`       |         (**Number**) => **Number**          | a single **Number** value | sinus of argument                                                            |
-| `cos`       |         (**Number**) => **Number**          | a single **Number** value | sinus of argument                                                            |
+### Arithmetics
+
+| Function(s) | Argument Type               | Argument Value  | Return Type | Return Value                                                               |
+| ----------- | --------------------------- | --------------- | ----------- | -------------------------------------------------------------------------- |
+| `add`       | **Number**, [**Number**...] | any numbers     | **Number**  | sum of arguments                                                           |
+| `diff`      | **Number**, **Number**      | two numbers     | **Number**  | the second number reduced by the first number                              |
+| `mult`      | **Number**, [**Number**...] | any numbers     | **Number**  | product arguments                                                          |
+| `div`       | **Number**, **Number**      | two numbers     | **Number**  | the first number divided by the second number                              |
+| `pow`       | **Number**, **Number**      | base and power  | **Number**  | exponentiation of two numbers                                              |
+| `inc`       | **Number**                  | a single number | **Number**  | shortcut for `add(**Number**,1)`                                           |
+| `dec`       | **Number**                  | a single number | **Number**  | shortcut for `add(**Number**,-1)`                                          |
+| `neg`       | **Number**                  | a single number | **Number**  | shortcut for `mult(**Number**,-1)`                                         |
+| `inv`       | **Number**                  | a single number | **Number**  | shortcut for `div(1,**Number**)`                                           |
+| `mod`       | **Number**, **Number**      | two numbers     | **Number**  | first number [modulo](https://en.wikipedia.org/wiki/Modulo) the second one |
+| `trunc`     | **Number**                  | a single number | **Number**  | a nearest integer less than the argument                                   |
+| `ceil`      | **Number**                  | a single number | **Number**  | a nearest integer greater than the argument                                |
+| `round`     | **Number**                  | a single number | **Number**  | mathematically rounded argument                                            |
+| `sqrt`      | **Number**                  | a single number | **Number**  | square root of the argument                                                |
+
+### Advanced maths
+
+| Function(s) | Argument Type          | Argument Value  | Return Type | Return Value                             |
+| ----------- | ---------------------- | --------------- | ----------- | ---------------------------------------- |
+| `sin`       | **Number**             | a single number | **Number**  | sine of the argument                     |
+| `cos`       | **Number**             | a single number | **Number**  | cosine of the argument                   |
+| `log`       | **Number**, **Number** | number and base | **Number**  | logarithm of the number to the base      |
+| `ln`        | **Number**             | number          | **Number**  | logarithm of the number to the _e_ base  |
+| `lg`        | **Number**             | number          | **Number**  | logarithm of the number to the _10_ base |
+
+### Statistical functions
+
+| Function(s) | Argument Type               | Argument Value | Return Type | Return Value             |
+| ----------- | --------------------------- | -------------- | ----------- | ------------------------ |
+| `max`       | **Number**, [**Number**...] | any numbers    | **Number**  | maximum of passed values |
+| `min`       | **Number**, [**Number**...] | any numbers    | **Number**  | minimum of passed values |
+| `avg`       | **Number**, [**Number**...] | any numbers    | **Number**  | average of passed values |
+| `med`       | **Number**, [**Number**...] | any numbers    | **Number**  | median of passed values  |
 
 ## Built-Ins: List Transformers
 
-| Function(s) |                  Signature                  |                            Arguments                             | Returns                                                                                                             |
-| :---------- | :-----------------------------------------: | :--------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------- |
-| `lookup`    |       (**List**, **any**) => **any**        |            An Array-like structure and a search value            | returns the second argument if it's present in the **List**, `Null` otherwise                                       |
-| `filter`    | (**List**, **String**, **any**) => **List** | An Array-like structure of objects, property name and seek value | returns new **List** with objects from the passed the **List**, which have the named property equal to passed value |
+| Function(s) | Argument Type                 | Argument Value                                                         | Return Type | Return Value                                                                                                                     |
+| ----------- | ----------------------------- | ---------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `lookup`    | **List**, **any**             | - Array-like structure<br/>- search value                              | **any**     | the second argument, if it's present in the **List**, `Null` otherwise                                                           |
+| `filterBy`  | **List**, **String**, **any** | - Array-like structure of objects<br/>- property name<br/>- seek value | **List**    | returns new **List** with objects from the passed the **List**, which have the named **property** equal to passed **seek value** |
