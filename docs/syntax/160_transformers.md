@@ -15,7 +15,7 @@ blocks of data manipulation. They can be user-defined and are injected at build-
 
 -   `add($value1, $value2)`
 -   `find(#listValue, 'id', 4)`
--   `mult(mean(#listValue), $count)`
+-   `mult(avg(#listValue), $count)`
 
 ## Context Transformers
 
@@ -86,7 +86,24 @@ splits the responsibility of `Effects`.
 
 ## Built-Ins: List Transformers
 
-| Function(s) | Argument Type                 | Argument Value                                                         | Return Type | Return Value                                                                                                                     |
-| ----------- | ----------------------------- | ---------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `lookup`    | **List**, **any**             | - Array-like structure<br/>- search value                              | **any**     | the second argument, if it's present in the **List**, `Null` otherwise                                                           |
-| `filterBy`  | **List**, **String**, **any** | - Array-like structure of objects<br/>- property name<br/>- seek value | **List**    | returns new **List** with objects from the passed the **List**, which have the named **property** equal to passed **seek value** |
+| Function(s) | Argument Type                 | Argument Value                                         | Return Type | Return Value                                                                                                                                      |
+| ----------- | ----------------------------- | ------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lookup`    | **List**, **any**             | - List<br/>- search element                            | **any**     | the second argument, if it's present in the **List**, `Null` otherwise                                                                            |
+| `filterBy`  | **List**, **String**, **any** | - List of objects<br/>- property name<br/>- seek value | **List**    | returns new **List** with objects from the passed the **List**, which have the named **property** equal to passed **seek value**                  |
+| `find`      | **List**, **String**, **any** | - List of objects<br/>- property name<br/>- seek value | **List**    | returns new the first object from the passed the **List**, which have the named **property** equal to passed **seek value**, `Null` if none found |
+| `left`      | **List**, **Number**          | - List<br/>- Length<br/>                               | **String**  | first N items in the List                                                                                                                         |
+| `right`     | **List**, **Number**          | - List<br/>- Length<br/>                               | **String**  | last N items in the List                                                                                                                          |
+| `indexOf`   | **List**, **any**             | - Array-like structure<br/>- search element            | **any**     | the index of search element, if it's present in the List, `-1` otherwise                                                                          |
+| `max`       | **List**                      | list of numbers                                        | **Number**  | maximum of passed values                                                                                                                          |
+| `min`       | **List**                      | list of numbers                                        | **Number**  | minimum of passed values                                                                                                                          |
+| `avg`       | **List**                      | list of numbers                                        | **Number**  | average of passed values                                                                                                                          |
+| `med`       | **List**                      | list of numbers                                        | **Number**  | median of passed values                                                                                                                           |
+
+## Built-Ins: String Transformers
+
+| Function(s) | Argument Type                         | Argument Value                                   | Return Type | Return Value                                                                                                                                              |
+| ----------- | ------------------------------------- | ------------------------------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `substr`    | **String**, **Number** [, **Number**] | - String<br/>- Start position<br/>- End position | **String**  | a substring of given String, see JS [String.Substring](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring) |
+| `left`      | **String**, **Number**                | - String<br/>- Length<br/>                       | **String**  | first N symbols of the string                                                                                                                             |
+| `right`     | **String**, **Number**                | - String<br/>- Length<br/>                       | **String**  | last N symbols of the string                                                                                                                              |
+| `indexOf`   | **String**, **String**                | - String<br/>- search substring                  | **any**     | the index of search substring, if it's present in the first string, `-1` otherwise                                                                        |
