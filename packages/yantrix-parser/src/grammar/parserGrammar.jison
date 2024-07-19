@@ -182,16 +182,14 @@ Number
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {
-            $$={FunctionDeclaration:{
-                FunctionName:$1,
-                Arguments:[...$3],
-                functionDepth: Math.max(...$3.map(arg => arg.functionDepth)) + 1}};
-            if($$.functionDepth > 6) {
+            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map(arg => arg.functionDepth)) + 1};
+
+            if($$.functionDepth > 8) {
                 throw new Error('nested limit');
             }
 
         }
-        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[], functionDepth:1}}}
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}, functionDepth: 1}}
         ;
 
 
