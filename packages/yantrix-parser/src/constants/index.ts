@@ -47,3 +47,9 @@ export const ExpressionTypes = {
 	FunctionProperty: 'FunctionProperty',
 	Property: 'property',
 } as const;
+
+export const ReferenceTypes = {
+	Constant: 'constant',
+	Payload: 'payload',
+	Context: 'context',
+};
