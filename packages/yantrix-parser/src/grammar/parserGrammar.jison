@@ -140,7 +140,7 @@ ActionStatement
     payload:$3
 }}} ;
 
-KeyList  : KeyItem {$$ = [$1]; $$['functionDepth'] = $1.functionDepth; }
+KeyList  : KeyItem { $$ = [$1];  }
          | KeyList ',' KeyItem {$1.push($3)};
 KeyItem  : TargetProperty '=' Expression
             {
@@ -149,6 +149,7 @@ KeyItem  : TargetProperty '=' Expression
                         throw new Error('The property cannot match the target property');
                     }
                 }
+                console.log($$);
                 $$ = {
                     KeyItemDeclaration: {
                         TargetProperty: $1,
@@ -182,8 +183,8 @@ Number
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {
-            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map((arg: any) => {
-                if(arg.hasOwnProperty('FunctionDeclaration') {
+            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map((arg) => {
+                if(arg.hasOwnProperty('FunctionDeclaration')) {
                     return arg.functionDepth;
                 } else {
                     return 0;
@@ -196,7 +197,7 @@ FunctionOperator
             }
 
         }
-        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}, functionDepth: 0}}
+        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}, functionDepth: 1}}
         ;
 
 
