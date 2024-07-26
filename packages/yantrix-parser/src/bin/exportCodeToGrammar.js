@@ -21,7 +21,7 @@ const replaceImportsInGrammar = (grammarData, constantsData) => {
 
 	const withoutExports = constantsData.replace(exportRegexp, '');
 
-	return grammarData.replaceAll(importRegex, withoutExports);
+	return grammarData.replace(importRegex, withoutExports);
 };
 
 try {
@@ -30,7 +30,7 @@ try {
 	const updatedGrammarData = replaceImportsInGrammar(grammarData, constantsData);
 	fs.writeFileSync(outputFilePath, updatedGrammarData, {
 		encoding: 'utf8',
-		flag: 'wx',
+		flag: 'w',
 	});
 	console.log('Successfully replaced imports with constants content.');
 } catch (err) {
