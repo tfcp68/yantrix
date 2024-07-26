@@ -1,10 +1,8 @@
-package org.example;
-
-import org.example.interfaces.AutomataValidators.*;
-import org.example.misc.AutomataActionQueue;
-import org.example.misc.AutomataConsumeActionResult;
-import org.example.types.automata.*;
-import org.example.types.automata.AutomataTypes.*;
+import interfaces.AutomataValidators.*;
+import misc.AutomataActionQueue;
+import misc.AutomataConsumeActionResult;
+import types.automata.*;
+import types.automata.AutomataTypes.*;
 
 public interface IAutomata <
         State extends TAutomataBaseStateType,

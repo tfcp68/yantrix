@@ -1,4 +1,6 @@
 package org.example;
+import org.example.misc.*;
+import org.example.exceptions.*;
 import org.example.types.*;
 import org.example.types.automata.*;
 import org.example.types.automata.AutomataTypes.*;
@@ -11,7 +13,7 @@ import java.util.Objects;
                 TAutomataContextType, TAutomataPayloadType, TAutomataEventMetaType
             > {
                 
-            private final Map<String, TAutomataBaseStateType> statesDictionary = Map.of(
+            public static final Map<String, TAutomataBaseStateType> statesDictionary = Map.of(
                 "/~~~START~~~", TAutomataBaseState.of(1696941163L),
 "/INIT", TAutomataBaseState.of(45657535L),
 "/INTRO", TAutomataBaseState.of(1415394173L),
@@ -24,7 +26,7 @@ import java.util.Objects;
             );
         
 
-            private final Map<String, TAutomataBaseActionType> actionsDictionary = Map.of(
+            public static final Map<String, TAutomataBaseActionType> actionsDictionary = Map.of(
                 "/RESET", TAutomataBaseAction.of(1423436384L),
 "/RUN", TAutomataBaseAction.of(1481692L),
 "/TO_MENU", TAutomataBaseAction.of(99594860L),
@@ -37,7 +39,7 @@ import java.util.Objects;
 "/END_GAME", TAutomataBaseAction.of(808645083L)
             );
         
-				private final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix = 
+				public final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix = 
 			Map.ofEntries(
 				
 				Map.entry(
@@ -48,7 +50,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(45657535L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -65,7 +67,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1415394173L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -82,7 +84,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1918712022L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -99,7 +101,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(2004485394L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -109,7 +111,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1918712022L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -119,7 +121,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(487317864L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -129,7 +131,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(487317864L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -146,7 +148,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(2004485394L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -156,7 +158,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1918712022L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -166,7 +168,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1253633506L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -183,7 +185,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1301012547L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -200,7 +202,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(2004485394L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -210,7 +212,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1404098696L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -220,7 +222,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1918712022L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -237,7 +239,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(1918712022L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -247,7 +249,7 @@ import java.util.Objects;
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(2004485394L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return prevContext;
 								}
 						)
@@ -263,26 +265,30 @@ import java.util.Objects;
                 TAutomataBaseStateType initialState = TAutomataBaseState.of(1696941163L);
                 TAutomataContextType context = new TAutomataBaseContext();
                 IAutomataReducer<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataContextType, TAutomataPayloadType> rootReducer = 
-            (event) -> {
-                if(event.action == null || event.payload == null) {
-                    return TAutomataStateContext.of(event.state, event.context);
+            (obj) -> {
+                if(obj.action == null || obj.payload == null) {
+                    return TAutomataStateContext.of(obj.state, obj.context);
                 }
 				
             // state validation
-            if(!stateTransitionMatrix.containsKey(event.state)) {
+            if(!stateTransitionMatrix.containsKey(obj.state)) {
                 throw new RuntimeException("Invalid state, maybe machine isn't running");
             }
         
 				
             // action validation
-            if(!stateTransitionMatrix.get(event.state).containsKey(event.action)) {
+            if(!stateTransitionMatrix.get(obj.state).containsKey(obj.action)) {
                 return TAutomataStateContext.of(
-                        event.state,
-                        event.context
+                        obj.state,
+                        obj.context
                 );
             }
         
-                return handlersDict.get(initialState).reduce(event);
+                AutomataStateTransitionResult res = stateTransitionMatrix.get(obj.state).get(obj.action);
+				return TAutomataStateContext.of(
+						res.newState(),
+						res.getNewContext().apply(new AutomataPayloadContext(obj.payload, obj.context))
+				);
             }
         ;
                 TAutomataParams<TAutomataBaseStateType, TAutomataBaseActionType, TAutomataBaseEventType,

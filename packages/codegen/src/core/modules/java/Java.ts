@@ -47,6 +47,8 @@ export class JavaCodegen implements ICodegen {
 	getImports(): string {
 		const lines: string[] = [
 			`package ${this.package};`,
+			`import ${this.package}.misc.*;`,
+			`import ${this.package}.exceptions.*;`,
 			`import ${this.package}.types.*;`,
 			`import ${this.package}.types.automata.*;`,
 			`import ${this.package}.types.automata.AutomataTypes.*;`,
@@ -61,7 +63,7 @@ export class JavaCodegen implements ICodegen {
 	}
 
 	public getActionToStateFromState() {
-		return `private final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix = 
+		return `public final Map<TAutomataBaseStateType, Map<TAutomataBaseActionType, AutomataStateTransitionResult>> stateTransitionMatrix = 
 			Map.ofEntries(
 				${this.getStateTransitionMatrix()}
 			);
@@ -107,7 +109,7 @@ export class JavaCodegen implements ICodegen {
 						new AutomataStateTransitionResult(
 								TAutomataBaseState.of(${newState}L),
 								(payloadContext) -> {
-									var pc = getDefaultContext(payloadContext);
+									var prevContext = getDefaultContext(payloadContext);
 									return ${ctx};
 								}
 						)
@@ -118,6 +120,14 @@ export class JavaCodegen implements ICodegen {
 	}
 
 	getDefaultContext(): string {
+		return `
+			private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
+				return (TAutomataBaseContext) arg.context();
+			}
+		`;
+	}
+
+	private getDefaultContextMethod(): string {
 		// return `
 		// 	private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
 		// 		TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
@@ -134,6 +144,7 @@ export class JavaCodegen implements ICodegen {
 		`;
 	}
 
+	// TODO
 	private getSubsyntaxContext(state: string | null) {
 		const value = this.diagram.states.find((diagramState) => {
 			return diagramState.id === state;
@@ -181,6 +192,7 @@ export class JavaCodegen implements ICodegen {
             > {
                 ${this.getDictionaries()}
 				${this.getActionToStateFromState()}
+				${this.getDefaultContextMethod()}
                 ${this.getDefaultConstructor(className)}
             }
         `;
@@ -214,7 +226,7 @@ export class JavaCodegen implements ICodegen {
 	private setupDictionaries() {
 		// states dictionary text representation
 		this.dictionaries.push(`
-            private final Map<String, TAutomataBaseStateType> statesDictionary = Map.of(
+            public static final Map<String, TAutomataBaseStateType> statesDictionary = Map.of(
                 ${Object.entries(this.stateDictionary.getDictionary())
 					.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
 					.join(',\n')}
@@ -223,7 +235,7 @@ export class JavaCodegen implements ICodegen {
 
 		// actions dictionary text representation
 		this.dictionaries.push(`
-            private final Map<String, TAutomataBaseActionType> actionsDictionary = Map.of(
+            public static final Map<String, TAutomataBaseActionType> actionsDictionary = Map.of(
                 ${Object.entries(this.actionDictionary.getDictionary())
 					.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
 					.join(',\n')}
@@ -244,13 +256,17 @@ export class JavaCodegen implements ICodegen {
 	// Root reducer function
 	private getRootReducer() {
 		return `
-            (event) -> {
-                if(event.action == null || event.payload == null) {
-                    return TAutomataStateContext.of(event.state, event.context);
+            (obj) -> {
+                if(obj.action == null || obj.payload == null) {
+                    return TAutomataStateContext.of(obj.state, obj.context);
                 }
 				${this.getRootReducerStateValidation()}
 				${this.getRootReducerActionValidation()}
-                return handlersDict.get(initialState).reduce(event);
+                AutomataStateTransitionResult res = stateTransitionMatrix.get(obj.state).get(obj.action);
+				return TAutomataStateContext.of(
+						res.newState(),
+						res.getNewContext().apply(new AutomataPayloadContext(obj.payload, obj.context))
+				);
             }
         `;
 	}
@@ -259,21 +275,20 @@ export class JavaCodegen implements ICodegen {
 	private getRootReducerStateValidation() {
 		return `
             // state validation
-            if(!stateTransitionMatrix.containsKey(event.state)) {
+            if(!stateTransitionMatrix.containsKey(obj.state)) {
                 throw new RuntimeException("Invalid state, maybe machine isn't running");
             }
         `;
 	}
 
 	// Checks if action can be found in dictionary for the automata & if the action is appropriate for the automata state
-	// todo add action validation for transition matrix
 	private getRootReducerActionValidation() {
 		return `
             // action validation
-            if(!stateTransitionMatrix.get(event.state).containsKey(event.action)) {
+            if(!stateTransitionMatrix.get(obj.state).containsKey(obj.action)) {
                 return TAutomataStateContext.of(
-                        event.state,
-                        event.context
+                        obj.state,
+                        obj.context
                 );
             }
         `;

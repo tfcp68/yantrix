@@ -1,6 +1,6 @@
-package org.example.types;
+package types;
 
-import org.example.types.automata.TAutomataBaseActionType;
+import types.automata.TAutomataBaseActionType;
 
 public class TAutomataBaseAction extends TAutomataBaseActionType {
 
