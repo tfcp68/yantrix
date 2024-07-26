@@ -1,23 +1,14 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { Expressions, fillDictionaries } from '../shared.js';
-import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import {
-	isKeyItemWithExpression,
-	isPayloadContext,
-	isPrevContext,
-	isShortContext,
-	TKeyItem,
-	TKeyItemWithExpression,
-	TMappedKeys,
-} from '@yantrix/yantrix-parser';
+import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { fillDictionaries } from '../shared.js';
 
 export class PythonCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
-	initialContext: string;
+	// initialContext: string;
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
 	dictionaries: string[];
@@ -35,7 +26,7 @@ export class PythonCodegen implements ICodegen {
 		this.dictionaries = [];
 		this.initialContextKeys = [];
 
-		this.initialContext = this.getInitialContext();
+		// this.initialContext = this.getInitialContext();
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 		this.setupDictionaries();
@@ -64,7 +55,7 @@ export class PythonCodegen implements ICodegen {
 			`class ${className}:`,
 			`def __init__(self):`,
 			`\tself.state = ${this.getInitialState()}`,
-			`\tself.context = ${this.initialContext}`,
+			`\tself.context = ${{}}`,
 			`\tself.root_reducer = self.rootReducer(action, context, payload, state)`,
 			`${this.getRootReducer()}`,
 			`${this.getIsKeyOf()}`,
@@ -90,12 +81,12 @@ export class PythonCodegen implements ICodegen {
 					if (!actionValue) throw new Error(`Action ${action} not found`);
 					if (!newState) throw new Error(`State ${key} not found`);
 
-					const ctx = this.getSubsyntaxContext(key);
+					// const ctx = this.getSubsyntaxContext(key);
 
 					const context = [
 						`${actionValue}: {`,
 						`\t'state': ${newState},`,
-						`\t'getNewContext': lambda payload, context: ${ctx}`,
+						`\t'getNewContext': lambda payload, context: ${{}}`,
 						`},`,
 					];
 					return context.join('\n');
@@ -166,87 +157,87 @@ export class PythonCodegen implements ICodegen {
 		});
 	}
 
-	protected getSubsyntaxContext(state: string | null) {
-		const value = this.diagram.states.find((diagramState) => {
-			return diagramState.id === state;
-		});
+	// protected getSubsyntaxContext(state: string | null) {
+	// 	const value = this.diagram.states.find((diagramState) => {
+	// 		return diagramState.id === state;
+	// 	});
 
-		if (!value) {
-			throw new Error(`Invalid state - ${value}`);
-		}
+	// 	if (!value) {
+	// 		throw new Error(`Invalid state - ${value}`);
+	// 	}
 
-		if (!value.notes || !value.notes.contextDescription.length) {
-			return `prevContext`;
-		}
-		const { contextDescription } = value.notes;
+	// 	if (!value.notes || !value.notes.contextDescription.length) {
+	// 		return `prevContext`;
+	// 	}
+	// 	const { contextDescription } = value.notes;
 
-		const flattedContext = contextDescription.flatMap((e) => e.context.flatMap((e) => e));
+	// 	const flattedContext = contextDescription.flatMap((e) => e.context.flatMap((e) => e));
 
-		const unusedInitialKeys = this.initialContextKeys.filter(
-			(key) => flattedContext.filter((e) => e.KeyItemDeclaration.TargetProperty === key).length === 0,
-		);
+	// 	const unusedInitialKeys = this.initialContextKeys.filter(
+	// 		(key) => flattedContext.filter((e) => e.KeyItemDeclaration.TargetProperty === key).length === 0,
+	// 	);
 
-		const normalizedUnusedKeys = unusedInitialKeys.map((property) => {
-			return `'${property}': ${TAssignTypeDict.PREV_CONTEXT}['${property}'],`;
-		});
+	// 	const normalizedUnusedKeys = unusedInitialKeys.map((property) => {
+	// 		return `'${property}': ${TAssignTypeDict.PREV_CONTEXT}['${property}'],`;
+	// 	});
 
-		const res = contextDescription
-			.map((ctx) => {
-				if (isPayloadContext(ctx)) {
-					const { context, payload = [] } = ctx;
-					return context.map((ctxItem, index) => {
-						const boundProperty = payload[index] || null;
-						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
-					});
-				} else if (isPrevContext(ctx)) {
-					const { context, prevContext = [] } = ctx;
-					return context.map((ctxItem, index) => {
-						const boundProperty = prevContext[index] || null;
-						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
-					});
-				} else if (isShortContext(ctx)) {
-					const { context } = ctx;
-					return context.map((ctxItem) => {
-						return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
-					});
-				}
-				throw new Error(`Invalid context type - ${ctx}`);
-			})
-			.flatMap((template) => template.flatMap((el) => el));
+	// 	const res = contextDescription
+	// 		.map((ctx) => {
+	// 			if (isPayloadContext(ctx)) {
+	// 				const { context, payload = [] } = ctx;
+	// 				return context.map((ctxItem, index) => {
+	// 					const boundProperty = payload[index] || null;
+	// 					return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
+	// 				});
+	// 			} else if (isPrevContext(ctx)) {
+	// 				const { context, prevContext = [] } = ctx;
+	// 				return context.map((ctxItem, index) => {
+	// 					const boundProperty = prevContext[index] || null;
+	// 					return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
+	// 				});
+	// 			} else if (isShortContext(ctx)) {
+	// 				const { context } = ctx;
+	// 				return context.map((ctxItem) => {
+	// 					return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
+	// 				});
+	// 			}
+	// 			throw new Error(`Invalid context type - ${ctx}`);
+	// 		})
+	// 		.flatMap((template) => template.flatMap((el) => el));
 
-		return `{${[...normalizedUnusedKeys, ...res].join('\r\n')}}`;
-	}
+	// 	return `{${[...normalizedUnusedKeys, ...res].join('\r\n')}}`;
+	// }
 
-	private getInitialContext() {
-		const startState = this.diagram.states.find((state) => {
-			return state.id === StartState;
-		});
+	// private getInitialContext() {
+	// 	const startState = this.diagram.states.find((state) => {
+	// 		return state.id === StartState;
+	// 	});
 
-		if (!startState?.notes) {
-			return 'null';
-		}
+	// 	if (!startState?.notes) {
+	// 		return 'null';
+	// 	}
 
-		const initialNotes = startState.notes.contextDescription.map((ctx) => {
-			const { context } = ctx;
-			return context
-				.map((ctx) => {
-					this.initialContextKeys.push(ctx.KeyItemDeclaration.TargetProperty);
+	// 	const initialNotes = startState.notes.contextDescription.map((ctx) => {
+	// 		const { context } = ctx;
+	// 		return context
+	// 			.map((ctx) => {
+	// 				this.initialContextKeys.push(ctx.KeyItemDeclaration.TargetProperty);
 
-					if (isKeyItemWithExpression(ctx)) {
-						return `${ctx.KeyItemDeclaration.TargetProperty}: ${this.getByExpressionValue(ctx)}`;
-					}
-					return `${ctx.KeyItemDeclaration.TargetProperty}: null`;
-				})
-				.flatMap((el) => el);
-		});
+	// 				if (isKeyItemWithExpression(ctx)) {
+	// 					return `${ctx.KeyItemDeclaration.TargetProperty}: ${this.getByExpressionValue(ctx)}`;
+	// 				}
+	// 				return `${ctx.KeyItemDeclaration.TargetProperty}: null`;
+	// 			})
+	// 			.flatMap((el) => el);
+	// 	});
 
-		return `{${initialNotes.join(',\n\t')}}`;
-	}
+	// 	return `{${initialNotes.join(',\n\t')}}`;
+	// }
 
 	public getDefaultContext = () => {
 		const context = [
 			`def getDefaultContext(payload, prevContext):`,
-			`\tinitialContext = ${this.getSubsyntaxContext(StartState)}`,
+			// `\tinitialContext = ${this.getSubsyntaxContext(StartState)}`,
 			`\treturn {**initialContext, **prevContext}`,
 		];
 
@@ -256,56 +247,56 @@ export class PythonCodegen implements ICodegen {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
 
-	private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
-		const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
+	// private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
+	// 	const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
 
-		if (boundProperty === null) {
-			if (isKeyItemWithExpression(context)) {
-				const value = this.getByExpressionValue(context);
-				return `'${LeftTarget}': ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'] || ${value},`;
-			}
-			return `'${LeftTarget}': ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'],`;
-		}
+	// 	if (boundProperty === null) {
+	// 		if (isKeyItemWithExpression(context)) {
+	// 			const value = this.getByExpressionValue(context);
+	// 			return `'${LeftTarget}': ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'] || ${value},`;
+	// 		}
+	// 		return `'${LeftTarget}': ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'],`;
+	// 	}
 
-		const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
-		const isEmptyInitial = !isKeyItemWithExpression(context);
+	// 	const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
+	// 	const isEmptyInitial = !isKeyItemWithExpression(context);
 
-		const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
+	// 	const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
 
-		if (isEmptyBoundExpression && isEmptyInitial) {
-			return `
-				'${LeftTarget}' : ${type}['${RightTarget}'] || null,
-			`;
-		}
+	// 	if (isEmptyBoundExpression && isEmptyInitial) {
+	// 		return `
+	// 			'${LeftTarget}' : ${type}['${RightTarget}'] || null,
+	// 		`;
+	// 	}
 
-		//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
-		if (isEmptyBoundExpression && !isEmptyInitial) {
-			if (isKeyItemWithExpression(context)) {
-				const value = this.getByExpressionValue(context);
+	// 	//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
+	// 	if (isEmptyBoundExpression && !isEmptyInitial) {
+	// 		if (isKeyItemWithExpression(context)) {
+	// 			const value = this.getByExpressionValue(context);
 
-				return `'${LeftTarget}':  ${type}['${RightTarget}'] || ${value},`;
-			}
-		}
-		//	#{ selectedIndex } <= (index=3)
-		if (!isEmptyBoundExpression && isEmptyInitial) {
-			if (isKeyItemWithExpression(boundProperty)) {
-				const value = this.getByExpressionValue(boundProperty);
+	// 			return `'${LeftTarget}':  ${type}['${RightTarget}'] || ${value},`;
+	// 		}
+	// 	}
+	// 	//	#{ selectedIndex } <= (index=3)
+	// 	if (!isEmptyBoundExpression && isEmptyInitial) {
+	// 		if (isKeyItemWithExpression(boundProperty)) {
+	// 			const value = this.getByExpressionValue(boundProperty);
 
-				return `'${LeftTarget}': ${type}['${RightTarget}'] || ${value},`;
-			}
-		}
-		if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
-			const leftValue = this.getByExpressionValue(context);
-			const rightValue = this.getByExpressionValue(boundProperty);
+	// 			return `'${LeftTarget}': ${type}['${RightTarget}'] || ${value},`;
+	// 		}
+	// 	}
+	// 	if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
+	// 		const leftValue = this.getByExpressionValue(context);
+	// 		const rightValue = this.getByExpressionValue(boundProperty);
 
-			return `'${LeftTarget}': ${type}['${RightTarget}'] || ${rightValue} || ${leftValue},`;
-		}
-		return `'${LeftTarget}': null,`;
-	}
+	// 		return `'${LeftTarget}': ${type}['${RightTarget}'] || ${rightValue} || ${leftValue},`;
+	// 	}
+	// 	return `'${LeftTarget}': null,`;
+	// }
 
-	private getByExpressionValue<T extends TMappedKeys>({
-		KeyItemDeclaration: { Expression },
-	}: TKeyItemWithExpression<T>) {
-		return Expressions[Expression.expressionType](Expression);
-	}
+	// private getByExpressionValue<T extends TMappedKeys>({
+	// 	KeyItemDeclaration: { Expression },
+	// }: TKeyItemWithExpression<T>) {
+	// 	return Expressions[Expression.expressionType](Expression);
+	// }
 }

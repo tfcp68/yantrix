@@ -29,10 +29,6 @@ export const Expressions: TExpressionRecord = {
 	[ExpressionTypes.Function]: () => {
 		throw new Error(`Not implemented ${ExpressionTypes.Function}`);
 	},
-	[ExpressionTypes.Property]: ({ Property }) => {
-		return `${Property}`;
-	},
-
 	[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
 		return `${NumberDeclaration}`;
 	},

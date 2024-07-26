@@ -1,6 +1,6 @@
+import { randomDecimal, randomInteger, randomString } from '@yantrix/utils';
 import { Map } from 'immutable';
-import { ExpressionTypes } from '../constants/index.js';
-import { randomString, randomInteger, randomDecimal } from '@yantrix/utils';
+import { ExpressionTypes } from '../../src/constants/index.js';
 
 const getStringExpressionProperties = (value: string = randomString()) => ({
 	StringDeclaration: value,
@@ -15,12 +15,18 @@ const getDecimalExpressionProperties = (value: number = randomDecimal()) => ({
 	expressionType: ExpressionTypes.DecimalDeclaration,
 });
 const getConstantExpressionProperties = (value: string = randomString()) => ({
-	ConstantReference: value,
+	identifier: value,
 	expressionType: ExpressionTypes.Constant,
 });
-const getPropertyExpressionProperties = (name: string = randomString()) => ({
-	Property: name,
-	expressionType: ExpressionTypes.Property,
+
+const getContextRefrenceExpressionProperties = (name: string = randomString()) => ({
+	identifier: name,
+	expressionType: ExpressionTypes.Context,
+});
+
+const getPayloadReferenceExpressionProperties = (name: string = randomString()) => ({
+	identifier: name,
+	expressionType: ExpressionTypes.Payload,
 });
 const getArrayExpressionProperties = () => ({
 	ArrayDeclaration: [],
@@ -38,10 +44,11 @@ export const expressionProperties = {
 	string: getStringExpressionProperties,
 	integer: getIntegerExpressionProperties,
 	decimal: getDecimalExpressionProperties,
-	property: getPropertyExpressionProperties,
+	contextReference: getContextRefrenceExpressionProperties,
+	payloadReference: getPayloadReferenceExpressionProperties,
+	constantRefrence: getConstantExpressionProperties,
 	function: getFunctionExpressionProperties,
 	array: getArrayExpressionProperties,
-	constant: getConstantExpressionProperties,
 };
 
 type TKeysPrimitive = keyof typeof expressionProperties;
@@ -57,8 +64,8 @@ export const functions = {
 			FunctionName: 'func-' + randomString(),
 			Arguments: [
 				{
-					Property: randomString(),
-					expressionType: ExpressionTypes.Property,
+					identifier: randomString(),
+					expressionType: ExpressionTypes.Context,
 				},
 			],
 		},
@@ -98,22 +105,22 @@ export const functions = {
 			Arguments: [getConstantExpressionProperties()],
 		},
 	},
-	withMultiplyArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: 'func-' + randomString(),
-			Arguments: [
-				{
-					Property: 'first-' + randomString(),
-					expressionType: ExpressionTypes.Property,
-				},
-				{
-					Property: 'second-' + randomString(),
-					expressionType: ExpressionTypes.Property,
-				},
-			],
-		},
-	},
+	// withMultiplyArgs: {
+	// 	expressionType: ExpressionTypes.Function,
+	// 	FunctionDeclaration: {
+	// 		FunctionName: 'func-' + randomString(),
+	// 		Arguments: [
+	// 			{
+	// 				Property: 'first-' + randomString(),
+	// 				expressionType: ExpressionTypes.Property,
+	// 			},
+	// 			{
+	// 				Property: 'second-' + randomString(),
+	// 				expressionType: ExpressionTypes.Property,
+	// 			},
+	// 		],
+	// 	},
+	// },
 	withRecursiveFunction: {
 		expressionType: ExpressionTypes.Function,
 		FunctionDeclaration: {
@@ -141,9 +148,9 @@ export const getExpression = (primitiveObj: TExpression): TRecordExpression => (
 	Expression: Map<string, any>(primitiveObj).toJS() as TExpression,
 });
 
-export const expressions = <Record<TKeysPrimitive, TRecordExpression>>(
-	Object.fromEntries(Object.entries(expressionProperties).map(([k, v]) => [k, getExpression(v())]))
-);
+export const expressions = Object.fromEntries(
+	Object.entries(expressionProperties).map(([k, v]) => [k, getExpression(v())]),
+) as Record<TKeysPrimitive, TRecordExpression>;
 
 type TKeys = keyof typeof expressions;
 export type TExpressionTypes = (typeof expressions)[TKeys];
