@@ -6,16 +6,17 @@ title: Language Support
 
 Yantrix aims to transpile to any turing-full language, the primary one being Typescript. Since implementation is independent, certain features may be shipped at varying times for different languages.
 
-| Feature            | JavaScript | TypeScript | Python | Java |
-| ------------------ | ---------- | ---------- | ------ | ---- |
-| FSM from Diagram   | ✅         | ✅         | ✅     | ❌   |
-| Reducers           | ✅         | ✅         | ✅     | ❌   |
-| Payloads           | ✅         | ✅         | ❌     | ❌   |
-| Expressions        | ✅         | ✅         | ❌     | ❌   |
-| Functions          | ❌         | ❌         | ❌     | ❌   |
-| Event Subscription | ❌         | ❌         | ❌     | ❌   |
-| Event Firing       | ❌         | ❌         | ❌     | ❌   |
-| Side Effects       | ❌         | ❌         | ❌     | ❌   |
+| Feature                | JavaScript | TypeScript | Python | Java |
+| ---------------------- | ---------- | ---------- | ------ | ---- |
+| FSM from Diagram       | ✅         | ✅         | ✅     | ❌   |
+| Reducers               | ✅         | ✅         | ✅     | ❌   |
+| Payloads               | ✅         | ✅         | ❌     | ❌   |
+| Expressions            | ✅         | ✅         | ❌     | ❌   |
+| Built-In Functions     | ❌         | ❌         | ❌     | ❌   |
+| User-defined Functions | ❌         | ❌         | ❌     | ❌   |
+| Event Subscription     | ❌         | ❌         | ❌     | ❌   |
+| Event Firing           | ❌         | ❌         | ❌     | ❌   |
+| Side Effects           | ❌         | ❌         | ❌     | ❌   |
 
 ## Type Mapping
 

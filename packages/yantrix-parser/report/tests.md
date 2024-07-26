@@ -1,26 +1,26 @@
 # Test Report
 
-| 🕙 Start time | ⌛ Duration |
-| --- | ---: |
-| 7/9/2024, 8:07:01 PM | 2.947 s |
+| 🕙 Start time        | ⌛ Duration |
+| -------------------- | ----------: |
+| 7/9/2024, 8:07:01 PM |     2.947 s |
 
-| | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
-| --- | ---: | ---: | ---: | ---: | ---: |
-|Test Suites|53|0|0|0|53|
-|Tests|4071|0|0|0|4071|
+|             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
+| ----------- | --------: | --------: | ---------: | ------: | -------: |
+| Test Suites |        53 |         0 |          0 |       0 |       53 |
+| Tests       |      4071 |         0 |          0 |       0 |     4071 |
 
-## ✅ <a id="file0" href="#file0">src\__test__\baseDeclaration.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test__\baseDeclaration.test.ts)]
+## ✅ <a id="file0" href="#file0">src\_\_test**\baseDeclaration.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test**\baseDeclaration.test.ts)]
 
 2312 passed, 0 failed, 0 skipped, 0 todo, done in 471 s
 
 ```
 ✅ Base grammar declarations › Base constructs creation
-   ✅ 
+   ✅
    ✅ #{LeftSideProperty} <= (RightSideProperty)
    ✅ #{LeftSideProperty} <= {RightSideProperty}
    ✅ subscribe/event => action
    ✅ emit/event <= (keylist)
-✅ Base grammar declarations › Identical output with 
+✅ Base grammar declarations › Identical output with
    ✅ #{Left1, Left2} <= (Right1, Right2) = #{Left2, Left1} <= (Right2, Right1)
    ✅ #{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)
    ✅ #{Left1, Left2, Left3} = #{     Left1,	Left2      ,   Left3  }
@@ -2361,7 +2361,7 @@
 ✅ Base grammar declarations
 ```
 
-## ✅ <a id="file1" href="#file1">src\__test__\functionDeclaration.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test__\functionDeclaration.test.ts)]
+## ✅ <a id="file1" href="#file1">src\_\_test**\functionDeclaration.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test**\functionDeclaration.test.ts)]
 
 1643 passed, 0 failed, 0 skipped, 0 todo, done in 1732 s
 
@@ -4020,7 +4020,7 @@
 ✅ Function declaration
 ```
 
-## ✅ <a id="file2" href="#file2">src\__test__\keyItem.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test__\keyItem.test.ts)]
+## ✅ <a id="file2" href="#file2">src\_\_test**\keyItem.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test**\keyItem.test.ts)]
 
 114 passed, 0 failed, 0 skipped, 0 todo, done in 500 s
 
@@ -4125,7 +4125,7 @@
    ✅ #{EWuhAtoxIY = wPehAoOhWA()}
    ✅ #{jfLHUtPwKY = yICvCYtzdB()}
    ✅ #{XiusgAKcuN = UcSoypUSed()}
-✅ Key list › Random number of keyItem › INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data 
+✅ Key list › Random number of keyItem › INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data
    ✅ Data type - string
    ✅ Data type - integer
    ✅ Data type - decimal
@@ -4138,21 +4138,21 @@
    ✅ INPUT = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end
 ✅ Key list › Random number of keyItem › Incorect input
    ✅ INPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments
-   ✅ INPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end 
-   ✅ INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning 
+   ✅ INPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end
+   ✅ INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning
    ✅ INPUT = #{prop1=5, prop2=10, , prop5=5 } ------- the comma is duplicated
    ✅ INPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)
 ✅ Key list › Random number of keyItem
-   ✅ INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data 
+   ✅ INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data
 ✅ Key list
 ```
 
-## ✅ <a id="file3" href="#file3">src\__test__\subscribe.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test__\subscribe.test.ts)]
+## ✅ <a id="file3" href="#file3">src\_\_test**\subscribe.test.ts</a> [[link](https://github.com/octaharon/yantrix/blob/67320e5b35d53033fe5edbc20cb345df271b2c91/packages\yantrix-parser/src\__test**\subscribe.test.ts)]
 
 2 passed, 0 failed, 0 skipped, 0 todo, done in 3 s
 
 ```
 ✅ Subscribe
-   ✅ should be throw error without event name 
-   ✅ should be throw error without  action 
+   ✅ should be throw error without event name
+   ✅ should be throw error without  action
 ```

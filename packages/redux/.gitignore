@@ -40,5 +40,4 @@ coverage
 .prettiercache
 .eslintcache
 
-src/yantrixParser.ts
-src/grammar/parserGrammarWithoutImports.jison
+*_generated.ts
