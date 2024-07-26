@@ -1,7 +1,7 @@
-package org.example.misc;
+package misc;
 
-import org.example.types.automata.TAutomataBaseStateType;
-import org.example.types.automata.TAutomataContextType;
+import types.automata.TAutomataBaseStateType;
+import types.automata.TAutomataContextType;
 
 import java.util.function.Function;
 

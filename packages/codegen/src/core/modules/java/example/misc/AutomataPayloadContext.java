@@ -1,7 +1,7 @@
-package org.example.misc;
+package misc;
 
-import org.example.types.automata.TAutomataContextType;
-import org.example.types.automata.TAutomataPayloadType;
+import types.automata.TAutomataContextType;
+import types.automata.TAutomataPayloadType;
 
 public record AutomataPayloadContext(
         TAutomataPayloadType payload,

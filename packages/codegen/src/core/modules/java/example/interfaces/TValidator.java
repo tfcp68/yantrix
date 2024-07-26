@@ -1,4 +1,4 @@
-package org.example.interfaces;
+package interfaces;
 
 import java.util.function.Predicate;
 

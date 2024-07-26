@@ -1,6 +1,4 @@
-package org.example.types.automata;
-
-import org.example.types.TAutomataBaseState;
+package types.automata;
 
 import java.util.HashMap;
 import java.util.Map;

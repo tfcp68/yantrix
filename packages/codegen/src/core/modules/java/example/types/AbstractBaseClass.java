@@ -1,4 +1,4 @@
-package org.example.types;
+package types;
 
 import java.util.UUID;
 

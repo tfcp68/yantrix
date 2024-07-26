@@ -1,10 +1,10 @@
-package org.example.misc;
+package misc;
 
-import org.example.types.automata.TAutomataBaseActionType;
-import org.example.types.automata.TAutomataBaseStateType;
-import org.example.types.automata.TAutomataContextType;
-import org.example.types.automata.TAutomataPayloadType;
-import org.example.types.automata.AutomataTypes;
+import types.automata.TAutomataBaseActionType;
+import types.automata.TAutomataBaseStateType;
+import types.automata.TAutomataContextType;
+import types.automata.TAutomataPayloadType;
+import types.automata.AutomataTypes;
 
 public record AutomataActionQueue <
         State extends TAutomataBaseStateType,

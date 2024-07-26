@@ -1,4 +1,4 @@
-package org.example.exceptions;
+package exceptions;
 
 public class InvalidActionException extends AutomataException {
     public InvalidActionException() {super();}

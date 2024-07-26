@@ -1,6 +1,6 @@
-package org.example.types;
+package types;
 
-import org.example.types.automata.TAutomataPayloadType;
+import types.automata.TAutomataPayloadType;
 
 import java.util.Map;
 

@@ -1,13 +1,13 @@
-package org.example.interfaces;
+package interfaces;
 
-import org.example.misc.AutomataEventEmitter;
-import org.example.misc.AutomataEventListener;
+import misc.AutomataEventEmitter;
+import misc.AutomataEventListener;
 
 import java.util.List;
 
-import org.example.types.automata.*;
-import org.example.types.automata.AutomataTypes.*;
-import org.example.types.automata.AutomataTypes.TAutomataEventMeta;
+import types.automata.*;
+import types.automata.AutomataTypes.*;
+import types.automata.AutomataTypes.TAutomataEventMeta;
 
 public interface AutomataInterfaces extends AutomataValidators {
 

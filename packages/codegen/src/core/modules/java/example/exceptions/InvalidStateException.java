@@ -1,4 +1,4 @@
-package org.example.exceptions;
+package exceptions;
 
 public class InvalidStateException extends AutomataException {
     public InvalidStateException() {super();}

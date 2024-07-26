@@ -1,4 +1,4 @@
-package org.example.exceptions;
+package exceptions;
 
 public class AutomataException extends RuntimeException {
     public AutomataException() { super(); }

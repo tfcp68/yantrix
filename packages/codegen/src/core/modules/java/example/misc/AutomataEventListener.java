@@ -1,10 +1,10 @@
-package org.example.misc;
+package misc;
 
-import org.example.types.automata.TAutomataBaseActionType;
-import org.example.types.automata.TAutomataBaseEventType;
-import org.example.types.automata.TAutomataEventMetaType;
-import org.example.types.automata.TAutomataPayloadType;
-import org.example.types.automata.AutomataTypes;
+import types.automata.TAutomataBaseActionType;
+import types.automata.TAutomataBaseEventType;
+import types.automata.TAutomataEventMetaType;
+import types.automata.TAutomataPayloadType;
+import types.automata.AutomataTypes;
 
 public record AutomataEventListener<
         Event extends TAutomataBaseEventType,

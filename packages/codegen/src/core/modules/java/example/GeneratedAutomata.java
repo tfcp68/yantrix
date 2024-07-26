@@ -1,15 +1,13 @@
-package org.example;
-
-import org.example.exceptions.InvalidStateException;
-import org.example.misc.AutomataPayloadContext;
-import org.example.misc.AutomataStateTransitionResult;
-import org.example.types.TAutomataBaseAction;
-import org.example.types.TAutomataBaseContext;
-import org.example.types.TAutomataBaseState;
-import org.example.types.automata.AutomataTypes.IAutomataReducer;
-import org.example.types.automata.AutomataTypes.TAutomataParams;
-import org.example.types.automata.AutomataTypes.TAutomataStateContext;
-import org.example.types.automata.*;
+import exceptions.InvalidStateException;
+import misc.AutomataPayloadContext;
+import misc.AutomataStateTransitionResult;
+import types.TAutomataBaseAction;
+import types.TAutomataBaseContext;
+import types.TAutomataBaseState;
+import types.automata.AutomataTypes.IAutomataReducer;
+import types.automata.AutomataTypes.TAutomataParams;
+import types.automata.AutomataTypes.TAutomataStateContext;
+import types.automata.*;
 
 import java.util.Map;
 

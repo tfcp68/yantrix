@@ -1,6 +1,6 @@
-package org.example.types;
+package types;
 
-import org.example.types.automata.TAutomataBaseStateType;
+import types.automata.TAutomataBaseStateType;
 
 public class TAutomataBaseState extends TAutomataBaseStateType {
 

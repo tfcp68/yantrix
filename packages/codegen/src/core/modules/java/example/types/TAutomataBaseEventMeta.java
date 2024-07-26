@@ -1,6 +1,6 @@
-package org.example.types;
+package types;
 
-import org.example.types.automata.TAutomataEventMetaType;
+import types.automata.TAutomataEventMetaType;
 
 public class TAutomataBaseEventMeta extends TAutomataEventMetaType {
 }

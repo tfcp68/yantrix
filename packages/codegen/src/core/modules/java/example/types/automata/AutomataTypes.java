@@ -1,6 +1,6 @@
-package org.example.types.automata;
+package types.automata;
 
-import org.example.interfaces.TValidator;
+import interfaces.TValidator;
 
 import java.util.ArrayList;
 import java.util.PriorityQueue;

@@ -1,14 +1,11 @@
-package org.example;
-
-
-import org.example.exceptions.AutomataException;
-import org.example.exceptions.InvalidActionException;
-import org.example.exceptions.InvalidStateException;
-import org.example.interfaces.AutomataInterfaces.*;
-import org.example.misc.AutomataActionQueue;
-import org.example.misc.AutomataConsumeActionResult;
-import org.example.types.automata.*;
-import org.example.types.automata.AutomataTypes.*;
+import exceptions.AutomataException;
+import exceptions.InvalidActionException;
+import exceptions.InvalidStateException;
+import interfaces.AutomataInterfaces.*;
+import misc.AutomataActionQueue;
+import misc.AutomataConsumeActionResult;
+import types.automata.*;
+import types.automata.AutomataTypes.*;
 
 import java.util.Optional;
 

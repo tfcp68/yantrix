@@ -1,7 +1,7 @@
-package org.example.interfaces;
+package interfaces;
 
-import org.example.types.automata.*;
-import org.example.types.automata.AutomataTypes.*;
+import types.automata.*;
+import types.automata.AutomataTypes.*;
 
 public interface AutomataValidators {
 

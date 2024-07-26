@@ -1,4 +1,4 @@
-package org.example.types.automata;
+package types.automata;
 
 public abstract class TAutomataBaseStateType extends TAutomataBaseType {
 }

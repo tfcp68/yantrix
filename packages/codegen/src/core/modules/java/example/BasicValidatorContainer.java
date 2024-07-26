@@ -1,14 +1,10 @@
-package org.example;
-
-import org.example.interfaces.AutomataValidators.*;
-import org.example.interfaces.TValidator;
-import org.example.types.automata.TAutomataBaseActionType;
-import org.example.types.automata.TAutomataBaseEventType;
-import org.example.types.automata.TAutomataBaseStateType;
+import interfaces.AutomataValidators.*;
+import interfaces.TValidator;
+import types.automata.TAutomataBaseActionType;
+import types.automata.TAutomataBaseEventType;
+import types.automata.TAutomataBaseStateType;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class BasicValidatorContainer<
         State extends TAutomataBaseStateType,

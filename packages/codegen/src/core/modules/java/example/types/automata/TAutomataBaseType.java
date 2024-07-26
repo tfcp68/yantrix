@@ -1,4 +1,4 @@
-package org.example.types.automata;
+package types.automata;
 
 import java.util.Objects;
 
