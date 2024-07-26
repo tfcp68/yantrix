@@ -1,22 +1,31 @@
-import { TExpression, TMapped, TMappedKeys } from './expressions.js';
+import { ExpressionTypes } from '../constants/index.js';
+import { TExpression } from './expressions.js';
+
+export const KeyItemType = {
+	RAW: 'raw',
+	REDUCER: 'reducer',
+} as const;
+
+type TKeyItemKeys = keyof typeof KeyItemType;
 
 export type TKeyItemBase = {
-	KeyItemDeclaration: {
-		TargetProperty: string;
-	};
+	identifier: string;
+	expression?: TExpression;
 };
 
-export type TKeyItemWithExpression<T extends TMappedKeys> = {
-	KeyItemDeclaration: {
-		Expression: TExpression<T>;
-		TargetProperty: string;
-	};
-} & TKeyItemBase;
+export type TKeyItemReducer = {
+	expressionType?: typeof ExpressionTypes.Constant | typeof ExpressionTypes.Context | typeof ExpressionTypes.Payload;
+} & Partial<TKeyItemBase>;
 
-export type TKeyItemTypes<K extends TMappedKeys | undefined = undefined> = K extends TMappedKeys
-	? TKeyItemWithExpression<K>
-	: TKeyItemBase;
+export type TKeyItem<X extends (typeof KeyItemType)[TKeyItemKeys] = typeof KeyItemType.RAW> = {
+	keyItem: X extends typeof KeyItemType.REDUCER ? TKeyItemReducer : TKeyItemBase;
+};
 
-export type TKeyItem<T extends TMappedKeys | undefined = undefined> = TKeyItemTypes<T>;
+export type TKeyItems<X extends (typeof KeyItemType)[TKeyItemKeys] = typeof KeyItemType.RAW> = Array<TKeyItem<X>>;
 
-export type TKeyItems = TKeyItem[];
+const t: TKeyItemReducer = {
+	expression: {
+		expressionType: ExpressionTypes.StringDeclaration,
+		StringDeclaration: 'test',
+	},
+};

@@ -1,7 +1,7 @@
 
 
 %{
-  import {ReservedList, ExpressionTypes,ReferenceTypes} from './index.js'
+  import {ReservedList, ExpressionTypes} from './index.js'
 %}
 
 %lex
@@ -33,7 +33,8 @@
 '='                                  return 'ASSIGN'
 ')'                                  return 'RIGHT_BRACKET' 
 '/'                                  return 'FORWARD_SLASH'
-\'.*\'                               yytext=yytext.slice(1,-1); return 'STRING'
+\'[^']+\'                            yytext = yytext.slice(1,-1); return 'STRING'
+\"[^"]+\"                            yytext = yytext.slice(1,-1); return 'STRING'
 '-'?[0-9]+'.'[0-9]+                  return 'DECIMAL'
 '-'?[0-9]+                           return 'INTEGER'
 
@@ -93,7 +94,8 @@ EMIT_STATEMENT
         | EMIT_EVENT KEY_LIST_STATEMENT { $$ = {emit:{...$1, meta:[...$2]}} }
         | EMIT_EVENT KEY_LIST_STATEMENT LEFT_ARROW CONTEXT_SYMBOL LEFT_BRACE RAW_KEYLIST RIGHT_BRACE { $$ = {emit:{ ...$1, meta: $2, context:[...$6] }}};
 
-EMIT_EVENT : EMIT FORWARD_SLASH IDENT { $$ = {identifier:$3}};
+EMIT_EVENT 
+        : EMIT FORWARD_SLASH IDENT { $$ = {identifier:$3}};
 
 SUBSCRIBE_STATEMENT
         : SUBSCRIBE_EVENT { $$ = {subscribe:$1}}
@@ -102,11 +104,11 @@ SUBSCRIBE_STATEMENT
 
 
 SUBSCRIBE_EVENT
-        : SUBSCRIBE FORWARD_SLASH IDENT { $$ = {identifier:$3}};
+        : SUBSCRIBE FORWARD_SLASH IDENT IDENT { $$ = {identifier:$3, actionName:$4}};
 
 
-KEY_LIST_STATEMENT: 
-        LEFT_BRACKET KEY_LIST RIGHT_BRACKET { $$ = $2};
+KEY_LIST_STATEMENT
+        : LEFT_BRACKET KEY_LIST RIGHT_BRACKET { $$ = $2};
 
 KEY_LIST
         : KEY_ITEM {$$ = [$1]}
@@ -123,8 +125,6 @@ RAW_KEYLIST
 RAW_KEYITEM 
         : IDENT {$$ = {keyItem:{identifier:$1}}}
         | IDENT ASSIGN EXPRESSION {$$ = {keyItem:{identifier: $1, expression: $3}}};
-
-
 
 FUNCTION
         : FUNCTION_NAME LEFT_BRACKET ARGUMENTS RIGHT_BRACKET 
@@ -151,13 +151,13 @@ DATA_OBJECT_REFERENCE
         | CONTEXT_REFERENCE;
 
 CONSTANT 
-        : CONSTANT_SYMBOL IDENT {$$ = {referenceType:ReferenceTypes.Constant, identifier:$2}};
+        : CONSTANT_SYMBOL IDENT {$$ = {expressionType:ExpressionTypes.Constant, identifier:$2}};
 
 PAYLOAD_REFERENCE
-        : DOLLAR_SYMBOL IDENT  { $$ = {referenceType:ReferenceTypes.Payload, identifier: $2 } };
+        : DOLLAR_SYMBOL IDENT  { $$ = {expressionType:ExpressionTypes.Payload, identifier: $2 } };
 
 CONTEXT_REFERENCE
-        : CONTEXT_SYMBOL IDENT  {$$ = {referenceType:ReferenceTypes.Context, identifier:$2 } };
+        : CONTEXT_SYMBOL IDENT  {$$ = {expressionType:ExpressionTypes.Context, identifier:$2 } };
         
 IMMUTABLE
         : ARRAY {$$ = { ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration} } 
