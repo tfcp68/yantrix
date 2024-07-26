@@ -172,7 +172,6 @@ KeyItem  : TargetProperty '=' Expression
 Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function};
                 counter = Math.max(calcDepthFunc($1), counter);
-                console.log(counter);
                 if(counter > maxNestedFuncLevel) {
                     throw new Error('nested limit');
                 }
