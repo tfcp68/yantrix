@@ -1,5 +1,8 @@
 %{
-  import {ReservedList, ExpressionTypes} from './index.js'
+  import {ReservedList, ExpressionTypes, calcDepthFunc} from './index.js'
+
+  let counter = 0;
+  const maxNestedFuncLevel = 8
 %}
 
 
@@ -149,13 +152,11 @@ KeyItem  : TargetProperty '=' Expression
                         throw new Error('The property cannot match the target property');
                     }
                 }
-                console.log($$);
                 $$ = {
                     KeyItemDeclaration: {
                         TargetProperty: $1,
                         Expression: $3
                     },
-                    functionDepth: $3.functionDepth
                 };
             }
          | TargetProperty
@@ -163,42 +164,37 @@ KeyItem  : TargetProperty '=' Expression
                 $$ = {
                     KeyItemDeclaration: {
                         TargetProperty: $1
-                    },
-                    functionDepth: 0
+                    }
                 };
             };
 
 Expression
-          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}}
-          | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property, functionDepth: 0}}
-          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration, functionDepth: 0}}
-          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant, functionDepth: 0}}
-          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration, functionDepth: 0}}
+          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}; counter = Math.max(calcDepthFunc($1), counter); }
+          | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
+          | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
+          | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
+          | Array {$$ = {ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration}}
           | Number
           ;
 Number
-        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration, functionDepth: 0}}
-        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration, functionDepth: 0}}
+        : integerLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.IntegerDeclaration}}
+        | decimalLiteral {$$ = {NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration}}
         ;
 
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {
-            $$ = {FunctionDeclaration: {FunctionName:$1, Arguments: $3}, functionDepth: Math.max(...$3.map((arg) => {
-                if(arg.hasOwnProperty('FunctionDeclaration')) {
-                    return arg.functionDepth;
-                } else {
-                    return 0;
-                }
-            })) + 1};
+            $$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}
 
 
-            if($$.functionDepth > 8) {
+            if(counter > maxNestedFuncLevel) {
                 throw new Error('nested limit');
             }
-
         }
-        | FunctionName '('  ')' {$$={FunctionDeclaration:{FunctionName:$1, Arguments:[]}, functionDepth: 1}}
-        ;
+        | FunctionName '('  ')' {$$={
+                FunctionDeclaration:{
+                    FunctionName:$1, Arguments:[]
+                }};
+        };
 
 
 ArgumentsTypes
