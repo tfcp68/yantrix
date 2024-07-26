@@ -234,15 +234,15 @@ export class PythonCodegen implements ICodegen {
 	// 	return `{${initialNotes.join(',\n\t')}}`;
 	// }
 
-	// public getDefaultContext = () => {
-	// 	const context = [
-	// 		`def getDefaultContext(payload, prevContext):`,
-	// 		`\tinitialContext = ${this.getSubsyntaxContext(StartState)}`,
-	// 		`\treturn {**initialContext, **prevContext}`,
-	// 	];
+	public getDefaultContext = () => {
+		const context = [
+			`def getDefaultContext(payload, prevContext):`,
+			// `\tinitialContext = ${this.getSubsyntaxContext(StartState)}`,
+			`\treturn {**initialContext, **prevContext}`,
+		];
 
-	// 	return context.join('\n');
-	// };
+		return context.join('\n');
+	};
 	private getInitialState() {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}

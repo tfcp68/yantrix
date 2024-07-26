@@ -59,7 +59,7 @@ export interface ICodegen {
 
 	getImports(): string;
 
-	// getDefaultContext(): string;
+	getDefaultContext(): string;
 }
 
 export type TOutLang = keyof typeof Modules;

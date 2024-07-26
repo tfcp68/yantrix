@@ -59,7 +59,7 @@ export class JavaScriptCodegen implements ICodegen {
   			super();
   			this.init({
   				state: ${this.getInitialState()},
-  				context:{},
+  				context:null,
                 rootReducer: ${this.getRootReducer()},
   				stateValidator: ${this.getStateValidator()},
   				actionValidator: ${this.getActionValidator()},
@@ -92,7 +92,7 @@ export class JavaScriptCodegen implements ICodegen {
 				  	state: ${newState},
 				  	getNewContext: ({payload, context}) => {
 				  			const prevContext = getDefaultContext({payload,context})
-				  			return ${{}}
+				  			return null
 				  	}
 				  },
 				`;
@@ -228,15 +228,12 @@ export class JavaScriptCodegen implements ICodegen {
 	// 	return `{${initialNotes.join(',\n\t')}}`;
 	// }
 
-	// public getDefaultContext = () => {
-	// 	return `const getDefaultContext = ({payload,context:prevContext}) => {
-	// 		const initialContext = ${this.getSubsyntaxContext(StartState)}
-	// 		return {
-	// 			...initialContext,
-	// 			...prevContext
-	// 		}
-	// 	}`;
-	// };
+	public getDefaultContext = () => {
+		return `const getDefaultContext = ({payload,context:prevContext}) => {
+			// const initialContext = $//{this.getSubsyntaxContext(StartState)}
+			return prevContext
+		}`;
+	};
 	private getInitialState() {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
