@@ -122,24 +122,10 @@ export class JavaCodegen implements ICodegen {
 	getDefaultContext(): string {
 		return `
 			private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
-				return (TAutomataBaseContext) arg.context();
-			}
-		`;
-	}
-
-	private getDefaultContextMethod(): string {
-		// return `
-		// 	private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
-		// 		TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
-		// 		TAutomataBaseContext initialContext = ${this.getSubsyntaxContext(StartState)};
-		// 		prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
-		// 		return initialContext;
-		// 	}
-		// `;
-
-		return `
-			private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
-				return (TAutomataBaseContext) arg.context();
+				TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
+				TAutomataBaseContext initialContext = ${this.getSubsyntaxContext(StartState)};
+				prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
+				return initialContext;
 			}
 		`;
 	}
@@ -165,20 +151,40 @@ export class JavaCodegen implements ICodegen {
 			(key) => flattedContext.filter((e) => e.KeyItemDeclaration.TargetProperty === key).length === 0,
 		);
 
+		// ???
 		const normalizedUnusedKeys = unusedInitialKeys.map((property) => {
 			return `${property}: ${TAssignTypeDict.PREV_CONTEXT}['${property}'],`;
 		});
 
-		// return `
-		// 	new TAutomataBaseContext(Map.ofEntries(
-		// 		Map.entry("integer", prevContext.getOrDefault("integer", 3)),
-		// 		Map.entry("string", prevContext.getOrDefault("string", "str")),
-		// 		Map.entry("array", prevContext.getOrDefault("array", new Object[]{}))
-		// 	))
-		// `
+		const res = contextDescription
+			.map((ctx) => {
+				if (isPayloadContext(ctx)) {
+					const { context, payload = [] } = ctx;
+					return context.map((ctxItem, index) => {
+						const boundProperty = payload[index] || null;
+						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
+					});
+				} else if (isPrevContext(ctx)) {
+					const { context, prevContext = [] } = ctx;
+					return context.map((ctxItem, index) => {
+						const boundProperty = prevContext[index] || null;
+						return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
+					});
+				} else if (isShortContext(ctx)) {
+					const { context } = ctx;
+					return context.map((ctxItem) => {
+						return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
+					});
+				}
+				throw new Error(`Invalid context type - ${ctx}`);
+			})
+			.flatMap((template) => template.flatMap((el) => el))
+			.join(',\n');
 
 		return `
-			new TAutomataBaseContext();
+			new TAutomataBaseContext(Map.ofEntries(
+				${res}
+			))
 		`;
 	}
 
@@ -192,7 +198,7 @@ export class JavaCodegen implements ICodegen {
             > {
                 ${this.getDictionaries()}
 				${this.getActionToStateFromState()}
-				${this.getDefaultContextMethod()}
+				${this.getDefaultContext()}
                 ${this.getDefaultConstructor(className)}
             }
         `;
@@ -307,5 +313,56 @@ export class JavaCodegen implements ICodegen {
 	// Event validator is taken from GenericAutomata , which inherits it from BasicValidatorContainer
 	private getEventValidator() {
 		return `this.getEventValidator()`;
+	}
+
+	private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
+		const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
+
+		if (boundProperty === null) {
+			if (isKeyItemWithExpression(context)) {
+				const value = this.getByExpressionValue(context);
+				return `Map.entry("${LeftTarget}", ${TAssignTypeDict.PREV_CONTEXT}.getOrDefault("${LeftTarget}", ${value}))`;
+			}
+			return `Map.entry("${LeftTarget}", ${TAssignTypeDict.PREV_CONTEXT}.get("${LeftTarget}"))`;
+		}
+
+		const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
+		const isEmptyInitial = !isKeyItemWithExpression(context);
+
+		const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
+
+		if (isEmptyBoundExpression && isEmptyInitial) {
+			return `Map.entry("${LeftTarget}", ${type}.get("${RightTarget}"))`;
+		}
+
+		//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
+		if (isEmptyBoundExpression && !isEmptyInitial) {
+			if (isKeyItemWithExpression(context)) {
+				const value = this.getByExpressionValue(context);
+
+				return `Map.entry("${LeftTarget}", ${type}.getOrDefault("${RightTarget}", ${value}))`;
+			}
+		}
+		//	#{ selectedIndex } <= (index=3)
+		if (!isEmptyBoundExpression && isEmptyInitial) {
+			if (isKeyItemWithExpression(boundProperty)) {
+				const value = this.getByExpressionValue(boundProperty);
+
+				return `Map.entry("${LeftTarget}", ${type}.getOrDefault("${RightTarget}", ${value}))`;
+			}
+		}
+		if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
+			const leftValue = this.getByExpressionValue(context);
+			const rightValue = this.getByExpressionValue(boundProperty);
+
+			return `Map.entry("${LeftTarget}", ${type}.getOrDefault("${RightTarget}", (${rightValue} != null ? ${rightValue} : ${leftValue})))`;
+		}
+		return `Map.entry("${LeftTarget}", null)`;
+	}
+
+	private getByExpressionValue<T extends TMappedKeys>({
+		KeyItemDeclaration: { Expression },
+	}: TKeyItemWithExpression<T>) {
+		return Expressions[Expression.expressionType](Expression);
 	}
 }

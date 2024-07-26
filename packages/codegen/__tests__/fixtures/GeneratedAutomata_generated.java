@@ -259,6 +259,14 @@ import java.util.Objects;
 			
 			);
 		
+				
+			private TAutomataBaseContext getDefaultContext(AutomataPayloadContext arg) {
+				TAutomataBaseContext prevContext = (TAutomataBaseContext) arg.context();
+				TAutomataBaseContext initialContext = prevContext;
+				prevContext.forEach((key, value) -> initialContext.merge(key, value, (initValue, prevValue) -> prevValue));
+				return initialContext;
+			}
+		
                 
             public GeneratedAutomata() {
                 super();
