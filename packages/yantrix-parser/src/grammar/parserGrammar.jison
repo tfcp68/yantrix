@@ -1,8 +1,9 @@
 %{
-  import {ReservedList, ExpressionTypes, calcDepthFunc} from './index.js'
+  import {ReservedList, ExpressionTypes} from './index.js';
+  import {calcDepthFunc} from './grammar/jsGrammar.js';
 
   let counter = 0;
-  const maxNestedFuncLevel = 8
+  const maxNestedFuncLevel = 8;
 %}
 
 
@@ -169,7 +170,13 @@ KeyItem  : TargetProperty '=' Expression
             };
 
 Expression
-          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function}; counter = Math.max(calcDepthFunc($1), counter); }
+          : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function};
+                counter = Math.max(calcDepthFunc($1), counter);
+                console.log(counter);
+                if(counter > maxNestedFuncLevel) {
+                    throw new Error('nested limit');
+                }
+            }
           | TargetProperty {$$ = {Property:$1, expressionType:ExpressionTypes.Property}}
           | StringDeclaration {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
           | ConstantDeclaration {$$ = {ConstantReference:$1, expressionType:ExpressionTypes.Constant}}
@@ -184,11 +191,6 @@ Number
 FunctionOperator
         : FunctionName '(' ArgumentsTypes ')' {
             $$={FunctionDeclaration:{FunctionName:$1, Arguments:[...$3]}}
-
-
-            if(counter > maxNestedFuncLevel) {
-                throw new Error('nested limit');
-            }
         }
         | FunctionName '('  ')' {$$={
                 FunctionDeclaration:{
