@@ -37,11 +37,17 @@ public class AutomataTypes {
             this.context = context;
         }
 
-        public static <State extends TAutomataBaseStateType, Context extends TAutomataContextType> TAutomataStateContext<State, Context> of(State state, Context context) { return TAutomataStateContext.of(state, context); }
+        public static <State extends TAutomataBaseStateType, Context extends TAutomataContextType> TAutomataStateContext<State, Context> of(State state, Context context) { return new TAutomataStateContext<>(state, context); }
     }
 
     public static class TAutomataActionPayload<Action extends TAutomataBaseActionType, Payload extends TAutomataPayloadType> extends TAutomataActionContainer<Action> {
         public Payload payload;
+
+        public TAutomataActionPayload() {}
+        public TAutomataActionPayload(Action action, Payload payload) {
+            this.action = action;
+            this.payload = payload;
+        }
     }
 
     public static class TAutomataEventMeta<Event extends TAutomataBaseEventType, EventMeta extends TAutomataEventMetaType> extends TAutomataEventContainer<Event> {
@@ -54,6 +60,23 @@ public class AutomataTypes {
             >
     {
         Function<TAutomataEventMeta<Event, EventMeta>, TAutomataActionPayload<Action, Payload>> eventHandler;
+    }
+
+    public static class TAutomataStateContextActionPayload<
+            State extends TAutomataBaseStateType, Context extends TAutomataContextType,
+            Action extends TAutomataBaseActionType, Payload extends TAutomataPayloadType
+            > {
+        public State state;
+        public Context context;
+        public Action action;
+        public Payload payload;
+        public TAutomataStateContextActionPayload() {}
+        public TAutomataStateContextActionPayload(TAutomataActionPayload<Action, Payload> actionPayload, TAutomataStateContext<State, Context> stateContext) {
+            this.state = stateContext.state;
+            this.context = stateContext.context;
+            this.action = actionPayload.action;
+            this.payload = actionPayload.payload;
+        }
     }
 
     @FunctionalInterface
@@ -128,10 +151,10 @@ public class AutomataTypes {
             State extends TAutomataBaseStateType, Action extends TAutomataBaseActionType,
             Context extends TAutomataContextType, Payload extends TAutomataPayloadType
             >
-            extends Function<TAutomataEvent<State, Action, Context, Payload>, TAutomataStateContext<State, Context>>
+            extends Function<TAutomataStateContextActionPayload<State, Context, Action, Payload>, TAutomataStateContext<State, Context>>
     {
-        default TAutomataStateContext<State, Context> reduce(TAutomataEvent<State, Action, Context, Payload> event) {
-            return this.apply(event);
+        default TAutomataStateContext<State, Context> reduce(TAutomataStateContextActionPayload<State, Context, Action, Payload> action) {
+            return this.apply(action);
         }
     }
 
@@ -166,8 +189,8 @@ public class AutomataTypes {
         public TValidator<State> stateValidator;
         public TValidator<Action> actionValidator;
         public TValidator<Event> eventValidator;
-        public boolean enabled;
-        public boolean paused;
+        public boolean enabled = true;
+        public boolean paused = false;
 
         public TAutomataParams() {}
         public TAutomataParams(State state, Context context,
@@ -180,6 +203,20 @@ public class AutomataTypes {
             this.actionValidator = actionValidator;
             this.eventValidator = eventValidator;
             this.rootReducer = rootReducer;
+        }
+        public TAutomataParams(State state, Context context,
+                               IAutomataReducer<State, Action, Context, Payload> rootReducer,
+                               TValidator<State> stateValidator,
+                               TValidator<Action> actionValidator,
+                               TValidator<Event> eventValidator,
+                               boolean enabled, boolean paused) {
+            super(state, context);
+            this.stateValidator = stateValidator;
+            this.actionValidator = actionValidator;
+            this.eventValidator = eventValidator;
+            this.rootReducer = rootReducer;
+            this.enabled = enabled;
+            this.paused = paused;
         }
     }
 

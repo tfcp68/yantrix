@@ -13,7 +13,7 @@ public record AutomataActionQueue <
         Payload extends TAutomataPayloadType
         >
     (
-        AutomataTypes.TAutomataQueue<Action, Payload> actions,
+        AutomataTypes.TAutomataActionPayload<Action, Payload> actions,
         AutomataTypes.TAutomataStateContext<State, Context> newState
     )
 {

@@ -1,6 +1,9 @@
 package org.example;
 
 
+import org.example.exceptions.AutomataException;
+import org.example.exceptions.InvalidActionException;
+import org.example.exceptions.InvalidStateException;
 import org.example.interfaces.AutomataInterfaces.*;
 import org.example.misc.AutomataActionQueue;
 import org.example.misc.AutomataConsumeActionResult;
@@ -56,7 +59,7 @@ public class GenericAutomata <
     public TAutomataQueue<Action, Payload> getActionQueue() { return this.actionQueue; }
     @Override
     public AutomataActionQueue<State, Action, Context, Payload> collapseActionQueue() {
-        TAutomataQueue<Action, Payload> actions = this.actionQueue;
+        TAutomataActionPayload<Action, Payload> actions = this.actionQueue.poll();
         TAutomataStateContext<State, Context> newState = this.reduceQueue();
         if(this.isEnabled()) {
             this.setContext(newState);
@@ -72,7 +75,7 @@ public class GenericAutomata <
     public IAutomata<State, Action, Event, Context, Payload, EventMeta> init(TAutomataParams<State,Action,Event,Context,Payload,EventMeta> params) {
         if(params.rootReducer == null) this.rootReducer = null;
         else this.rootReducer = params.rootReducer;
-        if (this.getStateValidator() == null) throw new Error("invalid initial state");
+        if (!this.getStateValidator().test(params.state)) throw new InvalidStateException("invalid initial state");
         this.actionQueue = new TAutomataQueue<>();
         this.enabled = params.enabled;
         this.paused = params.paused;
@@ -85,11 +88,11 @@ public class GenericAutomata <
 
     @Override
     public TAutomataStateContext<State, Context> dispatch(TAutomataActionPayload<Action, Payload> action) {
-        if(this.getActionValidator() == null) throw new RuntimeException("invalid action");
-        if(this.rootReducer == null) throw new RuntimeException("Root reducer is not defined");
+        if(!this.getActionValidator().test(action.action)) throw new InvalidActionException("invalid action");
+        if(this.rootReducer == null) throw new AutomataException("Root reducer is not defined");
         TAutomataStateContext<State, Context> reducedValue =
-                this.rootReducer.reduce(new TAutomataEvent<>());
-        if(reducedValue == null || this.getStateValidator() == null) throw new RuntimeException("invalid reduced state");
+                this.rootReducer.reduce(new TAutomataStateContextActionPayload<>(action, this.reduceQueue()));
+        if(reducedValue == null || !this.validateState(reducedValue.state)) throw new AutomataException("invalid reduced state");
         if(this.isPaused()) {
             this.actionQueue.add(action);
         }
@@ -102,15 +105,17 @@ public class GenericAutomata <
 
     @Override
     public AutomataConsumeActionResult<State, Action, Context, Payload> consumeAction(int count) {
-        if(count < 1) throw new RuntimeException("invalid action count");
+        if(count < 1) throw new AutomataException("invalid action count");
         AutomataConsumeActionResult<State, Action, Context, Payload> currentResponse = new AutomataConsumeActionResult<>(
                 null, this.getContext()
         );
         TAutomataQueue<Action, Payload> queue = this.getActionQueue();
         while(!queue.isEmpty()) {
-            this.reduceQueueItem(queue, currentResponse.newState());
+            currentResponse = this.reduceQueueItem(queue, currentResponse.newState());
         }
         if(this.isEnabled()) {
+            for(int i = 0; i < count; i++) queue.poll();
+            this.setActionQueue(queue);
             this.setContext(currentResponse.newState());
         }
         return currentResponse;
@@ -120,40 +125,42 @@ public class GenericAutomata <
             TAutomataQueue<Action, Payload> queue,
             TAutomataStateContext<State, Context> newState
     ) {
-        AutomataConsumeActionResult<State, Action, Context, Payload> defaultResponse = new AutomataConsumeActionResult<>(
+        if(this.rootReducer == null) throw new AutomataException("Root Reducer is not defined. Please init the Instance with a rootReducer.");
+
+        AutomataConsumeActionResult<State, Action, Context, Payload> currentResponse = new AutomataConsumeActionResult<>(
                 null, Optional.ofNullable(newState).orElse(this.getContext())
         );
-        if(queue == null || queue.size() < 1)
-            return defaultResponse;
+        if(queue == null || queue.isEmpty())
+            return currentResponse;
 
         TAutomataActionPayload<Action, Payload> currentAction = queue.poll();
         if(currentAction == null)
-            return defaultResponse;
+            return currentResponse;
 
-        if(this.getActionValidator() == null) throw new RuntimeException("invalid action");
+        if(!this.getActionValidator().test(currentAction.action)) throw new InvalidActionException("invalid action");
 
         return new AutomataConsumeActionResult<>(
                 currentAction,
-                this.getReducer().reduce(new TAutomataEvent<>(newState.context, currentAction.payload))
+                this.getReducer().reduce(new TAutomataStateContextActionPayload<>(currentAction, currentResponse.newState()))
         );
     }
 
     public TAutomataStateContext<State, Context> reduceQueue() {
         TAutomataStateContext<State, Context> reducedValue = this.getContext();
-        if(this.rootReducer == null) throw new RuntimeException("root reducer is not defined");
+        if(this.rootReducer == null) throw new AutomataException("root reducer is not defined");
         TAutomataQueue<Action, Payload> queue = this.getActionQueue();
         while(!queue.isEmpty()) reducedValue = this.reduceQueueItem(queue, reducedValue).newState();
         return reducedValue;
     }
 
     public void setContext(TAutomataStateContext<State, Context> context) {
-        if(context == null || this.getStateValidator() == null) throw new RuntimeException("invalid context");
+        if(context == null || !this.getStateValidator().test(context.state)) throw new AutomataException("invalid context");
         this.state = context.state;
         this.context = context.context;
     }
 
     public void setActionQueue(TAutomataQueue<Action, Payload> queue) {
-        if(queue == null) throw new RuntimeException("invalid action queue");
+        if(queue == null) throw new AutomataException("invalid action queue");
         this.actionQueue = queue;
     }
 }

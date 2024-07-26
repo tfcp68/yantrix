@@ -8,6 +8,7 @@ import org.example.types.automata.TAutomataBaseStateType;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class BasicValidatorContainer<
         State extends TAutomataBaseStateType,
@@ -39,19 +40,19 @@ public class BasicValidatorContainer<
 
     @Override
     public void setActionValidator(TValidator<Action> validator) {
-        if(!(validator instanceof Function<?,?>)) throw new RuntimeException("passed action validator is not a function");
+        if(validator == null) throw new RuntimeException("passed action validator is not a function");
         _actionValidator = validator;
     }
 
     @Override
     public void setStateValidator(TValidator<State> validator) {
-        if(!(validator instanceof Function<?,?>)) throw new RuntimeException("passed state validator is not a function");
+        if(validator == null) throw new RuntimeException("passed state validator is not a function");
         _stateValidator = validator;
     }
 
     @Override
     public void setEventValidator(TValidator<Event> validator) {
-        if(!(validator instanceof Function<?,?>)) throw new RuntimeException("passed event validator is not a function");
+        if(validator == null) throw new RuntimeException("passed event validator is not a function");
         _eventValidator = validator;
     }
 
