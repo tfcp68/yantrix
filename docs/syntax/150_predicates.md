@@ -21,7 +21,7 @@ like `not`, `and` and so on.
 -   test if any condition succeeds:
 
 ```
-oneOf(isGreater(value, 0), not(includes(listValue, 'sample')), isGreater(len(stringValue), 0))
+any(isGreater(value, 0), not(includes(listValue, 'sample')), isGreater(len(stringValue), 0))
 ```
 
 ## Model Predicates
