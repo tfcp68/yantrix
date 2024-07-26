@@ -11,6 +11,7 @@ import {
 	TKeyItemWithExpression,
 	TMappedKeys,
 } from '@yantrix/yantrix-parser';
+import { randomUUID } from 'node:crypto';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
@@ -74,6 +75,9 @@ export class JavaScriptCodegen implements ICodegen {
   				actionValidator: ${this.getActionValidator()},
 				});
 			}
+			static id = '${randomUUID()}';
+			static getStates = () => statesDictionary;
+			static getActions = () => actionsDictionary;
 			isKeyOf = ${this.getIsKeyOf()};
 		}`;
 	}
