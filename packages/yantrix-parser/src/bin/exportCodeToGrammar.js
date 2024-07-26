@@ -28,16 +28,11 @@ try {
 	const grammarData = fs.readFileSync(grammarFilePath, 'utf8');
 	const constantsData = fs.readFileSync(constantsFilePath, 'utf8');
 	const updatedGrammarData = replaceImportsInGrammar(grammarData, constantsData);
-	fs.access(outputFilePath, constants.F_OK && constants.R_OK, (err) => {
-		if (err) {
-			console.error('File is not writable or does not exist. Start build process first.');
-			throw new Error(err.message);
-		} else {
-			console.log('File exists and is accessible');
-			fs.writeFileSync(outputFilePath, updatedGrammarData, 'utf8');
-			console.log('Successfully replaced imports with constants content.');
-		}
+	fs.writeFileSync(outputFilePath, updatedGrammarData, {
+		encoding: 'utf8',
+		flag: 'wx',
 	});
+	console.log('Successfully replaced imports with constants content.');
 } catch (err) {
 	console.error(`Error: ${err.message}`);
 }

@@ -173,6 +173,7 @@ Expression
           : FunctionOperator {$$ = {...$1, expressionType:ExpressionTypes.Function};
                 counter = Math.max(calcDepthFunc($1), counter);
                 if(counter > maxNestedFuncLevel) {
+                    counter = 0;
                     throw new Error('nested limit');
                 }
             }
