@@ -73,6 +73,7 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s($())}',
 	'#{%s = %s(#{%s})}',
 	'#{%s = %s(,,,,,,)}',
+	'#{%s = %s(%s(%s(%s(%s(%s(%s(%s(%s()))))))))}',
 ];
 
 const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)) => {
