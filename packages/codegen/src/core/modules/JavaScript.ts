@@ -11,7 +11,7 @@ import {
 	TKeyItemWithExpression,
 	TMappedKeys,
 } from '@yantrix/yantrix-parser';
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'crypto';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
