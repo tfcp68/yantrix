@@ -1,22 +1,23 @@
+import { randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixLexer, YantrixParser } from '../yantrixParser.js';
-import { functionsFixtures, keyItem } from '../fixtures/keyItem.js';
+import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
 	allowedExpressions,
 	getKeyItemsInitialEmpty,
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
-} from '../utils/utils.js';
-import { randomString, randomDecimal, randomInteger, randomValue } from '@yantrix/utils';
+} from './utils/utils.js';
+import { YantrixParser } from '../src/yantrixParser.js';
 
 const validCases = [
 	[`#{%s}`, keyItem.declarationKeyItem],
 	[`#{%s = "%s"}`, keyItem.withStringInitial],
 	[`#{%s = %arr}`, keyItem.withArrayInitial],
 	[`#{%s = %i}`, keyItem.withIntegerInitial],
-	[`#{%s = %s}`, keyItem.withPropertyInitial],
-	[`#{%s = $(%s)}`, keyItem.withConstantInitial],
-	[`#{%multi}`, keyItem.withMultiplyInitial],
+	[`#{%s = #%s}`, keyItem.withContextInitial],
+	[`#{%s = $%s}`, keyItem.withPayloadInitial],
+	[`#{%s = %%%s}`, keyItem.withConstantInitial],
+
 	[`#{%s = %d}`, keyItem.withDecimalInitial],
 	[`#{%s = %s()}`, functionsFixtures.expression],
 ];
@@ -82,6 +83,15 @@ const generateExpressionCases = (templates: any[], casesAmount: number = randomI
 describe('Key list', () => {
 	const parser = new YantrixParser();
 
+	describe('The number of arguments must be equal to or less than the number of context arguments', () => {
+		const keyItem = getKeyItemsInitialEmpty()[0];
+		const strInput = `#{${keyItem.value}} <= #a, #b`;
+
+		expect(() => parser.parse(strInput)).toThrowError(
+			'The number of arguments must be equal to or less than the number of context arguments.',
+		);
+	});
+
 	describe('Single key item', () => {
 		const cases = generateExpressionCases(validCases);
 		test.each(cases)('%s', (input, res) => {
@@ -96,8 +106,9 @@ describe('Key list', () => {
 				test(`Data type - ${key}`, () => {
 					for (let index = 0; index < 100; index++) {
 						const keyItems = getKeyItemsWithInitial(value);
+
 						const targetPropertyCount = keyItems.length;
-						const formatInput = `#{${keyItems.join(',')}}`;
+						const formatInput = `#{${keyItems.map(({ input }) => input).join(',')}}`;
 
 						const output = parser.parse(formatInput);
 
@@ -106,20 +117,18 @@ describe('Key list', () => {
 
 						expect(targetPropertyCount).toBe(context.length);
 
-						keyItems.map((strKey, index) => {
-							const { KeyItemDeclaration } = context[index];
-							const { TargetProperty } = KeyItemDeclaration;
+						keyItems.map(({ initialValue, input, key }, index) => {
+							const { keyItem } = context[index];
+							const { identifier } = keyItem;
 
-							const targetPropertyInput = strKey.split('=')[0];
-							const targetPropertyValue = strKey.split('=')[1];
+							const targetPropertyInput = key;
 
-							const expected =
-								key != 'constant'
-									? value.output(targetPropertyValue)
-									: value.output(targetPropertyValue.slice(2, -1));
+							const targetPropertyValue = initialValue;
 
-							expect(targetPropertyInput).toBe(TargetProperty);
-							expect(KeyItemDeclaration.Expression).toStrictEqual(expected);
+							const expected = value.output(targetPropertyValue);
+
+							expect(targetPropertyInput).toBe(identifier);
+							expect(keyItem.expression).toStrictEqual(expected);
 						});
 					}
 				});
@@ -143,14 +152,14 @@ describe('Key list', () => {
 				expect(keyItemsCount).toBe(context.length);
 
 				keyItems.forEach((item: any, index: any) => {
-					const { KeyItemDeclaration } = context[index];
-					const { TargetProperty } = KeyItemDeclaration;
-					const { Expression } = KeyItemDeclaration;
+					const { keyItem } = context[index];
+					const { identifier } = keyItem;
+					const { expression } = keyItem;
 
 					const targetPropertyInput = item.value.split('=')[0];
 
-					expect(targetPropertyInput).toBe(TargetProperty);
-					expect(Expression).toStrictEqual(item.output);
+					expect(targetPropertyInput).toBe(identifier);
+					expect(expression).toStrictEqual(item.output);
 				});
 			}
 		});
@@ -161,8 +170,8 @@ describe('Key list', () => {
 
 					const keyItems = getKeyItemsRandomInitial();
 					const f = {
-						KeyItemDeclaration: {
-							TargetProperty: 'emptyprop',
+						keyItem: {
+							identifier: 'emptyprop',
 						},
 					};
 					const initialEmptyEnd = [
