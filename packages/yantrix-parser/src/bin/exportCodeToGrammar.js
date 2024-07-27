@@ -1,4 +1,4 @@
-import fs, { constants } from 'fs';
+import fs from 'fs';
 import path from 'path';
 
 const args = process.argv.slice(2);
