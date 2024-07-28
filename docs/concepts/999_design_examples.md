@@ -106,7 +106,7 @@ Here we create an `FSM` that stores a list of options in its `Context` and allow
 
 Here we also create a single **DISABLED** `State`, because we uphoisted the state of many controls rather than controlling a single one, as in [Checkbox](#checkboxes) example, allowing us to preserve the visible state of every radio option when being **DISABLED**.
 
-Also a special **UNSET** `Action`, that removes the selection: it works by _not_ passing a `Payload`, which triggers `$index = -1` fallback to [default value](../syntax/120_values_and_constants.html#default-values)
+Also, a special **UNSET** `Action`, that removes the selection: it works by _not_ passing a `Payload`, which triggers `$index = -1` fallback to [default value](../syntax/120_values_and_constants.html#default-values)
 
 ## Dropdown Control
 
