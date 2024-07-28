@@ -100,7 +100,7 @@ referenced key exists in it. For example:
 
 ````
 ''' here `value1` and `value2` will not be set to 1 the first time Context is created
-#{value1, value2} <= #value1 = 1, #value 2 = 1
+#{value1, value2} <= #value1 = 1, #value2 = 1
 
 ``` and here they will
 #{value1 = 1, value2 = 1} <= #value1, #value2
