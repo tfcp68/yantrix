@@ -80,10 +80,10 @@ const diagramsInput = {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
 	},
-	includeNotes: {
-		value: includeNotesInput,
-		automataName: 'AutomataIncludeNotes',
-	},
+	// includeNotes: {
+	// 	value: includeNotesInput,
+	// 	automataName: 'AutomataIncludeNotes',
+	// },
 } as const;
 
 Object.values(diagramsInput).forEach(async (fixture) => {

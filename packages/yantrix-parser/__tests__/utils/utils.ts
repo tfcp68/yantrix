@@ -7,7 +7,7 @@ export const allowedExpressions = {
 	string: {
 		value: randomString,
 		output: (str: string) => {
-			return expressionProperties.string(str.slice(1, str.length - 1));
+			return expressionProperties.string(str);
 		},
 	},
 	integer: {
@@ -18,9 +18,13 @@ export const allowedExpressions = {
 		value: () => randomDecimal(-10000, 10000).toFixed(4),
 		output: (value: string) => expressionProperties.decimal(Number(value)),
 	},
-	property: {
+	context: {
 		value: randomString,
-		output: (property: string) => expressionProperties.property(property),
+		output: (property: string) => expressionProperties.contextReference(property),
+	},
+	payload: {
+		value: randomString,
+		output: (property: string) => expressionProperties.payloadReference(property),
 	},
 	function: {
 		value: () => randomString() + '()',
@@ -34,15 +38,9 @@ export const allowedExpressions = {
 	},
 	constant: {
 		value: () => `${randomString()}`,
-		output: (s: string) => expressionProperties.constant(s),
+		output: (s: string) => expressionProperties.constantRefrence(s),
 	},
-};
-
-const trimConstant = (str: string) => str.slice(2, -1);
-
-const formatStringExpressions = (str: string) => {
-	return `'${str}'`;
-};
+} as const;
 
 export const generateRandomKeyList = () => {
 	const defaultName = 'prop';
@@ -57,8 +55,8 @@ export const getKeyItemsInitialEmpty = () => {
 			value,
 			output: () => {
 				return {
-					KeyItemDeclaration: {
-						TargetProperty: value,
+					keyItem: {
+						identifier: value,
 					},
 				};
 			},
@@ -69,12 +67,40 @@ export const getKeyItemsWithInitial = (expression: any) => {
 	const keyItems = generateRandomKeyList();
 
 	return keyItems.map((key) => {
-		if (expression === allowedExpressions.string) {
-			return `${key}=${formatStringExpressions(expression.value())}`;
-		} else if (expression === allowedExpressions.constant) {
-			return `${key}=$(${expression.value()})`;
+		const generated = expression.value();
+
+		switch (expression) {
+			case allowedExpressions.string:
+				return {
+					key,
+					initialValue: generated,
+					input: `${key}='${generated}'`,
+				};
+			case allowedExpressions.constant:
+				return {
+					key,
+					initialValue: generated,
+					input: `${key}=%%${generated}`,
+				};
+			case allowedExpressions.payload:
+				return {
+					key,
+					initialValue: generated,
+					input: `${key}=$${generated}`,
+				};
+			case allowedExpressions.context:
+				return {
+					key,
+					initialValue: generated,
+					input: `${key}=#${generated}`,
+				};
+			default:
+				return {
+					key,
+					initialValue: generated,
+					input: `${key}=${generated}`,
+				};
 		}
-		return `${key}=${expression.value()}`;
 	});
 };
 
@@ -88,17 +114,35 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 		const expressions = randomExpression();
 		const rndValue = expressions.value();
 
-		if (expressions === allowedExpressions.string) {
-			const str = formatStringExpressions(rndValue);
-			return {
-				value: `${el}=${formatStringExpressions(str)}`,
-				output: expressions.output(formatStringExpressions(str)),
-			};
-		} else if (expressions === allowedExpressions.constant) {
-			return {
-				value: `${el}=$(${rndValue})`,
-				output: expressions.output(rndValue),
-			};
+		switch (expressions) {
+			case allowedExpressions.string:
+				return {
+					value: `${el}="${rndValue}"`,
+					output: expressions.output(rndValue),
+				};
+				break;
+			case allowedExpressions.constant:
+				return {
+					value: `${el}=%%${rndValue}`,
+					output: expressions.output(rndValue),
+				};
+			case allowedExpressions.context:
+				return {
+					value: `${el}=#${rndValue}`,
+					output: expressions.output(rndValue),
+				};
+				break;
+			case allowedExpressions.payload:
+				return {
+					value: `${el}=$${rndValue}`,
+					output: expressions.output(rndValue),
+				};
+			default:
+				return {
+					value: `${el}=${rndValue}`,
+					output: expressions.output(rndValue),
+				};
+				break;
 		}
 
 		return {

@@ -1,17 +1,14 @@
 /**
  * This object contains the different types of expressions that can be used in the parser.
  */
-export const ExpressionTypes = {
-	Function: 'function',
-	StringDeclaration: 'string',
-	ArrayDeclaration: 'array',
-	Constant: 'constant',
-	IntegerDeclaration: 'integer',
-	DecimalDeclaration: 'decimal',
-	Property: 'property',
-} as const;
+
+import { ExpressionTypes } from '../constants';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
+
+type TReference = {
+	identifier: string;
+};
 
 type TExpressionString = {
 	StringDeclaration: string;
@@ -40,12 +37,11 @@ export type TMapped = {
 	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
 	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
-	[ExpressionTypes.Property]: TExpressionProperty;
 };
 
 export type TMappedKeys = keyof TMapped;
 export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
 
-export type TExpression<T extends TMappedKeys> = {
+export type TExpression<T extends TMappedKeys = TMappedKeys> = {
 	expressionType: T;
 } & TExpressionMapped<T>;

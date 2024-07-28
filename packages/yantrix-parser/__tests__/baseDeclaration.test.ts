@@ -1,13 +1,13 @@
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixParser } from '../yantrixParser.js';
+import { YantrixParser } from '../src/yantrixParser.js';
 import {
 	baseContext,
 	baseContextWithPrevious,
 	baseEmitEvent,
 	baseEmpty,
 	baseSubscribe,
-} from '../fixtures/baseDeclarations.js';
-import { expressionProperties } from '../fixtures/expressions.js';
+} from './fixtures/baseDeclarations.js';
+import { expressionProperties } from './fixtures/expressions.js';
 import {
 	randomString,
 	randomInteger,
@@ -16,7 +16,7 @@ import {
 	randomValue,
 	randomArray,
 } from '@yantrix/utils';
-import { ReservedList, SpecialCharList } from '../constants/index.js';
+import { ReservedList, SpecialCharList } from '../src/constants/index.js';
 
 const validContextStatements = ['#{%s}'];
 const invalidContextStatements = [
@@ -26,7 +26,15 @@ const invalidContextStatements = [
 	'#(%s)',
 ];
 
-const validExpressionStatements = [`#{%s = %rand}`];
+const validExpressionStatements = [
+	`#{%s = #%s}`,
+	`#{%s = '%s'}`,
+	`#{%s = $%s}`,
+	`#{%s = %%%s}`,
+	`#{%s = []}`,
+	`#{%s = '%i'}`,
+	`#{%s = '%d'}`,
+];
 const invalidExpressionStatements = [
 	`#{%s - %rand}`,
 	`#{%s  %rand}`,
@@ -35,7 +43,7 @@ const invalidExpressionStatements = [
 	`#{%s <- %rand}`,
 ];
 
-const validStateTransformerStatements = [`#{%s} <= (%s)`, `#{%s} <= {%s}`];
+const validStateTransformerStatements = [`#{%s} <= #%s`, '#{%s} <= $%s'];
 const invalidStateTransformerStatements = [
 	`#{%s} <= ((%s))`,
 	`#{%s} <= {{%s}}`,
@@ -48,24 +56,26 @@ const invalidStateTransformerStatements = [
 	`#{%s} => (%s)`,
 ];
 
-const validSubscribeStatements = ['subscribe/%s => %s', 'subscribe/%s => %s (%list)'];
+const validSubscribeStatements = ['subscribe/%s %s', 'subscribe/%s %s (#%s)', 'subscribe/%s %s (#%s) <= (#%s)'];
+
 const invalidSubscribeStatements = [
 	`%s/%s => %s`,
-	`subscribe/%s`,
 	`subscribe\\%s => %s`,
+	'subscribe/%s',
+	'subscribe/%s ()',
+	'subscribe/%s %s ()',
 	`subscribe//%s => %s`,
 	`subscribe/ => %s`,
 	`subscribe/%s => `,
 	`subscribe/%s => ()`,
 	`subscribe/%s => {}`,
-	// `subscribe/%s => []`,     -- special case
 	`subscribe/%s <= %s`,
 	`subscribe/%s => %s [%list]`,
 	`subscribe/%s => %s {%list}`,
 	`subscribe/%s <= %s ()`,
 ];
 
-const validEmitStatements = [`emit/%s <= (%list)`, `emit/%s`];
+const validEmitStatements = [`emit/%s`, `emit/%s (#%s)`, 'emit/%s (#%s) <= #{%s}'];
 const invalidEmitStatements = [
 	`emt/%s`,
 	`emit/%s <= %list`,
@@ -81,11 +91,11 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
 			template
-				.replaceAll('%s', () => randomString())
 				.replaceAll('%i', () => randomInteger().toString())
 				.replaceAll('%d', () => randomDecimal().toString())
 				.replaceAll('%rand', () => randomValue().toString())
-				.replaceAll('%list', () => randomArray(randomString).join(',')),
+				.replaceAll('%list', () => randomArray(randomString).join(','))
+				.replaceAll('%s', () => randomString()),
 		);
 	});
 };
@@ -94,9 +104,10 @@ const expressionTemplates = [
 	['#{%s = "%s"}', expressionProperties.string],
 	['#{%s = %i}', expressionProperties.integer],
 	['#{%s = %d}', expressionProperties.decimal],
-	['#{%s = $(%s)}', expressionProperties.constant],
+	['#{%s = %%%s}', expressionProperties.constantRefrence],
 	['#{%s = %arr}', expressionProperties.array],
-	['#{%s = %s}', expressionProperties.property],
+	['#{%s = #%s}', expressionProperties.contextReference],
+	['#{%s = $%s}', expressionProperties.payloadReference],
 	['#{%s = %s()}', expressionProperties.function],
 ];
 
@@ -175,10 +186,10 @@ describe('Base grammar declarations', () => {
 		const parser = new YantrixParser();
 		const base = [
 			['', baseEmpty],
-			['#{LeftSideProperty} <= (RightSideProperty)', baseContext],
-			['#{LeftSideProperty} <= {RightSideProperty}', baseContextWithPrevious],
-			['subscribe/event => action', baseSubscribe],
-			['emit/event <= (keylist)', baseEmitEvent],
+			['#{LeftSideProperty} <= #RightSideProperty', baseContext],
+			['#{LeftSideProperty} <= $RightSideProperty', baseContextWithPrevious],
+			['subscribe/event action (#m) <= (#k)', baseSubscribe],
+			['emit/event (#t) <= #{ab}', baseEmitEvent],
 		] as const;
 		test.each(base)('%s', (input: any, res: any) => {
 			const result = parser.parse(input as string);
@@ -186,16 +197,18 @@ describe('Base grammar declarations', () => {
 		});
 	});
 	describe('Identical output with ', () => {
-		test('#{Left1, Left2} <= (Right1, Right2) = #{Left2, Left1} <= (Right2, Right1)', () => {
+		test('#{Left1, Left2} <= #Right1, #Right2 is #{Left2, Left1} <= #Right2, #Right1', () => {
 			const parser = new YantrixParser();
-			const [left1, left2, right1, right2] = new Array(4).map(() => randomString());
-			const parsedLeft = parser.parse(`#{${left1}, ${left2}} <= (${right1}, ${right2})`);
-			const parsedRight = parser.parse(`#{${left2}, ${left1}} <= (${right2}, ${right1})`);
+
+			const [left1, left2, right1, right2] = Array.from(Array(4), () => randomString());
+
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}} <= $${right1}, $${right2}`);
+			const parsedRight = parser.parse(`#{${left2}, ${left1}} <= $${right2}, $${right1}`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
-			const { context: contextLeft, payload: payloadLeft } = contextLeftDescription;
-			const { context: contextRight, payload: payloadRight } = contextRightDescription;
+			const { context: contextLeft, reducer: payloadLeft } = contextLeftDescription;
+			const { context: contextRight, reducer: payloadRight } = contextRightDescription;
 
 			expect(contextLeft[0]).toStrictEqual(contextRight[1]);
 			expect(contextLeft[1]).toStrictEqual(contextRight[0]);
@@ -206,14 +219,14 @@ describe('Base grammar declarations', () => {
 
 		test('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const [left1, left2, left3, right1, right2] = new Array(5).map(() => randomString());
-			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}} <= (${right1}, ${right2})`);
-			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= (${right2}, ${right1})`);
+			const [left1, left2, left3, right1, right2] = Array.from(Array(4), () => randomString());
+			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}} <= $${right1}, $${right2}`);
+			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= $${right2}, $${right1}`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
-			const { context: contextLeft, payload: payloadLeft } = contextLeftDescription;
-			const { context: contextRight, payload: payloadRight } = contextRightDescription;
+			const { context: contextLeft, reducer: payloadLeft } = contextLeftDescription;
+			const { context: contextRight, reducer: payloadRight } = contextRightDescription;
 
 			expect(contextLeft[0]).toStrictEqual(contextRight[1]);
 			expect(contextLeft[1]).toStrictEqual(contextRight[0]);
@@ -231,8 +244,8 @@ describe('Base grammar declarations', () => {
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
-			const { context: contextLeft, payload: payloadLeft } = contextLeftDescription;
-			const { context: contextRight, payload: payloadRight } = contextRightDescription;
+			const { context: contextLeft } = contextLeftDescription;
+			const { context: contextRight } = contextRightDescription;
 
 			contextLeft.forEach((el: any, index: any) => {
 				expect(el).toMatchObject(contextRight[index]);
@@ -327,8 +340,8 @@ describe('Base grammar declarations', () => {
 				const payloadArgumentCount = Math.ceil(Math.random() * payloadArgumentMaxCount);
 				const contextArgumentCount = payloadArgumentCount + randomInteger();
 				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
-				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `prop${i}`).join(',');
-				const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `$prop${i}`).join(',');
+				const stringToParse = `#{${contextArguments}} <= ${payloadArguments}`;
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
@@ -364,9 +377,9 @@ describe('Base grammar declarations', () => {
 				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
 				const prevContextArguments = Array.from(
 					{ length: prevContextArgumentCount },
-					(v, i) => `prop${i}`,
+					(v, i) => `#prop${i}`,
 				).join(',');
-				const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
+				const stringToParse = `#{${contextArguments}} <= ${prevContextArguments}`;
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
@@ -384,7 +397,7 @@ describe('Base grammar declarations', () => {
 				const cases = generateRandomStatementsFromTemplate(validExpressionStatements);
 				test.each(cases)('%s --- CORRECT', (input) => {
 					const result = parser.parse(input);
-					assert.isOk(result.contextDescription[0].context[0].KeyItemDeclaration.Expression);
+					assert.isOk(result.contextDescription[0].context[0].keyItem.expression);
 				});
 			});
 
@@ -402,7 +415,7 @@ describe('Base grammar declarations', () => {
 				test.each(cases)('%s --- CORRECT', (input) => {
 					const result = parser.parse(input);
 					assert.deepNestedInclude(
-						result.contextDescription[0].context[0].KeyItemDeclaration.Expression,
+						result.contextDescription[0].context[0].keyItem.expression,
 						expressionProperties.array(),
 					);
 				});
@@ -427,7 +440,7 @@ describe('Base grammar declarations', () => {
 		const cases = generateExpressionCases(expressionTemplates);
 		test.each(cases)('%s', (input: string, obj) => {
 			const result = parser.parse(input);
-			assert.deepNestedInclude(result.contextDescription[0].context[0].KeyItemDeclaration.Expression, obj);
+			assert.deepNestedInclude(result.contextDescription[0].context[0].keyItem.expression, obj);
 		});
 	});
 
