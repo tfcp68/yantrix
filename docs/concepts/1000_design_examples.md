@@ -2,9 +2,9 @@
 title: Sample Designs
 ---
 
-## Sample Designs
+# Sample Designs
 
-### Checkboxes
+## Checkboxes
 
 #### Basic Checkbox
 
@@ -80,7 +80,7 @@ stateDiagram-v2
 
 The same `Action`s as above can be applied to disabled `State`s, allowing to change the value of checkbox without enabling it. However, not that **TOGGLE** `Action` will not work in disabled `State`s.
 
-### Radio Group
+## Radio Group
 
 ```mermaid
 stateDiagram-v2
@@ -108,7 +108,7 @@ Here we also create a single **DISABLED** `State`, because we uphoisted the stat
 
 Also a special **UNSET** `Action`, that removes the selection: it works by _not_ passing a `Payload`, which triggers `$index = -1` fallback to [default value](../syntax/120_values_and_constants.html#default-values)
 
-### Dropdown Control
+## Dropdown Control
 
 ```mermaid
 stateDiagram-v2
