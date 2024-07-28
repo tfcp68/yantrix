@@ -6,11 +6,11 @@ title: Data Flow
 
 ## Data Model
 
-Regardless of what's happening in the outside world, there's always a data snapshot of Application which is fully descriptive of its behaviour. This snapshot is stored in a `Data Model` &mdash; a global anemic storage that can be accessed via API. `Data Model` is something like a savegame, which can be used to serialize the application state to a text format and then instantiate the application to a previously saved state. Sometimes, minor conditions are not preserved, because they are stored inside `FSM`s instead, but most often than not `Data Model` is an application-global store, similar to Redux, which can be observed partially or extensively to update UI and endpoints.
+Regardless of what's happening in the outside world, there's always a data snapshot of an Application that is fully descriptive of its behavior. This snapshot is stored in a `Data Model` &mdash; a global anemic storage that can be accessed via API. `Data Model` is something like a savegame, which can be used to serialize the application state to a text format and then instantiate the application to a previously saved state. Sometimes, minor conditions are not preserved, because they are stored inside `FSM`s instead, but most often than not `Data Model` is an application-global store, similar to Redux, which can be observed partially or extensively to update UI and endpoints.
 
 ## Data Sources
 
-`Data Sources` are the lowest level abstractions in Yantrix. They represent the driving force of all the things in the Universe &ndash; Data. It is packed into [`Data Objects`](../syntax/100_data_objects.html) and moves the pieces of framework, such as `FSM`s, `Slices` and `Event Bus`, which is the preferred way. In Yantrix, while `FSM`s and `Data Model` are abstractions that store "internal" state of the Application, the external state of the environment has no single interface. Instead, various abstractions are used to produce declarative `Events`, that are processed synchronously. In real world scenarios, those would be:
+`Data Sources` are the lowest level abstractions in Yantrix. They represent the driving force of all the things in the Universe &mdash; information. It is packed into [`Data Objects`](../syntax/100_data_objects.html) and moves the pieces of framework, such as `FSM`s, `Slices` and `Event Bus`, which is the preferred way. In Yantrix, while `FSM`s and `Data Model` are abstractions that store "internal" state of the Application, the external state of the environment has no single interface. Instead, various abstractions are used to produce declarative `Events`, that are processed synchronously. In real world scenarios, those would be:
 
 -   Remote APIs, webhooks
 -   Network streams: WebSockets, WebRTC, UDP
@@ -28,9 +28,16 @@ Yantrix can be used both for frontend and backend apps, and the choice of build 
 
 ## Event Adapters
 
+`Event Adapter` is a component that plugs into an `FSM` and then connects to `Event Stack`. Every incoming `Event` is passed to an [interface](../API-Reference/automata/interfaces/IAutomataEventAdapter.html#handleevent) that may produce a `Payload` from it. If so, the `Payload` is then passed to an attached `FSM`, and after the transition concludes, another [interface](../API-Reference/automata/interfaces/IAutomataEventAdapter.html#handletransition) translates a resulting `Context` into another `Event`, if required. The `Event` is then added to the `Event Stack`.
+
+This, each `Event Adapter` is dependent on all three semantic spaces: `Events`, `Actions` and `States`. If several `FSM`s use the same `States` and `Actions`, they also can use same `Event Adapters` attached to the same `Event Stack`, making them reusable. However, when autogenerating `Slices` with Yantrix, there's no fine control over namespaces, providing only two options:
+
+-   `single` dictionary for all encountered `Actions` and `States` (respectively) and a combined `Event Adapter` that is plugged into every generated `FSM`
+-   `independent` dictionaries and unique `Event Adapters` for every generated `FSM`
+
 ## Effects
 
-## Full Cycle
+## Diagram
 
 ```mermaid
 sequenceDiagram

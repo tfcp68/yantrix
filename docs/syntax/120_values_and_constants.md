@@ -11,7 +11,7 @@ As of now, data contracts in diagrams do not have typings.
 When exporting Typescript code, they are declared as `any`. However, FSM itself (it's `States` and `Actions`) is typed
 along with [Automata](../API-reference/automata/) instance.
 
-For other languages Yantrix aims to provide compatibility with elementary types, existing in most languages:
+For other languages, Yantrix aims to provide compatibility with elementary types, existing in most of them:
 
 -   **Numbers**: integer and floats are processed as similarly as possible for a given language
 -   **Strings**: strings are processed as immutables, i.e. every string function should return a new string rather than
@@ -21,18 +21,18 @@ For other languages Yantrix aims to provide compatibility with elementary types,
 -   **Objects(Dictionaries)**: implementation is highly language-dependent and aims to reproduce the behaviour of
     Typescript [`Record`](../API-reference/automata/interfaces/IAutomata.html) implementation as closely as possible.
     For `Functions` implementation **Object** arguments should be defined as immutable and read-only.
--   **Binary** &mdash; a special type that is used for conditions check. It is essentially a **Number** but is interpreted
+-   **Binary** &mdash; a special type that is used for conditional logic. It is essentially a **Number** but is interpreted
     as a boolean by the following rules:
     -   If the value is `Null` or unset, the `Binary` is falsy
     -   If the value is 0 or less, the `Binary` is falsy
     -   If the value is 1 or greater, the `Binary` is truthy
     -   Otherwise, the value is rounded by mathematic rules and then is compared again
+-   A special **Function** type exists for [Functions](140_functions.html), when they are used as another `Function` parameter, such as in `map`- and `filter`-style iterators.
 
 ## Properties
 
 Properties are named members of [`Data Objects`](100_data_objects.html). Inside Yantrix intestines `Payload`,`Context`
-and `Event Meta` are dictionaries, and top-level properties of them can be extracted by name. Deeper nested values (i.e.
-when property is of `Object` type) are extracted with special [`Functions`](140_functions.html)
+and `Event Meta` are dictionaries, and top-level properties of them can be extracted by name. Deeper nested values (i.e., when property is of `Object` type) are extracted with special [`Functions`](140_functions.html)
 
 The properties extracted from `Data Objects`, which are destructured from them based on their Keys. Listing Keys is like
 declaring variables, which are members of a dereferenced Data Object.
@@ -92,7 +92,7 @@ an empty pointer). To assign a default value
 the `KEY_ITEM` is followed by `=` and a [`Constant`](constants.html) or [`Expression`](expressions.html). For instance:
 
 ```
-#{anyValue, stringValue = 'foobar', numericValue = cos(3.14/6)}
+#{anyValue, stringValue = 'foobar', numericValue = cos(div(%%pi,6))}
 ```
 
 Default values can be used both in `Source Objects` and in `Target Objects`, but they are assigned only if the
@@ -109,7 +109,7 @@ referenced key exists in it. For example:
 #{value1, value2} <= $value1 = 1, $value2 = 1
 ````
 
-When used on both sides of a transaction, the `Source Object` default value takes priority. I.e. the
+When used on both sides of a transaction, the `Source Object` default value takes priority. i.e. the
 code `#{a = 1} <= $b = 2` is processed in the following manner:
 
 -   `b` is read from `Payload`. If it's there but `Null`, the expressions resolves to `2`. Otherwise it's an unset value

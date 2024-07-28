@@ -95,7 +95,7 @@ Or you can use one of the available [Integrations](./integrations/) with a frame
 
 ## Syntax Breakdown
 
-Let's see what's happening in depth. The diagram describes an [`FSM`](./architecture/200_FSM.html), &ndash; a finite state machine, a control object that is characterized by a limited set of `States`, and it always resides in one and only one of them.
+Let's see what's happening in depth. The diagram describes an [`FSM`](concepts/200_FSM.html), &ndash; a finite state machine, a control object that is characterized by a limited set of `States`, and it always resides in one and only one of them.
 
 ### States
 

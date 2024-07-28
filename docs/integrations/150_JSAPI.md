@@ -70,7 +70,11 @@ Slider.getState('ENABLED'); // returns a numeric internal id of this State, or N
 There's also a helper to check if the `FSM` is in a particular `State` right now:
 
 ```javascript
-const SliderInstance = new Slider({ min: 1, max: 10, value: 5 });
+const SliderInstance = new Slider({
+	min: 1,
+	max: 10,
+	value: 5,
+});
 
 Slider.hasState(SliderInstance, 'ENABLED'); // true
 // this is the same as
@@ -89,7 +93,10 @@ Slider.getAction('ENABLE');
 Since most of the time you need to pass a `Payload` object into `dispatch`, there's a helper to create a `Payload`:
 
 ```javascript
-const payload = Slider.createAction('RESET', { min: 0, max: 50 });
+const payload = Slider.createAction('RESET', {
+	min: 0,
+	max: 50,
+});
 
 Slider.dispatch(payload);
 ```

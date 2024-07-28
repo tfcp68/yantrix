@@ -13,26 +13,39 @@ Excel formulas included.
 Almost every `Function` used in Yantrix is a [pure function](https://en.wikipedia.org/wiki/Pure_function), i.e. it does
 not mutate its arguments or whatsoever, with the only exception being [`Model Transformers`](160_transformers.md).
 
-## Function Classes
+## Function Types
 
 The purpose of functions is to provide declarative and deterministic way of transforming data in `FSM` and `Model`
 during transitions. Functions are categorized into three varieties:
 
 -   `Higher-Order Functions` or just `HOF`s are mostly built-in and are used to control the execution flow, taking place
     of **operators** and **keywords** in imperative programming languages.
--   `Predicates` &mdash; `Functions` that have a binary output and validate some condition. Most often than not they are
-    used to introduce cyclomatic complexity and logic branching.
+-   `Predicates` &mdash; `Functions` that have a binary output and validate some condition. More often than not, they are used to introduce cyclomatic complexity and logic branching.
 -   `Transformers` &mdash; are `Functions` that project one data space to another, like mapping
     between `Payload`, `Context`, `Event Meta` or primitive types.
 
-## Function definition
+## Directive
 
 A `Function` can be defined "inline" at default diagram node or as an injection to Codegen:
 
+```
+define/isMultiplierOf5 (x) => isEqual(mod(x, 5), 0)
+define/tg (x) => div(sin(x), cos(x))
+define/coinToss () => if(isLess(random(), 0.5), 1, 0)
+```
+
+defined functions can be reused inside any other defined functions regardless of declaration order. The recursion is possible but not recommended
+
+```
+define/sq (x) => mult(x,x)
+define/sumSq (x,y) => add(sq(x), sq(y))
+define/hypot (x,y) => sqrt(sumSq(x, y))
+```
+
 ## Polymorphism
 
-`Functions` can implement parameter polymorphism, i.e. they can declare several similar signatures operating different
-types. However a function can not have polymorphic return type, and it has limited options depending on which class
+`Functions` can implement parameter polymorphism, i.e., they can declare several similar signatures operating different
+types. However, a function cannot have a polymorphic return type, and it has limited options depending on which class
 the `Function` belongs to:
 
 -   `Higher-Order Functions` can return any primitive type
