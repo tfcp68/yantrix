@@ -2,7 +2,7 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 31.07.2024, 00:16:48 |     0.194 s |
+| 31.07.2024, 00:27:02 |     0.237 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
@@ -11,7 +11,7 @@
 
 ## ✅ <a id="file0" href="#file0">**tests**\automataRedux.test.ts</a>
 
-0 passed, 0 failed, 0 skipped, 0 todo, done in 1 s
+0 passed, 0 failed, 0 skipped, 0 todo, done in 0 s
 
 ```
 
