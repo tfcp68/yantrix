@@ -2,7 +2,7 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 30.07.2024, 23:09:32 |     0.981 s |
+| 31.07.2024, 00:06:23 |     1.108 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
@@ -11,7 +11,7 @@
 
 ## ✅ <a id="file0" href="#file0">**tests**\actionDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 16 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 31 s
 
 ```
 ✅ ActionDictionary › constructor
@@ -213,7 +213,7 @@
 
 ## ✅ <a id="file2" href="#file2">**tests**\eventAdapter.test.ts</a>
 
-46 passed, 0 failed, 0 skipped, 0 todo, done in 15 s
+46 passed, 0 failed, 0 skipped, 0 todo, done in 44 s
 
 ```
 ✅ EventAdapter › constructor
@@ -282,7 +282,7 @@
 
 ## ✅ <a id="file3" href="#file3">**tests**\eventDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 34 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 49 s
 
 ```
 ✅ EventDictionary › constructor

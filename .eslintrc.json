@@ -5,10 +5,10 @@
 		"browser": true,
 		"es6": true
 	},
-	"ignorePatterns": ["**/yantrixParser.ts", "**/*_generated.*", "dist"],
+	"ignorePatterns": ["dist"],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
-		"project": "tsconfig.json",
+		"project": ["tsconfig.json", "packages/*/tsconfig.json"],
 		"ecmaVersion": 2022,
 		"sourceType": "module",
 		"ecmaFeatures": {
