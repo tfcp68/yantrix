@@ -72,7 +72,7 @@ export class PythonCodegen implements ICodegen {
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
 		return Object.keys(transitions)
 			.map((key) => {
-				const { actionsPath } = transitions[key];
+				const { actionsPath } = transitions[key] as TDiagramAction;
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
 				return actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
@@ -149,7 +149,7 @@ export class PythonCodegen implements ICodegen {
 
 	protected getActionToStateFromStateDict() {
 		return Object.keys(this.diagram.transitions).map((state) => {
-			const transitions = this.diagram.transitions[state];
+			const transitions = this.diagram.transitions[state] as Record<string, TDiagramAction>;
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
 

@@ -69,7 +69,7 @@ export function createEventDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TEventKeysCollection<EventType>): Array<EventType | null> {
-				return (keys ?? []).map((eventKey) => this._findItem(eventKey as string, namespace));
+				return (keys ?? []).map((eventKey) => this._findItem(eventKey as string, namespace)) as EventType[];
 			}
 
 			/**

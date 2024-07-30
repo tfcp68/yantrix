@@ -612,7 +612,7 @@ describe('ActionDictionary', () => {
 						actions: sampleInstance.getActionValues({
 							namespace: testNamespace,
 							keys: sampleKeys[testNamespace],
-						}),
+						}) as unknown as number[],
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
 				});
@@ -669,10 +669,10 @@ describe('ActionDictionary', () => {
 					sampleInstance.removeActions({
 						actions: [
 							...sampleAction,
-							...sampleInstance.getActionValues({
+							...(sampleInstance.getActionValues({
 								namespace: testNamespace,
 								keys: sampleKeys[testNamespace],
-							}),
+							}) as unknown as number[]),
 						],
 						keys: [...sampleKey, ...sampleKeys[testNamespaceExtra]],
 					});

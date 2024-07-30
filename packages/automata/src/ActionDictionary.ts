@@ -46,7 +46,7 @@ export function createActionDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TActionKeysCollection<ActionType>): Array<ActionType | null> {
-				return (keys ?? []).map((actionKey) => this._findItem(actionKey as string, namespace));
+				return (keys ?? []).map((actionKey) => this._findItem(actionKey as string, namespace)) as ActionType[];
 			}
 
 			addActions({ namespace = undefined, keys }: TActionKeysCollection<ActionType>): ActionType[] {

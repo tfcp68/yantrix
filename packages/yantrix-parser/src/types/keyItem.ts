@@ -23,9 +23,9 @@ export type TKeyItem<X extends (typeof KeyItemType)[TKeyItemKeys] = typeof KeyIt
 
 export type TKeyItems<X extends (typeof KeyItemType)[TKeyItemKeys] = typeof KeyItemType.RAW> = Array<TKeyItem<X>>;
 
-const t: TKeyItemReducer = {
-	expression: {
-		expressionType: ExpressionTypes.StringDeclaration,
-		StringDeclaration: 'test',
-	},
-};
+// const t: TKeyItemReducer = {
+// 	expression: {
+// 		expressionType: ExpressionTypes.StringDeclaration,
+// 		StringDeclaration: 'test',
+// 	},
+// };

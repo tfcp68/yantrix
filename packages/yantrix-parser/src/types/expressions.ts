@@ -6,9 +6,9 @@ import { ExpressionTypes } from '../constants';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
-type TReference = {
-	identifier: string;
-};
+// type TReference = {
+// 	identifier: string;
+// };
 
 type TExpressionString = {
 	StringDeclaration: string;

@@ -1,5 +1,4 @@
 import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
-import { fmt } from './utils/utils.js';
 import { CodegenCreator } from './core/Codegen.js';
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';

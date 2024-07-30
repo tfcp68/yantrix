@@ -11,13 +11,13 @@ import {
 } from './types/index.js';
 import { IStateDictionary } from './types/interfaces.js';
 
-type TTransformerDictionaryItem<
-	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
-	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
-> = {
-	state: StateType;
-	transformer: TContextTransformer<StateType, ContextType>;
-};
+// type TTransformerDictionaryItem<
+// 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
+// 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
+// > = {
+// 	state: StateType;
+// 	transformer: TContextTransformer<StateType, ContextType>;
+// };
 
 export function createStateDictionary<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,

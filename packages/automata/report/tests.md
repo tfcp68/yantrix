@@ -1,17 +1,17 @@
 # Test Report
 
-| 🕙 Start time         | ⌛ Duration |
-| --------------------- | ----------: |
-| 7/25/2024, 5:20:48 PM |     4.524 s |
+| 🕙 Start time        | ⌛ Duration |
+| -------------------- | ----------: |
+| 30.07.2024, 23:09:32 |     0.981 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
 | Test Suites |        96 |         0 |          0 |       0 |       96 |
 | Tests       |       252 |         0 |          0 |       0 |      252 |
 
-## ✅ <a id="file0" href="#file0">**tests**/actionDictionary.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/a08ccc072f4c13c973da93ccd46cc1a627238e73/packages/automata/__tests__/actionDictionary.test.ts)]
+## ✅ <a id="file0" href="#file0">**tests**\actionDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 63 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 16 s
 
 ```
 ✅ ActionDictionary › constructor
@@ -110,9 +110,9 @@
 ✅ ActionDictionary
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**/automata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/a08ccc072f4c13c973da93ccd46cc1a627238e73/packages/automata/__tests__/automata.test.ts)]
+## ✅ <a id="file1" href="#file1">**tests**\automata.test.ts</a>
 
-68 passed, 0 failed, 0 skipped, 0 todo, done in 77 s
+68 passed, 0 failed, 0 skipped, 0 todo, done in 19 s
 
 ```
 ✅ Automata › constructor
@@ -211,9 +211,9 @@
 ✅ Automata
 ```
 
-## ✅ <a id="file2" href="#file2">**tests**/eventAdapter.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/a08ccc072f4c13c973da93ccd46cc1a627238e73/packages/automata/__tests__/eventAdapter.test.ts)]
+## ✅ <a id="file2" href="#file2">**tests**\eventAdapter.test.ts</a>
 
-46 passed, 0 failed, 0 skipped, 0 todo, done in 55 s
+46 passed, 0 failed, 0 skipped, 0 todo, done in 15 s
 
 ```
 ✅ EventAdapter › constructor
@@ -280,9 +280,9 @@
 ✅ EventAdapter
 ```
 
-## ✅ <a id="file3" href="#file3">**tests**/eventDictionary.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/a08ccc072f4c13c973da93ccd46cc1a627238e73/packages/automata/__tests__/eventDictionary.test.ts)]
+## ✅ <a id="file3" href="#file3">**tests**\eventDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 54 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 34 s
 
 ```
 ✅ EventDictionary › constructor
