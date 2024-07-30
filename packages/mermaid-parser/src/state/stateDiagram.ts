@@ -1,5 +1,6 @@
-import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
+import { TActionsStructure, TNote, TStateDiagramStructure } from './types/index.js';
 import {
+	TActionPath,
 	TActionPathArray,
 	TChoicesId,
 	TDiagramAction,
@@ -24,19 +25,19 @@ function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
 	const notesId: TNotesId = {};
 
 	for (let i = 0; i < notes.length; i++) {
-		const note = notes[i];
+		const note = notes[i] as TNote;
 
 		if (!Object.keys(notesId).includes(note.over)) {
 			notesId[note.over] = [];
 		}
 		const notesArray: string[] = [];
 		for (let j = 0; j < note.text.length; j++) {
-			const noteArray: string[] = note.text[j].trim().split('\n');
+			const noteArray = note.text[j]?.trim().split('\n') as string[];
 			for (let k = 0; k < noteArray.length; k++) {
-				notesArray.push(noteArray[k].trim());
+				notesArray.push(noteArray[k]?.trim() as string);
 			}
 		}
-		notesId[note.over].push(notesArray);
+		notesId[note.over]?.push(notesArray);
 	}
 	return notesId;
 }
@@ -50,7 +51,7 @@ function getChoicesId(stateDiagramStructure: TStateDiagramStructure): TChoicesId
 	const choices = stateDiagramStructure.choices;
 	const choicesId: TChoicesId = [];
 	for (let i = 0; i < choices.length; i++) {
-		choicesId.push(choices[i].id);
+		choicesId.push(choices[i]?.id as string);
 	}
 	return choicesId;
 }
@@ -72,9 +73,9 @@ function addNotesForChoices(
 	if (!Object.keys(notesId).includes(choice)) {
 		notesId[choice] = [['']];
 	}
-	for (let j = 0; j < notesId[choice].length; j++) {
-		const noteId: string[] = notesId[choice][j];
-		choiceAction.actionsPath[0].note.push(noteId);
+	for (let j = 0; j < notesId[choice]!.length; j++) {
+		const noteId = notesId[choice]?.[j] as string[];
+		choiceAction.actionsPath[0]?.note.push(noteId);
 	}
 	fromChoices.push(choiceAction);
 
@@ -91,14 +92,14 @@ function addNotesForChoices(
 function getFromChoices(actions: TActionsStructure, choicesId: TChoicesId, notesId: TNotesId): TFromChoiceArray {
 	let fromChoices: TFromChoiceArray = [];
 	for (let i = 0; i < actions.length; i++) {
-		const choice = actions[i].to;
-		if (choicesId.includes(actions[i].to)) {
+		const choice = actions[i]?.to as string;
+		if (choicesId.includes(actions[i]?.to as string)) {
 			const choiceAction: TFromChoice = {
 				choice,
-				from: actions[i].from,
+				from: actions[i]?.from as string,
 				actionsPath: [
 					{
-						action: [actions[i].id],
+						action: [actions[i]?.id as string],
 						note: [],
 					},
 				],
@@ -119,8 +120,8 @@ function concatActionPathes(fromChoice: TActionPathArray, toChoice: TActionPathA
 	const actionPathArray: TActionPathArray = [];
 	for (let i = 0; i < fromChoice.length; i++) {
 		for (let j = 0; j < toChoice.length; j++) {
-			const action = fromChoice[i].action.concat(toChoice[j].action);
-			const note = fromChoice[i].note.concat(toChoice[j].note);
+			const action = fromChoice[i]?.action.concat(toChoice[j]?.action as string[]) as string[];
+			const note = fromChoice[i]?.note.concat(toChoice[j]?.note as string[][]) as string[][];
 			actionPathArray.push({ action, note });
 		}
 	}
@@ -151,14 +152,14 @@ function unravelChoices(
 			actionsPath: actionPathes,
 		});
 	} else {
-		if (!Object.keys(transitions[from]).includes(to)) {
-			transitions[from][to] = {
+		if (!Object.keys(transitions[from] as Record<string, TDiagramAction>).includes(to)) {
+			transitions[from]![to] = {
 				actionsPath: [],
 			};
 		}
 
 		for (let i = 0; i < actionPathes.length; i++) {
-			transitions[from][to].actionsPath.push(actionPathes[i]);
+			transitions[from]?.[to]?.actionsPath.push(actionPathes[i] as TActionPath);
 		}
 	}
 	return transitions;
@@ -176,7 +177,7 @@ function deleteRowChoices(
 ): TDiagramTransitions {
 	const choices = stateDiagramStructure.choices;
 	for (let i = 0; i < choices.length; i++) {
-		delete transitions[choices[i].id];
+		delete transitions[choices[i]?.id as string];
 	}
 
 	return transitions;
@@ -200,21 +201,21 @@ function markChoicesInTransitions(
 	while (fromChoices.length) {
 		const fromChoice = fromChoices[fromChoices.length - 1];
 		if (
-			choicesId.includes(fromChoice.from) &&
-			choicesId.includes(fromChoice.choice) &&
-			fromChoice.from === fromChoice.choice
+			choicesId.includes(fromChoice?.from as string) &&
+			choicesId.includes(fromChoice?.choice as string) &&
+			fromChoice?.from === fromChoice?.choice
 		) {
-			throw new ChoiceCycleError(fromChoice.from + '-->' + fromChoice.choice);
+			throw new ChoiceCycleError(fromChoice?.from + '-->' + fromChoice?.choice);
 		}
 		fromChoices.pop();
-		const { choice, from } = fromChoice;
-		const toChoice = transitions[choice];
-		delete transitions[from][choice];
+		const { choice, from } = fromChoice as TFromChoice;
+		const toChoice = transitions[choice] as Record<string, TDiagramAction>;
+		delete transitions[from]?.[choice];
 		const toChoiceKeys = Object.keys(toChoice);
 		for (let i = 0; i < toChoiceKeys.length; i++) {
-			const to = toChoiceKeys[i];
-			const fromChoicePath = fromChoice.actionsPath;
-			const toChoicePath = toChoice[to].actionsPath;
+			const to = toChoiceKeys[i] as string;
+			const fromChoicePath = fromChoice?.actionsPath as TActionPath[];
+			const toChoicePath = toChoice[to]?.actionsPath as TActionPath[];
 			const actionPathes: TActionPathArray = concatActionPathes(fromChoicePath, toChoicePath);
 			transitions = unravelChoices(choicesId, fromChoices, from, to, actionPathes, transitions);
 		}
@@ -233,19 +234,19 @@ function getTransitions(stateDiagramStructure: TStateDiagramStructure): TDiagram
 	const actions = stateDiagramStructure.actions;
 
 	for (let i = 0; i < actions.length; i++) {
-		const from = actions[i].from;
-		const to = actions[i].to;
-		const actionId = actions[i].id;
+		const from = actions[i]?.from as string;
+		const to = actions[i]?.to as string;
+		const actionId = actions[i]?.id as string;
 		const action: TDiagramAction = {
 			actionsPath: [],
 		};
 		if (!Object.keys(transitions).includes(from)) {
 			transitions[from] = {};
 		}
-		if (!Object.keys(transitions[from]).includes(to)) {
-			transitions[from][to] = action;
+		if (!Object.keys(transitions[from] as Record<string, TDiagramAction>).includes(to)) {
+			transitions[from]![to] = action;
 		}
-		transitions[from][to].actionsPath.push({
+		transitions[from]?.[to]?.actionsPath.push({
 			action: [actionId],
 			note: [],
 		});
@@ -265,13 +266,13 @@ function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: st
 	if (!Object.keys(transitions).includes(stateId)) {
 		return [];
 	}
-	const transitionsTo = transitions[stateId];
+	const transitionsTo = transitions[stateId] as Record<string, TDiagramAction>;
 	const transitionsToKeys = Object.keys(transitionsTo);
 	for (let i = 0; i < transitionsToKeys.length; i++) {
-		const to = transitionsToKeys[i];
-		const actionsPathTo: TActionPathArray = transitionsTo[to].actionsPath;
+		const to = transitionsToKeys[i] as string;
+		const actionsPathTo = transitionsTo[to]?.actionsPath as TActionPath[];
 		for (let j = 0; j < actionsPathTo.length; j++) {
-			actionsPath.push(actionsPathTo[j]);
+			actionsPath.push(actionsPathTo[j] as TActionPath);
 		}
 	}
 	return actionsPath;
@@ -297,7 +298,7 @@ function getStates(
 	const notesIdKeys = Object.keys(notesId);
 	const choicesId = getChoicesId(stateDiagramStructure);
 	for (let i = 0; i < stateDiagramStructure.states.length; i++) {
-		const stateId = stateDiagramStructure.states[i].id;
+		const stateId = stateDiagramStructure.states[i]?.id as string;
 		if (choicesId.includes(stateId)) {
 			continue;
 		}
@@ -306,13 +307,13 @@ function getStates(
 		const stateIdFormatted = formattedStartOrEndDict[stateId] || stateId;
 
 		if (notesIdKeys.includes(stateIdFormatted)) {
-			notes = notesId[stateIdFormatted];
+			notes = notesId[stateIdFormatted] as string[][];
 		}
 
 		const actionsPath: TActionPathArray = getActionsPathesForStates(transitions, stateId);
 		const state: TDiagramState = {
 			id: stateId,
-			caption: stateDiagramStructure.states[i].caption,
+			caption: stateDiagramStructure.states[i]?.caption as string,
 			actionsPath,
 			notes,
 		};
