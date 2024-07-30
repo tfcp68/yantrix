@@ -2,7 +2,7 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 31.07.2024, 00:26:57 |     1.188 s |
+| 31.07.2024, 00:36:27 |     1.121 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
@@ -11,7 +11,7 @@
 
 ## ✅ <a id="file0" href="#file0">**tests**\actionDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 22 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 18 s
 
 ```
 ✅ ActionDictionary › constructor
@@ -112,7 +112,7 @@
 
 ## ✅ <a id="file1" href="#file1">**tests**\automata.test.ts</a>
 
-68 passed, 0 failed, 0 skipped, 0 todo, done in 24 s
+68 passed, 0 failed, 0 skipped, 0 todo, done in 48 s
 
 ```
 ✅ Automata › constructor
@@ -213,7 +213,7 @@
 
 ## ✅ <a id="file2" href="#file2">**tests**\eventAdapter.test.ts</a>
 
-46 passed, 0 failed, 0 skipped, 0 todo, done in 24 s
+46 passed, 0 failed, 0 skipped, 0 todo, done in 20 s
 
 ```
 ✅ EventAdapter › constructor
@@ -282,7 +282,7 @@
 
 ## ✅ <a id="file3" href="#file3">**tests**\eventDictionary.test.ts</a>
 
-69 passed, 0 failed, 0 skipped, 0 todo, done in 25 s
+69 passed, 0 failed, 0 skipped, 0 todo, done in 17 s
 
 ```
 ✅ EventDictionary › constructor

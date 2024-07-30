@@ -48,6 +48,5 @@
 		"useDefineForClassFields": true,
 		"skipLibCheck": true
 	},
-	"include": ["*.ts", "*.js"],
 	"exclude": ["node_modules"]
 }

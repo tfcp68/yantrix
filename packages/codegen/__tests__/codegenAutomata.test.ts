@@ -1,3 +1,4 @@
+// @ts-ignore
 import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
 

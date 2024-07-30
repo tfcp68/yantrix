@@ -2,7 +2,7 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 31.07.2024, 00:27:02 |     0.289 s |
+| 31.07.2024, 00:36:33 |     0.228 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
@@ -11,7 +11,7 @@
 
 ## ✅ <a id="file0" href="#file0">**tests**\codegenAutomata.test.ts</a>
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 3 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 4 s
 
 ```
 ✅ Codegen output › GamePhaseAutomata

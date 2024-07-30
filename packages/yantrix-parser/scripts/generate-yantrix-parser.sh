@@ -7,7 +7,7 @@ CLASS_NAME="Yantrix"
 INPUT_FILE="${ROOT}/src/grammar/parserGrammar.jison"
 OUTPUT_FILE="${ROOT}/src/yantrixParser.ts"
 
-DISABLE_CHECK_FLAGS="// @ts-nocheck\n/* eslint-disable */"
+DISABLE_CHECK_FLAGS="/* eslint-disable */\n// @ts-nocheck"
 
 ts-jison \
 	-t $GEN_TYPE \

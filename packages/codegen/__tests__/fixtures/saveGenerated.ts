@@ -95,7 +95,7 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 		outLang: 'TypeScript',
 	});
 
-	const ignoreFlags = '// @ts-nocheck\n/* eslint-disable */';
+	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck';
 	const writable = `${ignoreFlags}\n${generatedAutomataOutput}`;
 
 	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), writable, {
