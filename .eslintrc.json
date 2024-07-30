@@ -43,7 +43,7 @@
 				"selector": "typeAlias",
 				"format": ["PascalCase"],
 				"custom": {
-					"regex": "^T[A-Z].*$",
+					"regex": "^T\\w{3,}$",
 					"match": true
 				}
 			},
@@ -51,22 +51,17 @@
 				"selector": "interface",
 				"format": ["PascalCase"],
 				"custom": {
-					"regex": "^I[A-Z].*$",
+					"regex": "^I\\w{3,}$",
 					"match": true
 				}
 			},
 			{
-				"selector": "variable",
-				"format": ["camelCase", "PascalCase"],
-				"trailingUnderscore": "forbid"
-			},
-			{
-				"selector": "variable",
-				"types": ["array"],
-				"modifiers": ["const", "exported"],
-				"format": ["PascalCase", "UPPER_CASE"],
-				"suffix": ["Array", "List"],
-				"trailingUnderscore": "forbid"
+				"selector": "typeParameter",
+				"format": ["PascalCase"],
+				"custom": {
+					"regex": "^\\w+",
+					"match": true
+				}
 			}
 		],
 		"@typescript-eslint/ban-types": [
