@@ -70,8 +70,8 @@ stateDiagram-v2
 	ON --> DISABLED_ON: DISABLE
 	OFF --> DISABLED_OFF: DISABLE
 	DISABLED_ON --> ON: ENABLE
-	DISABLED_ON --> DISABLED_OFF: CHECK
-	DISABLED_OFF --> DISABLED_ON: UNCHECK
+	DISABLED_ON --> DISABLED_OFF: UNCHECK
+	DISABLED_OFF --> DISABLED_ON: CHECK
 	DISABLED_OFF --> OFF: ENABLE
 	note left of OFF
 		+Init
@@ -118,6 +118,40 @@ stateDiagram-v2
 	OPEN --> CLOSED: CLOSE
 	OPEN --> SELECTED: SELECT (index)
 	SELECTED --> CLOSED: CLOSE
+	note left of INIT
+		+Init
+		+ByPass
+		#{ items, selectedIndex } <= sortBy($optionsList, 'id'), 0
+	end note
+	note right of SELECTED
+		+ByPass
+		#{ selectedIndex } <= (index)
+	end note
+note left of [*]
+#( items = [], selectedIndex = -1 }
+end note
+```
+
+-   `+Init` marks that **INIT** is the initial `State` of the `FSM`.
+-   `+ByPass` also implies that transition through this `State` is synchronous, i.e. the `State` is [intermediary](#intermediary-states). That is emphasized by a special descriptor of the outgoing `Action`: **[-]**
+-   `#{items, selectedIndex}` describes a shape of `Context` for all `States`. `items` is the list of dropdown values, and `selectedIndex` stores currently selected item. Without extra expressions these values are copied from the preceding `Context`
+-   `#{items=[], selectedIndex = 0}` sets the initial value for that `Context`
+-   `#{items, selectedIndex} <= sortBy($optionsList, 'id'), 0` fills both `Context` properties from `Payload`:
+    -   `items` is a sorted `optionsList` property, assuming it's a List of Objects that have property of `id`.
+    -   `selectedIndex` is set to 0, when the list of options is externally updated
+
+### Event integration
+
+There's no big reason to create a `FSM` for merely a dropdown unless you want to connect it to the global `Event Stack` and build something bigger on Yantrix:
+
+```mermaid
+stateDiagram-v2
+	[*] --> INIT: RESET (optionsList)
+	INIT --> CLOSED: [-]
+	CLOSED --> OPEN: OPEN
+	OPEN --> CLOSED: CLOSE
+	OPEN --> SELECTED: SELECT (index)
+	SELECTED --> CLOSED: CLOSE
 	note right of INIT
 		+Init
 		+ByPass
@@ -138,29 +172,18 @@ stateDiagram-v2
 		subscribe/clickOutside CLOSE
 	end note
 note left of [*]
-#( items = [], selectedIndex = 0 }
+#( items = [], selectedIndex = -1 }
 end note
 ```
 
--   `+Init` marks that **INIT** is the initial `State` of the `FSM`. `+ByPass` also implies that transition through
-    this `State` is synchronous, i.e. the `State` is [intermediary](#intermediary-states)
--   `#{items, selectedIndex}` describes a shape of `Context` for all `States`. `items` is the list of dropdown values,
-    and `selectedIndex` stores currently selected item. Without extra expressions these values are copied from the
-    preceding `Context`
--   `#{items=[], selectedIndex = 0}` sets the initial value for that `Context`
--   `#{items, selectedIndex} <= sortBy($optionsList, 'id'), 0` fills both `Context` properties from `Payload`:
-    -   `items` is a sorted `optionsList` property, assuming it's a List of Objects that have property of `id`.
-    -   `selectedIndex` is set to 0, when the options list is updated
 -   `subscribe/click => OPEN` in **CLOSED** state produces **OPEN** `Action` on incoming `click` `Event`, which
     transitions the `FSM` into **OPEN** state
 -   likewise, `subscribe/click SELECT (index)` produces **SELECT** `Action` and passes `index` property
     from `Event Meta` to its `Payload`, which transitions the `FSM` into the **SELECTED** `State`
 -   `subscribe/clickOutside => CLOSE` produces a **CLOSE** `Action` to return the dropdown to the
     original `State` (**CLOSED**)
--   Both **CLOSED** and **OPEN** `States` emit corresponding `Events`, that are pipelined into `Event Bus` and connect the
-    component to others.
+-   Both **CLOSED** and **OPEN** `States` emit corresponding `Events`, that are pipelined into `Event Bus` and connect the component to others.
 -   **SELECTED** is another sort of [intermediary State](#intermediary-states): while `emit/selected (index) <= #{ selectedIndex }` lets the `Event Bus` know
     which item was selected, at the same time `subscribe/selected => CLOSE` transitions the `FSM`
-    back to **CLOSED** `State` via **CLOSE** `Action`. It behaves similar to **INIT** `State` &ndash; the `FSM` goes
-    through it. However, unlike that case, here it will emit `Event` and wait for its settlement before it runs further
+    back to **CLOSED** `State` via **CLOSE** `Action`. It behaves similar to **INIT** `State` &ndash; the `FSM` goes through it. However, unlike that case, here it will emit `Event` and wait for its settlement before it runs further
     processing.
