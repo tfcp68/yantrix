@@ -1,7 +1,7 @@
 import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
 
-export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
+export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'TypeScript'> {
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		super(diagram);
 		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
@@ -17,5 +17,19 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 
 	protected getIsKeyOf() {
 		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
+	}
+
+	protected getActionFunc(className: string) {
+		return `(action: keyof typeof ${className}.actions) => ${className}.actions[action]`;
+	}
+
+	protected getCreateActionFunc(className: string) {
+		return `(action: keyof typeof ${className}.actions, payload:any) => {
+			const actionId = ${className}.getAction(action);
+			return {
+				action: actionId,
+				payload,
+			}
+		}`;
 	}
 }

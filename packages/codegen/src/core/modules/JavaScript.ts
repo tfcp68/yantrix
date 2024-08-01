@@ -1,7 +1,13 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { Expressions, fillDictionaries } from '../shared.js';
-import { ICodegen, TAssignTypeDict, TAssignTypes, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import {
+	ICodegen,
+	TAssignTypeDict,
+	TAssignTypes,
+	TGetCodeOptionsDescriptor,
+	TStateDiagramMatrixIncludeNotes,
+} from '../../types/common.js';
 import {
 	isKeyItemWithExpression,
 	isPayloadContext,
@@ -11,9 +17,8 @@ import {
 	TKeyItemWithExpression,
 	TMappedKeys,
 } from '@yantrix/yantrix-parser';
-import { randomUUID } from 'crypto';
 
-export class JavaScriptCodegen implements ICodegen {
+export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -75,15 +80,54 @@ export class JavaScriptCodegen implements ICodegen {
   				actionValidator: ${this.getActionValidator()},
 				});
 			}
-			static id = '${randomUUID()}';
-			static getStates = () => statesDictionary;
-			static getActions = () => actionsDictionary;
 			isKeyOf = ${this.getIsKeyOf()};
+			static id = '${className}';
+			static actions = actionsMap
+			static getAction = ${this.getActionFunc(className)};
+			static createAction = ${this.getCreateActionFunc(className)};
+		}`;
+	}
+
+	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
+		return `
+			${this.getImports()}
+			${this.getDictionaries()}
+			const actionsMap = ${JSON.stringify(this.getActionsDict(), null, 2)}
+			${this.getDefaultContext()}
+			${this.getActionToStateFromState()}
+			${this.getClassTemplate(options.className)}
+		`;
+	}
+
+	protected getActionFunc(className: string) {
+		return `(action) => ${className}.actions[action];`;
+	}
+
+	protected getCreateActionFunc(className: string) {
+		return `
+		(action, payload) => {
+			const actionId = ${className}.getAction(action);
+			return {
+				action: actionId,
+				payload,
+			}
 		}`;
 	}
 
 	public getActionToStateFromState() {
 		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
+	}
+
+	getActionsDict() {
+		return this.getActionsMap(this.actionDictionary.getDictionary());
+	}
+
+	getActionsMap(dict: Record<string, any>) {
+		const obj: Record<string, string> = {};
+		Object.keys(dict).forEach((key: string) => {
+			obj[key] = key;
+		});
+		return obj;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
@@ -101,14 +145,14 @@ export class JavaScriptCodegen implements ICodegen {
 					const ctx = this.getSubsyntaxContext(key);
 
 					return `
-				  ${actionValue}: {
-				  	state: ${newState},
-				  	getNewContext: ({payload, context}) => {
-				  			const prevContext = getDefaultContext({payload,context})
-				  			return ${ctx}
-				  	}
-				  },
-				`;
+					${actionValue}: {
+						state: ${newState},
+						getNewContext: ({payload, context}) => {
+							const prevContext = getDefaultContext({payload,context})
+							return ${ctx}
+							}
+						},
+					`;
 				});
 			})
 			.flatMap((el) => `${el.join('\n\t')}`);
@@ -250,6 +294,7 @@ export class JavaScriptCodegen implements ICodegen {
 			}
 		}`;
 	};
+
 	private getInitialState() {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
