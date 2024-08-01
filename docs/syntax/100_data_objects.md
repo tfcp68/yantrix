@@ -34,11 +34,8 @@ Therefore, this diagram will create a `FSM` with two `States` **A** and **B**, r
 
 In fact, an `Action` is created automatically with every transition between `States`. If not specified, it's given a
 descriptive name based on its starting and ending `State`. However, it's wiser to specify names for transitions. They
-will be then be exported as [`ActionDictionary`](../API-Reference/automata/interfaces/IActionDictionary.html), allowing
-for
-better typing and [Integrations](../integrations/). `Actions` can be dispatched directly into `FSM` API, or be generated
-automatically by the attached `Event Adapter`, that translates an `Event` from `Event Bus` to an `Action`
-with `Payload`.
+will then be exported as [`ActionDictionary`](../API-Reference/automata/interfaces/IActionDictionary.html), allowing
+for better typing and [Integrations](../integrations/). `Actions` can be dispatched directly into `FSM` API, or be generated automatically by the attached `Event Adapter`, that translates an `Event` from `Event Bus` to an `Action` with `Payload`.
 
 ```mermaid
 stateDiagram-v2
@@ -158,7 +155,7 @@ If not, the same `Payload` will be invoked upon **WORKING** `State` again
 
 ## State Flags
 
-Flags are special modifiers that alters the behavior of the `State` they a attached to.
+Flags are special modifiers that alter the behavior of the `State` they a attached to.
 
 ### +Init
 

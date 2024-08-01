@@ -9,7 +9,13 @@ export default function DictionaryContainer<ItemType>() {
 	return <TBase extends TAbstractConstructor = TAbstractConstructor>(base: TBase) =>
 		class AbstractDictionaryContainer extends base {
 			_dictionary: Record<string, ItemType> = {};
-			_dictionaryIndex = new Map<ItemType, { key: string; namespace?: string }>();
+			_dictionaryIndex = new Map<
+				ItemType,
+				{
+					key: string;
+					namespace?: string;
+				}
+			>();
 			_namespaceIndex: Record<string, string[]> = {};
 
 			getDictionary(namespace?: string) {
@@ -47,7 +53,8 @@ export default function DictionaryContainer<ItemType>() {
 
 			_getItemKey(itemKey: string, namespace = '') {
 				if (!itemKey?.length) throw new Error(`item key is empty`);
-				return `${namespace ?? ''}/${itemKey}`;
+				const prefix = namespace?.length ? namespace + '/' : '';
+				return `${prefix}${itemKey}`;
 			}
 
 			_getItemValue(itemKey: string, namespace?: string) {

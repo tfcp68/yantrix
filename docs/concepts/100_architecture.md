@@ -1,14 +1,23 @@
 ---
-title: APIs Overview
+title: Architecture
 ---
 
-# APIs Overview
+# Architecture
+
+Yantrix suggests the following application guidelines:
+
+-   Responsibility layers are built in accordance with a slightly adapted [MVC approach](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller)
+-   an [Event-Driven Architecture](https://en.wikipedia.org/wiki/Event-driven_architecture) is used to communicate between layers of "Controller" part, with a globally available dictionary of `Events`, specific for the Application
+-   _"Controller"_ is composed of `Slices`, which are sets of interconnected `FSMs` (finite state machines), which communicate with `Events` and produce `Effects` to update the _"Model"_
+-   _"View"_ part (including UI and external I/O) is updated asynchronously with a **Render Loop**
+-   I/O streams are non-duplex and are separated into `Sources`, which generate `Events` for "Controller", and `Destinations`, which are updated when the _"Model"_ has changed
+-   _"Model"_ component is a serializable ([anemic](https://en.wikipedia.org/wiki/Anemic_domain_model)) data structure (`Data Model`), which provides a single global store for the whole application, though it can and should be built with composition of `Slices`. It can be propagated to external `Storages` in an asynchronous **Sync Loop**
+-   the **Main Loop** is taking `Events` from UI and I/O and repeatedly updates the `Data Model` and `Slices` internal states based on their internal rules
 
 ## Data Model
 
 All the App states are stored in a single anemic object structure, which is persisted between runs and deterministically
-describe the behavior of the App. Designing the proper `Data Model` is the essential and the most important step to
-start laying out logic using `Events` and `Slices`.
+describe the behavior of the App. Designing the proper `Data Model` is the essential and the most important step to start laying out logic using `Events` and `Slices`.
 
 `Data Model` contract can be composited from `Slices`, much like [Redux Toolkit](https://redux-toolkit.js.org/) does
 
@@ -16,9 +25,9 @@ start laying out logic using `Events` and `Slices`.
 
 `Event Dictionary` is an enumerable set of constants (`Events`) that is shared throughout the App. `Events` represent
 every significant atomic change in the App state and are the default way to propagate updates throughout the rest of the
-architecture. Every `Event` type is associated with a particular type contract named `Event Meta`, which is typically
-implemented as generic type `TEventMetaType<TEventType>`. `Event Meta` can be irrelevant for certain `Event` types, in
-which case the `null` value and type is used.
+architecture.
+
+Every `Event` type is associated with a particular type contract named `Event Meta`, which is typically implemented as generic type `TEventMetaType<TEventType>`. `Event Meta` can be irrelevant for certain `Event` types, in which case the `null` value and type is used.
 
 ## Slices
 
@@ -32,14 +41,9 @@ of `FSMs`. `Slices` are a suggested way to chop the App logic into independent s
 ## FSM
 
 The basic building block of state logic is a `FSM` (more specifically -
-a [Mealy Machine](https://en.wikipedia.org/wiki/Mealy_machine)), which exposes a predefined `Transition Matrix` that
-comprises the relations between `States` and `Actions`, representing the decision tree of the machine. Every `Action`
-type can have a derived `Payload` type, while every `State` has a dependent `Context`, and the latter two represent the
-current internal state of the machine.
+a [Mealy Machine](https://en.wikipedia.org/wiki/Mealy_machine)), which is built upon a transition map &ndash; a structure that describes relations between `States` and `Actions`, built from the decision tree of the machine. Every `Action` type can have a derived `Payload` type, while every `State` has a dependent `Context`, and the latter two represent the current internal state of the machine. Both are plain objects, that are processed immutably.
 
-`Actions`/`Payloads` and `States`/`Contexts` are enumerable values that can be composed of different Dictionaries, and
-can be reused independently on each other. It's perfectly fine to create several `FSMs` that operate either on the same
-set of `Actions` or `States`, or both.
+`Actions`/`Payloads` and `States`/`Contexts` are enumerable values that can be combined from various Dictionaries, and also can be reused independently on each other. For instance, it's perfectly fine to create several `FSMs` that operate either on the same set of `Actions` or `States`, or both.
 
 ## Event Adapter
 
@@ -126,3 +130,38 @@ all the Storages and integrates the received data into an initial `Data Model` s
 Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, that are put into a special LIFO
 structure, known as `Event Stack`. It is processed continuously by the `Main Loop`, which handles them one by one,
 always taking the last emitted `Event` and passing it to all connected `Slices`, and thus `FSMs`
+
+## APIs relation diagram
+
+```mermaid
+erDiagram
+	DataModel ||..o{ Storage: "updates"
+	DataModel ||--o{ ModelPredicates: declares
+	DataModel ||..o{ UIComponent: "updates"
+	UIComponent ||..|{ EventStack: "emits Events"
+	EventDictionary ||--|{ EventMetaType: "is mapped to"
+	EventStack ||..o{ EventDictionary: "maps to"
+	FSM ||..|{ EventAdapter: references
+	FSM ||..o{ ActionPayloadType: references
+	FSM ||..o{ StateContextType: references
+	StorageAdapter ||..|{ Storage: "syncs with"
+	Slice ||..o{ EventDictionary: references
+	Slice ||--o{ ActionDictionary: declares
+	Slice ||--o{ FSM: "consists of"
+	Slice ||--o{ StateDictionary: declares
+	Slice ||--o{ StorageAdapter: declares
+	Slice ||--|{ EffectMatrix: declares
+	StateDictionary ||--o{ StateContextType: "is mapped to"
+	StateDictionary ||..|{ ContextPredicates: "declares"
+	ActionDictionary ||--o{ ActionPayloadType: "is mapped to"
+	Effect ||..|{ DataModel: updates
+	EffectMatrix ||--o{ Effect: declares
+	Application ||--|{ Slice: "consists of"
+	Application ||--o{ UIComponent: "is represented by"
+	Application ||--|{ DataModel: declares
+	DataModel ||..o{ Destinations: updates
+	Application ||--o{ Destinations: declares
+	EventAdapter ||..|{ EventStack: "translates Events"
+	Sources ||..|{ EventStack: "emits Events"
+	Application ||..o{ Sources: "declares"
+```

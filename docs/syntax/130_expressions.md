@@ -18,7 +18,7 @@ a `<FUNC_OPERATOR>(<PROPERTY_NAME>[,<CONSTANT_ARGS>...])` or a `<FUNC_OPERATOR>(
 In any case, an `Expression` has a primary operand which is hereby called `Bound Property`. The `Property` is always the
 first (leftmost) argument in the tree of calls. `Bound Property` is the one that will receive a default value, if set.
 Other properties used in an `Expression` can't have a default value. This limitation is intentional and aims to force
-explicitness and reduce the probability of an undesired fallthrough in code.
+explicitness and reduce the probability of an undesired pitfall in code.
 
 ## Recursion
 
@@ -37,6 +37,6 @@ to equal `Null` for the sake of unification. This value would be passed as an ar
 does actually have a parameter. Example:
 
 -   `random()`: returns `Math.random()` value, compare to `random`, which would be a property reference
--   `if(greater(random(),0.5),f1(some_property),f2(some_property))`: applies one of two functions `f1`,`f2`
+-   `if(isGreater(random(),0.5),f1(some_property),f2(some_property))`: applies one of two functions `f1`,`f2`
     to `some_property` randomly with 50% chance. However, since the leftmost argument is absend, the `Bound Property`
     is `Null`
