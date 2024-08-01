@@ -84,9 +84,9 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 			static id = '${className}';
 			static actions = actionsMap;
 			static states = statesMap;
-			static getState = ${this.getGetStateFunc()};
+			static getState = ${this.getGetStateFunc(className)};
 			static hasState = ${this.getHasStateFunc(className)};
-			static getAction = ${this.getGetActionFunc()};
+			static getAction = ${this.getGetActionFunc(className)};
 			static createAction = ${this.getCreateActionFunc(className)};
 		}
 		export default ${className};
@@ -95,7 +95,7 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 	protected getHasStateFunc(className: string) {
 		return `(instance, state) => instance.state === ${className}.getState(state)`;
 	}
-	protected getGetStateFunc() {
+	protected getGetStateFunc(className: string) {
 		return `(state) => statesDictionary[state]`;
 	}
 	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
@@ -110,7 +110,7 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 		`;
 	}
 
-	protected getGetActionFunc() {
+	protected getGetActionFunc(className: string) {
 		return `(action) => actionsDictionary[action];`;
 	}
 
