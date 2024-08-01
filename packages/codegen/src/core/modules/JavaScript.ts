@@ -85,7 +85,9 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 			static actions = actionsMap
 			static getAction = ${this.getActionFunc(className)};
 			static createAction = ${this.getCreateActionFunc(className)};
-		}`;
+		}
+		export default ${className};
+		`;
 	}
 
 	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
