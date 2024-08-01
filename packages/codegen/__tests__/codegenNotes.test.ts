@@ -27,13 +27,13 @@ describe('Automata include notes', () => {
 
 	describe('Initial context', () => {
 		test('Initial context =  string: str, integer: 3, array: [],', () => {
-			expect(automata.state).toBe(statesDictionary['/~~~START~~~']);
+			expect(automata.state).toBe(statesDictionary['~~~START~~~']);
 			expect(automata.context).toStrictEqual(initialContext);
 		});
 	});
 	describe('Previus context to context', () => {
-		const toA = { action: actionsDictionary['/toA (a1,a2,a3)'], payload: { ...defaultPayload } };
-		const toAA = [toA, { action: actionsDictionary['/toAA'], payload: {} }];
+		const toA = { action: actionsDictionary['toA (a1,a2,a3)'], payload: { ...defaultPayload } };
+		const toAA = [toA, { action: actionsDictionary['toAA'], payload: {} }];
 
 		test('Assign previus context to current context between states', () => {
 			automata.setActionQueue(toAA);
@@ -49,7 +49,7 @@ describe('Automata include notes', () => {
 		describe('Initial assign value', () => {
 			test('Initial payload,  initial context empty === #{a1,a2, a3} <= (a1=`string`, a2=3, a3=[])', () => {
 				automata.dispatch({
-					action: actionsDictionary["/toD (a1='string', a2=3, a3=[])"],
+					action: actionsDictionary["toD (a1='string', a2=3, a3=[])"],
 					payload: {},
 				});
 				expect(automata.context).toStrictEqual({
@@ -59,7 +59,7 @@ describe('Automata include notes', () => {
 			});
 			test('Initial payload, initial context === #{a1=[],a2=`string`, a3=3} <= (a1=`string`, a2=3, a3=[])', () => {
 				automata.dispatch({
-					action: actionsDictionary["/toF (a1='string', a2=3, a3=[])"],
+					action: actionsDictionary["toF (a1='string', a2=3, a3=[])"],
 					payload: {},
 				});
 				expect(automata.context).toStrictEqual({
@@ -69,7 +69,7 @@ describe('Automata include notes', () => {
 			});
 			test('Empty payload, inital context', () => {
 				automata.dispatch({
-					action: actionsDictionary['/toH (a1, a2, a3)'],
+					action: actionsDictionary['toH (a1, a2, a3)'],
 					payload: {},
 				});
 				expect(automata.context).toStrictEqual({
@@ -80,7 +80,7 @@ describe('Automata include notes', () => {
 		});
 		test('From payload to existed initial context #{integer} <= (newInteger)', () => {
 			automata.dispatch({
-				action: actionsDictionary['/toC (newInteger)'],
+				action: actionsDictionary['toC (newInteger)'],
 				payload: {
 					newInteger: 300,
 				},
@@ -92,7 +92,7 @@ describe('Automata include notes', () => {
 		});
 		test('From empty payload to existed initial context #{integer} <= ({})', () => {
 			automata.dispatch({
-				action: actionsDictionary['/toC (newInteger)'],
+				action: actionsDictionary['toC (newInteger)'],
 				payload: {},
 			});
 			expect(automata.context).toMatchObject({
@@ -101,7 +101,7 @@ describe('Automata include notes', () => {
 		});
 		test('From payload to new context declaration #{a1,a2,a3} <= (a1,a2,a3)', () => {
 			automata.dispatch({
-				action: actionsDictionary['/toB (a1,a2,a3)'],
+				action: actionsDictionary['toB (a1,a2,a3)'],
 				payload: defaultPayload,
 			});
 			expect(automata.context).toStrictEqual({
@@ -111,7 +111,7 @@ describe('Automata include notes', () => {
 		});
 		test('From empty payload to new context declaration #{a1,a2,a3} <= ({})', () => {
 			automata.dispatch({
-				action: actionsDictionary['/toB (a1,a2,a3)'],
+				action: actionsDictionary['toB (a1,a2,a3)'],
 				payload: {},
 			});
 
