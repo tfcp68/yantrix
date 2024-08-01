@@ -148,7 +148,11 @@ DATA_OBJECT
 EXPRESSION
         : IMMUTABLE
         | DATA_OBJECT_REFERENCE
-        | FUNCTION;
+        | FUNCTION {counter = Math.max(calcDepthFunc($1), counter);
+                if(counter > maxNestedFuncLevel) {
+                    counter = 0;
+                    throw new Error('nested limit');
+                }};
 
 DATA_OBJECT_REFERENCE
         : CONSTANT
