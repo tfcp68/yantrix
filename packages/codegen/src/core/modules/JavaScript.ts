@@ -82,27 +82,36 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 			}
 			isKeyOf = ${this.getIsKeyOf()};
 			static id = '${className}';
-			static actions = actionsMap
-			static getAction = ${this.getActionFunc(className)};
+			static actions = actionsMap;
+			static states = statesMap;
+			static getState = ${this.getGetStateFunc()};
+			static hasState = ${this.getHasStateFunc(className)};
+			static getAction = ${this.getGetActionFunc()};
 			static createAction = ${this.getCreateActionFunc(className)};
 		}
 		export default ${className};
 		`;
 	}
-
+	protected getHasStateFunc(className: string) {
+		return `(instance, state) => instance.state === ${className}.getState(state)`;
+	}
+	protected getGetStateFunc() {
+		return `(state) => statesDictionary[state]`;
+	}
 	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}
-			const actionsMap = ${JSON.stringify(this.getActionsDict(), null, 2)}
+			const actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)}
+			const statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)}
 			${this.getDefaultContext()}
 			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
 		`;
 	}
 
-	protected getActionFunc(className: string) {
-		return `(action) => ${className}.actions[action];`;
+	protected getGetActionFunc() {
+		return `(action) => actionsDictionary[action];`;
 	}
 
 	protected getCreateActionFunc(className: string) {
@@ -120,11 +129,15 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
 	}
 
-	getActionsDict() {
-		return this.getActionsMap(this.actionDictionary.getDictionary());
+	getActionsMap() {
+		return this.getObjectKeysMap(this.actionDictionary.getDictionary());
 	}
 
-	getActionsMap(dict: Record<string, any>) {
+	getStatesMap() {
+		return this.getObjectKeysMap(this.stateDictionary.getDictionary());
+	}
+
+	getObjectKeysMap(dict: Record<any, any>) {
 		const obj: Record<string, string> = {};
 		Object.keys(dict).forEach((key: string) => {
 			obj[key] = key;

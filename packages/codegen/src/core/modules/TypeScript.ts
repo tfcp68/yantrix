@@ -19,8 +19,8 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'Ty
 		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 
-	protected getActionFunc(className: string) {
-		return `(action: keyof typeof ${className}.actions) => ${className}.actions[action]`;
+	protected getGetActionFunc() {
+		return `(action: keyof typeof actionsDictionary) => actionsDictionary[action]`;
 	}
 
 	protected getCreateActionFunc(className: string) {
@@ -31,5 +31,12 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'Ty
 				payload,
 			}
 		}`;
+	}
+
+	protected getHasStateFunc(className: string) {
+		return `(instance: ${className}, state: keyof typeof ${className}.states) => instance.state === ${className}.getState(state)`;
+	}
+	protected getGetStateFunc() {
+		return `(state: keyof typeof statesDictionary) => statesDictionary[state]`;
 	}
 }
