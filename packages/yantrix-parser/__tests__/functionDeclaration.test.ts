@@ -1,24 +1,15 @@
+import { randomArray, randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, test } from 'vitest';
-import { YantrixParser } from '../yantrixParser.js';
-import { functionsFixtures } from '../fixtures/keyItem.js';
-import {
-	randomString,
-	randomInteger,
-	randomDecimal,
-	randomValueFunction,
-	randomValue,
-	randomArray,
-} from '@yantrix/utils';
+import { functionsFixtures } from './fixtures/keyItem.js';
+import { YantrixParser } from '../src/yantrixParser.js';
 
 const functionCasesAndExpectedTypes = [
 	['#{%s = %s()}', functionsFixtures.expression],
-	['#{%s = %s(%s)}', functionsFixtures.withProperty],
 	['#{%s = %s("%s")}', functionsFixtures.withString],
 	['#{%s = %s(%i)}', functionsFixtures.withInteger],
 	['#{%s = %s(%d)}', functionsFixtures.withDecimal],
 	['#{%s = %s(%arr)}', functionsFixtures.withArray],
-	['#{%s = %s($(%s))}', functionsFixtures.withConstant],
-	['#{%s = %s(%multi)}', functionsFixtures.multiplyProperty],
+	['#{%s = %s(%%%s)}', functionsFixtures.withConstant],
 	['#{%s = %s(%s())}', functionsFixtures.recursive],
 ];
 
@@ -35,14 +26,16 @@ const invalidEmptyFunctionsExamples = [
 ];
 
 const validFunctionsWithArgumentsExamples = [
-	'#{%s = %s(%s)}',
 	'#{%s = %s("%s")}',
 	'#{%s = %s(%i)}',
 	'#{%s = %s(%d)}',
 	'#{%s = %s(%arr)}',
-	'#{%s = %s($(%s))}',
-	'#{%s = %s(%s,%s)}',
-	'#{%s = %s(%s,%i)}',
+	'#{%s = %s(#%s, $%s)}',
+	'#{%s = %s("%s", #%s)}',
+	'#{%s = %s(%%%s)}',
+	'#{%s = %s(#%s)}',
+	'#{%s = %s($%s)}',
+	'#{%s = %s(%%%s,%i)}',
 	'#{%s = %s(%i,%i)}',
 	'#{%s = %s(%i,%d)}',
 	'#{%s = %s(%d,%d)}',
@@ -57,6 +50,16 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s[%s]}',
 	'#{%s = %s{%s}}',
 	'#{%s = %s(%s}',
+	'#{%s = %s(%%s}',
+	'#{%s = %s(##%s}',
+	'#{%s = %s($$%s}',
+	'#{%s = %s($)}',
+	'#{%s = %s(#)}',
+	'#{%s = %s(#,)}',
+	'#{%s = %s($,)}',
+	'#{%s = %s(%%)}',
+	'#{%s = %s(,#)}',
+	'#{%s = %s(,$)}',
 	'#{%s = %s((%s))}',
 	'#{%s = %s([%s])}',
 	'#{%s = %s("%s" %s)}',
@@ -75,17 +78,17 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s(,,,,,,)}',
 ];
 
-const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(1, 20)) => {
+const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(50, 100)) => {
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
 			template
-				.replaceAll('%s', () => randomString())
 				.replaceAll('%i', () => randomInteger().toString())
 				.replaceAll('%d', () => randomDecimal().toString())
 				.replaceAll('%rand', () => randomValue().toString())
 				.replaceAll('%list', () => randomArray(randomString).join(','))
 				.replaceAll('%arr', () => '[]')
-				.replaceAll('%f', () => `${randomString()}()`),
+				.replaceAll('%f', () => `${randomString()}()`)
+				.replaceAll('%s', () => randomString()),
 		);
 	});
 };
@@ -93,7 +96,7 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 const generateFunctionString = (level: number = 0) => {
 	if (level > 8) return; // todo check
 
-	const argsTypes = [randomString, randomInteger, randomDecimal];
+	const argsTypes = [randomInteger, randomDecimal];
 
 	const functionName = randomString();
 	const argsCount = randomInteger(1, 10);
@@ -198,6 +201,7 @@ describe('Function declaration', () => {
 	describe('Functions with arguments syntax', () => {
 		describe('Correct functions', () => {
 			const cases = generateRandomStatementsFromTemplate(validFunctionsWithArgumentsExamples);
+
 			test.each(cases)('%s', (input) => {
 				assert.isOk(parser.parse(input));
 			});
@@ -216,6 +220,7 @@ describe('Function declaration', () => {
 		const cases = generateExpressionCases(functionCasesAndExpectedTypes);
 		test.each(cases)('%s', (input: string, obj) => {
 			const result = parser.parse(input);
+
 			assert.deepOwnInclude(result, obj);
 		});
 	});

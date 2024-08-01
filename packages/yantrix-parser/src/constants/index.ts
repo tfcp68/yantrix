@@ -41,9 +41,10 @@ export const ExpressionTypes = {
 	Function: 'function',
 	StringDeclaration: 'string',
 	ArrayDeclaration: 'array',
-	Constant: 'constant',
 	IntegerDeclaration: 'integer',
 	DecimalDeclaration: 'decimal',
 	FunctionProperty: 'FunctionProperty',
-	Property: 'property',
+	Constant: 'constant',
+	Payload: 'payload',
+	Context: 'context',
 } as const;

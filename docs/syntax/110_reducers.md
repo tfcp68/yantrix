@@ -8,7 +8,7 @@ Reducers are a subset of [fold functions](<https://en.wikipedia.org/wiki/Fold_(h
 signature of
 
 ```
-(previousState, action) => newState
+(previousState, action) -> newState
 ```
 
 Most importantly, reducers are [pure functions](https://en.wikipedia.org/wiki/Pure_function). That means the updated
@@ -18,6 +18,8 @@ All `Reducers` are called within `FSM`s, that are generated with code from Yantr
 framework and the most important concept to conceive for using Yantrix. They are the carrier of application logic,
 delivered in tiny bundles, each attached to a certain `State` of the finite state machine and it's possible transitions,
 which are atomic and transactional.
+
+## Directive
 
 Reducers in Yantrix starts with `#` directive followed by braces:
 
@@ -29,24 +31,23 @@ Reducers in Yantrix starts with `#` directive followed by braces:
 #{ newState } <= $actionPayload
 ```
 
-Here, `{}` braces group `#` operation, which is a reference to the `State` attribute, usually called a `Context`,
-while `$` operation is dereferencing an `Action` meta information, usually called a `Payload`.
+Here, `{}` braces group `#` operation, which is a reference to the `State` attribute, usually called a `Context`, while `$` operation is referencing an `Action` meta information, usually called a `Payload`.
 
-Because the result of `Reducer` is new `State` and `Context`, braces on the left side of assignment are not technically
-dereferencing anything, but for the sake of semantics they can only be figured (`{}`), as listed properties must belong
-to the `Context` interface.
+Because the result of `Reducer` is new `State` and `Context`, braces on the left side of assignment are not technically referencing anything. However, for the sake of simplicity they allow to not specify a reference symbol for every listed property explicitly, implying all of them only reference `Context` properties.
+
+The `Context` operation is bound to a `State` and is applied when the `FSM` transitions to that `State`. The rules of transitions are defined on higher level of syntax and are processed before `Reducers` are actually calculated.
 
 For more info, see [Data Objects](100_data_objects.md)
 
 ## Functions and Expressions
 
 Every `Reducer` can reference any number of variable names both on left and right side of assignment. All required
-properties are added to the `Context` dynamically, if needed. but each key can be listed only once.
+properties are added to the `Context` dynamically, if needed. But each key can be listed only once.
 
 If there're more properties in `Target Object` than in `Source Object` , excessive`Target Object` properties are left
 empty.
 
-If there're more properties in `Source Object` than in `Target Object`, such a diagram will throw an Error
+If there're more properties in `Source Object` than in `Target Object`, such a diagram will throw an error
 
 ```
 ''' assigns Null to the latter property, and copieis the rest

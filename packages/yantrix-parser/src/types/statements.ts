@@ -1,43 +1,49 @@
 import { TKeyItems } from './keyItem.js';
 
-export type TAction<T extends TKeyItems = TKeyItems> = {
+export type TAction = TKeyItems<'reducer'>;
+export type TMeta = TKeyItems<'reducer'>;
+
+export type TSubscribeStatement = {
+	identifier: string;
 	actionName: string;
-} & (T extends undefined
-	? {}
-	: {
-			payload: T;
-		});
-
-export type TSubscribeStatement<T extends TKeyItems = TKeyItems> = {
-	event: string;
-	action: TAction<T>;
 };
-export type TSubscribe = {
-	subscribe: TSubscribeStatement[];
-};
-export type TEventEmitStatement<T extends TKeyItems = TKeyItems> = {
-	eventName: string;
-} & (T extends undefined ? {} : { payload: T });
 
-export type TEvents = { emit: TEventEmitStatement[] };
+export type TSubscribeWithPayload = {
+	payload: TKeyItems<'reducer'>;
+} & TSubscribeStatement;
+
+export type TSubscribeWithMeta = TSubscribeWithPayload & {
+	meta: TMeta;
+};
+
+export type TSubscribe = TSubscribeWithMeta | TSubscribeWithPayload | TSubscribeStatement;
 
 export type TContext<T extends TKeyItems = TKeyItems> = {
 	context: T;
 };
-export type TPreviousToContext<T extends TKeyItems = TKeyItems> = {
-	prevContext: T;
-} & TContext;
 
-export type TPayloadToContext<T extends TKeyItems = TKeyItems> = {
-	payload: T;
-} & TContext;
+export type TEventEmitStatement = {
+	identifier: string;
+};
+
+export type TEmitWithMeta = TEventEmitStatement & TMeta;
+export type TEmitFull = TEventEmitStatement & TMeta & TContext;
+export type TEvenEmit = TEmitWithMeta | TEmitFull | TEventEmitStatement;
+export type TEvents = { emit: TEvenEmit[] };
 
 export type TContextDescription = {
-	contextDescription: [TPayloadToContext | TPreviousToContext | TContext];
+	contextDescription: Array<{
+		context: TKeyItems;
+		reducer?: TKeyItems<'reducer'>;
+	}>;
 };
 
 export type TInitialState = {
 	initialState: boolean;
 };
 
-export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents;
+export type TByPass = {
+	byPass: boolean;
+};
+
+export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents & TByPass;

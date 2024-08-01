@@ -60,7 +60,7 @@ presented for demonstration purposes.
 
 ## State Machine
 
-The first layer of syntax is describing a `FSM` - [Finite State Machine](../architecture/200_fsm.html).
+The first layer of syntax is describing a `FSM` - [Finite State Machine](../concepts/200_FSM.html).
 
 The diagram above creates a `FSM` with 3 `States`:
 
