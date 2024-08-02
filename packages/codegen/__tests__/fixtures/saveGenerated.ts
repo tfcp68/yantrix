@@ -1,5 +1,5 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram } from '../../src/index.js';
+import { generateAutomataFromStateDiagram, generateJavaAutomata } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,24 +27,27 @@ IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
-// const includeNotesInput = `
-// stateDiagram-v2
-// [*] --> A: toA (a1,a2,a3)
-// A --> AA: toAA
-// [*] --> B: toB (a1,a2,a3)
-// [*] --> C: toC (newInteger)
-// [*] --> D: toD (a1='string', a2=3, a3=[])
-// [*] --> F: toF (a1='string', a2=3, a3=[])
-// [*] --> G: toG (a1, a2, a3)
-// [*] --> H: toH (a1, a2, a3)
-// [*] --> J: toJ (a1, a2, a3)
-// note left of A
-// #{a1,a2,a3} <= (a1,a2,a3)
-// end note
+const includeNotesInput = `
+stateDiagram-v2
+[*] --> A: toA (a1,a2,a3)
+A --> AA: toAA
+[*] --> B: toB (a1,a2,a3)
+[*] --> C: toC (newInteger)
+[*] --> D: toD (a1='string', a2=3, a3=[])
+[*] --> F: toF (a1='string', a2=3, a3=[])
+[*] --> G: toG (a1, a2, a3)
+[*] --> H: toH (a1, a2, a3)
+[*] --> J: toJ (a1, a2, a3)
+note left of A
+#{a=4} <= 3
+end note
 
-// note left of AA
-// #{a1,a2,a3}
-// end note
+`;
+
+/*
+note left of AA
+#{a1,a2,a3}
+end note
 
 // note left of H
 // #{a1='string',a2=3,a3=[]} <= (a1,a2,a3)
@@ -70,20 +73,20 @@ SCORE_SCREEN --> [*]: EXIT`;
 // #{integer} <= (newInteger)
 // end note
 
-// note left of [*]
-// #{integer=3, string="str", array=[]}
-// end note
-// `;
+note left of [*]
+#{integer=3, string="str", array=[]}
+end note
+*/
 
 const diagramsInput = {
 	gameDiagram: {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
 	},
-	// includeNotes: {
-	// 	value: includeNotesInput,
-	// 	automataName: 'AutomataIncludeNotes',
-	// },
+	includeNotes: {
+		value: includeNotesInput,
+		automataName: 'AutomataIncludeNotes',
+	},
 } as const;
 
 Object.values(diagramsInput).forEach(async (fixture) => {
@@ -101,4 +104,13 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), writable, {
 		encoding: 'utf8',
 	});
+});
+
+const diagram = await createStateDiagram(await parseStateDiagram(input1));
+const automata = await generateJavaAutomata(diagram, {
+	className: 'GeneratedAutomata',
+	outLang: 'Java',
+});
+fs.writeFileSync(path.resolve(pathSave, 'GeneratedAutomata_generated.java'), automata, {
+	encoding: 'utf-8',
 });

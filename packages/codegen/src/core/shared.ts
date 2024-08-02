@@ -1,6 +1,6 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../types/common.js';
-import { ExpressionTypes, TExpression } from '@yantrix/yantrix-parser';
+import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+import { ExpressionTypes, TRefereneceType } from '@yantrix/yantrix-parser';
 
 export const fillDictionaries = (
 	diagram: TStateDiagramMatrixIncludeNotes,
@@ -22,21 +22,8 @@ export const fillDictionaries = (
 		}
 	}
 };
-
-export const Expressions: TExpressionRecord = {
-	[ExpressionTypes.ArrayDeclaration]: () => '[]',
-	[ExpressionTypes.Function]: () => {
-		throw new Error(`Not implemented ${ExpressionTypes.Function}`);
-	},
-	[ExpressionTypes.DecimalDeclaration]: ({
-		NumberDeclaration,
-	}: TExpression<typeof ExpressionTypes.DecimalDeclaration>) => {
-		return `${NumberDeclaration}`;
-	},
-	[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
-		return `${NumberDeclaration}`;
-	},
-	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
-		return `'${StringDeclaration}'`;
-	},
-} as const;
+export const pathRecord: Record<TRefereneceType, string> = {
+	[ExpressionTypes.Constant]: 'constant',
+	[ExpressionTypes.Context]: 'prevContext',
+	[ExpressionTypes.Payload]: 'payload',
+};

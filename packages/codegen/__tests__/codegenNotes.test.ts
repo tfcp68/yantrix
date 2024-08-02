@@ -18,6 +18,14 @@
 // 	a3: [],
 // };
 
+// describe('Automat include notes', () => {
+// 	beforeEach(() => {
+// 		vitest.clearAllTimers();
+// 		vitest.clearAllTimers();
+// 		automata = new AutomataIncludeNotes();
+// 	});
+// });
+
 // describe('Automata include notes', () => {
 // 	beforeEach(() => {
 // 		vitest.clearAllTimers();

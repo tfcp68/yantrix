@@ -2,7 +2,7 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 31.07.2024, 00:36:27 |     1.347 s |
+| 02.08.2024, 21:35:23 |     1.361 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
@@ -11,7 +11,7 @@
 
 ## ✅ <a id="file0" href="#file0">**tests**\stateDiagram.test.ts</a>
 
-15 passed, 0 failed, 0 skipped, 0 todo, done in 310 s
+15 passed, 0 failed, 0 skipped, 0 todo, done in 250 s
 
 ```
 ✅ State Diagram Parser › Common
@@ -35,7 +35,7 @@
 
 ## ✅ <a id="file1" href="#file1">**tests**\stateParser.test.ts</a>
 
-19 passed, 0 failed, 0 skipped, 0 todo, done in 280 s
+19 passed, 0 failed, 0 skipped, 0 todo, done in 288 s
 
 ```
 ✅ State Diagram Parser › Common
