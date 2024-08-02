@@ -49,8 +49,7 @@ export const Expressions: TExpressionRecord = {
 							res.push(`${getDefaultPropertyContext(path, identifier)}`);
 						}
 					} else {
-						const { expressionType } = item;
-						if (expressionType === ExpressionTypes.Function) {
+						if (item.expressionType === ExpressionTypes.Function) {
 							// @ts-ignore
 							res.push(recursive(item));
 						} else {
@@ -290,7 +289,7 @@ export class JavaScriptCodegen implements ICodegen {
 
 						if (isKeyItemWithExpression(keyItem)) {
 							const { expression } = keyItem;
-
+							console.log(keyItem);
 							// @ts-ignore
 							const expressionValueRight = Expressions[expression.expressionType](expression);
 

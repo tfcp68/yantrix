@@ -2,16 +2,16 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 02.08.2024, 17:35:20 |     0.465 s |
+| 02.08.2024, 17:46:52 |     0.527 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
 | Test Suites |         5 |         0 |          0 |       0 |        5 |
 | Tests       |         9 |         0 |          0 |       0 |        9 |
 
-## ✅ <a id="file0" href="#file0">**tests**\codegenAutomata.test.ts</a>
+## ✅ <a id="file0" href="#file0">**tests**\codegenAutomata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/5e9e5443dad4b21ac4a2e04bfc9ecb7808f343b6/packages\codegen/__tests__\codegenAutomata.test.ts)]
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 6 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 7 s
 
 ```
 ✅ Codegen output › GamePhaseAutomata
@@ -27,7 +27,7 @@
 ✅ Codegen output
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**\codegenNotes.test.ts</a>
+## ✅ <a id="file1" href="#file1">**tests**\codegenNotes.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/5e9e5443dad4b21ac4a2e04bfc9ecb7808f343b6/packages\codegen/__tests__\codegenNotes.test.ts)]
 
 0 passed, 0 failed, 0 skipped, 0 todo, done in 1 s
 
