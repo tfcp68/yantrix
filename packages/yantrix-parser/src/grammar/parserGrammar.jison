@@ -1,7 +1,8 @@
-
-
 %{
-  import {ReservedList, ExpressionTypes} from './index.js'
+  import {ReservedList, ExpressionTypes} from './index.js';
+  import {calcDepthFunc, maxNestedFuncLevel} from './grammar/jsGrammar.js';
+
+  let counter = 0;
 %}
 
 %lex
@@ -31,7 +32,7 @@
 '<='                                 return 'LEFT_ARROW'
 '=>'                                 return 'RIGHT_ARROW'
 '='                                  return 'ASSIGN'
-')'                                  return 'RIGHT_BRACKET' 
+')'                                  return 'RIGHT_BRACKET'
 '/'                                  return 'FORWARD_SLASH'
 \'[^']+\'                            yytext = yytext.slice(1,-1); return 'STRING'
 \"[^"]+\"                            yytext = yytext.slice(1,-1); return 'STRING'
@@ -70,7 +71,7 @@ document
               if($2.hasOwnProperty('subscribe')) $1['subscribe'].push($2['subscribe'])
            }
         };
-	
+
 line
         : statements
         | 'NewLine';
@@ -118,18 +119,18 @@ KEY_ITEM
         | IMMUTABLE {$$ = {keyItem:{expression:$1}}}
         | FUNCTION {$$ = {keyItem:{expression:$1}}};
 
-RAW_KEYLIST 
+RAW_KEYLIST
         : RAW_KEYITEM {$$ = [$1]}
         | RAW_KEYITEM COMMA RAW_KEYLIST {$$ =[$1].concat($3)};
 
-RAW_KEYITEM 
+RAW_KEYITEM
         : IDENT {$$ = {keyItem:{identifier:$1}}}
         | IDENT ASSIGN EXPRESSION {$$ = {keyItem:{identifier: $1, expression: $3}}};
 
 FUNCTION
-        : FUNCTION_NAME LEFT_BRACKET ARGUMENTS RIGHT_BRACKET 
+        : FUNCTION_NAME LEFT_BRACKET ARGUMENTS RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
-        | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET 
+        | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
 
 ARGUMENTS
@@ -137,20 +138,24 @@ ARGUMENTS
         |  ARGUMENTS COMMA EXPRESSION { $$ = [...$1, $3] };
 
 DATA_OBJECT
-        : DATA_OBJECT_REFERENCE ASSIGN  EXPRESSION  { $$ = {...$1, expression:$3}} 
+        : DATA_OBJECT_REFERENCE ASSIGN  EXPRESSION  { $$ = {...$1, expression:$3}}
         | DATA_OBJECT_REFERENCE;
 
 EXPRESSION
         : IMMUTABLE
         | DATA_OBJECT
-        | FUNCTION;        
+        | FUNCTION {counter = Math.max(calcDepthFunc($1), counter);
+                if(counter > maxNestedFuncLevel) {
+                    counter = 0;
+                    throw new Error('nested limit');
+                }};
 
-DATA_OBJECT_REFERENCE 
-        : CONSTANT 
-        | PAYLOAD_REFERENCE 
+DATA_OBJECT_REFERENCE
+        : CONSTANT
+        | PAYLOAD_REFERENCE
         | CONTEXT_REFERENCE;
 
-CONSTANT 
+CONSTANT
         : CONSTANT_SYMBOL IDENT {$$ = {expressionType:ExpressionTypes.Constant, identifier:$2}};
 
 PAYLOAD_REFERENCE
@@ -158,14 +163,14 @@ PAYLOAD_REFERENCE
 
 CONTEXT_REFERENCE
         : CONTEXT_SYMBOL IDENT  {$$ = {expressionType:ExpressionTypes.Context, identifier:$2 } };
-        
+
 IMMUTABLE
-        : ARRAY {$$ = { ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration} } 
-        | STRING {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}} 
+        : ARRAY {$$ = { ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration} }
+        | STRING {$$ = {StringDeclaration:$1.toString(), expressionType:ExpressionTypes.StringDeclaration}}
         | NUMBER;
 
 NUMBER
-        : INTEGER 
+        : INTEGER
         {$$ = { NumberDeclaration: Number($1), expressionType: ExpressionTypes.IntegerDeclaration} }
-        | DECIMAL 
+        | DECIMAL
         {$$ = { NumberDeclaration: Number($1), expressionType:ExpressionTypes.DecimalDeclaration} };

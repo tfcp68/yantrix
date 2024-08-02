@@ -1,7 +1,7 @@
 import { type Options, defineConfig } from 'tsup';
 
 export function createTsupConfig({
-	entry = ['src/index.ts', 'src/constants/index.ts'],
+	entry = ['src/index.ts', 'src/grammar/jsGrammar.ts'],
 	external = [],
 	noExternal = [],
 	platform = 'node',
