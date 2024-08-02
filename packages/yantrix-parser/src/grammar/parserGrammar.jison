@@ -1,9 +1,8 @@
 %{
   import {ReservedList, ExpressionTypes} from './index.js';
-  import {calcDepthFunc} from './grammar/jsGrammar.js';
+  import {calcDepthFunc, maxNestedFuncLevel} from './grammar/jsGrammar.js';
 
   let counter = 0;
-  const maxNestedFuncLevel = 8;
 %}
 
 %lex
