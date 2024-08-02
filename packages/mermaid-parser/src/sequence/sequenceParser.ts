@@ -68,18 +68,25 @@ function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray)
 	const messages: TMessagesDict = {};
 
 	for (let i = 0; i < actors.length; i++) {
-		const elementI = actors[i] as string;
+		const elementI = actors[i];
+		if (!elementI) continue;
+
 		messages[elementI] = {};
 		for (let j = 0; j < actors.length; j++) {
-			const elementJ = actors[j] as string;
+			const elementJ = actors[j];
+			if (!elementJ) continue;
+
 			messages[elementI][elementJ] = null;
 		}
 	}
 
 	for (let i = 0; i < parsedMessages.length; i++) {
-		const arrowMessage = parsedMessages[i]?.message as string;
-		const from = parsedMessages[i]?.from as string;
-		const to = parsedMessages[i]?.to as string;
+		const parsed = parsedMessages[i];
+		if (!parsed) continue;
+
+		const arrowMessage = parsed.message;
+		const from = parsed.from;
+		const to = parsed.to;
 
 		if (messages[from]?.[to] === null) {
 			messages[from][to] = [arrowMessage];
@@ -100,17 +107,23 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 	const notes: TNotesDict = {};
 
 	for (let i = 0; i < actors.length; i++) {
-		const elementI = actors[i] as string;
+		const elementI = actors[i];
+		if (!elementI) continue;
+
 		notes[elementI] = null;
 	}
 
 	for (let i = 0; i < parsedMessages.length; i++) {
-		const recievedMessage = parsedMessages[i]?.message as string;
-		let fromIndex = actors.indexOf(parsedMessages[i]?.from as string);
-		const toIndex = actors.indexOf(parsedMessages[i]?.to as string);
+		const parsed = parsedMessages[i];
+		if (!parsed) continue;
+
+		const recievedMessage = parsed.message;
+		let fromIndex = actors.indexOf(parsed.from);
+		const toIndex = actors.indexOf(parsed.to);
 
 		while (fromIndex !== toIndex + 1) {
-			const from = actors[fromIndex] as string;
+			const from = actors[fromIndex];
+			if (!from) continue;
 
 			if (notes[from] === null) {
 				notes[from] = [recievedMessage];
@@ -132,7 +145,9 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDict {
 	const activate: TActivationsDict = {};
 	for (let i = 0; i < actors.length; i++) {
-		const elementI = actors[i] as string;
+		const elementI = actors[i];
+		if (!elementI) continue;
+
 		activate[elementI] = [];
 	}
 

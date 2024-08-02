@@ -46,6 +46,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
 				return diagramParser(diagramText);
 			}
 		}
+
 		throw new InvalidInputError((e as Error).message);
 	}
 }
@@ -61,10 +62,13 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 	for (let i = 0; i < parsedDiagram.length; i++) {
 		if (parsedDiagram[i]?.stmt === 'relation') {
 			const directionI: string[] = [];
-			const tempSt1: Record<string, string> = parsedDiagram[i]?.state1 as Record<string, string>;
-			const tempSt2: Record<string, string> = parsedDiagram[i]?.state2 as Record<string, string>;
-			const st1 = tempSt1.id as string;
-			const st2 = tempSt2.id as string;
+
+			const tempSt1 = parsedDiagram[i]?.state1 as Record<string, string>;
+			const tempSt2 = parsedDiagram[i]?.state2 as Record<string, string>;
+			const st1 = tempSt1.id;
+			const st2 = tempSt2.id;
+			if (!st1 || !st2) continue;
+
 			if (st1 === '[*]' && st2 === '[*]') {
 				directionI.push(StartState);
 				directionI.push(EndState);

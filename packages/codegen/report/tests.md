@@ -2,7 +2,7 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 02.08.2024, 21:35:28 |     0.239 s |
+| 02.08.2024, 22:25:37 |     0.274 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
@@ -29,7 +29,7 @@
 
 ## ✅ <a id="file1" href="#file1">**tests**\codegenNotes.test.ts</a>
 
-0 passed, 0 failed, 0 skipped, 0 todo, done in 1 s
+0 passed, 0 failed, 0 skipped, 0 todo, done in 0 s
 
 ```
 

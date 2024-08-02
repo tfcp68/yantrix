@@ -42,9 +42,11 @@ export default function DictionaryContainer<ItemType>() {
 
 			_findItem(itemKey: string, namespace?: string) {
 				const k = this._getItemKey(itemKey, namespace);
-				const v = this._dictionary[k] as ItemType;
-				if (this._dictionaryIndex.has(v)) return v;
+				const v = this._dictionary[k];
+
+				if (v && this._dictionaryIndex.has(v)) return v;
 				delete this._dictionary[k];
+
 				if (!namespace) return null;
 				if (this._namespaceIndex[namespace])
 					this._namespaceIndex[namespace] = this._namespaceIndex[namespace].filter((v) => v !== k);
