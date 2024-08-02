@@ -310,12 +310,13 @@ export class JavaScriptCodegen implements ICodegen {
 									res.push(`${this.getDefaultPropertyContext(path, identifier)}`);
 								}
 							} else {
-								const { expressionType } = item;
-								if (expressionType === ExpressionTypes.Function) {
+								const { expression } = item;
+
+								if (expression.expressionType === ExpressionTypes.Function) {
 									// @ts-ignore
 									res.push(recursive(item));
 								} else {
-									const valueExpression = this.getExpression(item);
+									const valueExpression = this.getExpression(expression);
 									res.push(valueExpression);
 								}
 							}
