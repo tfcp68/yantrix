@@ -39,7 +39,7 @@ A --> AA: toAA
 [*] --> H: toH (a1, a2, a3)
 [*] --> J: toJ (a1, a2, a3)
 note left of A
-#{a=4} <= #c = test(#b=3,c(2,#s))
+#{a=4} <= 3
 end note
 
 `;

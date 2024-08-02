@@ -9,8 +9,6 @@ import {
 	isKeyItemWithExpression,
 	ExpressionTypes,
 	TExpressionFunction,
-	TMapped,
-	TExpression,
 } from '@yantrix/yantrix-parser';
 
 const getReferenceString = (path: string, identifier: string) => {
@@ -19,6 +17,87 @@ const getReferenceString = (path: string, identifier: string) => {
 
 const getFunctionFromDictionary = (name: string) => {
 	return `functionDictionary['${name}']`;
+};
+
+export const Expressions: TExpressionRecord = {
+	[ExpressionTypes.ArrayDeclaration]: () => '[]',
+	[ExpressionTypes.Function]: (func) => {
+		const recursive = (func: TExpressionFunction & { root?: true }) => {
+			const { FunctionDeclaration } = func;
+			const { FunctionName, Arguments } = FunctionDeclaration;
+
+			const res: string[] = [];
+
+			if (Arguments.length !== 0) {
+				Arguments.forEach((item) => {
+					if (isKeyItemReference(item)) {
+						const { expressionType, identifier } = item;
+						const path = pathRecord[expressionType];
+
+						if (isKeyItemWithExpression(item)) {
+							const { expression } = item;
+
+							if (expression.expressionType === ExpressionTypes.Function) {
+								// @ts-ignore
+								res.push(recursive(expression));
+							}
+							// @ts-ignore
+							const valueExpression = Expressions[expression.expressionType](expression);
+
+							res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
+						} else {
+							res.push(`${getDefaultPropertyContext(path, identifier)}`);
+						}
+					} else {
+						const { expressionType } = item;
+						if (expressionType === ExpressionTypes.Function) {
+							// @ts-ignore
+							res.push(recursive(item));
+						} else {
+							// @ts-ignore
+							const valueExpression = Expressions[item.expressionType](item);
+							res.push(valueExpression);
+						}
+					}
+				});
+			} else {
+				res.push(FunctionName);
+			}
+
+			return getFunctionFromDictionary(FunctionName).concat(`(${res.join(',')})`);
+		};
+
+		const res = recursive(func);
+		return res;
+	},
+	[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
+	},
+	[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
+		return `${NumberDeclaration}`;
+	},
+	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
+		return `'${StringDeclaration}'`;
+	},
+	[ExpressionTypes.Context]: ({ identifier }) => {
+		return `'prevContext['${identifier}']'`;
+	},
+	[ExpressionTypes.Payload]: ({ identifier }) => {
+		return `'payload['${identifier}']'`;
+	},
+} as const;
+
+const getDefaultPropertyContext = (path: string, indetifier: string, expression?: string) => {
+	const fullPath = getReferenceString(path, indetifier);
+
+	return `(function(){
+						if(${fullPath} !== undefined && ${fullPath} !== null) {
+							return ${path}['${indetifier}']
+						}
+							else {
+								return ${expression || 'null'}
+							}
+					}())`;
 };
 
 export class JavaScriptCodegen implements ICodegen {
@@ -102,6 +181,7 @@ export class JavaScriptCodegen implements ICodegen {
 					if (!newState) throw new Error(`State ${key} not found`);
 
 					const newCtx = this.getContextTransition(key);
+					// const ctx = this.getSubsyntaxContext(key);
 
 					return `
 				  ${actionValue}: {
@@ -188,18 +268,15 @@ export class JavaScriptCodegen implements ICodegen {
 		return `{${ctxRes.join(',\n\t')}}`;
 	};
 
-	private getDefaultPropertyContext = (path: string, indetifier: string, expression?: string) => {
-		const fullPath = getReferenceString(path, indetifier);
-
-		return `(function(){
-						if(${fullPath} !== undefined && ${fullPath} !== null) {
-							return ${path}['${indetifier}']
-						}
-							else {
-								return ${expression || 'null'}
-							}
-					}())`;
+	public getDefaultContext = () => {
+		return `const getDefaultContext = ({payload,context:prevContext}) => {
+			// const initialContext = $//{this.getSubsyntaxContext(StartState)}
+			return prevContext
+		}`;
 	};
+	private getInitialState() {
+		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
+	}
 
 	private getContextItem = (ctx: TContextItem) => {
 		if (isContextWithReducer(ctx)) {
@@ -214,16 +291,18 @@ export class JavaScriptCodegen implements ICodegen {
 						if (isKeyItemWithExpression(keyItem)) {
 							const { expression } = keyItem;
 
-							const expressionValueRight = this.getExpression(expression);
+							// @ts-ignore
+							const expressionValueRight = Expressions[expression.expressionType](expression);
 
-							return this.getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
+							return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
 						} else {
-							return this.getDefaultPropertyContext(path, boundIdentifier);
+							return getDefaultPropertyContext(path, boundIdentifier);
 						}
 					} else {
 						const { expression } = keyItem;
-						const expressionValueRight = this.getExpression(expression);
 
+						//@ts-check
+						const expressionValueRight = Expressions[expression.expressionType](expression);
 						return `(function(){
 						return ${expressionValueRight}
 					}())`;
@@ -239,8 +318,8 @@ export class JavaScriptCodegen implements ICodegen {
 
 					if (isKeyItemWithExpression(keyItem)) {
 						const { expression } = keyItem;
-
-						const expressionValueRight = this.getExpression(expression);
+						// @ts-ignore
+						const expressionValueRight = Expressions[expression.expressionType](expression);
 
 						return `${targetProperty}: (function(){
 						const boundValue = ${el}
@@ -269,95 +348,15 @@ export class JavaScriptCodegen implements ICodegen {
 			return context.map(({ keyItem }) => {
 				const { identifier } = keyItem;
 				if (isKeyItemWithExpression(keyItem)) {
-					const expressionValue = this.getExpression(keyItem.expression);
-
-					return this.getDefaultPropertyContext('prevContext', identifier, expressionValue);
+					const expressionValue = Expressions[keyItem.expression.expressionType](
+						// @ts-ignore
+						keyItem.expression,
+					);
+					return getDefaultPropertyContext('prevContext', identifier, expressionValue);
 				} else {
-					return this.getDefaultPropertyContext('prevContext', identifier);
+					return getDefaultPropertyContext('prevContext', identifier);
 				}
 			});
 		}
 	};
-
-	private getExpression = <T extends keyof TMapped>(expression: TExpression<T>) => {
-		const Expressions: TExpressionRecord = {
-			[ExpressionTypes.ArrayDeclaration]: () => '[]',
-			[ExpressionTypes.Function]: (func) => {
-				const recursive = (func: TExpressionFunction & { root?: true }) => {
-					const { FunctionDeclaration } = func;
-					const { FunctionName, Arguments } = FunctionDeclaration;
-
-					const res: string[] = [];
-
-					if (Arguments.length !== 0) {
-						Arguments.forEach((item) => {
-							if (isKeyItemReference(item)) {
-								const { expressionType, identifier } = item;
-								const path = pathRecord[expressionType];
-
-								if (isKeyItemWithExpression(item)) {
-									const { expression } = item;
-
-									if (expression.expressionType === ExpressionTypes.Function) {
-										// @ts-ignore
-										res.push(recursive(expression));
-									}
-
-									const valueExpression = this.getExpression(expression);
-
-									res.push(`${this.getDefaultPropertyContext(path, identifier, valueExpression)}`);
-								} else {
-									res.push(`${this.getDefaultPropertyContext(path, identifier)}`);
-								}
-							} else {
-								const { expression } = item;
-
-								if (expression.expressionType === ExpressionTypes.Function) {
-									// @ts-ignore
-									res.push(recursive(item));
-								} else {
-									const valueExpression = this.getExpression(expression);
-									res.push(valueExpression);
-								}
-							}
-						});
-					} else {
-						res.push(FunctionName);
-					}
-
-					return getFunctionFromDictionary(FunctionName).concat(`(${res.join(',')})`);
-				};
-
-				const res = recursive(func);
-				return res;
-			},
-			[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
-				return `${NumberDeclaration}`;
-			},
-			[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
-				return `${NumberDeclaration}`;
-			},
-			[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
-				return `'${StringDeclaration}'`;
-			},
-			[ExpressionTypes.Context]: ({ identifier }) => {
-				return `'prevContext['${identifier}']'`;
-			},
-			[ExpressionTypes.Payload]: ({ identifier }) => {
-				return `'payload['${identifier}']'`;
-			},
-		} as const;
-
-		return Expressions[expression.expressionType](expression);
-	};
-
-	public getDefaultContext = () => {
-		return `const getDefaultContext = ({payload,context:prevContext}) => {
-			// const initialContext = $//{this.getSubsyntaxContext(StartState)}
-			return prevContext
-		}`;
-	};
-	private getInitialState() {
-		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
-	}
 }
