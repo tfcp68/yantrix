@@ -39,9 +39,12 @@ A --> AA: toAA
 [*] --> H: toH (a1, a2, a3)
 [*] --> J: toJ (a1, a2, a3)
 note left of A
-#{a1,a2,a3} <= (a1,a2,a3)
+#{a=4} <= 3
 end note
 
+`;
+
+/*
 note left of AA
 #{a1,a2,a3}
 end note
@@ -73,17 +76,17 @@ end note
 note left of [*]
 #{integer=3, string="str", array=[]}
 end note
-`;
+*/
 
 const diagramsInput = {
 	gameDiagram: {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
 	},
-	// includeNotes: {
-	// 	value: includeNotesInput,
-	// 	automataName: 'AutomataIncludeNotes',
-	// },
+	includeNotes: {
+		value: includeNotesInput,
+		automataName: 'AutomataIncludeNotes',
+	},
 } as const;
 
 Object.values(diagramsInput).forEach(async (fixture) => {

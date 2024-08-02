@@ -31,11 +31,18 @@ export type TEmitFull = TEventEmitStatement & TMeta & TContext;
 export type TEvenEmit = TEmitWithMeta | TEmitFull | TEventEmitStatement;
 export type TEvents = { emit: TEvenEmit[] };
 
+export type TContextShort = {
+	context: TKeyItems;
+};
+
+export type TContextReducer = {
+	reducer: TKeyItems<'reducer'>;
+} & TContextShort;
+
+export type TContextItem = TContextShort | TContextReducer;
+
 export type TContextDescription = {
-	contextDescription: Array<{
-		context: TKeyItems;
-		reducer?: TKeyItems<'reducer'>;
-	}>;
+	contextDescription: TContextItem[];
 };
 
 export type TInitialState = {

@@ -15,8 +15,8 @@
 '%%'                             return 'CONSTANT_SYMBOL';
 [\s]+                                /* skip all whitespace */
 [A-Za-z]{1,}[A-Za-z0-9\.]*(?=[(])    return 'FUNCTION_NAME';
-'subscribe'                          return 'SUBSCRIBE'
-'emit'                               return 'EMIT'
+'subscribe/'                          return 'SUBSCRIBE'
+'emit/'                               return 'EMIT'
 'Init'                               return 'INITIAL_STATE'
 'ByPass'                             return 'BY_PASS'
 
@@ -95,7 +95,7 @@ EMIT_STATEMENT
         | EMIT_EVENT KEY_LIST_STATEMENT LEFT_ARROW CONTEXT_SYMBOL LEFT_BRACE RAW_KEYLIST RIGHT_BRACE { $$ = {emit:{ ...$1, meta: $2, context:[...$6] }}};
 
 EMIT_EVENT 
-        : EMIT FORWARD_SLASH IDENT { $$ = {identifier:$3}};
+        : EMIT IDENT { $$ = {identifier:$2}};
 
 SUBSCRIBE_STATEMENT
         : SUBSCRIBE_EVENT { $$ = {subscribe:$1}}
@@ -104,7 +104,7 @@ SUBSCRIBE_STATEMENT
 
 
 SUBSCRIBE_EVENT
-        : SUBSCRIBE FORWARD_SLASH IDENT IDENT { $$ = {identifier:$3, actionName:$4}};
+        : SUBSCRIBE IDENT IDENT { $$ = {identifier:$2, actionName:$3}};
 
 
 KEY_LIST_STATEMENT
@@ -142,7 +142,7 @@ DATA_OBJECT
 
 EXPRESSION
         : IMMUTABLE
-        | DATA_OBJECT_REFERENCE
+        | DATA_OBJECT
         | FUNCTION;        
 
 DATA_OBJECT_REFERENCE 

@@ -1,10 +1,12 @@
-/**
- * This object contains the different types of expressions that can be used in the parser.
- */
-
 import { ExpressionTypes } from '../constants';
+import { TKeyItemReducer, TKeyItemReducerOrExpression } from './keyItem';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
+
+export type TRefereneceType =
+	| typeof ExpressionTypes.Payload
+	| typeof ExpressionTypes.Constant
+	| typeof ExpressionTypes.Context;
 
 type TReference = {
 	identifier: string;
@@ -16,18 +18,16 @@ type TExpressionString = {
 type TExpressionArray = {
 	ArrayDeclaration: [];
 };
-type TExpressionProperty = {
-	Property: any;
-};
+
 type TExpressionNumber = {
 	NumberDeclaration: number;
 };
-type TFunctionArgument = TExpressionNumber | TExpressionString | TExpressionProperty;
+type TFunctionArgument = TKeyItemReducer | TExpression;
 
-type TExpressionFunction = {
+export type TExpressionFunction = {
 	FunctionDeclaration: {
 		FunctionName: string;
-		Arguments?: TFunctionArgument[];
+		Arguments: TFunctionArgument[];
 	};
 };
 
@@ -37,6 +37,9 @@ export type TMapped = {
 	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
 	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
+	[ExpressionTypes.Context]: TReference;
+	[ExpressionTypes.Payload]: TReference;
+	[ExpressionTypes.Context]: TReference;
 };
 
 export type TMappedKeys = keyof TMapped;
