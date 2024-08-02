@@ -51,7 +51,7 @@ export class JavaCodegen implements ICodegen {
 	}
 
 	public getActionToStateFromState() {
-		return `public final Map<TAutomataBaseState, Map<TAutomataBaseAction, AutomataStateTransitionResult>> stateTransitionMatrix = 
+		return `public final Map<TAutomataBaseState, Map<TAutomataBaseAction, AutomataStateTransitionResult>> stateTransitionMatrix =
 			Map.ofEntries(
 				${this.getStateTransitionMatrix()}
 			);
@@ -60,9 +60,8 @@ export class JavaCodegen implements ICodegen {
 
 	// State transition matrix
 	getStateTransitionMatrix(): string {
-		return Object.keys(this.diagram.transitions)
-			.map((state) => {
-				const transitions = this.diagram.transitions[state];
+		return Object.entries(this.diagram.transitions)
+			.map(([state, transitions]) => {
 				const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 				if (!value) throw new Error(`State ${state} not found`);
 
@@ -79,16 +78,15 @@ export class JavaCodegen implements ICodegen {
 	}
 
 	getTransitions(transitions: Record<string, TDiagramAction>) {
-		return Object.keys(transitions)
-			.map((key) => {
-				const { actionsPath } = transitions[key];
-				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return actionsPath.map(({ action }) => {
+		return Object.entries(transitions)
+			.map(([state, transition]) => {
+				const newState = this.stateDictionary.getStateValues({ keys: [state] })[0];
+				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
 					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${key} not found`);
+					if (!newState) throw new Error(`State ${state} not found`);
 
 					// const ctx = this.getSubsyntaxContext(key);
 
@@ -267,7 +265,7 @@ export class JavaCodegen implements ICodegen {
             public abstract static class TAutomataBaseType {
                 protected Long value;
                 public Long getValue() { return value; }
-        
+
                 @Override
                 public boolean equals(Object o) {
                     if (this == o) return true;
@@ -275,55 +273,55 @@ export class JavaCodegen implements ICodegen {
                     TAutomataBaseType that = (TAutomataBaseType) o;
                     return Objects.equals(value, that.value);
                 }
-        
+
                 @Override
                 public int hashCode() {
                     return Objects.hash(value);
                 }
             }
-        
+
             public static class TAutomataBaseState extends TAutomataBaseType {
-        
+
                 private TAutomataBaseState() {}
                 private TAutomataBaseState(Long value) { this.value = value; }
-        
+
                 public static TAutomataBaseState of(Long value) { return new TAutomataBaseState(value); }
-        
+
             }
-        
+
             public static class TAutomataBaseAction extends TAutomataBaseType {
-        
+
                 private TAutomataBaseAction() {}
                 private TAutomataBaseAction(Long value) { this.value = value; }
-        
+
                 public static TAutomataBaseAction of(Long value) { return new TAutomataBaseAction(value); }
-        
+
             }
-        
+
             public static class TAutomataBaseContext extends HashMap<String, Object> {
                 public TAutomataBaseContext(Map<String, Object> map) { super(map); }
-        
+
                 private TAutomataBaseContext(TAutomataBasePayload payload) {
                     super();
                     this.putAll(payload);
                 }
-        
+
                 public static TAutomataBaseContext fromPayload(TAutomataBasePayload payload) {
                     return new TAutomataBaseContext(payload);
                 }
             }
-        
+
             public static class TAutomataBasePayload extends HashMap<String, Object> {
             }
-        
+
             public record AutomataStateTransitionResult (
                     TAutomataBaseState newState,
                     Function<AutomataPayloadContext, TAutomataBaseContext> getNewContext
             ) {
             }
-        
+
             public interface IAutomataReducer extends Function<TAutomataStateContextActionPayload, TAutomataStateContext> {}
-        
+
             public record TAutomataStateContext(TAutomataBaseState state, TAutomataBaseContext context) {}
             public record TAutomataStateContextActionPayload(TAutomataBaseState state, TAutomataBaseContext context, TAutomataBaseAction action, TAutomataBasePayload payload) {}
             public record AutomataPayloadContext(TAutomataBasePayload payload,TAutomataBaseContext context) {}

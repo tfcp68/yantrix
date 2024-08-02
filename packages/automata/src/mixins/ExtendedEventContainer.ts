@@ -13,7 +13,7 @@ export default function ExtendedEventContainer<
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractExtendedEventContainer extends BasicEventContainer<EventType>()(Proto) {
-			#__eventMetaValidator?: TValidator<TAutomataEventMetaType<EventType, EventMetaType>>;
+			#__eventMetaValidator: TValidator<TAutomataEventMetaType<EventType, EventMetaType>> | undefined;
 
 			public get validateEventMeta(): TValidator<TAutomataEventMetaType<EventType, EventMetaType>> {
 				return this.#__eventMetaValidator ?? this.#__defaultEventMetaValidator;
