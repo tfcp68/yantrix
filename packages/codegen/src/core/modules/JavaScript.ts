@@ -301,7 +301,7 @@ export class JavaScriptCodegen implements ICodegen {
 					} else {
 						const { expression } = keyItem;
 
-						//@ts-check
+						// @ts-ignore
 						const expressionValueRight = Expressions[expression.expressionType](expression);
 						return `(function(){
 						return ${expressionValueRight}
