@@ -1,5 +1,5 @@
 import { ExpressionTypes } from '../constants';
-import { TKeyItemReducerOrExpression } from './keyItem';
+import { TKeyItem, TKeyItemReducer, TKeyItemReducerOrExpression } from './keyItem';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
@@ -22,7 +22,7 @@ type TExpressionArray = {
 type TExpressionNumber = {
 	NumberDeclaration: number;
 };
-type TFunctionArgument = TKeyItemReducerOrExpression;
+type TFunctionArgument = TKeyItemReducer | TExpression;
 
 export type TExpressionFunction = {
 	FunctionDeclaration: {
