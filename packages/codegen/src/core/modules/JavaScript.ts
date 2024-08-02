@@ -1,7 +1,25 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { fillDictionaries } from '../shared.js';
+import { ICodegen, TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { fillDictionaries, pathRecord } from '../shared.js';
+import {
+	TContextItem,
+	isKeyItemReference,
+	isContextWithReducer,
+	isKeyItemWithExpression,
+	ExpressionTypes,
+	TExpressionFunction,
+	TMapped,
+	TExpression,
+} from '@yantrix/yantrix-parser';
+
+const getReferenceString = (path: string, identifier: string) => {
+	return `${path}['${identifier}']`;
+};
+
+const getFunctionFromDictionary = (name: string) => {
+	return `functionDictionary['${name}']`;
+};
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
@@ -25,8 +43,6 @@ export class JavaScriptCodegen implements ICodegen {
 		this.changeStateHandlers = [];
 		this.dictionaries = [];
 		this.initialContextKeys = [];
-
-		// this.initialContext = this.getInitialContext();
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 		this.setupDictionaries();
@@ -85,14 +101,13 @@ export class JavaScriptCodegen implements ICodegen {
 					if (!actionValue) throw new Error(`Action ${action} not found`);
 					if (!newState) throw new Error(`State ${key} not found`);
 
-					// const ctx = this.getSubsyntaxContext(key);
+					const newCtx = this.getContextTransition(key);
 
 					return `
 				  ${actionValue}: {
 				  	state: ${newState},
-				  	getNewContext: ({payload, context}) => {
-				  			const prevContext = getDefaultContext({payload,context})
-				  			return null
+				  	getNewContext: ({payload, context:prevContext}) => {
+				  			return ${newCtx};
 				  	}
 				  },
 				`;
@@ -151,82 +166,189 @@ export class JavaScriptCodegen implements ICodegen {
 		});
 	}
 
-	// protected getSubsyntaxContext(state: string | null) {
-	// 	const value = this.diagram.states.find((diagramState) => {
-	// 		return diagramState.id === state;
-	// 	});
+	protected getContextTransition = (state: string) => {
+		const value = this.diagram.states.find((diagramState) => {
+			return diagramState.id === state;
+		});
 
-	// 	if (!value) {
-	// 		throw new Error(`Invalid state - ${value}`);
-	// 	}
+		if (!value) {
+			throw new Error(`Invalid state - ${value}`);
+		}
 
-	// 	if (!value.notes || !value.notes.contextDescription.length) {
-	// 		return `prevContext`;
-	// 	}
-	// 	const { contextDescription } = value.notes;
+		const ctxRes: string[] = [];
 
-	// 	const flattedContext = contextDescription.flatMap((e) => e.context.flatMap((e) => e));
+		value.notes?.contextDescription.map((ctx) => {
+			const newContext = this.getContextItem(ctx);
 
-	// 	const unusedInitialKeys = this.initialContextKeys.filter(
-	// 		(key) => flattedContext.filter((e) => e.KeyItemDeclaration.TargetProperty === key).length === 0,
-	// 	);
+			ctxRes.push(...newContext);
+		});
 
-	// 	const normalizedUnusedKeys = unusedInitialKeys.map((property) => {
-	// 		return `${property}: ${TAssignTypeDict.PREV_CONTEXT}['${property}'],`;
-	// 	});
+		if (ctxRes.length === 0) return 'null';
 
-	// 	const res = contextDescription
-	// 		.map((ctx) => {
-	// 			if (isPayloadContext(ctx)) {
-	// 				const { context, payload = [] } = ctx;
-	// 				return context.map((ctxItem, index) => {
-	// 					const boundProperty = payload[index] || null;
-	// 					return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PAYLOAD);
-	// 				});
-	// 			} else if (isPrevContext(ctx)) {
-	// 				const { context, prevContext = [] } = ctx;
-	// 				return context.map((ctxItem, index) => {
-	// 					const boundProperty = prevContext[index] || null;
-	// 					return this.getContextValues(ctxItem, boundProperty, TAssignTypeDict.PREV_CONTEXT);
-	// 				});
-	// 			} else if (isShortContext(ctx)) {
-	// 				const { context } = ctx;
-	// 				return context.map((ctxItem) => {
-	// 					return this.getContextValues(ctxItem, null, TAssignTypeDict.PREV_CONTEXT);
-	// 				});
-	// 			}
-	// 			throw new Error(`Invalid context type - ${ctx}`);
-	// 		})
-	// 		.flatMap((template) => template.flatMap((el) => el));
+		return `{${ctxRes.join(',\n\t')}}`;
+	};
 
-	// 	return `{${[...normalizedUnusedKeys, ...res].join('\r\n')}}`;
-	// }
+	private getDefaultPropertyContext = (path: string, indetifier: string, expression?: string) => {
+		const fullPath = getReferenceString(path, indetifier);
 
-	// private getInitialContext() {
-	// 	const startState = this.diagram.states.find((state) => {
-	// 		return state.id === StartState;
-	// 	});
+		return `(function(){
+						if(${fullPath} !== undefined && ${fullPath} !== null) {
+							return ${path}['${indetifier}']
+						}
+							else {
+								return ${expression || 'null'}
+							}
+					}())`;
+	};
 
-	// 	if (!startState?.notes) {
-	// 		return 'null';
-	// 	}
+	private getContextItem = (ctx: TContextItem) => {
+		if (isContextWithReducer(ctx)) {
+			const { context, reducer } = ctx;
 
-	// 	const initialNotes = startState.notes.contextDescription.map((ctx) => {
-	// 		const { context } = ctx;
-	// 		return context
-	// 			.map((ctx) => {
-	// 				this.initialContextKeys.push(ctx.KeyItemDeclaration.TargetProperty);
+			return reducer
+				.map(({ keyItem }) => {
+					if (isKeyItemReference(keyItem)) {
+						const { expressionType, identifier: boundIdentifier } = keyItem;
+						const path = pathRecord[expressionType];
 
-	// 				if (isKeyItemWithExpression(ctx)) {
-	// 					return `${ctx.KeyItemDeclaration.TargetProperty}: ${this.getByExpressionValue(ctx)}`;
-	// 				}
-	// 				return `${ctx.KeyItemDeclaration.TargetProperty}: null`;
-	// 			})
-	// 			.flatMap((el) => el);
-	// 	});
+						if (isKeyItemWithExpression(keyItem)) {
+							const { expression } = keyItem;
 
-	// 	return `{${initialNotes.join(',\n\t')}}`;
-	// }
+							const expressionValueRight = this.getExpression(expression);
+
+							return this.getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
+						} else {
+							return this.getDefaultPropertyContext(path, boundIdentifier);
+						}
+					} else {
+						const { expression } = keyItem;
+						const expressionValueRight = this.getExpression(expression);
+
+						return `(function(){
+						return ${expressionValueRight}
+					}())`;
+					}
+				})
+				.map((el, index) => {
+					const item = context[index];
+					if (!item) {
+						throw new Error('Unexcpeted index bound property');
+					}
+					const { keyItem } = item;
+					const { identifier: targetProperty } = keyItem;
+
+					if (isKeyItemWithExpression(keyItem)) {
+						const { expression } = keyItem;
+
+						const expressionValueRight = this.getExpression(expression);
+
+						return `${targetProperty}: (function(){
+						const boundValue = ${el}
+						if(boundValue !== null){
+							return boundValue
+						}
+						else {
+							return ${expressionValueRight}
+						}
+
+					}())`;
+					} else {
+						return `${targetProperty}: (function(){
+						const boundValue = ${el}
+
+						if(boundValue !== null) {
+							return boundValue
+						}
+						return null
+
+					}())`;
+					}
+				});
+		} else {
+			const { context } = ctx;
+			return context.map(({ keyItem }) => {
+				const { identifier } = keyItem;
+				if (isKeyItemWithExpression(keyItem)) {
+					const expressionValue = this.getExpression(keyItem.expression);
+
+					return this.getDefaultPropertyContext('prevContext', identifier, expressionValue);
+				} else {
+					return this.getDefaultPropertyContext('prevContext', identifier);
+				}
+			});
+		}
+	};
+
+	private getExpression = <T extends keyof TMapped>(expression: TExpression<T>) => {
+		const Expressions: TExpressionRecord = {
+			[ExpressionTypes.ArrayDeclaration]: () => '[]',
+			[ExpressionTypes.Function]: (func) => {
+				const recursive = (func: TExpressionFunction & { root?: true }) => {
+					const { FunctionDeclaration } = func;
+					const { FunctionName, Arguments } = FunctionDeclaration;
+
+					const res: string[] = [];
+
+					if (Arguments.length !== 0) {
+						Arguments.forEach((item) => {
+							if (isKeyItemReference(item)) {
+								const { expressionType, identifier } = item;
+								const path = pathRecord[expressionType];
+
+								if (isKeyItemWithExpression(item)) {
+									const { expression } = item;
+
+									if (expression.expressionType === ExpressionTypes.Function) {
+										// @ts-ignore
+										res.push(recursive(expression));
+									}
+
+									const valueExpression = this.getExpression(expression);
+
+									res.push(`${this.getDefaultPropertyContext(path, identifier, valueExpression)}`);
+								} else {
+									res.push(`${this.getDefaultPropertyContext(path, identifier)}`);
+								}
+							} else {
+								const { expressionType } = item;
+								if (expressionType === ExpressionTypes.Function) {
+									// @ts-ignore
+									res.push(recursive(item));
+								} else {
+									const valueExpression = this.getExpression(item);
+									res.push(valueExpression);
+								}
+							}
+						});
+					} else {
+						res.push(FunctionName);
+					}
+
+					return getFunctionFromDictionary(FunctionName).concat(`(${res.join(',')})`);
+				};
+
+				const res = recursive(func);
+				return res;
+			},
+			[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
+				return `${NumberDeclaration}`;
+			},
+			[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
+				return `${NumberDeclaration}`;
+			},
+			[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
+				return `'${StringDeclaration}'`;
+			},
+			[ExpressionTypes.Context]: ({ identifier }) => {
+				return `'prevContext['${identifier}']'`;
+			},
+			[ExpressionTypes.Payload]: ({ identifier }) => {
+				return `'payload['${identifier}']'`;
+			},
+		} as const;
+
+		return Expressions[expression.expressionType](expression);
+	};
 
 	public getDefaultContext = () => {
 		return `const getDefaultContext = ({payload,context:prevContext}) => {
@@ -237,57 +359,4 @@ export class JavaScriptCodegen implements ICodegen {
 	private getInitialState() {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
-
-	// private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {
-	// 	const { TargetProperty: LeftTarget } = context.KeyItemDeclaration;
-
-	// 	if (boundProperty === null) {
-	// 		if (isKeyItemWithExpression(context)) {
-	// 			const value = this.getByExpressionValue(context);
-	// 			return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'] || ${value},`;
-	// 		}
-	// 		return `${LeftTarget}: ${TAssignTypeDict.PREV_CONTEXT}['${LeftTarget}'],`;
-	// 	}
-
-	// 	const { TargetProperty: RightTarget } = boundProperty.KeyItemDeclaration;
-	// 	const isEmptyInitial = !isKeyItemWithExpression(context);
-
-	// 	const isEmptyBoundExpression = !isKeyItemWithExpression(boundProperty);
-
-	// 	if (isEmptyBoundExpression && isEmptyInitial) {
-	// 		return `
-	// 			${LeftTarget} : ${type}['${RightTarget}'] || null,
-	// 		`;
-	// 	}
-
-	// 	//	#{ selectedIndex = 3 } <= (index ) || { selectedIndex }
-	// 	if (isEmptyBoundExpression && !isEmptyInitial) {
-	// 		if (isKeyItemWithExpression(context)) {
-	// 			const value = this.getByExpressionValue(context);
-
-	// 			return `${LeftTarget}:  ${type}['${RightTarget}'] || ${value},`;
-	// 		}
-	// 	}
-	// 	//	#{ selectedIndex } <= (index=3)
-	// 	if (!isEmptyBoundExpression && isEmptyInitial) {
-	// 		if (isKeyItemWithExpression(boundProperty)) {
-	// 			const value = this.getByExpressionValue(boundProperty);
-
-	// 			return `${LeftTarget}: ${type}['${RightTarget}'] || ${value},`;
-	// 		}
-	// 	}
-	// 	if (isKeyItemWithExpression(boundProperty) && isKeyItemWithExpression(context)) {
-	// 		const leftValue = this.getByExpressionValue(context);
-	// 		const rightValue = this.getByExpressionValue(boundProperty);
-
-	// 		return `${LeftTarget}: ${type}['${RightTarget}'] || ${rightValue} || ${leftValue},`;
-	// 	}
-	// 	return `${LeftTarget}: null,`;
-	// }
-
-	// private getByExpressionValue<T extends TMappedKeys>({
-	// 	KeyItemDeclaration: { Expression },
-	// }: TKeyItemWithExpression<T>) {
-	// 	return Expressions[Expression.expressionType](Expression);
-	// }
 }
