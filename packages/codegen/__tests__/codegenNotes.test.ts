@@ -1,22 +1,30 @@
-// import { beforeEach, describe, vitest, test, expect } from 'vitest';
-// import {
-// 	AutomataIncludeNotes,
-// 	actionsDictionary,
-// 	statesDictionary,
-// } from './fixtures/AutomataIncludeNotes_generated.js';
+import { beforeEach, describe, vitest, test, expect } from 'vitest';
+import {
+	AutomataIncludeNotes,
+	actionsDictionary,
+	statesDictionary,
+} from './fixtures/AutomataIncludeNotes_generated.js';
 
-// let automata: AutomataIncludeNotes;
+let automata: AutomataIncludeNotes;
 
-// const initialContext = {
-// 	string: 'str',
-// 	integer: 3,
-// 	array: [],
-// };
+const initialContext = {
+	string: 'str',
+	integer: 3,
+	array: [],
+};
 // const defaultPayload = {
 // 	a1: 'string',
 // 	a2: 3,
 // 	a3: [],
 // };
+
+describe('Automat include notes', () => {
+	beforeEach(() => {
+		vitest.clearAllTimers();
+		vitest.clearAllTimers();
+		automata = new AutomataIncludeNotes();
+	});
+});
 
 // describe('Automata include notes', () => {
 // 	beforeEach(() => {
