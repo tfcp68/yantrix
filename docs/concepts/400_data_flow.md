@@ -92,7 +92,6 @@ This, each `Event Adapter` is dependent on all three semantic spaces: `Events`, 
 ```mermaid
 sequenceDiagram
 	autonumber
-	participant EL as Effect Layer
 	participant MT as Event Stack
 	participant EA as Event Adapter
 	participant FSM as FSM
@@ -114,7 +113,7 @@ _Figure 3: Yantrix Main Loop_
 
 ## Effects
 
-While Main Loop drives the sequence of execution, every `FSM` is locked onto oneself and cannot directly update the "outer world data" is expressed by `Data Model`. To do so, `Effects` are invoked by Main Loop every time it repeats its cycle. `Effects` are pure functions that take `Data Model` and `Event Meta` as parameters and return updated `Data Model`. While every `FSM` can declare its own `Effects`, in fact they are invoked after all `FSM`s are already done with their `Reducer` loops, and some `Events` are produced by `Event Adapters`. Only those `Events` would be translated to `Effects`, while `Events` emitted by `Sources` are first translated into `Actions`.
+While Main Loop drives the sequence of execution, every `FSM` is locked onto oneself and cannot directly update the "outer world data" that is expressed by `Data Model`. To do so, `Effects` are invoked by Main Loop every time it repeats its cycle. `Effects` are pure functions that take `Data Model` and `Event Meta` as parameters and return updated `Data Model`. While every `FSM` can declare its own `Effects`, in fact they are invoked after all `FSM`s are already done with their `Reducer` loops, and some `Events` are produced by `Event Adapters`. Only those `Events` would be translated to `Effects`, while `Events` emitted by `Sources` are first translated into `Actions`.
 
 ```mermaid
 sequenceDiagram
@@ -152,18 +151,19 @@ sequenceDiagram
 		participant MDL as Data Model (Anemic)
 		participant DB as Storages (Persistent)
 	end
-	DB -->> MDL: Sync application state on launch
-	SRC ->> MT: Event Meta
+	DB ->> MDL: Sync application state on launch
+	SRC -->> MT: Event Meta
 	loop Process Event Stack every 1/60s
 		activate MT
 		Note over MT: Pop Event from Event Stack
 		MT ->> MT: Run FSM Reducers
+		Note over MT: See if new Events are emitted
 		MT ->>+ EL: Event Meta
 		note over EL: Update Data Model based on Emitted Events
 		EL ->> MDL: Data Model
-		EL ->>- MT: Event Meta
-		MT ->> DST: Event Meta
+		MDL ->> DST: Data Model
 		note over MT: Proceed to the newest Event
+		EL ->>- MT: Event Meta
 		deactivate MT
 	end
 	Note over MDL, DB: Model is persisted asynchronously

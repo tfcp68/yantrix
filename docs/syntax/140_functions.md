@@ -26,7 +26,7 @@ during transitions. Functions are categorized into three varieties:
 
 ## Directive
 
-A `Function` can be defined "inline" at default diagram node or as an injection to Codegen:
+A `Function` can be defined "inline" at default diagram node or as an injection to Codegen, using built-in functions or previously defined ones:
 
 ```
 define/isMultiplierOf5 (x) => isEqual(mod(x, 5), 0)

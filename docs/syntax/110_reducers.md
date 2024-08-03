@@ -41,11 +41,9 @@ For more info, see [Data Objects](100_data_objects.md)
 
 ## Functions and Expressions
 
-Every `Reducer` can reference any number of variable names both on left and right side of assignment. All required
-properties are added to the `Context` dynamically, if needed. But each key can be listed only once.
+Every `Reducer` can reference any number of variable names on both left and right side of `Reducer`. All required properties are added to the `Context` dynamically, if needed. But each key can be listed only once.
 
-If there're more properties in `Target Object` than in `Source Object` , excessive`Target Object` properties are left
-empty.
+If there are more properties in `Target Object` than in `Source Object` , excessive`Target Object` properties are left empty (`Null`).
 
 If there're more properties in `Source Object` than in `Target Object`, such a diagram will throw an error
 

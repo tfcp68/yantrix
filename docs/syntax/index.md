@@ -18,19 +18,19 @@ and [Class Diagrams](https://mermaid.js.org/syntax/classDiagram.html) as well.
 Example of a State Diagram, implementing an `until` loop:
 
 ```
-[*] --> LOOP_ITERATION: START_LOOP(counter)
-LOOP_ITERATION --> LOOP_REPEAT: ITERATE
+direction LR
+[*] --> LOOP_BEGIN: START_LOOP(counter)
+LOOP_BEGIN --> LOOP_REPEAT: ITERATE
 state loop_ends <<choice>>
-LOOP_REPEAT --> loop_ends: ITERATE
+LOOP_REPEAT --> loop_ends: [-]
 loop_ends --> LOOP_REPEAT: isGreater($counter,0)
 loop_ends --> LOOP_END
-note right of LOOP_ITERATION
-    #{ counter } <= #counter = 1
+note right of LOOP_BEGIN
+    #{ counter } <= $counter = 1
 end note
 note left of LOOP_REPEAT
+    +ByPass
     #{ counter } <= add(#counter, -1)
-    emit/nextIteration
-    subscribe/nextIteration ITERATE
 end note
 ```
 
@@ -39,19 +39,18 @@ And this is how Mermaid renders it:
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> LOOP_ITERATION: START_LOOP(counter)
-	LOOP_ITERATION --> LOOP_REPEAT: ITERATE
+	[*] --> LOOP_BEGIN: START_LOOP(counter)
+	LOOP_BEGIN --> LOOP_REPEAT: ITERATE
 	state loop_ends <<choice>>
-	LOOP_REPEAT --> loop_ends: ITERATE
+	LOOP_REPEAT --> loop_ends: [-]
 	loop_ends --> LOOP_REPEAT: isGreater($counter,0)
 	loop_ends --> LOOP_END
-	note right of LOOP_ITERATION
-		#{ counter } <= #counter = 1
+	note right of LOOP_BEGIN
+		#{ counter } <= $counter = 1
 	end note
 	note left of LOOP_REPEAT
+		+ByPass
 		#{ counter } <= add(#counter, -1)
-		emit/nextIteration
-		subscribe/nextIteration ITERATE
 	end note
 ```
 
@@ -60,11 +59,11 @@ presented for demonstration purposes.
 
 ## State Machine
 
-The first layer of syntax is describing a `FSM` - [Finite State Machine](../concepts/200_FSM.html).
+The first layer of syntax is describing a `FSM` &mdash; [Finite State Machine](../concepts/200_FSM.html).
 
 The diagram above creates a `FSM` with 3 `States`:
 
--   **LOOP_ITERATION**
+-   **LOOP_BEGIN**
 -   **LOOP_REPEAT**
 -   **LOOP_END**
 
@@ -76,15 +75,14 @@ The diagram also defines 2 `Actions`:
 -   **START_LOOP** with a `Payload` that carries a single `counter` variable
 -   **ITERATE** without a `Payload`
 
-Since **ITERATE** can be invoked in two of three `States`(**LOOP_ITERATION** and **LOOP_REPEAT**), **LOOP_END** has no
+Since **ITERATE** can be invoked in two of three `States`(**LOOP_BEGIN** and **LOOP_REPEAT**), **LOOP_END** has no
 transitions out of it. However, an `Action` that is coming ot ouf a default node (`[*]`) can be dispatched from
 any `State`. Thus, **START_LOOP** `Action` effectively resets the whole machine to starting conditions. That is a very
 useful pattern for proper `FSM` designs
 
-Invoking **ITERATE** `Action` at **LOOP_REPEAT** `State` leads to a `Fork`, which has to calculate the
-predicate `greaterThan(${counter}, 0)`. If its truthy, the transition leads to **LOOP_END**. If not, the remaining
-transition makes a loop, invoking **LOOP_REPEAT** -> **LOOP_REPEAT** transition, yet again executing all operations
-in `notes` blocks, as described below.
+Invoking **ITERATE** `Action` at **LOOP_REPEAT** `State` leads to a `Fork`, which has to calculate the predicate `greaterThan(${counter}, 0)`. If its truthy, the transition leads to **LOOP_END**. If not, the remaining transition makes a loop, invoking **LOOP_REPEAT** -> **LOOP_REPEAT** transition, yet again executing all operations in `notes` blocks, as described below.
+
+Since **LOOP_REPEAT** has a `ByPass` flag, it passes **ITERATE** `Action` to oneself, looping again and again, until the Fork resolves to **LOOP_END** `State`.
 
 ## Subsyntax
 
