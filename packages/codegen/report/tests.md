@@ -2,16 +2,16 @@
 
 | 🕙 Start time        | ⌛ Duration |
 | -------------------- | ----------: |
-| 02.08.2024, 17:46:52 |     0.527 s |
+| 8/6/2024, 3:28:38 PM |     0.772 s |
 
 |             | ✅ Passed | ❌ Failed | ⏩ Skipped | 🚧 Todo | ⚪ Total |
 | ----------- | --------: | --------: | ---------: | ------: | -------: |
-| Test Suites |         5 |         0 |          0 |       0 |        5 |
-| Tests       |         9 |         0 |          0 |       0 |        9 |
+| Test Suites |         3 |         0 |          0 |       0 |        5 |
+| Tests       |        10 |         5 |          0 |       0 |       15 |
 
-## ✅ <a id="file0" href="#file0">**tests**\codegenAutomata.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/5e9e5443dad4b21ac4a2e04bfc9ecb7808f343b6/packages\codegen/__tests__\codegenAutomata.test.ts)]
+## ✅ <a id="file0" href="#file0">**tests**/codegenAutomata.test.ts</a>
 
-9 passed, 0 failed, 0 skipped, 0 todo, done in 7 s
+9 passed, 0 failed, 0 skipped, 0 todo, done in 3 s
 
 ```
 ✅ Codegen output › GamePhaseAutomata
@@ -27,10 +27,16 @@
 ✅ Codegen output
 ```
 
-## ✅ <a id="file1" href="#file1">**tests**\codegenNotes.test.ts</a> [[link](https://github.com/tfcp68/yantrix/blob/5e9e5443dad4b21ac4a2e04bfc9ecb7808f343b6/packages\codegen/__tests__\codegenNotes.test.ts)]
+## ❌ <a id="file1" href="#file1">**tests**/codegenNotes.test.ts</a>
 
-0 passed, 0 failed, 0 skipped, 0 todo, done in 1 s
+1 passed, 5 failed, 0 skipped, 0 todo, done in 14 s
 
 ```
-✅ Automat include notes
+❌ Default assign
+   ✅ {a1} <= $b1 = string | number | list | $payloadProperyy
+   ❌ {a1} <= b1 == 5 (payload { payload: { b1: null } }, setting default value)
+   ❌ {a1} <= b1 == 5 (payload { payload: {} }, setting default value)
+   ❌ {a2 = 10} <= b2 (empty payload { payload: { b2: null } }, setting context  default value 10)
+   ❌ {a3 = "str"} <= $b3 = "payloadStr" (ignore default assign, setting passed payload b3=300)
+   ❌ {a4} <=  $b4 = $c (reference to another payload property, b4=null, c = 100)
 ```

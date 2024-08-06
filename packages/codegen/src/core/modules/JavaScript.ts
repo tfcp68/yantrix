@@ -79,10 +79,10 @@ export const Expressions: TExpressionRecord = {
 		return `'${StringDeclaration}'`;
 	},
 	[ExpressionTypes.Context]: ({ identifier }) => {
-		return `'prevContext['${identifier}']'`;
+		return `prevContext['${identifier}']`;
 	},
 	[ExpressionTypes.Payload]: ({ identifier }) => {
-		return `'payload['${identifier}']'`;
+		return `payload['${identifier}']`;
 	},
 } as const;
 

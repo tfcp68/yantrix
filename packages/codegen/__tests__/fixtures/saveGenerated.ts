@@ -27,21 +27,16 @@ IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> [*]: EXIT`;
 
-const includeNotesInput = `
+const payloadSample = `
 stateDiagram-v2
-[*] --> A: toA (a1,a2,a3)
-A --> AA: toAA
-[*] --> B: toB (a1,a2,a3)
-[*] --> C: toC (newInteger)
-[*] --> D: toD (a1='string', a2=3, a3=[])
-[*] --> F: toF (a1='string', a2=3, a3=[])
-[*] --> G: toG (a1, a2, a3)
-[*] --> H: toH (a1, a2, a3)
-[*] --> J: toJ (a1, a2, a3)
-note left of A
-#{a=4} <= 3
+[*] --> payloadOnly: toPayloadOnly
+note left of payloadOnly
+#{a} <= $b
+#{a1} <= $b1 = 5
+#{a2 = 10} <= $b2
+#{a3 = 'str'} <= $b3 = 'payloadStr'
+#{a4} <= $b4 = $c
 end note
-
 `;
 
 /*
@@ -84,10 +79,24 @@ const diagramsInput = {
 		automataName: 'GamePhaseAutomata',
 	},
 	includeNotes: {
-		value: includeNotesInput,
-		automataName: 'AutomataIncludeNotes',
+		value: payloadSample,
+		automataName: 'AutomataPayloadSample',
 	},
 } as const;
+
+export const generateAndSaveAutomata = async (input: string, automataName: string) => {
+	const stateDiagramStructure = await parseStateDiagram(input);
+	const stateDiagram = await createStateDiagram(stateDiagramStructure);
+
+	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
+		className: automataName,
+		outLang: 'JavaScript',
+	});
+
+	fs.writeFileSync(path.resolve(pathSave, `${automataName}_generated.js`), generatedAutomataOutput, {
+		encoding: 'utf8',
+	});
+};
 
 Object.values(diagramsInput).forEach(async (fixture) => {
 	const stateDiagramStructure = await parseStateDiagram(fixture.value);
@@ -95,7 +104,7 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: fixture.automataName,
-		outLang: 'TypeScript',
+		outLang: 'JavaScript',
 	});
 
 	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), generatedAutomataOutput, {

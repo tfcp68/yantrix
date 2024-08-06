@@ -1,31 +1,51 @@
-import { beforeEach, describe, vitest, test, expect } from 'vitest';
-import {
-	AutomataIncludeNotes,
-	actionsDictionary,
-	statesDictionary,
-} from './fixtures/AutomataIncludeNotes_generated.js';
+import { beforeEach, describe, expect, vitest, test } from 'vitest';
+import { generateAndSaveAutomata } from './fixtures/saveGenerated.js';
 
-let automata: AutomataIncludeNotes;
+const immutableExpressions = [
+	{
+		value: () => 'string',
+	},
+	{
+		value: () => [],
+	},
+	{
+		value: () => 300,
+	},
+];
 
-const initialContext = {
-	string: 'str',
-	integer: 3,
-	array: [],
-};
-// const defaultPayload = {
-// 	a1: 'string',
-// 	a2: 3,
-// 	a3: [],
-// };
-
-describe('Automat include notes', () => {
+describe('Default assign', () => {
 	beforeEach(() => {
 		vitest.clearAllTimers();
-		vitest.clearAllTimers();
-		automata = new AutomataIncludeNotes();
+	});
+
+	test('{a1} <= $b1 = string | number | list | $payloadProperyy', () => {
+		const template = (value: string) => `
+		stateDiagram-v2
+		[*] --> A: toA
+		note left of A
+			#{a} <= $b = ${value}
+		end note
+		`;
+
+		const automataName = 'AutomataPayloadSample';
+
+		immutableExpressions.forEach(async ({ value }) => {
+			const defaultValue = value();
+
+			await generateAndSaveAutomata(template(defaultValue.toString()), automataName);
+			const res = await import(`./fixtures/AutomataPayloadSample_generated.js`);
+
+			const automata = new res.AutomataPayloadSample();
+
+			automata.dispatch({
+				payload: { b: null },
+				action: res.actionsDictionary.toA,
+			});
+
+			expect(automata.context).toMatchObject({ a: defaultValue });
+		});
 	});
 });
-
 // describe('Automata include notes', () => {
 // 	beforeEach(() => {
 // 		vitest.clearAllTimers();
