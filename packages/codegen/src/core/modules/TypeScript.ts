@@ -1,4 +1,4 @@
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TGetCodeOptionsDescriptor, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'TypeScript'> {
@@ -31,6 +31,18 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'Ty
 				payload,
 			}
 		}`;
+	}
+
+	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
+		return `
+			${this.getImports()}
+			${this.getDictionaries()}
+			const actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)} as const
+			const statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)} as const
+			${this.getDefaultContext()}
+			${this.getActionToStateFromState()}
+			${this.getClassTemplate(options.className)}
+		`;
 	}
 
 	protected getHasStateFunc(className: string) {
