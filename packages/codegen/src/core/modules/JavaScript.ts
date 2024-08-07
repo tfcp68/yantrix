@@ -1,6 +1,11 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { ICodegen, TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import {
+	ICodegen,
+	TExpressionRecord,
+	TGetCodeOptionsDescriptor,
+	TStateDiagramMatrixIncludeNotes,
+} from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import {
 	TContextItem,
@@ -190,6 +195,22 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
 		`;
+	}
+
+	getObjectKeysMap(dict: Record<any, any>) {
+		const obj: Record<string, string> = {};
+		Object.keys(dict).forEach((key: string) => {
+			obj[key] = key;
+		});
+		return obj;
+	}
+
+	getActionsMap() {
+		return this.getObjectKeysMap(this.actionDictionary.getDictionary());
+	}
+
+	getStatesMap() {
+		return this.getObjectKeysMap(this.stateDictionary.getDictionary());
 	}
 
 	protected getGetActionFunc() {
