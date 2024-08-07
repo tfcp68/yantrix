@@ -4,22 +4,20 @@ title: Data Objects
 
 # Data Objects
 
-Yantrix implies that business logic is deterministic and is built upon a single anemic `Data Model`. Framework
-controller, meanwhile, consists of small building blocks described as Dictionaries/Records. Most notable of those blocks
-are
+Yantrix implies that business logic is deterministic and is built upon a single anemic `Data Model`. Framework control objects, meanwhile, operate on small atomic "data blocks", interpreted as `Record`-like type (i.e. `Object` in JS, `Dictionary` in Python, and so on). The Most important "data blocks" are
 
 -   `Context`: current condition of a `FSM`, including it's control state and various meta fields
 -   `Payload`: a useful data transferred to a `FSM` with each dispatched `Action`, including its id and various meta
     fields
 -   `Event Meta`: the same as `Payload` but for `Events` &mdash; messages dispatched through `Event Bus` between `FSMs`
 
-Each of those is represented as keyed object (dictionary, record, etc.) with each key being processed as a separate var.
-In most cases variables are immutable and their names are basically labels for the results
+Each of those is represented as a keyed object (dictionary, record, etc.) with each key being processed as a separate var.
+In most cases, variables are immutable, and their names are basically labels for the results
 of [Expressions](130_expressions.html) calculation assignment.
 
 ## Declaring States
 
-Each node of Mermaid State diagram creates a State and must hava an unique name. It's allowed to use note aliases, bit
+Each node of MermaidJS State diagram creates a State and must hava an unique name. It's allowed to use note aliases, bit
 they are ignored by Yantrix, and `States` are named with node's literal name.
 
 ```mermaid
@@ -133,7 +131,7 @@ stateDiagram-v2
 		#{counter} <= $counter = 10
 	end note
 	note left of WORKING
-		#{counter} <= sub(#counter, $value = 1)
+		#{counter} <= add(#counter, neg($value = 1))
 	end note
 	note right of END
 		#{counter} <= 0
