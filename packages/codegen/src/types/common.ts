@@ -12,8 +12,8 @@ export type TStateIncludingNotes = {
 	notes: TNotes | null;
 } & TDiagramStateOmitNotes;
 
-export interface ICodegenOptions {
-	language: TOutLang;
+export interface ICodegenOptions<T = TOutLang> {
+	language: T;
 }
 
 /**
@@ -42,24 +42,26 @@ export interface ITypedObject extends ITypedObjectProps {
 	codeBlock: string;
 }
 
-export interface ICodegen {
-	getDictionaries(): string;
+export interface IGetCodeJSOptions {
+	className: string;
+}
 
-	/**
-	 * The output of this method should be a string that represents the action to state mapping.
-	 * Example: {
-	 *     state1: {
-	 *            action1: state2
-	 *     }
-	 * }
-	 */
-	getActionToStateFromState(): string;
+export interface IGetCodeTSOptions extends IGetCodeJSOptions {}
 
-	getClassTemplate(className: string): string;
+export interface IGetCodePythonOptions {
+	className: string;
+}
 
-	getImports(): string;
+export type TGetCodeOptionsDescriptor<T extends TOutLang> = T extends 'TypeScript'
+	? IGetCodeTSOptions
+	: T extends 'JavaScript'
+		? IGetCodeJSOptions
+		: T extends 'Python'
+			? IGetCodePythonOptions
+			: never;
 
-	getDefaultContext(): string;
+export interface ICodegen<T extends TOutLang> {
+	getCode(options: TGetCodeOptionsDescriptor<T>): string;
 }
 
 export type TOutLang = keyof typeof Modules;
