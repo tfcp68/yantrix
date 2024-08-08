@@ -53,3 +53,5 @@ bun.lockb
 .eslintcache
 .vercel
 .nx
+
+test_reports
