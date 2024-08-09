@@ -1,27 +1,28 @@
-import Default_Predicates from './functions/Predicates.js';
-import Default_Conditionals from './functions/Conditionals.js';
-import Default_Transformers from './functions/Transformers.js';
+/**
+ * Parent class for all Function Dictionaries of any Codegen Module.
+ * Contains maps of functions (key = function name, value = language-specific function implementation)
+ * ---
+ * Because functions work differently in every language, every subclass must implement abstract getDictionaryCode() method
+ */
+export abstract class FunctionDictionary {
+	protected functions: Record<string, string> = {};
 
-type AutomataFunction = (...args: any) => any;
-
-export class FunctionDictionary {
-	private functions: Record<string, AutomataFunction> = {
-		...Default_Predicates,
-		...Default_Conditionals,
-		...Default_Transformers,
-	};
-
-	setFunction(functionKey: string, callback: AutomataFunction) {
-		this.functions[functionKey] = callback;
+	constructor(functions?: Record<string, string>) {
+		this.functions = { ...functions };
 	}
 
-	getFunction(functionKey: string): AutomataFunction {
-		return this.functions[functionKey];
+	protected getFunction(functionName: string): string {
+		return this.functions[functionName];
+	}
+	protected setFunction(functionName: string, func: string): void {
+		this.functions[functionName] = func;
+	}
+	protected getFunctionMap(): Record<string, string> {
+		return this.functions;
 	}
 
-	getDictionary() {
-		return `{
-			${Object.keys(this.functions).map((func) => `${func}: ${this.functions[func].toString()}`)}
-		}`;
-	}
+	/**
+	 * Code for language-specific representation of the function dictionary object
+	 */
+	abstract getDictionaryCode(): string;
 }

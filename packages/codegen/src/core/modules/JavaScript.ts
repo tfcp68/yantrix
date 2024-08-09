@@ -1,18 +1,14 @@
-import {
-	BasicActionDictionary,
-	BasicStateDictionary,
-	BasicEventDictionary,
-	FunctionDictionary,
-} from '@yantrix/automata';
+import { BasicActionDictionary, BasicStateDictionary, BasicEventDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { FunctionDictionaryJavaScript } from '../functions/dictionaries/FunctionDictionary_JavaScript.js';
 import { fillDictionaries } from '../shared.js';
 
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	eventDictionary: BasicEventDictionary;
-	functionDictionary: FunctionDictionary;
+	functionDictionary: FunctionDictionaryJavaScript;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	// initialContext: string;
@@ -27,7 +23,7 @@ export class JavaScriptCodegen implements ICodegen {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 		this.eventDictionary = new BasicEventDictionary();
-		this.functionDictionary = new FunctionDictionary();
+		this.functionDictionary = new FunctionDictionaryJavaScript();
 		this.diagram = diagram;
 
 		this.handlersDict = [];
@@ -55,13 +51,14 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	setupDictionaries() {
+		this.dictionaries = [];
 		this.dictionaries.push(
 			`export const statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
-		this.dictionaries.push(`export const functionDictionary = ${this.functionDictionary.getDictionary()}`);
+		this.dictionaries.push(`export const functionDictionary = ${this.functionDictionary.getDictionaryCode()}`);
 	}
 
 	getClassTemplate(className: string) {
