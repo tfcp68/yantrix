@@ -1,11 +1,13 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { FunctionDictionaryJava } from '../functions/dictionaries/FunctionDictionary_Java.js';
 
 export class JavaCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	functionDictionary: FunctionDictionaryJava;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	initialContext: string;
@@ -21,6 +23,10 @@ export class JavaCodegen implements ICodegen {
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
+
+		// this.functionDictionary = new FunctionDictionaryJava(diagram.functions);
+		this.functionDictionary = new FunctionDictionaryJava();
+
 		this.diagram = diagram;
 
 		this.handlersDict = [];
@@ -57,7 +63,6 @@ export class JavaCodegen implements ICodegen {
 			);
 		`;
 	}
-
 	// State transition matrix
 	getStateTransitionMatrix(): string {
 		return Object.keys(this.diagram.transitions)
@@ -163,6 +168,9 @@ export class JavaCodegen implements ICodegen {
 					.join(',\n')}
             );
         `);
+
+		// functions dictionary text representation
+		this.dictionaries.push(this.functionDictionary.getDictionaryCode());
 	}
 
 	// Initial context is empty
@@ -264,6 +272,8 @@ export class JavaCodegen implements ICodegen {
 	// Types necessary for the automata
 	private getTypes() {
 		return `
+			${this.functionDictionary.getDictionaryJavaClass()}
+
             public abstract static class TAutomataBaseType {
                 protected Long value;
                 public Long getValue() { return value; }

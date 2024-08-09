@@ -1,11 +1,13 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
+import { Expressions, fillDictionaries } from '../shared.js';
 import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { fillDictionaries } from '../shared.js';
+import { FunctionDictionaryPython } from '../functions/dictionaries/FunctionDictionary_Python.js';
 
 export class PythonCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	functionDictionary: FunctionDictionaryPython;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	// initialContext: string;
@@ -19,6 +21,7 @@ export class PythonCodegen implements ICodegen {
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
+		this.functionDictionary = new FunctionDictionaryPython();
 		this.diagram = diagram;
 
 		this.handlersDict = [];
@@ -48,6 +51,7 @@ export class PythonCodegen implements ICodegen {
 	setupDictionaries() {
 		this.dictionaries.push(`statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`);
 		this.dictionaries.push(`actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`);
+		this.dictionaries.push(`functionsDictionary = ${this.functionDictionary.getDictionaryCode()}`);
 	}
 
 	getClassTemplate(className: string) {

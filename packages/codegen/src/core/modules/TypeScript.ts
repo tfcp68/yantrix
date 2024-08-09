@@ -1,4 +1,5 @@
 import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { FunctionDictionaryTypeScript } from '../functions/dictionaries/FunctionDictionary_TypeScript.js';
 import { JavaScriptCodegen } from './JavaScript.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
