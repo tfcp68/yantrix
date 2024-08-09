@@ -3,7 +3,20 @@ import { assert, describe, expect, test } from 'vitest';
 import { functionsFixtures } from './fixtures/keyItem.js';
 import { YantrixParser } from '../src/yantrixParser.js';
 
-const functionCasesAndExpectedTypes = [
+type TCaseFunction = [
+	string,
+	(
+		propertyName?: string,
+		functionName?: string,
+		value?: any,
+	) => {
+		[p: string]: Array<{ context: unknown }>;
+		[p: number]: Array<{ context: unknown }>;
+		[p: symbol]: Array<{ context: unknown }>;
+	},
+];
+
+const functionCasesAndExpectedTypes: TCaseFunction[] = [
 	['#{%s = %s()}', functionsFixtures.expression],
 	['#{%s = %s("%s")}', functionsFixtures.withString],
 	['#{%s = %s(%i)}', functionsFixtures.withInteger],
@@ -76,8 +89,21 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s($())}',
 	'#{%s = %s(#{%s})}',
 	'#{%s = %s(,,,,,,)}',
+	'#{%s = %s(%s(%s(%s(%s(%s(%s(%s(%s()))))))))}',
 ];
 
+const multiplyNestedFunctionsArguments = [
+	`#{%s = %s(%s(%s()))}`,
+	`#{%s = %s(%s(%s(%s(%s(%s(%s()))))))}`,
+	`#{%s = %s(%s(%s(%s(%s(%s(%s())), %f, %f))), %f)}`,
+	`#{%s = %s(%s(%s(%arr,%d)), %i, %f)}`,
+];
+/**
+ * Генерирует массив выражений на основе массива темплейтов, получаемого на входе
+ * @param arr
+ * @param casesAmount
+ * @return string[]
+ */
 const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(50, 100)) => {
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
@@ -94,7 +120,7 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 };
 
 const generateFunctionString = (level: number = 0) => {
-	if (level > 8) return; // todo check
+	if (level > 8) return ''; // todo check
 
 	const argsTypes = [randomInteger, randomDecimal];
 
@@ -172,6 +198,10 @@ const generateExpressionCases = (templates: any[], casesAmount: number = randomI
 	});
 };
 
+const generateExpressionCase = (template: any, casesAmount: number = randomInteger(1, 50)) => {
+	return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+};
+
 describe('Function declaration', () => {
 	const parser = new YantrixParser();
 
@@ -217,14 +247,23 @@ describe('Function declaration', () => {
 
 	// @TODO maybe need to add separate describes for each function type, too much unnecessary work for now though
 	describe('Functions are correctly separated into types: string,decimal,integer etc', () => {
-		const cases = generateExpressionCases(functionCasesAndExpectedTypes);
-		test.each(cases)('%s', (input: string, obj) => {
-			const result = parser.parse(input);
-
-			assert.deepOwnInclude(result, obj);
+		functionCasesAndExpectedTypes.forEach((template) => {
+			describe(`Function case - ${template[0]}`, () => {
+				const cases = generateExpressionCase(template);
+				test.each(cases)('%s', (input: string, obj) => {
+					const result = parser.parse(input);
+					assert.deepOwnInclude(result, obj);
+				});
+			});
 		});
 	});
 
 	// @TODO add dedicated recursion tests
 	// need to test limits, should be ~8 levels of nesting, but i think there is actually no limit
+	describe('multi-nested arguments as functions', () => {
+		const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments);
+		test.each(cases)('%s', (input: string) => {
+			assert.isOk(parser.parse(input));
+		});
+	});
 });
