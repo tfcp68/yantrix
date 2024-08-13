@@ -4,8 +4,7 @@ title: Expressions
 
 # Expressions
 
-`Expressions` are function chains applied to particular values, most often during transitions. Expressions can
-include [Transformers](160_transformers.html) and [Predicates](150_predicates.html), and are generally just nested
+`Expressions` are function chains applied to particular values, most often during transitions. Expressions can include [Transformers](160_transformers.html) and [Predicates](150_predicates.html), and are generally nested
 function calls around some property key, so `Expression` is either a `<PROPERTY_NAME>`,
 a `<FUNC_OPERATOR>(<PROPERTY_NAME>[,<CONSTANT_ARGS>...])` or a `<FUNC_OPERATOR>(<FUNC_OPERATOR>)`, i.e.
 

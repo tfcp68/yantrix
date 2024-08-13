@@ -34,6 +34,8 @@ jobs:
               run: pnpm install
             - name: Build packages
               run: pnpm build
+            - name: Run tests
+              run: pnpm run test
             - name: Install dependencies
               run: npm install
               working-directory: vitepress
@@ -42,6 +44,9 @@ jobs:
               working-directory: vitepress
             - name: Generate typedoc
               run: sh typedoc_build.sh
+              working-directory: vitepress
+            - name: Generate test cases
+              run: sh tests_build.sh
               working-directory: vitepress
             - name: Build
               run: npm run build
