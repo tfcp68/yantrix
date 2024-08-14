@@ -1,15 +1,11 @@
-import Default_Predicates from './functions/Predicates.js';
-import Default_Conditionals from './functions/Conditionals.js';
-import Default_Transformers from './functions/Transformers.js';
-
-type AutomataFunction = (...args: any) => any;
+type AutomataFunction = (...args: any) => any; // ?
 
 export class FunctionDictionary {
-	private functions: Record<string, AutomataFunction> = {
-		...Default_Predicates,
-		...Default_Conditionals,
-		...Default_Transformers,
-	};
+	private functions: Record<string, AutomataFunction>;
+
+	constructor(functions: Record<string, AutomataFunction>) {
+		this.functions = functions;
+	}
 
 	setFunction(functionKey: string, callback: AutomataFunction) {
 		this.functions[functionKey] = callback;
