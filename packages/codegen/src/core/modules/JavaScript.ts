@@ -125,7 +125,7 @@ export class JavaScriptCodegen implements ICodegen {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 		this.eventDictionary = new BasicEventDictionary();
-		this.functionDictionary = new FunctionDictionary(Built_In_Functions);
+		this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
 		this.diagram = diagram;
 
 		this.handlersDict = [];

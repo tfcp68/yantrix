@@ -1,14 +1,19 @@
 type AutomataFunction = (...args: any) => any; // ?
 
 export class FunctionDictionary {
-	private functions: Record<string, AutomataFunction>;
+	private readonly functions: Record<string, AutomataFunction>;
 
 	constructor(functions: Record<string, AutomataFunction>) {
 		this.functions = functions;
 	}
 
-	setFunction(functionKey: string, callback: AutomataFunction) {
-		// only set a function if its not present in dictionary to avoid overwrites of basic built-in functions
+	/**
+	 * Set function under a specific name in the dictionary
+	 * @param functionKey - name of function
+	 * @param callback - function to invoke
+	 */
+	setFunction(functionKey: string, callback: AutomataFunction): void {
+		// only set a function if its not present in dictionary to prevent overwrites of basic built-in functions
 		if (!this.functions[functionKey]) {
 			this.functions[functionKey] = callback;
 		} else {
@@ -16,13 +21,21 @@ export class FunctionDictionary {
 		}
 	}
 
+	/**
+	 * Fetch function from dictionary
+	 * @param functionKey - name of the function
+	 * @returns function to invoke
+	 */
 	getFunction(functionKey: string): AutomataFunction {
 		// if not present - throw error ?
 		return this.functions[functionKey];
 	}
 
-	// text representation for codegen
-	getDictionary() {
+	/**
+	 * Text representation for codegen
+	 * @returns map of functions
+	 */
+	getDictionary(): string {
 		return `{
 			${Object.keys(this.functions).map((func) => `${func}: ${this.functions[func].toString()}`)}
 		}`;
