@@ -1,21 +1,32 @@
 // Built-Ins: Conditional expressions
-export const _if = (condition: Boolean, true_value: any, false_value: any): any => {
+const _if = (condition: boolean, true_value: unknown, false_value: unknown): unknown => {
 	return condition === true ? true_value : false_value;
 };
 
-export const _case = (cases: [condition: Boolean, return_value: any][]): any => {
-	for (const [condition, return_value] of cases) {
+const _case = (
+	first_case_condition: boolean,
+	first_case_return_value: unknown,
+	other_cases: [condition: boolean, return_value: unknown][],
+): unknown => {
+	if (first_case_condition) {
+		return first_case_return_value;
+	}
+	for (const [condition, return_value] of other_cases) {
 		if (condition) return return_value;
 	}
-	return cases[cases.length - 1][1];
+	return other_cases[other_cases.length - 1][1];
 };
 
-export const _coalesce = (...expressions: any[]): any => {
-	return expressions.find((exp: any) => exp !== null) ?? null;
+const _coalesce = (...expressions: unknown[]): unknown => {
+	return expressions.find((exp: unknown) => exp !== null) ?? null;
 };
 
-export const _random = (): number => {
-	return Math.random() > 0.5 ? 1 : 0;
+const _random = (min?: number, max?: number): number => {
+	if (min && max) {
+		return Math.floor(Math.random() * (max - min) + min);
+	} else {
+		return Math.random() > 0.5 ? 1 : 0;
+	}
 };
 
 export const conditionals = {
@@ -28,23 +39,25 @@ export const conditionals = {
 // ==================
 
 // Built-Ins: Binary Predicates
-export const and = (...conditions: Boolean[]): Boolean => {
+
+const and = (...conditions: boolean[]): boolean => {
 	return conditions.find((cond) => cond === false) ?? true;
 };
-export const or = (...conditions: Boolean[]): Boolean => {
+const or = (...conditions: boolean[]): boolean => {
 	return conditions.find((cond) => cond === true) ?? false;
 };
-export const not = (condition: Boolean): Boolean => {
+const not = (condition: boolean): boolean => {
 	return !condition;
 };
-export const none = (...conditions: Boolean[]): Boolean => {
-	// return not(and(...conditions));
+const none = (...conditions: boolean[]): boolean => {
 	return !(conditions.find((cond) => cond === false) ?? true);
 };
 
 export const binary_predicates = {
 	and,
+	all: and,
 	or,
+	any: or,
 	not,
 	none,
 };
@@ -52,34 +65,35 @@ export const binary_predicates = {
 // ==================
 
 // Built-Ins: Numeric Predicates
-export const isEven = (num: number): Boolean => {
+
+const isEven = (num: number): boolean => {
 	return num % 2 === 0;
 };
-export const isOdd = (num: number): Boolean => {
+const isOdd = (num: number): boolean => {
 	return num % 2 !== 0;
 };
-export const isInteger = (num: number): Boolean => {
+const isInteger = (num: number): boolean => {
 	return Number.isInteger(num);
 };
-export const isEqual = (x: any, y: any): Boolean => {
+const isEqual = (x: unknown, y: unknown): boolean => {
 	return typeof x == typeof y && x === y;
 };
-export const isGreater = (x: number, y: number): Boolean => {
+const isGreater = (x: number, y: number): boolean => {
 	return x > y;
 };
-export const isGreaterOrEqual = (x: number, y: number): Boolean => {
+const isGreaterOrEqual = (x: number, y: number): boolean => {
 	return x >= y;
 };
-export const isLess = (x: number, y: number): Boolean => {
+const isLess = (x: number, y: number): boolean => {
 	return x < y;
 };
-export const isLessOrEqual = (x: number, y: number): Boolean => {
+const isLessOrEqual = (x: number, y: number): boolean => {
 	return x <= y;
 };
-export const isNegative = (x: number): Boolean => {
+const isNegative = (x: number): boolean => {
 	return x < 0;
 };
-export const isPositive = (x: number): Boolean => {
+const isPositive = (x: number): boolean => {
 	return x > 0;
 };
 
@@ -100,23 +114,29 @@ export const numeric_predicates = {
 
 // Built-Ins: Lookup Predicates
 
-// function contains(str1: string, str2: string): Boolean;
-// function contains(list: any[], val: any): Boolean;
-// function contains(obj: Object, str: String): Boolean;
-
-export const contains = (a: unknown, b: unknown): Boolean => {
+const contains = (a: unknown, b: unknown): boolean => {
 	if (typeof a === 'string' && typeof b === 'string') {
+		return a.includes(b);
 	} else if (typeof a === 'object' && typeof b === 'string') {
+		return Object.values(a as object).includes(b); // ?
+	} else if (Array.isArray(a)) {
+		return a.includes(b);
 	}
 	return false;
 };
 
-export const has = (a: unknown, b: unknown): Boolean => {
+const has = (a: unknown, b: unknown): boolean => {
+	if (typeof a === 'object' && typeof b === 'string') {
+		return Object.hasOwn(a as object, b);
+	} else if (Array.isArray(a) && typeof b === 'number') {
+		return a[b] !== undefined;
+	}
 	return false;
 };
 
-export const isNull = (exp: object): Boolean => {
-	return false;
+// ??????
+const isNull = (exp: object): boolean => {
+	return exp == null;
 };
 
 export const lookup_predicates = {
@@ -128,49 +148,45 @@ export const lookup_predicates = {
 // ==================
 
 // Built-Ins: Arithmetics
-export const add = (...nums: number[]): number => {
+const add = (...nums: number[]): number => {
 	const initialValue = 0;
 	return nums.reduce((accumulator, currentValue) => accumulator + currentValue, initialValue);
 };
-export const diff = (num1: number, num2: number): number => {
+const diff = (num1: number, num2: number): number => {
 	return num1 - num2;
 };
-export const mult = (...nums: number[]): number => {
+const mult = (...nums: number[]): number => {
 	const initialValue = 1;
 	return nums.reduce((accumulator, currentValue) => accumulator * currentValue, initialValue);
 };
-export const div = (num1: number, num2: number): number => {
+const div = (num1: number, num2: number): number => {
 	return num1 / num2;
 };
-export const pow = (num1: number, num2: number): number => {
+const pow = (num1: number, num2: number): number => {
 	return num1 ^ num2;
 };
-export const inc = (num: number): number => {
-	// return add(num, 1);
+const inc = (num: number): number => {
 	return num + 1;
 };
-export const dec = (num: number): number => {
-	// return diff(num, 1);
+const dec = (num: number): number => {
 	return num - 1;
 };
-export const neg = (num: number): number => {
-	// return mult(num, -1);
+const neg = (num: number): number => {
 	return num * -1;
 };
-export const inv = (num: number): number => {
-	// return div(1, num);
+const inv = (num: number): number => {
 	return 1 / num;
 };
-export const mod = (num1: number, num2: number) => {
+const mod = (num1: number, num2: number) => {
 	return num1 % num2;
 };
-export const trunc = (num: number): number => {
+const trunc = (num: number): number => {
 	return Math.floor(num);
 };
-export const ceil = (num: number): number => {
+const ceil = (num: number): number => {
 	return Math.ceil(num);
 };
-export const round = (num: number): number => {
+const round = (num: number): number => {
 	return Math.round(num);
 };
 
@@ -179,30 +195,28 @@ export const arithmetics = { add, diff, mult, div, pow, inc, dec, neg, inv, mod,
 // ==================
 
 // Built-Ins: Special Maths
-export const sin = (num: number): number => {
+const sin = (num: number): number => {
 	return Math.sin(num);
 };
-export const cos = (num: number): number => {
+const cos = (num: number): number => {
 	return Math.cos(num);
 };
-export const sqrt = (num: number): number => {
+const sqrt = (num: number): number => {
 	return Math.sqrt(num);
 };
-export const log = (num: number, base: number) => {
-	return 0;
+const log = (num: number, base: number) => {
+	return Math.log(num) / Math.log(base);
 };
-export const ln = (num: number) => {
+const ln = (num: number) => {
 	return Math.log(num);
 };
-export const lg = (num: number) => {
+const lg = (num: number) => {
 	return Math.log10(num);
 };
-export const deg = (num: number) => {
-	// return mult(num, 57.3);
+const deg = (num: number) => {
 	return num * 57.3;
 };
-export const rad = (num: number) => {
-	// return div(num, 57.3);
+const rad = (num: number) => {
 	return num / 57.3;
 };
 
@@ -212,19 +226,103 @@ export const special_maths = { sin, cos, sqrt, log, ln, lg, deg, rad };
 
 // Built-Ins: Statistics
 
-export const statistics = {};
+const max = (...nums: number[]): number => {
+	return Math.max(...nums);
+};
+
+const min = (...nums: number[]): number => {
+	return Math.min(...nums);
+};
+
+const avg = (...nums: number[]): number => {
+	return nums.reduce((accumulator, currentValue) => accumulator + currentValue, 0) / nums.length;
+};
+
+const med = (...nums: number[]): number => {
+	nums.sort((a, b) => a - b);
+	const mid = Math.floor(nums.length / 2);
+	return nums.length % 2 == 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+};
+
+const sum = (...nums: number[]): number => {
+	return nums.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+};
+
+const sumsq = (...nums: number[]): number => {
+	return nums.reduce((accumulator, currentValue) => accumulator + (currentValue ^ 2), 0);
+};
+
+const sumProduct = (...nums_lists: number[][]): number => {
+	return nums_lists
+		.map((list) => list.reduce((accumulator, currentValue) => accumulator * currentValue, 1))
+		.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+};
+
+export const statistics = { max, min, avg, med, sum, sumsq, sumProduct };
 
 // ==================
 
 // Built-Ins: List Transformers
 
-export const list_transformers = {};
+const len = (list: unknown[]) => {
+	return list.length;
+};
+
+const lookup = (list: unknown[], value: unknown): unknown => {
+	return list.includes(value) ? value : null;
+};
+
+const filterBy = (list: object[], property_name: string, value: unknown): object[] => {
+	return list.filter((obj) => Object.hasOwn(obj, property_name) && obj[property_name as keyof typeof obj] === value);
+};
+
+const find = (list: object[], property_name: string, value: unknown): unknown => {
+	return (
+		list.filter(
+			(obj) => Object.hasOwn(obj, property_name) && obj[property_name as keyof typeof obj] === value,
+		)[0] ?? null
+	);
+};
+
+const left = (list: unknown[], len: number) => {
+	return list.slice(0, len);
+};
+
+const right = (list: unknown[], len: number) => {
+	return list.slice(-len);
+};
+
+const indexOf = (list: unknown[], value: unknown): number => {
+	return list.indexOf(value);
+};
+
+export const list_transformers = { len, lookup, filterBy, find, left, right, indexOf };
 
 // ==================
 
 // Built-Ins: String Transformers
 
-export const string_transformers = {};
+const substr = (str: string, start: number, end?: number): string => {
+	return str.substring(start, end);
+};
+
+const strlen = (str: string): number => {
+	return str.length;
+};
+
+const strLeft = (str: string, len: number): string => {
+	return str.substring(0, len);
+};
+
+const strRight = (str: string, len: number): string => {
+	return str.substring(-len);
+};
+
+const strIndexOf = (str: string, substr: string): number => {
+	return str.indexOf(substr);
+};
+
+export const string_transformers = { substr, strlen, strLeft, strRight, strIndexOf };
 
 // ==================
 
