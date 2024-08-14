@@ -273,13 +273,13 @@ const lookup = (list: unknown[], value: unknown): unknown => {
 };
 
 const filterBy = (list: object[], property_name: string, value: unknown): object[] => {
-	return list.filter((obj) => Object.hasOwn(obj, property_name) && obj[property_name as keyof typeof obj] === value);
+	return list.filter((obj) => obj.hasOwnProperty(property_name) && obj[property_name as keyof typeof obj] === value);
 };
 
 const find = (list: object[], property_name: string, value: unknown): unknown => {
 	return (
 		list.filter(
-			(obj) => Object.hasOwn(obj, property_name) && obj[property_name as keyof typeof obj] === value,
+			(obj) => obj.hasOwnProperty(property_name) && obj[property_name as keyof typeof obj] === value,
 		)[0] ?? null
 	);
 };
