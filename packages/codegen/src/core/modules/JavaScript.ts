@@ -16,6 +16,8 @@ import {
 	TExpressionFunction,
 } from '@yantrix/yantrix-parser';
 
+import Built_In_Functions from '../functions/JavaScript';
+
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
 };
@@ -123,7 +125,7 @@ export class JavaScriptCodegen implements ICodegen {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 		this.eventDictionary = new BasicEventDictionary();
-		this.functionDictionary = new FunctionDictionary();
+		this.functionDictionary = new FunctionDictionary(Built_In_Functions);
 		this.diagram = diagram;
 
 		this.handlersDict = [];
