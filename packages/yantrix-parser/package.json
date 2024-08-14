@@ -56,7 +56,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm build && vitest run"
+		"test": "pnpm build && vitest run --outputFile=../../test_reports/yantrix-parser.md"
 	},
 	"dependencies": {
 		"@ts-jison/lexer": "0.4.1-alpha.1",

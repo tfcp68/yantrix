@@ -48,3 +48,5 @@ export const ExpressionTypes = {
 	Payload: 'payload',
 	Context: 'context',
 } as const;
+
+export const maxNestedFuncLevel = 8;

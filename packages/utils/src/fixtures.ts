@@ -70,7 +70,7 @@ export function sampleArray<T = number, N extends number = number>(item: null | 
  * @return {string}
  */
 export function uniqId(length = 10) {
-	const key = [...microtime().toString(36)];
-	while (key.length < length) key.push(...Math.random().toString(36).slice(2));
-	return key.slice(length).join('').toUpperCase();
+	const keys = [...microtime().toString(36)];
+	while (keys.length < length) keys.push(...sampleRange(0, 35).toString(36));
+	return keys.slice(0, length).join('').toUpperCase();
 }

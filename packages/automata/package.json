@@ -54,7 +54,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "vitest run --coverage"
+		"test": "vitest run --coverage --outputFile=../../test_reports/automata.md"
 	},
 	"dependencies": {
 		"@yantrix/utils": "workspace:^",

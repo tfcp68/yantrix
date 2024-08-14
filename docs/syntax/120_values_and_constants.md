@@ -87,35 +87,43 @@ subscribe/someEvent SomeAction ( payloadValue ) <= ( eventMetaValue )
 
 ## Default values
 
-Default values are assigned to vars when the requested property is present in a `Data Object` but equals to `Null` (
-an empty pointer). To assign a default value
+Default values are assigned to vars when the requested property is absent in `Data Object` or equals to `Null` (an empty pointer). To assign a default value
 the `KEY_ITEM` is followed by `=` and a [`Constant`](constants.html) or [`Expression`](expressions.html). For instance:
 
 ```
 #{anyValue, stringValue = 'foobar', numericValue = cos(div(%%pi,6))}
 ```
 
-Default values can be used both in `Source Objects` and in `Target Objects`, but they are assigned only if the
-referenced key exists in it. For example:
+Default values can be used both in `Source Objects` and in `Target Objects` in `Reducers`, but they behave differently on either side of `<=` token: left-side defaults are used when corresponding right side expression converges to `Null`, while right-side defaults are used when attached references are absent in `Data Object` or equal to `Null`.
 
-````
-''' here `value1` and `value2` will not be set to 1 the first time Context is created
+In the following example `value1` and `value2` will not be set to `1` if they already have values, but they will acquire `1` as a starting value when the Context is created for the first time
+
+```
 #{value1, value2} <= #value1 = 1, #value2 = 1
-
-``` and here they will
+''' same as
 #{value1 = 1, value2 = 1} <= #value1, #value2
+''' same as shortcut
+#{value1 = 1, value2 = 1 }
+```
 
-''' likewise, Payload default values are not applied, if there's no such property in Payload
-#{value1, value2} <= $value1 = 1, $value2 = 1
-````
+a difference emerges is there's a `Function` in `Expression`:
 
-When used on both sides of a transaction, the `Source Object` default value takes priority. i.e. the
-code `#{a = 1} <= $b = 2` is processed in the following manner:
+```
+''' in this example, value2 can become Null after the computation
+''' if "funcValue" call returns Null, even though value2 has a default value
+#{value1, value2} <= #value1 = 1, funcValue(#value2 = 1)
 
--   `b` is read from `Payload`. If it's there but `Null`, the expressions resolves to `2`. Otherwise it's an unset value
--   the result of expression is assigned to `newContext.a`. If it's an unset value, it resolves to `1`
+''' however, if also assigned on the left side, it resolves to a default value
+#{value1, value2 = 1} <= #value1 = 1, funcValue(#value2 = 1)
+```
 
-Thus, if no `Payload` was given, or it doesn't have `b` key, `Context`.`a` will resolve to `1`
+When used on both sides of a `Reducer`, the `Source Object` execution takes precedence when assigning default values, i.e., the
+code `#{a = 1} <= $b = func(2)` is processed in the following manner:
+
+-   `b` is read from `Payload`. If it's absent or `Null`, the `func` is invoked with a parameter of `2`. The resulting value is assigned to `$b`.
+-   if the value is set, it's assigned to `a` property of the resulting `Context`. If the expressions resolves to `Null`, that property is filled with value of `1`
+
+Thus, if no `Payload` was given, or it doesn't have `b` key, `Context`.`a` contents will depend on what is returned by `func(2)` call.
 
 ## Constant declaration
 
@@ -127,8 +135,7 @@ a `Function` argument
     as long as the target language supports them. Numbers are automatically typecasted to **Binary** if needed
 -   `'foo'` creates a **String** primitive
 -   `[]` creates an empty List
--   `%%foo` is a compile-time Constant, that is passed to a Codegen along with a Mermaid diagram, primarily being used
-    for behaviour that is dependent on environment and/or CI/CD operations.
+-   `%%foo` is a compile-time Constant, that is passed to a Codegen along with a diagram, primarily being used for behaviors that are dependent on environment and/or CI/CD operations.
 
 ## Examples
 
@@ -141,12 +148,11 @@ It could be `#{a, b} <= $c, $d`, in which case the properties are
 copied in the correspoding order: `Context.a` receives the value of `Payload.c`, and `Context.b` is updated
 with `Payload.d`.
 
-The same is possible with `Context` too, and basically every `Expression` can be used inside right-side
-object: `#{newA,newB} <= someFunction(#oldA), #oldB = 2` does the following:
+The same is possible with `Context` too, and basically every `Expression` can be used on the right side of reducer: `#{newA,newB} <= someFunction(#oldA), #oldB = 2` does the following:
 
 1. passes `previousContext.oldA` to `someFunction` and puts the output value to `newContext.newA`
 2. assigns `previousContext.oldB` value to `newContext.newB`, or uses `2` numeric primitive instead,
-   if `previousContext.oldB` was not defined
+   if `previousContext.oldB` was not defined or set to `Null`
 
 More lifelike examples:
 
