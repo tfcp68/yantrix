@@ -126,8 +126,8 @@ const contains = (a: unknown, b: unknown): boolean => {
 };
 
 const has = (a: unknown, b: unknown): boolean => {
-	if (typeof a === 'object' && typeof b === 'string') {
-		return Object.hasOwn(a as object, b);
+	if (typeof a === 'object' && a != null && typeof b === 'string') {
+		return a.hasOwnProperty(b);
 	} else if (Array.isArray(a) && typeof b === 'number') {
 		return a[b] !== undefined;
 	}
