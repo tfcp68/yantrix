@@ -109,7 +109,6 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	eventDictionary: BasicEventDictionary;
 	functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
@@ -124,7 +123,6 @@ export class JavaScriptCodegen implements ICodegen {
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-		this.eventDictionary = new BasicEventDictionary();
 		this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
 		this.diagram = diagram;
 
