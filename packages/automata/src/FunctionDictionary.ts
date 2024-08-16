@@ -8,11 +8,11 @@ export class FunctionDictionary {
 	}
 
 	/**
-	 * Set function under a specific name in the dictionary
+	 * Register function under a specific name in the dictionary
 	 * @param functionKey - name of function
 	 * @param callback - function to invoke
 	 */
-	setFunction(functionKey: string, callback: AutomataFunction): void {
+	register(functionKey: string, callback: AutomataFunction): void {
 		// only set a function if its not present in dictionary to prevent overwrites of basic built-in functions
 		if (!this.functions[functionKey]) {
 			this.functions[functionKey] = callback;

@@ -326,7 +326,7 @@ export const string_transformers = { substr, strlen, strLeft, strRight, strIndex
 
 // ==================
 
-export default {
+export const built_in_functions = {
 	...conditionals,
 	...numeric_predicates,
 	...binary_predicates,
