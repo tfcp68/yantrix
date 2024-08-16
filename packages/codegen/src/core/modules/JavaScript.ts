@@ -16,14 +16,14 @@ import {
 	TExpressionFunction,
 } from '@yantrix/yantrix-parser';
 
-import Built_In_Functions from '../functions/JavaScript';
+// import Built_In_Functions from '../../builtins/JavaScript';
 
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
 };
 
 const getFunctionFromDictionary = (name: string) => {
-	return `functionDictionary['${name}']`;
+	return `functionDictionary.getFunction("${name}")`;
 };
 
 export const Expressions: TExpressionRecord = {
@@ -109,7 +109,7 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 export class JavaScriptCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	functionDictionary: FunctionDictionary;
+	// functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	// initialContext: string;
@@ -117,13 +117,14 @@ export class JavaScriptCodegen implements ICodegen {
 	changeStateHandlers: string[];
 	dictionaries: string[];
 	protected imports = {
-		'@yantrix/automata': ['GenericAutomata'],
+		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
+		'@yantrix/codegen': ['built_in_functions'],
 	};
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-		this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
+		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
 		this.diagram = diagram;
 
 		this.handlersDict = [];
@@ -154,7 +155,7 @@ export class JavaScriptCodegen implements ICodegen {
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
-		this.dictionaries.push(`export const functionDictionary = ${this.functionDictionary.getDictionary()}`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(built_in_functions)`);
 	}
 
 	getClassTemplate(className: string) {

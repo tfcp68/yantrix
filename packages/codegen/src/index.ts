@@ -7,6 +7,8 @@ import { CodegenCreator } from './core/Codegen.js';
 export * from './core/modules/index.js';
 export * from './types/common.js';
 
+export * from './builtins/index.js';
+
 export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMatrix, options: IGenerateOptions) => {
 	const { states, transitions } = diagram;
 	const parserInstance = new YantrixParser();
