@@ -133,6 +133,9 @@ importers:
             '@yantrix/mermaid-parser':
                 specifier: workspace:^
                 version: link:../mermaid-parser
+            '@yantrix/utils':
+                specifier: workspace:^
+                version: link:../utils
             '@yantrix/yantrix-parser':
                 specifier: workspace:^
                 version: link:../yantrix-parser
