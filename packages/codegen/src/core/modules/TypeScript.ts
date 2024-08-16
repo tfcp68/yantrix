@@ -20,11 +20,11 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<Mod
 		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 
-	protected getGetActionFunc() {
+	protected override getGetActionFunc() {
 		return `(action: keyof typeof actionsMap) => actionsDictionary[action]`;
 	}
 
-	protected getCreateActionFunc(className: string) {
+	protected override getCreateActionFunc(className: string) {
 		return `(action: keyof typeof actionsMap, payload:any) => {
 			const actionId = ${className}.getAction(action);
 			return {
@@ -46,10 +46,10 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<Mod
 		`;
 	}
 
-	protected getHasStateFunc(className: string) {
+	protected override getHasStateFunc(className: string) {
 		return `(instance: ${className}, state: keyof typeof ${className}.states) => instance.state === ${className}.getState(state)`;
 	}
-	protected getGetStateFunc() {
+	protected override getGetStateFunc() {
 		return `(state: keyof typeof statesMap) => statesDictionary[state]`;
 	}
 }
