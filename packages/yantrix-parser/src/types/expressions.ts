@@ -1,5 +1,5 @@
 import { ExpressionTypes } from '../constants';
-import { TKeyItemReducer, TKeyItemReducerOrExpression } from './keyItem';
+import { TKeyItemReducer } from './keyItem';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 
@@ -39,7 +39,7 @@ export type TMapped = {
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
 	[ExpressionTypes.Context]: TReference;
 	[ExpressionTypes.Payload]: TReference;
-	[ExpressionTypes.Context]: TReference;
+	[ExpressionTypes.Constant]: TReference;
 };
 
 export type TMappedKeys = keyof TMapped;

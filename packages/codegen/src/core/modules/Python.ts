@@ -1,6 +1,6 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries } from '../shared.js';
 
 export class PythonCodegen implements ICodegen {
@@ -16,7 +16,7 @@ export class PythonCodegen implements ICodegen {
 		'@yantrix/automata': ['GenericAutomata'],
 	};
 
-	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
+	constructor({ diagram }: TModuleParams) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 		this.diagram = diagram;

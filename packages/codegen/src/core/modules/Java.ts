@@ -1,7 +1,7 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 
 export class JavaCodegen implements ICodegen {
 	stateDictionary: BasicStateDictionary;
@@ -18,7 +18,7 @@ export class JavaCodegen implements ICodegen {
 
 	private package: string = 'org.example'; // base package name for all automata files
 
-	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
+	constructor({ diagram }: TModuleParams) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
 		this.diagram = diagram;

@@ -12,6 +12,8 @@ export type TStateIncludingNotes = {
 	notes: TNotes | null;
 } & TDiagramStateOmitNotes;
 
+export type TConstants = Record<string, string | number>;
+
 export interface ICodegenOptions {
 	language: TOutLang;
 }
@@ -29,6 +31,11 @@ export interface IGenerateOptions {
 	 * The output language for the generated code.
 	 */
 	outLang: TOutLang;
+
+	/**
+	 * Constant reference
+	 */
+	constants?: string;
 }
 
 export interface ITypedObjectProps {
@@ -58,8 +65,6 @@ export interface ICodegen {
 	getClassTemplate(className: string): string;
 
 	getImports(): string;
-
-	getDefaultContext(): string;
 }
 
 export type TOutLang = keyof typeof Modules;
@@ -74,3 +79,8 @@ export const TAssignTypeDict = {
 } as const;
 
 export type TAssignTypes = (typeof TAssignTypeDict)[keyof typeof TAssignTypeDict];
+
+export type TModuleParams = {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	constants: TConstants | null;
+};
