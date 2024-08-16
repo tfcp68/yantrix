@@ -13,7 +13,7 @@ export default function DictionaryContainer<ItemType>() {
 				ItemType,
 				{
 					key: string;
-					namespace?: string;
+					namespace: string | undefined;
 				}
 			>();
 			_namespaceIndex: Record<string, string[]> = {};
@@ -43,8 +43,10 @@ export default function DictionaryContainer<ItemType>() {
 			_findItem(itemKey: string, namespace?: string) {
 				const k = this._getItemKey(itemKey, namespace);
 				const v = this._dictionary[k];
-				if (this._dictionaryIndex.has(v)) return v;
+
+				if (v && this._dictionaryIndex.has(v)) return v;
 				delete this._dictionary[k];
+
 				if (!namespace) return null;
 				if (this._namespaceIndex[namespace])
 					this._namespaceIndex[namespace] = this._namespaceIndex[namespace].filter((v) => v !== k);
@@ -71,9 +73,9 @@ export default function DictionaryContainer<ItemType>() {
 				const meta = this._dictionaryIndex.get(item);
 				delete this._dictionary[itemKey];
 				if (meta?.namespace)
-					this._namespaceIndex[meta.namespace] = this._namespaceIndex[meta.namespace].filter(
+					this._namespaceIndex[meta.namespace] = this._namespaceIndex[meta.namespace]?.filter(
 						(v) => v !== itemKey,
-					);
+					) as string[];
 				this._dictionaryIndex.delete(item);
 				return this;
 			}

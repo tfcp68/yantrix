@@ -132,7 +132,8 @@ const templateFunctions: { [key: string]: (...args: any) => any } = {
 		return [templateString.replace('%arr', '[]'), func('[]')];
 	},
 	default: (templateString: string, func: (...args: any) => any) => {
-		return [templateString];
+		const val = randomString();
+		return [templateString.replace('', ''), func(val)];
 	},
 };
 
@@ -143,10 +144,10 @@ const generateExpressionStringAndExpectedObject = (args: [string, (value: any) =
 
 	for (const regex in templateFunctions) {
 		if (templateStringWithName.match(regex)) {
-			return templateFunctions[regex](templateStringWithName, func);
+			return templateFunctions[regex]?.(templateStringWithName, func);
 		}
 	}
-	return templateFunctions['default'](templateStringWithName, func);
+	return templateFunctions['default']?.(templateStringWithName, func);
 
 	// if (templateStringWithName.match('"%s"')) {
 	// 	const val = randomString();
@@ -322,8 +323,8 @@ describe('Base grammar declarations', () => {
 				const contextArgumentCount = Math.ceil(Math.random() * contextArgumentMaxCount);
 				const payloadArgumentCount = contextArgumentCount + randomInteger();
 
-				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
-				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (_, i) => `prop${i}`).join(',');
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (_, i) => `prop${i}`).join(',');
 				const stringToParse = `#{${contextArguments}} <= (${payloadArguments})`;
 				return stringToParse;
 			};
@@ -339,8 +340,8 @@ describe('Base grammar declarations', () => {
 			const generateCase = (payloadArgumentMaxCount: number) => {
 				const payloadArgumentCount = Math.ceil(Math.random() * payloadArgumentMaxCount);
 				const contextArgumentCount = payloadArgumentCount + randomInteger();
-				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
-				const payloadArguments = Array.from({ length: payloadArgumentCount }, (v, i) => `$prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (_, i) => `prop${i}`).join(',');
+				const payloadArguments = Array.from({ length: payloadArgumentCount }, (_, i) => `$prop${i}`).join(',');
 				const stringToParse = `#{${contextArguments}} <= ${payloadArguments}`;
 				return stringToParse;
 			};
@@ -355,10 +356,10 @@ describe('Base grammar declarations', () => {
 			const generateCase = (contextArgumentMaxCount: number) => {
 				const contextArgumentCount = Math.ceil(Math.random() * contextArgumentMaxCount);
 				const prevContextArgumentCount = contextArgumentCount + randomInteger();
-				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (_, i) => `prop${i}`).join(',');
 				const prevContextArguments = Array.from(
 					{ length: prevContextArgumentCount },
-					(v, i) => `prop${i}`,
+					(_, i) => `prop${i}`,
 				).join(',');
 				const stringToParse = `#{${contextArguments}} <= {${prevContextArguments}}`;
 				return stringToParse;
@@ -374,10 +375,10 @@ describe('Base grammar declarations', () => {
 			const generateCase = (prevContextArgumentMaxCount: number) => {
 				const prevContextArgumentCount = Math.ceil(Math.random() * prevContextArgumentMaxCount);
 				const contextArgumentCount = prevContextArgumentCount + randomInteger();
-				const contextArguments = Array.from({ length: contextArgumentCount }, (v, i) => `prop${i}`).join(',');
+				const contextArguments = Array.from({ length: contextArgumentCount }, (_, i) => `prop${i}`).join(',');
 				const prevContextArguments = Array.from(
 					{ length: prevContextArgumentCount },
-					(v, i) => `#prop${i}`,
+					(_, i) => `#prop${i}`,
 				).join(',');
 				const stringToParse = `#{${contextArguments}} <= ${prevContextArguments}`;
 				return stringToParse;

@@ -49,28 +49,28 @@ describe('State Diagram Parser', () => {
 			const { notes } = await parseStateDiagram(stateDiagramWithOneLineNotes);
 
 			expect(notes.length).toEqual(2);
-			expect(notes[0].over).toEqual('A');
-			expect(notes[1].over).toEqual('B');
-			expect(notes[0].text[0]).toEqual('simple note left of A');
-			expect(notes[1].text[0]).toEqual('simple note right of B');
+			expect(notes[0]?.over).toEqual('A');
+			expect(notes[1]?.over).toEqual('B');
+			expect(notes[0]?.text[0]).toEqual('simple note left of A');
+			expect(notes[1]?.text[0]).toEqual('simple note right of B');
 		});
 
 		test('Empty Note', async () => {
 			const { notes } = await parseStateDiagram(stateDiagramWithEmptyNote);
 
 			expect(notes.length).toEqual(2);
-			expect(notes[0].over).toEqual('A');
-			expect(notes[1].over).toEqual('B');
-			expect(notes[0].text[0]).toEqual('');
-			expect(notes[1].text[0]).toEqual('');
+			expect(notes[0]?.over).toEqual('A');
+			expect(notes[1]?.over).toEqual('B');
+			expect(notes[0]?.text[0]).toEqual('');
+			expect(notes[1]?.text[0]).toEqual('');
 		});
 
 		test('Left side note', async () => {
 			const { notes } = await parseStateDiagram(stateDiagramWithLeftSideNote);
 
 			expect(notes.length).toEqual(1);
-			expect(notes[0].over).toEqual('A');
-			expect(notes[0].text[0]).toEqual('simple left side note');
+			expect(notes[0]?.over).toEqual('A');
+			expect(notes[0]?.text[0]).toEqual('simple left side note');
 		});
 
 		test('Right side note', async () => {
@@ -78,10 +78,10 @@ describe('State Diagram Parser', () => {
 
 			expect(notes.length).toEqual(1);
 
-			expect(notes[0].over).toEqual('A');
+			expect(notes[0]?.over).toEqual('A');
 
-			expect(notes[0].text[0]).toEqual('simple right side note');
-			expect(notes[0].text[1]).toEqual('another simple left side note');
+			expect(notes[0]?.text[0]).toEqual('simple right side note');
+			expect(notes[0]?.text[1]).toEqual('another simple left side note');
 		});
 
 		test('Multiline note', async () => {
@@ -89,12 +89,12 @@ describe('State Diagram Parser', () => {
 
 			expect(notes.length).toEqual(1);
 
-			expect(notes[0].over).toEqual('A');
+			expect(notes[0]?.over).toEqual('A');
 
-			expect(notes[0].text[0]).toEqual(
+			expect(notes[0]?.text[0]).toEqual(
 				'simple right side note\n' + 'right of A that is\n' + 'longer than 1 line',
 			);
-			expect(notes[0].text[1]).toEqual('another note left\n' + 'of A that contains\n' + 'more than 1 line');
+			expect(notes[0]?.text[1]).toEqual('another note left\n' + 'of A that contains\n' + 'more than 1 line');
 		});
 	});
 
@@ -242,8 +242,8 @@ describe('State Diagram Parser', () => {
 
 			expect(forks[0]).not.toEqual(forks[1]);
 
-			expect(forks[0].id).toEqual('Fork');
-			expect(forks[1].id).toEqual('Join');
+			expect(forks[0]?.id).toEqual('Fork');
+			expect(forks[1]?.id).toEqual('Join');
 		});
 
 		test('Normal', async () => {
@@ -260,10 +260,10 @@ describe('State Diagram Parser', () => {
 
 			expect(forks[2]).not.toEqual(forks[3]);
 
-			expect(forks[0].id).toEqual('Fork1');
-			expect(forks[1].id).toEqual('Join1');
-			expect(forks[2].id).toEqual('Fork2');
-			expect(forks[3].id).toEqual('Join2');
+			expect(forks[0]?.id).toEqual('Fork1');
+			expect(forks[1]?.id).toEqual('Join1');
+			expect(forks[2]?.id).toEqual('Fork2');
+			expect(forks[3]?.id).toEqual('Join2');
 		});
 	});
 
@@ -272,23 +272,23 @@ describe('State Diagram Parser', () => {
 			const { choices } = await parseStateDiagram(stateDiagramWithSimpleChoice);
 
 			expect(choices.length).toEqual(1);
-			expect(choices[0].id).toEqual('ChoiceState');
+			expect(choices[0]?.id).toEqual('ChoiceState');
 		});
 
 		test('Double Path', async () => {
 			const { choices } = await parseStateDiagram(stateDiagramDoublePath);
 
 			expect(choices.length).toEqual(2);
-			expect(choices[0].id).toEqual('ChoiceState1');
-			expect(choices[1].id).toEqual('ChoiceState2');
+			expect(choices[0]?.id).toEqual('ChoiceState1');
+			expect(choices[1]?.id).toEqual('ChoiceState2');
 		});
 
 		test('Loop', async () => {
 			const { choices } = await parseStateDiagram(stateDiagramWithLoopChoice);
 
 			expect(choices.length).toEqual(2);
-			expect(choices[0].id).toEqual('ChoiceState1');
-			expect(choices[1].id).toEqual('ChoiceState2');
+			expect(choices[0]?.id).toEqual('ChoiceState1');
+			expect(choices[1]?.id).toEqual('ChoiceState2');
 		});
 	});
 });

@@ -234,11 +234,10 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.keys(transitions)
-			.map((key) => {
-				const { actionsPath } = transitions[key];
+		return Object.entries(transitions)
+			.map(([key, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return actionsPath.map(({ action }) => {
+				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
@@ -271,8 +270,8 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 					${this.getRootReducerStateValidation()}
 					${this.getRootReducerActionValidation()}
 					const {state:newState,getNewContext} = actionToStateFromStateDict[state][action]
-					
-							
+
+
 					return {state:newState, context: getNewContext({payload,context})};
   				}`;
 	}
@@ -302,8 +301,7 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 	}
 
 	protected getActionToStateFromStateDict() {
-		return Object.keys(this.diagram.transitions).map((state) => {
-			const transitions = this.diagram.transitions[state];
+		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
 

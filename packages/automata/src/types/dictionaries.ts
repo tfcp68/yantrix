@@ -7,6 +7,7 @@ export type TEventDictionaryMapping<EventType extends TAutomataBaseEventType> = 
 export type TStateKeysCollection<StateType extends TAutomataBaseStateType> = {
 	keys: string[];
 	namespace?: string;
+	states?: StateType[];
 };
 
 export type TStateValuesCollection<StateType extends TAutomataBaseStateType> = {
@@ -20,10 +21,11 @@ export type TStateLookupParams<StateType extends TAutomataBaseStateType> = TStat
 export type TActionKeysCollection<ActionType extends TAutomataBaseActionType> = {
 	keys: Array<null | string>;
 	namespace?: string;
+	actions?: ActionType[];
 };
 
 export type TActionValuesCollection<ActionType extends TAutomataBaseActionType> = {
-	actions: Array<null | number>;
+	actions: ActionType[];
 	namespace?: string;
 };
 
@@ -34,10 +36,11 @@ export type TActionLookupParams<ActionType extends TAutomataBaseActionType> = Pa
 export type TEventKeysCollection<EventType extends TAutomataBaseEventType> = {
 	keys: Array<null | string>;
 	namespace?: string;
+	events?: EventType[];
 };
 
 export type TEventValuesCollection<EventType extends TAutomataBaseEventType> = {
-	events: Array<null | number>;
+	events: EventType[];
 	namespace?: string;
 };
 

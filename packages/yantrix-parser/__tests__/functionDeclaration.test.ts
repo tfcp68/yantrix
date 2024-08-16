@@ -132,7 +132,7 @@ const generateFunctionString = (level: number = 0) => {
 		if (randomIndex === 3) {
 			const nestedFunction = generateFunctionString(level + 1);
 			if (nestedFunction) args.push(nestedFunction);
-		} else args.push(argsTypes[randomIndex]().toString());
+		} else args.push(argsTypes[randomIndex]?.().toString() ?? '');
 	}
 
 	return `${functionName}(${args.join(',')})`;
@@ -186,17 +186,17 @@ const generateExpressionStringAndExpectedObject = (
 	// all names and values need to match to pass tests
 	for (const regex in templateFunctions) {
 		if (templateStringWithNames.match(regex)) {
-			return templateFunctions[regex](templateStringWithNames, propertyName, functionName, func);
+			return templateFunctions[regex]?.(templateStringWithNames, propertyName, functionName, func);
 		}
 	}
-	return templateFunctions['default'](templateStringWithNames, propertyName, functionName, func);
+	return templateFunctions['default']?.(templateStringWithNames, propertyName, functionName, func);
 };
 
-const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
-	return templates.flatMap((template) => {
-		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
-	});
-};
+// const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
+// 	return templates.flatMap((template) => {
+// 		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+// 	});
+// };
 
 const generateExpressionCase = (template: any, casesAmount: number = randomInteger(1, 50)) => {
 	return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));

@@ -92,11 +92,9 @@ program
 
 		const withError = async <T>(promise: Promise<T>) => {
 			const [settled] = await Promise.allSettled([promise]);
-			if (settled.status === 'rejected') {
-				return [settled.reason as Error, null] as const;
-			} else {
-				return [null, settled.value] as const;
-			}
+			return settled.status === 'fulfilled'
+				? ([null, settled.value as T] as const)
+				: ([settled.reason as Error, null] as const);
 		};
 
 		const [genErr, generatedAutomata] = await withError(

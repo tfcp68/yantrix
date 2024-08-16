@@ -1,3 +1,4 @@
+// @ts-ignore
 import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
 import { beforeEach, describe, expect, test, vitest } from 'vitest';
 
@@ -5,7 +6,7 @@ let automata: GamePhaseAutomata;
 
 describe('Codegen output', () => {
 	describe('GamePhaseAutomata', () => {
-		let automata = new GamePhaseAutomata();
+		automata = new GamePhaseAutomata();
 		const payload = {};
 		const toInit = [{ action: actionsDictionary['RESET'], payload }];
 		const toIntro = [...toInit, { action: actionsDictionary['RUN'], payload }];
@@ -36,7 +37,7 @@ describe('Codegen output', () => {
 			expect(automata.state).toBe(statesDictionary['~~~START~~~']);
 		});
 		test('The context and state do not change with the wrong action.', () => {
-			const prevContext = { ...automata.context };
+			// const prevContext = { ...automata.context };
 			const prevState = automata.state;
 			automata.dispatch({
 				action: actionsDictionary['MENU_HOVER'],
