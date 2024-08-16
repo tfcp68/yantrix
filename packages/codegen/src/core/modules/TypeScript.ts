@@ -1,7 +1,8 @@
-import { ICodegen, TGetCodeOptionsDescriptor, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { JavaScriptCodegen } from './JavaScript.js';
+import { ModuleNames } from './index';
 
-export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'TypeScript'> {
+export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<ModuleNames.TypeScript> {
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		super(diagram);
 		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
@@ -33,7 +34,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<'Ty
 		}`;
 	}
 
-	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
+	public getCode(options: TGetCodeOptionsMap[ModuleNames.TypeScript]) {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}

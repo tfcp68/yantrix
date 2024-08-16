@@ -3,7 +3,7 @@ import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ICodegen,
 	TExpressionRecord,
-	TGetCodeOptionsDescriptor,
+	TGetCodeOptionsMap,
 	TStateDiagramMatrixIncludeNotes,
 } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
@@ -15,6 +15,7 @@ import {
 	ExpressionTypes,
 	TExpressionFunction,
 } from '@yantrix/yantrix-parser';
+import { ModuleNames } from './index';
 
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
@@ -104,7 +105,7 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 					}())`;
 };
 
-export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
+export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -185,7 +186,7 @@ export class JavaScriptCodegen implements ICodegen<'JavaScript'> {
 		return `(state) => statesDictionary[state]`;
 	}
 
-	public getCode(options: TGetCodeOptionsDescriptor<'JavaScript'>) {
+	public getCode(options: TGetCodeOptionsMap[ModuleNames.JavaScript]) {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}

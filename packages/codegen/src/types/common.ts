@@ -1,4 +1,4 @@
-import { Modules } from '../core/modules/index.js';
+import { ModuleNames, Modules } from '../core/modules/index.js';
 import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 
@@ -56,18 +56,15 @@ export interface IGetCodeJavaOptions {
 	className: string;
 }
 
-export type TGetCodeOptionsDescriptor<T extends TOutLang> = T extends 'TypeScript'
-	? IGetCodeTSOptions
-	: T extends 'JavaScript'
-		? IGetCodeJSOptions
-		: T extends 'Python'
-			? IGetCodePythonOptions
-			: T extends 'Java'
-				? IGetCodeJavaOptions
-				: never;
+export type TGetCodeOptionsMap = {
+	[ModuleNames.JavaScript]: IGetCodeJSOptions;
+	[ModuleNames.Python]: IGetCodePythonOptions;
+	[ModuleNames.TypeScript]: IGetCodeTSOptions;
+	[ModuleNames.Java]: IGetCodeJavaOptions;
+};
 
 export interface ICodegen<T extends TOutLang> {
-	getCode(options: TGetCodeOptionsDescriptor<T>): string;
+	getCode(options: TGetCodeOptionsMap[T]): string;
 }
 
 export type TOutLang = keyof typeof Modules;
