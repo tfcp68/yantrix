@@ -82,12 +82,24 @@ const diagramsInput = {
 	gameDiagram: {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
+		outLang: 'TypeScript',
 	},
 	includeNotes: {
 		value: includeNotesInput,
 		automataName: 'AutomataIncludeNotes',
+		outLang: 'TypeScript',
+	},
+	javaGameDiagram: {
+		value: input1,
+		automataName: 'GeneratedAutomata',
+		outLang: 'Java',
 	},
 } as const;
+
+const extensions = {
+	TypeScript: 'ts',
+	Java: 'java',
+};
 
 Object.values(diagramsInput).forEach(async (fixture) => {
 	const stateDiagramStructure = await parseStateDiagram(fixture.value);
@@ -95,19 +107,14 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: fixture.automataName,
-		outLang: 'TypeScript',
+		outLang: fixture.outLang,
 	});
 
-	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), generatedAutomataOutput, {
-		encoding: 'utf8',
-	});
-});
-
-const diagram = await createStateDiagram(await parseStateDiagram(input1));
-const automata = await generateJavaAutomata(diagram, {
-	className: 'GeneratedAutomata',
-	outLang: 'Java',
-});
-fs.writeFileSync(path.resolve(pathSave, 'GeneratedAutomata_generated.java'), automata, {
-	encoding: 'utf-8',
+	fs.writeFileSync(
+		path.resolve(pathSave, `${fixture.automataName}_generated.${extensions[fixture.outLang]}`),
+		generatedAutomataOutput,
+		{
+			encoding: 'utf8',
+		},
+	);
 });
