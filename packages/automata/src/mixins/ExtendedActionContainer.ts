@@ -13,7 +13,7 @@ export default function ExtendedActionContainer<
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractExtendedActionContainer extends BasicActionContainer<ActionType>()(Proto) {
-			_payloadValidator?: TValidator<TAutomataActionPayload<ActionType, PayloadType>>;
+			_payloadValidator: TValidator<TAutomataActionPayload<ActionType, PayloadType>> | undefined;
 
 			get validateActionPayload(): TValidator<TAutomataActionPayload<ActionType, PayloadType>> {
 				return this._payloadValidator ?? this._defaultPayloadValidator;

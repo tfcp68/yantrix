@@ -7,15 +7,15 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen {
 		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
-	protected getStateValidator() {
+	protected override getStateValidator() {
 		return `(${super.getStateValidator()}) as TValidator<TAutomataBaseStateType>`;
 	}
 
-	protected getActionValidator() {
+	protected override getActionValidator() {
 		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
 	}
 
-	protected getIsKeyOf() {
+	protected override getIsKeyOf() {
 		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 }

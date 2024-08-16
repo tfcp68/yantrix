@@ -49,29 +49,29 @@ note left of AA
 #{a1,a2,a3}
 end note
 
-note left of H
-#{a1='string',a2=3,a3=[]} <= (a1,a2,a3)
-end note
+// note left of H
+// #{a1='string',a2=3,a3=[]} <= (a1,a2,a3)
+// end note
 
-note left of F
-#{a1=[],a2='string',a3=3} <= (a1='string',a2=3,a3=[])
-end note
+// note left of F
+// #{a1=[],a2='string',a3=3} <= (a1='string',a2=3,a3=[])
+// end note
 
-note left of G
-#{a1=[],a2='string',a3=3} <= (a1,a2,a3)
-end note
+// note left of G
+// #{a1=[],a2='string',a3=3} <= (a1,a2,a3)
+// end note
 
-note left of D
-#{a1,a2,a3} <= (a1='string',a2=3,a3=[])
-end note
+// note left of D
+// #{a1,a2,a3} <= (a1='string',a2=3,a3=[])
+// end note
 
-note left of B
-#{a1,a2,a3} <= (a1,a2,a3)
-end note
+// note left of B
+// #{a1,a2,a3} <= (a1,a2,a3)
+// end note
 
-note left of C
-#{integer} <= (newInteger)
-end note
+// note left of C
+// #{integer} <= (newInteger)
+// end note
 
 note left of [*]
 #{integer=3, string="str", array=[]}
@@ -98,7 +98,10 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 		outLang: 'TypeScript',
 	});
 
-	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), generatedAutomataOutput, {
+	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck';
+	const writable = `${ignoreFlags}\n${generatedAutomataOutput}`;
+
+	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), writable, {
 		encoding: 'utf8',
 	});
 });

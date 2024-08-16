@@ -11,13 +11,13 @@ import {
 } from './types/index.js';
 import { IStateDictionary } from './types/interfaces.js';
 
-type TTransformerDictionaryItem<
-	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
-	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
-> = {
-	state: StateType;
-	transformer: TContextTransformer<StateType, ContextType>;
-};
+// type TTransformerDictionaryItem<
+// 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
+// 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
+// > = {
+// 	state: StateType;
+// 	transformer: TContextTransformer<StateType, ContextType>;
+// };
 
 export function createStateDictionary<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
@@ -60,21 +60,21 @@ export function createStateDictionary<
 				{ namespace, states = [], keys = [] }: TStateLookupParams<StateType>,
 				removeContextTransformers?: boolean,
 			) {
-				const StatesToDelete = [
+				const statesToDelete = [
 					...states.filter(this.validateState),
-					...keys.map((StateKey) => this._findItem(StateKey as string, namespace)),
-				].filter((v) => v != null) as StateType[];
-				const stateKeys = StatesToDelete.map((State) => this._getValueData(State)).filter(
-					(data) => !!data && (namespace == null || namespace === data?.namespace),
-				);
-				for (const StateKey of stateKeys)
-					if (StateKey) {
-						this._deleteItemKey(StateKey.key);
-					}
+					...keys.flatMap((k) => (k ? [this._findItem(k, namespace)] : [])),
+				].filter((v) => v != null);
+
+				const stateKeys = statesToDelete
+					.map((State) => this._getValueData(State))
+					.filter((data) => !!data && (namespace == null || namespace === data?.namespace));
+
+				for (const stateKey of stateKeys) if (stateKey) this._deleteItemKey(stateKey.key);
+
 				if (removeContextTransformers) {
-					StatesToDelete.flatMap((State) => Object.keys(this.#transformers[State] ?? {})).forEach((id) =>
-						this.removeContextTransformerById(id),
-					);
+					statesToDelete
+						.flatMap((State) => Object.keys(this.#transformers[State] ?? {}))
+						.forEach((id) => this.removeContextTransformerById(id));
 				}
 				return this;
 			}
@@ -83,11 +83,11 @@ export function createStateDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TStateKeysCollection<StateType>): Array<StateType | null> {
-				return (keys ?? []).map((StateKey) => this._findItem(StateKey as string, namespace));
+				return (keys ?? []).map((k) => this._findItem(k, namespace));
 			}
 
 			addStates({ namespace = undefined, keys }: TStateKeysCollection<StateType>): StateType[] {
-				return (keys || []).map((k) => this._addItemKey(k as string, namespace));
+				return (keys || []).map((k) => this._addItemKey(k, namespace));
 			}
 
 			addContextTransformer<T extends StateType>(

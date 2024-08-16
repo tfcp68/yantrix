@@ -113,6 +113,7 @@ export type TAutomataParams<
 	stateValidator?: TValidator<StateType>;
 	actionValidator?: TValidator<ActionType>;
 	eventValidator?: TValidator<EventType>;
+	eventMetaValidator?: TValidator<EventMetaType>;
 	enabled?: boolean;
 	paused?: boolean;
 };

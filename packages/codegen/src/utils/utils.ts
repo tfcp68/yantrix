@@ -17,7 +17,7 @@ export const toTypedObjectProps = <T>(object: T, objName: string) => {
 		typeGuardName,
 		name,
 		body,
-	} satisfies ITypedObjectProps;
+	} as ITypedObjectProps;
 };
 
 export const toTypedObject = <T>(obj: T, name: string) => {
@@ -34,7 +34,7 @@ export const toTypedObject = <T>(obj: T, name: string) => {
 	return {
 		...props,
 		codeBlock,
-	} satisfies ITypedObject;
+	} as ITypedObject;
 };
 
 export const fmt = async (code: string, prettierCfgPath: string) => {

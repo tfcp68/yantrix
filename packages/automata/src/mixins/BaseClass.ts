@@ -5,6 +5,7 @@ export class AbstractBaseClass implements IBaseClass {
 	correlationId: string;
 
 	constructor(...args: any[]) {
+		(() => [...args])();
 		this.correlationId = uniqId();
 	}
 

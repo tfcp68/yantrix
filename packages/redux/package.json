@@ -12,7 +12,7 @@
 		"url": "git+https://github.com/octaharon/yantrix.git"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc --noEmit && tsup",
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm test && pnpm build",

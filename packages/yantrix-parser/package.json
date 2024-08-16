@@ -51,10 +51,10 @@
 	],
 	"scripts": {
 		"build": "pnpm create-parser && tsc --noEmit &&  tsup",
-		"create-parser": "ts-jison -t typescript -n Yantrix -o ./src/yantrixParser.ts ./src/grammar/parserGrammar.jison",
+		"create-parser": "bash ./scripts/generate-yantrix-parser.sh",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "pnpm build && vitest run --outputFile=../../test_reports/yantrix-parser.md"
 	},

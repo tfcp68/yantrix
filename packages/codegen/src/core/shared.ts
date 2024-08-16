@@ -1,13 +1,6 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../types/common.js';
-import {
-	ExpressionTypes,
-	isKeyItemReference,
-	isKeyItemWithExpression,
-	TExpressionFunction,
-	TKeyItemReducerOrExpression,
-	TRefereneceType,
-} from '@yantrix/yantrix-parser';
+import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+import { ExpressionTypes, TRefereneceType } from '@yantrix/yantrix-parser';
 
 export const fillDictionaries = (
 	diagram: TStateDiagramMatrixIncludeNotes,

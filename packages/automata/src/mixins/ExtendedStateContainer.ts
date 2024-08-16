@@ -13,7 +13,7 @@ export default function ExtendedStateContainer<
 >() {
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractExtendedStateContainer extends BasicStateContainer<StateType>()(Proto) {
-			#__contextValidator?: TValidator<TAutomataStateContext<StateType, ContextType>>;
+			#__contextValidator: TValidator<TAutomataStateContext<StateType, ContextType>> | undefined;
 
 			public get validateContext(): TValidator<TAutomataStateContext<StateType, ContextType>> {
 				return this.#__contextValidator ?? this.#__defaultContextValidator;

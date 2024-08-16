@@ -112,7 +112,7 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 
 	const listKeyItem = keyItems.map((el) => {
 		const expressions = randomExpression();
-		const rndValue = expressions.value();
+		const rndValue = expressions?.value() ?? '';
 
 		switch (expressions) {
 			case allowedExpressions.string:
@@ -120,7 +120,6 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 					value: `${el}="${rndValue}"`,
 					output: expressions.output(rndValue),
 				};
-				break;
 			case allowedExpressions.constant:
 				return {
 					value: `${el}=%%${rndValue}`,
@@ -131,7 +130,6 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 					value: `${el}=#${rndValue}`,
 					output: expressions.output(rndValue),
 				};
-				break;
 			case allowedExpressions.payload:
 				return {
 					value: `${el}=$${rndValue}`,
@@ -140,15 +138,9 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 			default:
 				return {
 					value: `${el}=${rndValue}`,
-					output: expressions.output(rndValue),
+					output: expressions?.output(rndValue),
 				};
-				break;
 		}
-
-		return {
-			value: `${el}=${rndValue}`,
-			output: expressions.output(rndValue),
-		};
 	});
 
 	if (isRandomEmptyErr) {

@@ -5,7 +5,7 @@ import { TKeyItem, TKeyItems } from '../../src/types/keyItem.js';
 import { TExpressionTypes, expressions, functions, getExpression } from './expressions.js';
 
 const identPath = ['contextDescription', 0, 'context', 0, 'keyItem', 'identifier'] as const;
-const reducerPath = ['contextDescription', 0, 'reducer', 0, 'keyItem'] as const;
+// const reducerPath = ['contextDescription', 0, 'reducer', 0, 'keyItem'] as const;
 
 export const baseKeyItemDeclaration = (propertyName?: string, type?: TMappedKeys) => ({
 	keyItem: {
@@ -141,7 +141,7 @@ export const withMultiplyInitial = (properties?: Array<[propName: string, propVa
 			keyItem = withArrayInitial(name);
 		}
 		base.mergeWith((oldVal: any, newVal: any) => {
-			oldVal[0]?.context.push(...newVal[0]?.context);
+			oldVal[0]?.context.push(...(newVal[0]?.context ?? []));
 			return oldVal;
 		}, keyItem);
 	});

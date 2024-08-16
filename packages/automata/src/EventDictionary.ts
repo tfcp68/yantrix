@@ -49,8 +49,8 @@ export function createEventDictionary<
 			removeEvents({ namespace, events = [], keys = [] }: TEventLookupParams<EventType>) {
 				const eventsToDelete = [
 					...events.filter(this.validateEvent),
-					...keys.map((eventKey) => this._findItem(eventKey as string, namespace)),
-				].filter((v) => v !== null) as EventType[];
+					...keys.flatMap((k) => (k ? [this._findItem(k, namespace)] : [])),
+				].filter((v) => v !== null);
 				const eventKeys = eventsToDelete
 					.map((event) => this._getValueData(event))
 					.filter((data) => !!data && (namespace == null || namespace === data?.namespace));
@@ -69,7 +69,7 @@ export function createEventDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TEventKeysCollection<EventType>): Array<EventType | null> {
-				return (keys ?? []).map((eventKey) => this._findItem(eventKey as string, namespace));
+				return (keys ?? []).flatMap((k) => (k ? [this._findItem(k, namespace)] : []));
 			}
 
 			/**
@@ -78,7 +78,7 @@ export function createEventDictionary<
 			 * @returns Array of added events
 			 */
 			addEvents({ namespace = undefined, keys }: TEventKeysCollection<EventType>) {
-				return (keys || []).map((k) => this._addItemKey(k as string, namespace));
+				return (keys || []).flatMap((k) => (k ? [this._addItemKey(k, namespace)] : []));
 			}
 		};
 }

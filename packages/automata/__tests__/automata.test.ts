@@ -403,7 +403,7 @@ describe(`Automata`, () => {
 				let action = sampleAction;
 				const count = sampleRange(2, 5);
 				for (let i = 0; i < count; i++) {
-					action = testActions[i];
+					action = testActions[i]!;
 					newState = reducer({ ...newState, ...action });
 				}
 
@@ -431,7 +431,7 @@ describe(`Automata`, () => {
 				let action = sampleAction;
 				const count = sampleRange(2, 5);
 				for (let i = 0; i < count; i++) {
-					action = testActions[i];
+					action = testActions[i]!;
 					newState = reducer({ ...newState, ...action });
 				}
 

@@ -182,7 +182,7 @@ describe(`EventAdapter`, () => {
 				action: TTestAction,
 				payload: number,
 			): TAutomataEventHandler<TTestEvent, TTestAction, TTestEventMeta<TTestEvent>, TTestPayload<TTestAction>> =>
-			({ event, meta }) => ({
+			(/* { event, meta } */) => ({
 				action,
 				payload: {
 					payload,
@@ -203,7 +203,7 @@ describe(`EventAdapter`, () => {
 
 			test('returns an unsubscribe function', () => {
 				const testEvent = sampleRange(100, 200);
-				const unsubscribe = sampleInstance.addEventListener(testEvent, ({ event, meta }) => ({
+				const unsubscribe = sampleInstance.addEventListener(testEvent, (/* { event, meta } */) => ({
 					action: sampleAction,
 					payload: {
 						payload: sampleRange(0, 100),
@@ -250,7 +250,7 @@ describe(`EventAdapter`, () => {
 			const sampleEvent = sampleRange(0, 100);
 			const sampleAction = sampleRange(0, 100);
 			beforeEach(() => {
-				sampleInstance.addEventListener(sampleEvent, ({ event, meta }) => ({
+				sampleInstance.addEventListener(sampleEvent, ({ /*event,*/ meta }) => ({
 					action: sampleAction,
 					payload: {
 						payload: parseInt(meta?.meta ?? defaultMeta.toString(16), 16),
@@ -320,9 +320,9 @@ describe(`EventAdapter`, () => {
 		});
 		describe('handleEvent (multiple listeners)', () => {
 			beforeEach(() => {
-				sampleEvents = new Array(sampleRange(12, 15)).fill(null).map((v) => sampleRange(1, 10));
+				sampleEvents = new Array(sampleRange(12, 15)).fill(null).map(() => sampleRange(1, 10));
 				sampleEvents.forEach((eventId, ix) => {
-					sampleInstance.addEventListener(eventId, ({ event, meta }) => ({
+					sampleInstance.addEventListener(eventId, ({ /*event,*/ meta }) => ({
 						action: ix,
 						payload: {
 							payload: parseInt(meta?.meta ?? defaultMeta.toString(12), 12),
@@ -334,7 +334,7 @@ describe(`EventAdapter`, () => {
 				const testEvent = pickFromArray(sampleEvents)[0];
 				const testMeta = (sampleRange(1000, 10000) / 100).toFixed(2);
 				const result = sampleInstance.handleEvent({
-					event: testEvent,
+					event: testEvent ?? null,
 					meta: { meta: testMeta },
 				});
 				expect(result).toHaveLength(sampleEvents.filter((v) => v === testEvent).length);
@@ -343,7 +343,7 @@ describe(`EventAdapter`, () => {
 				const testEvent = pickFromArray(sampleEvents)[0];
 				const testMeta = (sampleRange(1000, 10000) / 100).toFixed(2);
 				const result = sampleInstance.handleEvent({
-					event: testEvent,
+					event: testEvent ?? null,
 					meta: { meta: testMeta },
 				});
 				const minIndex = -1;
@@ -360,7 +360,7 @@ describe(`EventAdapter`, () => {
 			beforeEach(() => {
 				sampleEvents = sampleArray<number>(null, sampleRange(10, 40));
 				sampleEvents.forEach((eventId, ix) => {
-					sampleInstance.addEventListener(eventId, ({ event, meta }) => ({
+					sampleInstance.addEventListener(eventId, (/* { event, meta } */) => ({
 						action: 0,
 						payload: {
 							payload: ix,
@@ -419,7 +419,7 @@ describe(`EventAdapter`, () => {
 			const sampleState = sampleRange(0, 99);
 			const sampleEvent = sampleRange(0, 99);
 			beforeEach(() => {
-				sampleInstance.addEventEmitter(sampleState, ({ state, context }) => ({
+				sampleInstance.addEventEmitter(sampleState, ({ /*state,*/ context }) => ({
 					event: sampleEvent,
 					meta: {
 						meta: String(context?.context),
@@ -475,7 +475,7 @@ describe(`EventAdapter`, () => {
 			const sampleState = sampleRange(0, 100);
 			const sampleEvent = sampleRange(0, 100);
 			beforeEach(() => {
-				sampleInstance.addEventEmitter(sampleState, ({ state, context }) => ({
+				sampleInstance.addEventEmitter(sampleState, ({ /*state,*/ context }) => ({
 					event: sampleEvent,
 					meta: {
 						meta: (context?.context ?? defaultContext).toString(16) || '',
@@ -551,7 +551,7 @@ describe(`EventAdapter`, () => {
 		});
 		describe('handleTransition (multiple emitters)', () => {
 			beforeEach(() => {
-				sampleStates = new Array(sampleRange(12, 15)).fill(null).map((v) => sampleRange(1, 10));
+				sampleStates = new Array(sampleRange(12, 15)).fill(null).map(() => sampleRange(1, 10));
 				sampleStates.forEach((stateId, ix) => {
 					sampleInstance.addEventEmitter(stateId, ({ state, context }) => ({
 						event: ix,
@@ -565,7 +565,7 @@ describe(`EventAdapter`, () => {
 				const testState = pickFromArray(sampleStates)[0];
 				const testContext = sampleRange(1000, 10000);
 				const result = sampleInstance.handleTransition({
-					state: testState,
+					state: testState ?? null,
 					context: { context: testContext },
 				});
 				expect(result).toHaveLength(sampleStates.filter((v) => v === testState).length);
@@ -574,7 +574,7 @@ describe(`EventAdapter`, () => {
 				const testState = pickFromArray(sampleStates)[0];
 				const testContext = sampleRange(1000, 10000);
 				const result = sampleInstance.handleTransition({
-					state: testState,
+					state: testState ?? null,
 					context: { context: testContext },
 				});
 				const minIndex = -1;
@@ -590,8 +590,8 @@ describe(`EventAdapter`, () => {
 		describe('removeAllEmitters', () => {
 			beforeEach(() => {
 				sampleStates = sampleArray<number>(null, sampleRange(20, 30));
-				sampleStates.forEach((stateId, ix) => {
-					sampleInstance.addEventEmitter(stateId, ({ state, context }) => ({
+				sampleStates.forEach((stateId) => {
+					sampleInstance.addEventEmitter(stateId, ({ /*state,*/ context }) => ({
 						event: stateId,
 						meta: {
 							meta: (context?.context ?? 0).toFixed(2),
