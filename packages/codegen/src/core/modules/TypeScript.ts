@@ -34,7 +34,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<Mod
 		}`;
 	}
 
-	public getCode(options: TGetCodeOptionsMap[ModuleNames.TypeScript]) {
+	public override getCode(options: TGetCodeOptionsMap[ModuleNames.TypeScript]) {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}
