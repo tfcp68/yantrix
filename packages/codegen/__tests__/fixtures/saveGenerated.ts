@@ -1,5 +1,5 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram, generateJavaAutomata } from '../../src/index.js';
+import { generateAutomataFromStateDiagram, generateJavaAutomata, ModuleNames } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -95,7 +95,7 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: fixture.automataName,
-		outLang: 'TypeScript',
+		outLang: ModuleNames.TypeScript,
 	});
 
 	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck';
@@ -109,7 +109,7 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 const diagram = await createStateDiagram(await parseStateDiagram(input1));
 const automata = await generateJavaAutomata(diagram, {
 	className: 'GeneratedAutomata',
-	outLang: 'Java',
+	outLang: ModuleNames.Java,
 });
 fs.writeFileSync(path.resolve(pathSave, 'GeneratedAutomata_generated.java'), automata, {
 	encoding: 'utf-8',

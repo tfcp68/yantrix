@@ -3,9 +3,16 @@ import { TypeScriptCodegen } from './TypeScript.js';
 import { PythonCodegen } from './Python.js';
 import { JavaCodegen } from './Java.js';
 
+export enum ModuleNames {
+	JavaScript = 'JavaScript',
+	TypeScript = 'TypeScript',
+	Python = 'Python',
+	Java = 'Java',
+}
+
 export const Modules = {
-	JavaScript: JavaScriptCodegen,
-	TypeScript: TypeScriptCodegen,
-	Python: PythonCodegen,
-	Java: JavaCodegen,
+	[ModuleNames.JavaScript]: JavaScriptCodegen,
+	[ModuleNames.TypeScript]: TypeScriptCodegen,
+	[ModuleNames.Python]: PythonCodegen,
+	[ModuleNames.Java]: JavaCodegen,
 } as const;

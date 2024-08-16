@@ -26,13 +26,7 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 		language: options.outLang ?? 'TypeScript',
 	});
 
-	return [
-		codegen.getImports(),
-		codegen.getDictionaries(),
-		codegen.getDefaultContext(),
-		codegen.getActionToStateFromState(),
-		codegen.getClassTemplate(options.className),
-	].join('\n');
+	return codegen.getCode(options);
 };
 
 export const generateJavaAutomata = async (diagram: TStateDiagramMatrix, options: IGenerateOptions) => {

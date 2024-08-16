@@ -1,9 +1,10 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { fillDictionaries } from '../shared.js';
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ModuleNames } from './index';
 
-export class JavaCodegen implements ICodegen {
+export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -32,6 +33,16 @@ export class JavaCodegen implements ICodegen {
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 		this.setupDictionaries();
+	}
+
+	public getCode(options: TGetCodeOptionsMap[ModuleNames.Java]): string {
+		return `
+			${this.getImports()}
+			${this.getDictionaries()}
+			${this.getDefaultContext()}
+			${this.getActionToStateFromState()}
+			${this.getClassTemplate(options.className)}
+		`;
 	}
 
 	// Package declaration and imports necessary for the automata to function

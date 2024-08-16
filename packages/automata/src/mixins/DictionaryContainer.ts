@@ -55,7 +55,7 @@ export default function DictionaryContainer<ItemType>() {
 
 			_getItemKey(itemKey: string, namespace = '') {
 				if (!itemKey?.length) throw new Error(`item key is empty`);
-				const prefix = namespace?.length ? namespace + '/' : '';
+				const prefix = namespace?.length ? `${namespace}__` : '';
 				return `${prefix}${itemKey}`;
 			}
 
