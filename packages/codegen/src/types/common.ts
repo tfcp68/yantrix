@@ -52,13 +52,19 @@ export interface IGetCodePythonOptions {
 	className: string;
 }
 
+export interface IGetCodeJavaOptions {
+	className: string;
+}
+
 export type TGetCodeOptionsDescriptor<T extends TOutLang> = T extends 'TypeScript'
 	? IGetCodeTSOptions
 	: T extends 'JavaScript'
 		? IGetCodeJSOptions
 		: T extends 'Python'
 			? IGetCodePythonOptions
-			: never;
+			: T extends 'Java'
+				? IGetCodeJavaOptions
+				: never;
 
 export interface ICodegen<T extends TOutLang> {
 	getCode(options: TGetCodeOptionsDescriptor<T>): string;

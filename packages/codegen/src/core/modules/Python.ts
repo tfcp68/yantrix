@@ -1,22 +1,7 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { Expressions, fillDictionaries } from '../shared.js';
-import {
-	ICodegen,
-	TAssignTypeDict,
-	TAssignTypes,
-	TGetCodeOptionsDescriptor,
-	TStateDiagramMatrixIncludeNotes,
-} from '../../types/common.js';
-import {
-	isKeyItemWithExpression,
-	isPayloadContext,
-	isPrevContext,
-	isShortContext,
-	TKeyItem,
-	TKeyItemWithExpression,
-	TMappedKeys,
-} from '@yantrix/yantrix-parser';
+import { fillDictionaries } from '../shared.js';
+import { ICodegen, TGetCodeOptionsDescriptor, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 
 export class PythonCodegen implements ICodegen<'Python'> {
 	stateDictionary: BasicStateDictionary;
