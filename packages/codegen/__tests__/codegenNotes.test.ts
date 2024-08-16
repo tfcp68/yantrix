@@ -91,9 +91,7 @@ describe('Default assign', async () => {
 			);
 		}
 	});
-	describe('Left assign #{a=string | constant | number | list  | emptyPayload = {} | emptypreviousContext = {} }', () => {
-		it('Left assign ');
-	});
+
 	it('Left assign #{a=string | constant | number | list  | emptyPayload = {} | emptypreviousContext = {} }', async () => {
 		const { output, dispatchObject } = defautlAssignLeft;
 
