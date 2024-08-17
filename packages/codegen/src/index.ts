@@ -1,4 +1,4 @@
-import { IGenerateOptions, TOutLang, TStateIncludingNotes } from './types/common.js';
+import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
 
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
@@ -28,24 +28,5 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 		language: options.outLang ?? 'TypeScript',
 	});
 
-	const codeGenerationOrderMap: Record<TOutLang, string[]> = {
-		JavaScript: [
-			codegen.getImports(),
-			codegen.getDictionaries(),
-			codegen.getDefaultContext(),
-			codegen.getActionToStateFromState(),
-			codegen.getClassTemplate(options.className),
-		],
-		TypeScript: [
-			codegen.getImports(),
-			codegen.getDictionaries(),
-			codegen.getDefaultContext(),
-			codegen.getActionToStateFromState(),
-			codegen.getClassTemplate(options.className),
-		],
-		Java: [codegen.getImports(), codegen.getClassTemplate(options.className)],
-		Python: [],
-	};
-
-	return codeGenerationOrderMap[options.outLang].join('\n');
+	return codegen.getCode(options);
 };

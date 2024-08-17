@@ -1,9 +1,10 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { ICodegen, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries } from '../shared.js';
+import { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ModuleNames } from './index';
 
-export class PythonCodegen implements ICodegen {
+export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -15,7 +16,15 @@ export class PythonCodegen implements ICodegen {
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
 	};
-
+	public getCode(options: TGetCodeOptionsMap[ModuleNames.Python]): string {
+		return `
+			${this.getImports()}
+			${this.getDictionaries()}
+			${this.getDefaultContext()}
+			${this.getActionToStateFromState()}
+			${this.getClassTemplate(options.className)}
+		`;
+	}
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
@@ -70,11 +79,10 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.keys(transitions)
-			.map((key) => {
-				const { actionsPath } = transitions[key];
+		return Object.entries(transitions)
+			.map(([key, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return actionsPath.map(({ action }) => {
+				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
@@ -148,8 +156,7 @@ export class PythonCodegen implements ICodegen {
 	}
 
 	protected getActionToStateFromStateDict() {
-		return Object.keys(this.diagram.transitions).map((state) => {
-			const transitions = this.diagram.transitions[state];
+		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
 

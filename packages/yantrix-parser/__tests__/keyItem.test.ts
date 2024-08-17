@@ -39,7 +39,7 @@ const templateFunctions: { [key: string]: (...args: any) => any } = {
 		const val = randomDecimal();
 		return [templateString.replace('%d', val.toString()), func(propertyName, val)];
 	},
-	'%multi': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+	'%multi': (templateString: string, _: string, func: (...args: any) => any) => {
 		const properties = [];
 		for (let i = 0; i < randomInteger(1, 5); i++) {
 			const propName = randomString();
@@ -69,10 +69,10 @@ const generateExpressionStringAndExpectedObject = (args: [string, (...args: any)
 	// all names and values need to match to pass tests
 	for (const regex in templateFunctions) {
 		if (templateStringWithName.match(regex)) {
-			return templateFunctions[regex](templateStringWithName, propertyName, func);
+			return templateFunctions[regex]?.(templateStringWithName, propertyName, func);
 		}
 	}
-	return templateFunctions['default'](templateStringWithName, propertyName, func);
+	return templateFunctions['default']?.(templateStringWithName, propertyName, func);
 };
 const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
 	return templates.flatMap((template) => {
@@ -85,7 +85,7 @@ describe('Key list', () => {
 
 	describe('The number of arguments must be equal to or less than the number of context arguments', () => {
 		const keyItem = getKeyItemsInitialEmpty()[0];
-		const strInput = `#{${keyItem.value}} <= #a, #b`;
+		const strInput = `#{${keyItem?.value}} <= #a, #b`;
 
 		expect(() => parser.parse(strInput)).toThrowError(
 			'The number of arguments must be equal to or less than the number of context arguments.',
@@ -117,7 +117,7 @@ describe('Key list', () => {
 
 						expect(targetPropertyCount).toBe(context.length);
 
-						keyItems.map(({ initialValue, input, key }, index) => {
+						keyItems.map(({ initialValue, /*input,*/ key }, index) => {
 							const { keyItem } = context[index];
 							const { identifier } = keyItem;
 
@@ -216,7 +216,7 @@ describe('Key list', () => {
 
 					const emptyOutputElements = context.slice(generatedRandomInitial.length);
 					emptyOutputElements.map((el: any, index: any) => {
-						expect(el).toStrictEqual(generatedEmpty[index].output());
+						expect(el).toStrictEqual(generatedEmpty[index]?.output());
 					});
 					expect(emptyOutputElements.length).toBe(generatedEmpty.length);
 				}

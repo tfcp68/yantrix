@@ -14,7 +14,7 @@ const _case = (
 	for (const [condition, return_value] of other_cases) {
 		if (condition) return return_value;
 	}
-	return other_cases[other_cases.length - 1][1];
+	return (other_cases[other_cases.length - 1] ?? [])[1];
 };
 
 const _coalesce = (...expressions: unknown[]): unknown => {
@@ -241,7 +241,7 @@ const avg = (...nums: number[]): number => {
 const med = (...nums: number[]): number => {
 	nums.sort((a, b) => a - b);
 	const mid = Math.floor(nums.length / 2);
-	return nums.length % 2 == 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+	return nums.length % 2 == 0 ? (nums[mid] ?? 0) : ((nums[mid - 1] ?? 0) + (nums[mid] ?? 0)) / 2;
 };
 
 const sum = (...nums: number[]): number => {

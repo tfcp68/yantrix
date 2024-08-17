@@ -1,4 +1,4 @@
-type AutomataFunction = (...args: any) => any; // ?
+export type AutomataFunction = ((...args: any) => any) | null; // ?
 
 export class FunctionDictionary {
 	private readonly functions: Record<string, AutomataFunction>;

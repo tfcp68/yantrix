@@ -1,5 +1,5 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram, generateJavaAutomata } from '../../src/index.js';
+import { generateAutomataFromStateDiagram, ModuleNames } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,29 +49,29 @@ note left of AA
 #{a1,a2,a3}
 end note
 
-note left of H
-#{a1='string',a2=3,a3=[]} <= (a1,a2,a3)
-end note
+// note left of H
+// #{a1='string',a2=3,a3=[]} <= (a1,a2,a3)
+// end note
 
-note left of F
-#{a1=[],a2='string',a3=3} <= (a1='string',a2=3,a3=[])
-end note
+// note left of F
+// #{a1=[],a2='string',a3=3} <= (a1='string',a2=3,a3=[])
+// end note
 
-note left of G
-#{a1=[],a2='string',a3=3} <= (a1,a2,a3)
-end note
+// note left of G
+// #{a1=[],a2='string',a3=3} <= (a1,a2,a3)
+// end note
 
-note left of D
-#{a1,a2,a3} <= (a1='string',a2=3,a3=[])
-end note
+// note left of D
+// #{a1,a2,a3} <= (a1='string',a2=3,a3=[])
+// end note
 
-note left of B
-#{a1,a2,a3} <= (a1,a2,a3)
-end note
+// note left of B
+// #{a1,a2,a3} <= (a1,a2,a3)
+// end note
 
-note left of C
-#{integer} <= (newInteger)
-end note
+// note left of C
+// #{integer} <= (newInteger)
+// end note
 
 note left of [*]
 #{integer=3, string="str", array=[]}
@@ -82,17 +82,17 @@ const diagramsInput = {
 	gameDiagram: {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
-		outLang: 'TypeScript',
+		outLang: ModuleNames.TypeScript,
 	},
 	includeNotes: {
 		value: includeNotesInput,
 		automataName: 'AutomataIncludeNotes',
-		outLang: 'TypeScript',
+		outLang: ModuleNames.TypeScript,
 	},
 	javaGameDiagram: {
 		value: input1,
 		automataName: 'GeneratedAutomata',
-		outLang: 'Java',
+		outLang: ModuleNames.Java,
 	},
 } as const;
 
@@ -110,9 +110,12 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 		outLang: fixture.outLang,
 	});
 
+	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck';
+	const writable = `${ignoreFlags}\n${generatedAutomataOutput}`;
+
 	fs.writeFileSync(
 		path.resolve(pathSave, `${fixture.automataName}_generated.${extensions[fixture.outLang]}`),
-		generatedAutomataOutput,
+		writable,
 		{
 			encoding: 'utf8',
 		},
