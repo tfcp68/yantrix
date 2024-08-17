@@ -23,7 +23,7 @@ const getReferenceString = (path: string, identifier: string) => {
 };
 
 const getFunctionFromDictionary = (name: string) => {
-	return `functionDictionary.getFunction("${name}")`;
+	return `functionDictionary.get("${name}")`;
 };
 
 export const Expressions: TExpressionRecord = {
@@ -118,7 +118,7 @@ export class JavaScriptCodegen implements ICodegen {
 	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
-		'@yantrix/codegen': ['built_in_functions'],
+		'@yantrix/codegen': ['builtInFunctions'],
 	};
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
@@ -155,7 +155,7 @@ export class JavaScriptCodegen implements ICodegen {
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(built_in_functions)`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`);
 	}
 
 	getClassTemplate(className: string) {
