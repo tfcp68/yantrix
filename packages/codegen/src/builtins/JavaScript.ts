@@ -29,7 +29,7 @@ const _random = (min?: number, max?: number): number => {
 	}
 };
 
-export const conditionals = {
+export const Conditionals = {
 	if: _if,
 	case: _case,
 	coalesce: _coalesce,
@@ -53,7 +53,7 @@ const none = (...conditions: boolean[]): boolean => {
 	return !(conditions.find((cond) => cond === false) ?? true);
 };
 
-export const binary_predicates = {
+export const BinaryPredicates = {
 	and,
 	all: and,
 	or,
@@ -97,7 +97,7 @@ const isPositive = (x: number): boolean => {
 	return x > 0;
 };
 
-export const numeric_predicates = {
+export const NumericPredicates = {
 	isEven,
 	isOdd,
 	isInteger,
@@ -139,7 +139,7 @@ const isNull = (exp: object): boolean => {
 	return exp == null;
 };
 
-export const lookup_predicates = {
+export const LookupPredicates = {
 	contains,
 	has,
 	isNull,
@@ -190,7 +190,7 @@ const round = (num: number): number => {
 	return Math.round(num);
 };
 
-export const arithmetics = { add, diff, mult, div, pow, inc, dec, neg, inv, mod, trunc, ceil, round };
+export const Arithmetics = { add, diff, mult, div, pow, inc, dec, neg, inv, mod, trunc, ceil, round };
 
 // ==================
 
@@ -220,7 +220,7 @@ const rad = (num: number) => {
 	return num / 57.3;
 };
 
-export const special_maths = { sin, cos, sqrt, log, ln, lg, deg, rad };
+export const SpecialMaths = { sin, cos, sqrt, log, ln, lg, deg, rad };
 
 // ==================
 
@@ -258,7 +258,7 @@ const sumProduct = (...nums_lists: number[][]): number => {
 		.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 };
 
-export const statistics = { max, min, avg, med, sum, sumsq, sumProduct };
+export const Statistics = { max, min, avg, med, sum, sumsq, sumProduct };
 
 // ==================
 
@@ -296,7 +296,7 @@ const indexOf = (list: unknown[], value: unknown): number => {
 	return list.indexOf(value);
 };
 
-export const list_transformers = { len, lookup, filterBy, find, left, right, indexOf };
+export const ListTransformers = { len, lookup, filterBy, find, left, right, indexOf };
 
 // ==================
 
@@ -322,17 +322,18 @@ const strIndexOf = (str: string, substr: string): number => {
 	return str.indexOf(substr);
 };
 
-export const string_transformers = { substr, strlen, strLeft, strRight, strIndexOf };
+export const StringTransformers = { substr, strlen, strLeft, strRight, strIndexOf };
 
 // ==================
 
-export const built_in_functions = {
-	...conditionals,
-	...numeric_predicates,
-	...binary_predicates,
-	...arithmetics,
-	...special_maths,
-	...statistics,
-	...list_transformers,
-	...string_transformers,
+export const builtInFunctions = {
+	...Conditionals,
+	...BinaryPredicates,
+	...NumericPredicates,
+	...LookupPredicates,
+	...Arithmetics,
+	...SpecialMaths,
+	...Statistics,
+	...ListTransformers,
+	...StringTransformers,
 };
