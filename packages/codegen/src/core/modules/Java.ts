@@ -38,9 +38,6 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 	public getCode(options: TGetCodeOptionsMap[ModuleNames.Java]): string {
 		return `
 			${this.getImports()}
-			${this.getDictionaries()}
-			${this.getDefaultContext()}
-			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
 		`;
 	}

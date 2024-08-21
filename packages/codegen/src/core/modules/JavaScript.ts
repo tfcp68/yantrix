@@ -17,12 +17,14 @@ import {
 } from '@yantrix/yantrix-parser';
 import { ModuleNames } from './index';
 
+// import Built_In_Functions from '../../builtins/JavaScript';
+
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
 };
 
 const getFunctionFromDictionary = (name: string) => {
-	return `functionDictionary['${name}']`;
+	return `functionDictionary.get("${name}")`;
 };
 
 export const Expressions: TExpressionRecord = {
@@ -108,6 +110,7 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	// functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 	// initialContext: string;
@@ -115,12 +118,14 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 	changeStateHandlers: string[];
 	dictionaries: string[];
 	protected imports = {
-		'@yantrix/automata': ['GenericAutomata'],
+		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
+		'@yantrix/codegen': ['builtInFunctions'],
 	};
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
+		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
 		this.diagram = diagram;
 
 		this.handlersDict = [];
@@ -151,6 +156,7 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`);
 	}
 
 	getClassTemplate(className: string) {

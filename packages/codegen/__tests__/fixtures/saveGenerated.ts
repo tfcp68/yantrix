@@ -1,5 +1,5 @@
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram, generateJavaAutomata, ModuleNames } from '../../src/index.js';
+import { generateAutomataFromStateDiagram, ModuleNames } from '../../src/index.js';
 import * as fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -82,12 +82,24 @@ const diagramsInput = {
 	gameDiagram: {
 		value: input1,
 		automataName: 'GamePhaseAutomata',
+		outLang: ModuleNames.TypeScript,
 	},
 	includeNotes: {
 		value: includeNotesInput,
 		automataName: 'AutomataIncludeNotes',
+		outLang: ModuleNames.TypeScript,
+	},
+	javaGameDiagram: {
+		value: input1,
+		automataName: 'GeneratedAutomata',
+		outLang: ModuleNames.Java,
 	},
 } as const;
+
+const extensions = {
+	TypeScript: 'ts',
+	Java: 'java',
+};
 
 Object.values(diagramsInput).forEach(async (fixture) => {
 	const stateDiagramStructure = await parseStateDiagram(fixture.value);
@@ -95,22 +107,17 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: fixture.automataName,
-		outLang: ModuleNames.TypeScript,
+		outLang: fixture.outLang,
 	});
 
 	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck';
 	const writable = `${ignoreFlags}\n${generatedAutomataOutput}`;
 
-	fs.writeFileSync(path.resolve(pathSave, `${fixture.automataName}_generated.ts`), writable, {
-		encoding: 'utf8',
-	});
-});
-
-const diagram = await createStateDiagram(await parseStateDiagram(input1));
-const automata = await generateJavaAutomata(diagram, {
-	className: 'GeneratedAutomata',
-	outLang: ModuleNames.Java,
-});
-fs.writeFileSync(path.resolve(pathSave, 'GeneratedAutomata_generated.java'), automata, {
-	encoding: 'utf-8',
+	fs.writeFileSync(
+		path.resolve(pathSave, `${fixture.automataName}_generated.${extensions[fixture.outLang]}`),
+		writable,
+		{
+			encoding: 'utf8',
+		},
+	);
 });

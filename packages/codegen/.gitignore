@@ -41,3 +41,4 @@ coverage
 .eslintcache
 
 *_generated.ts
+*_generated.java
