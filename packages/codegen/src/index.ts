@@ -46,6 +46,7 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 	return [
 		codegen.getImports(),
 		codegen.getDictionaries(),
+		codegen.getDefaultContext(),
 		codegen.getActionToStateFromState(),
 		codegen.getClassTemplate(options.className),
 	].join('\n');

@@ -60,7 +60,7 @@ describe('Codegen output', () => {
 			});
 
 			expect(automata.state).toBe(prevState);
-			expect(automata.context).toStrictEqual(null);
+			expect(automata.context).toStrictEqual({});
 		});
 		test.each(cases)('%j -- > %j', (a: any, b) => {
 			automata.setActionQueue([...a]);

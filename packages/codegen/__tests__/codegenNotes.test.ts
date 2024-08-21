@@ -388,27 +388,26 @@ describe('Constants reference', () => {
 	});
 });
 
-describe('+INIT', () => {
-	it('Initial context should be aviable in any state', async () => {
+describe('Initial', () => {
+	it('Reducer from [*] shared between states', async () => {
 		const output = {
 			a: randomInteger(),
 			b: randomInteger(),
 		};
 
-		const noteC = `#{${mapFromObjectToString(output)}}`;
-		const keys = objectKeysToString(output, '#');
+		const defaultNote = `#{${mapFromObjectToString(output)}}`;
+		const keys = objectKeysToString(output);
 
 		const input = `
 			stateDiagram-v2
-			C --> A: toA
-			A --> B: toB
+			[*] --> C: toC
+			note left of [*]
+			  ${defaultNote}
+			end note
 			note left of C
-			  +init
-			 ${noteC}
-			end note;
-			note left of B
-				#{x,z} <= ${keys}
-			end note;
+				#{${keys}}
+			end note
+	
 		`;
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'tata');
@@ -416,13 +415,9 @@ describe('+INIT', () => {
 
 		const automata = new res.Test();
 
-		automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
-		automata.dispatch({ action: res.actionsDictionary.toB, payload: {} });
+		automata.dispatch({ action: res.actionsDictionary.toC, payload: {} });
 
-		expect(automata.context).toStrictEqual({
-			x: output.a,
-			z: output.b,
-		});
+		expect(automata.context).toStrictEqual(output);
 	});
 	it('The +INIT state must be the initial state for the automata', async () => {
 		const input = `stateDiagram-v2

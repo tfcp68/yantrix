@@ -1,6 +1,6 @@
 import { TConstants, TExpressionRecord } from './../../types/common';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TDiagramAction } from '@yantrix/mermaid-parser';
+import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { ICodegen, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import {
@@ -12,6 +12,7 @@ import {
 	TExpressionFunction,
 	TExpression,
 	TMapped,
+	maxNestedFuncLevel,
 } from '@yantrix/yantrix-parser';
 
 const getReferenceString = (path: string, identifier: string) => {
@@ -89,18 +90,29 @@ export class JavaScriptCodegen implements ICodegen {
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
-		this.dictionaries.push(`const stateToContext = {${this.getStateToContext().join(',\n\t')}}`);
+		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
 	}
 
 	getClassTemplate(className: string) {
 		const initialState = this.getInitialState();
 
+		const stateValue = this.stateDictionary.getStateValues({ keys: [initialState] })[0];
+
+		if (stateValue === null) {
+			throw new Error('GetClassTemplate: Invalid state');
+		}
+
+		const a = this.getInitialContextShape(StartState);
+		const b = this.getInitialContextShape(initialState);
+
+		const initialContext = Object.assign({}, a, b);
+
 		return `export class ${className} extends GenericAutomata {
   		 constructor() {
   			super();
   			this.init({
-  				state: ${initialState},
-  				context:stateToContext[${initialState}](null,null),
+  				state: ${stateValue},
+  				context:${JSON.stringify(initialContext)},
                 rootReducer: ${this.getRootReducer()},
   				stateValidator: ${this.getStateValidator()},
   				actionValidator: ${this.getActionValidator()},
@@ -144,9 +156,6 @@ export class JavaScriptCodegen implements ICodegen {
 					return `
 				  ${actionValue}: {
 				  	state: ${newState},
-				  	getNewContext: ({payload, context:prevContext}) => {
-				  			return stateToContext[${newState}](prevContext,payload);
-				  	}
 				  },
 				`;
 				});
@@ -158,21 +167,39 @@ export class JavaScriptCodegen implements ICodegen {
 		return `(key, obj) => key in obj`;
 	}
 
+	public getDefaultContext() {
+		const state = this.stateDictionary.getStateValues({ keys: [StartState] })[0];
+
+		if (state !== null) {
+			const ctx = this.getContextTransition(state);
+
+			return `const getDefaultContext = (prevContext, payload) => { 
+				const ctx = ${ctx} 
+				return  Object.assign({}, prevContext, ctx);
+			}
+			`;
+		}
+
+		return `const getDefaultContext = (prevContext, payload) => { 
+
+				return prevContext
+		}`;
+	}
+
 	protected getRootReducer() {
 		return `({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
 					${this.getRootReducerStateValidation()}
 					${this.getRootReducerActionValidation()}
-					const {state:newState,getNewContext} = actionToStateFromStateDict[state][action]
+					const {state:newState} = actionToStateFromStateDict[state][action]
 
-					
-					const initialContext = stateToContext[${this.getInitialState()}](context,payload)
+					const contextWithInitial = getDefaultContext(context,payload)
+					const newContextFunc = reducer[newState]
 
-					if(initialContext !== null) {
-						return {state:newState, context: getNewContext({payload, context: {...initialContext, ...context}})};
+					if(typeof newContextFunc !== 'function') {
+						throw new Error('Invalid newContextFunc')
 					}
-
-					return {state:newState, context: getNewContext({payload,context})};
+					return {state:newState, context: newContextFunc(contextWithInitial, payload)};
   				}`;
 	}
 
@@ -243,11 +270,13 @@ export class JavaScriptCodegen implements ICodegen {
 			return Boolean(state.notes?.initialState);
 		});
 
-		if (hasInitial) return this.stateDictionary.getStateValues({ keys: [hasInitial.id] })[0];
+		if (hasInitial) {
+			return hasInitial.id;
+		}
 
 		const firstState = this.diagram.states[0].id;
 
-		return this.stateDictionary.getStateValues({ keys: [firstState] })[0];
+		return firstState;
 	}
 
 	private getContextItem = (ctx: TContextItem) => {
@@ -331,6 +360,26 @@ export class JavaScriptCodegen implements ICodegen {
 			});
 		}
 	};
+
+	private getInitialContextShape = (stateName: string) => {
+		const states = this.diagram.states.filter((state) => state.id === stateName);
+
+		if (states.length) {
+			return states.reduce(
+				(acc, curr) => {
+					curr.notes?.contextDescription.map((el) => {
+						el.context.map((el) => {
+							acc[el.keyItem.identifier] = null;
+						});
+					});
+					return acc;
+				},
+				{} as Record<string, null>,
+			);
+		}
+
+		return null;
+	};
 	private getExpressionValue(expression: TExpression<keyof TMapped>) {
 		//@ts-expect-error // idk, help
 		return this.expressions[expression.expressionType](expression);
@@ -351,13 +400,14 @@ export class JavaScriptCodegen implements ICodegen {
 				return `${this.constants[identifier]}`;
 			},
 			[ExpressionTypes.Function]: (func) => {
+				let currentRecLevel = 0;
 				const recursive = (func: TExpressionFunction) => {
 					const { FunctionDeclaration } = func;
 					const { FunctionName, Arguments } = FunctionDeclaration;
 
 					const res: string[] = [];
 
-					if (Arguments.length !== 0) {
+					if (currentRecLevel < maxNestedFuncLevel) {
 						Arguments.forEach((item) => {
 							if (isKeyItemReference(item)) {
 								const { expressionType, identifier } = item;
@@ -367,6 +417,7 @@ export class JavaScriptCodegen implements ICodegen {
 									const { expression } = item;
 
 									if (expression.expressionType === ExpressionTypes.Function) {
+										currentRecLevel++;
 										// @ts-ignore
 										res.push(recursive(expression));
 									}
@@ -388,7 +439,7 @@ export class JavaScriptCodegen implements ICodegen {
 							}
 						});
 					} else {
-						res.push(FunctionName);
+						throw new Error(`Max level of nested functions reached ${maxNestedFuncLevel}`);
 					}
 
 					return getFunctionFromDictionary(FunctionName).concat(`(${res.join(',')})`);

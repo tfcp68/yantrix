@@ -60,6 +60,8 @@ export interface ICodegen {
 	 *     }
 	 * }
 	 */
+
+	getDefaultContext: () => string;
 	getActionToStateFromState(): string;
 
 	getClassTemplate(className: string): string;
