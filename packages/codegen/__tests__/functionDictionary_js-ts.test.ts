@@ -31,7 +31,7 @@ const createNameFromTemplate = (str: string) =>
 	str.replaceAll('%s', randomString()).replaceAll('%d', randomInteger(0, 9).toString());
 
 describe('JS/TS Function Dictionary', async () => {
-	await saveAndGenerate({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'function');
+	await saveAndGenerate({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'functions');
 
 	const res = await import(`./fixtures/generated/functions_generated.js`);
 
