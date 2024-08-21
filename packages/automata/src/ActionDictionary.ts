@@ -31,14 +31,17 @@ export function createActionDictionary<
 			}
 
 			removeActions({ namespace, actions = [], keys = [] }: TActionLookupParams<ActionType>) {
-				const actionsToDelete = [
+				const actionsToDelete: ActionType[] = [
 					...actions.filter(this.validateAction),
-					...keys.map((actionKey) => this._findItem(actionKey as string, namespace)),
-				].filter((v) => v != null) as ActionType[];
+					...keys.flatMap((k) => (k ? [this._findItem(k, namespace)] : [])),
+				].filter((v) => v !== null);
+
 				const actionKeys = actionsToDelete
 					.map((action) => this._getValueData(action))
-					.filter((data) => !!data && (namespace == null || namespace === data?.namespace));
+					.filter((data) => !!data && (namespace === null || namespace === data?.namespace));
+
 				for (const actionKey of actionKeys) if (actionKey) this._deleteItemKey(actionKey.key);
+
 				return this;
 			}
 
@@ -46,11 +49,11 @@ export function createActionDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TActionKeysCollection<ActionType>): Array<ActionType | null> {
-				return (keys ?? []).map((actionKey) => this._findItem(actionKey as string, namespace));
+				return (keys ?? []).flatMap((k) => (k ? [this._findItem(k, namespace)] : []));
 			}
 
 			addActions({ namespace = undefined, keys }: TActionKeysCollection<ActionType>): ActionType[] {
-				return (keys || []).map((k) => this._addItemKey(k as string, namespace));
+				return (keys || []).flatMap((k) => (k ? [this._addItemKey(k, namespace)] : []));
 			}
 		};
 }

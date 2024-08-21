@@ -6,7 +6,7 @@ export default function BasicStateContainer<StateType extends TAutomataBaseState
 		class AbstractBasicStateContainer extends Base {
 			#_defaultStateValidator = isPositiveInteger as TValidator<StateType>;
 
-			#_stateValidator?: TValidator<StateType>;
+			#_stateValidator: TValidator<StateType> | undefined;
 
 			constructor(...args: any[]) {
 				super(args);

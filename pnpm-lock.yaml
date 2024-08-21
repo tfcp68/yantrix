@@ -78,7 +78,7 @@ importers:
                 specifier: ^8.1.0
                 version: 8.2.4(typescript@5.5.4)
             typescript:
-                specifier: ^5.1.3
+                specifier: ^5.5.4
                 version: 5.5.4
             vitest-markdown-reporter:
                 specifier: ^0.1.2
@@ -133,6 +133,9 @@ importers:
             '@yantrix/mermaid-parser':
                 specifier: workspace:^
                 version: link:../mermaid-parser
+            '@yantrix/utils':
+                specifier: workspace:^
+                version: link:../utils
             '@yantrix/yantrix-parser':
                 specifier: workspace:^
                 version: link:../yantrix-parser

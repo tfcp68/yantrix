@@ -38,8 +38,8 @@
 	],
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
+		"format": "prettier --write . && cross-env TIMING=1 eslint --fix bin",
+		"lint": "prettier --check . && cross-env TIMING=1 eslint bin",
 		"prepack": "pnpm lint && pnpm test && pnpm build"
 	},
 	"dependencies": {

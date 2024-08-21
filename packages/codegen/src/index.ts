@@ -7,6 +7,8 @@ import { CodegenCreator } from './core/Codegen.js';
 export * from './core/modules/index.js';
 export * from './types/common.js';
 
+export * from './builtins/index.js';
+
 export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMatrix, options: IGenerateOptions) => {
 	const { states, transitions } = diagram;
 	const parserInstance = new YantrixParser();
@@ -41,13 +43,8 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 
 	const codegen = creator.createCodegen({
 		language: options.outLang ?? 'TypeScript',
+		constants,
 	});
 
-	return [
-		codegen.getImports(),
-		codegen.getDictionaries(),
-		codegen.getDefaultContext(),
-		codegen.getActionToStateFromState(),
-		codegen.getClassTemplate(options.className),
-	].join('\n');
+	return codegen.getCode(options);
 };

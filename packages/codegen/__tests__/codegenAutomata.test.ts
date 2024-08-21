@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import { saveAndGenerate } from './fixtures/utils.js';
 
 const input = `stateDiagram-v2
             [*] --> INIT: RESET
@@ -61,6 +60,30 @@ describe('Codegen output', () => {
 
 			expect(automata.state).toBe(prevState);
 			expect(automata.context).toStrictEqual({});
+		});
+		test('Automata must have id', () => {
+			expect(GamePhaseAutomata.id).toBeDefined();
+		});
+		test('Automata must have actions', () => {
+			expect(GamePhaseAutomata.actions).toBeDefined();
+		});
+		test('Automata must have states', () => {
+			expect(GamePhaseAutomata.states).toBeDefined();
+		});
+		test('Automata.getState must return numeric state', () => {
+			expect(GamePhaseAutomata.getState(GamePhaseAutomata.states.INIT)).toEqual(statesDictionary['INIT']);
+		});
+		test('Automata must have id', () => {
+			expect(GamePhaseAutomata.id).toBeDefined();
+		});
+		test('Automata must have actions', () => {
+			expect(GamePhaseAutomata.actions).toBeDefined();
+		});
+		test('Automata must have states', () => {
+			expect(GamePhaseAutomata.states).toBeDefined();
+		});
+		test('Automata.getState must return numeric state', () => {
+			expect(GamePhaseAutomata.getState(GamePhaseAutomata.states.INIT)).toEqual(statesDictionary['INIT']);
 		});
 		test.each(cases)('%j -- > %j', (a: any, b) => {
 			automata.setActionQueue([...a]);

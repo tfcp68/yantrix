@@ -38,11 +38,11 @@ const testSamples = [
 
 const sampleKeys = {
 	// namespace 1: shares some keys with namespace 3, no intersections with namespace 2
-	default: [...testSamples[0], ...testSamples[2]],
+	default: [...(testSamples[0] ?? []), ...(testSamples[2] ?? [])],
 	// namespace 2: shares some keys with namespace 3, no intersections with namespace 1
-	[testNamespace]: [...testSamples[1], ...testSamples[3]],
+	[testNamespace]: [...(testSamples[1] ?? []), ...(testSamples[3] ?? [])],
 	// namespace 3: shares some keys with namespaces 1 and 2
-	[testNamespaceCross]: [...testSamples[0], ...testSamples[1], ...testSamples[4]],
+	[testNamespaceCross]: [...(testSamples[0] ?? []), ...(testSamples[1] ?? []), ...(testSamples[4] ?? [])],
 	// namespace 4: is not represented in the dictionary
 	[testNamespaceExtra]: testSamples[5],
 };
@@ -241,7 +241,7 @@ describe('EventDictionary', () => {
 				expect(
 					sampleInstance.getEventValues({
 						namespace: testNamespaceExtra,
-						keys: sampleArray(() => sampleEvent(), sampleLength),
+						keys: sampleArray(() => sampleEvent() ?? null, sampleLength),
 					}),
 				).toEqual(new Array(sampleLength).fill(null));
 			});
@@ -423,7 +423,7 @@ describe('EventDictionary', () => {
 					const dictionary = sampleInstance.getDictionary();
 					sampleInstance.removeEvents({
 						namespace: testNamespace,
-						keys: pickFromArray(sampleKeys[testNamespaceExtra]),
+						keys: pickFromArray(sampleKeys[testNamespaceExtra] ?? []),
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
 				});
@@ -546,7 +546,7 @@ describe('EventDictionary', () => {
 					sampleInstance.removeEvents({
 						namespace: testNamespaceCross,
 						events: [...sampleEvent, ...defaultValues],
-						keys: [...sampleKey, ...sampleKeys[testNamespaceExtra]],
+						keys: [...sampleKey, ...(sampleKeys[testNamespaceExtra] ?? [])],
 					});
 					expect(Object.values(sampleInstance.getDictionary(testNamespaceCross))).toEqual(
 						_.without(sampleValues, ...sampleEvent, ...EventToRemove),
@@ -579,7 +579,7 @@ describe('EventDictionary', () => {
 				test('ignores non-existing keys', () => {
 					const dictionary = sampleInstance.getDictionary();
 					sampleInstance.removeEvents({
-						keys: pickFromArray(sampleKeys[testNamespaceExtra]),
+						keys: pickFromArray(sampleKeys[testNamespaceExtra] ?? []),
 					});
 					sampleInstance.removeEvents({
 						keys: sampleKeys[testNamespace],
@@ -612,7 +612,7 @@ describe('EventDictionary', () => {
 						events: sampleInstance.getEventValues({
 							namespace: testNamespace,
 							keys: sampleKeys[testNamespace],
-						}),
+						}) as unknown as number[],
 					});
 					expect(sampleInstance.getDictionary()).toEqual(dictionary);
 				});
@@ -669,12 +669,12 @@ describe('EventDictionary', () => {
 					sampleInstance.removeEvents({
 						events: [
 							...sampleEvent,
-							...sampleInstance.getEventValues({
+							...(sampleInstance.getEventValues({
 								namespace: testNamespace,
 								keys: sampleKeys[testNamespace],
-							}),
+							}) as unknown as number[]),
 						],
-						keys: [...sampleKey, ...sampleKeys[testNamespaceExtra]],
+						keys: [...sampleKey, ...(sampleKeys[testNamespaceExtra] ?? [])],
 					});
 
 					expect(Object.values(_.pick(sampleInstance.getDictionary(), ...defaultKeys))).toEqual(

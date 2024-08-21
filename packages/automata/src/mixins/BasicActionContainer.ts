@@ -6,7 +6,7 @@ export default function BasicActionContainer<ActionType extends TAutomataBaseAct
 		class AbstractBasicActionContainer extends Base {
 			#_defaultActionValidator = isPositiveInteger as TValidator<ActionType>;
 
-			#_actionValidator?: TValidator<ActionType>;
+			#_actionValidator: TValidator<ActionType> | undefined;
 
 			constructor(...args: any[]) {
 				super(args);

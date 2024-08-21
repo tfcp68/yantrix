@@ -5,7 +5,7 @@ export default function BasicEventContainer<EventType extends TAutomataBaseEvent
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicEventContainer extends Base {
 			#_defaultEventValidator = isPositiveInteger as TValidator<EventType>;
-			#_eventValidator?: TValidator<EventType>;
+			#_eventValidator: TValidator<EventType> | undefined;
 
 			constructor(...args: any[]) {
 				super(args);

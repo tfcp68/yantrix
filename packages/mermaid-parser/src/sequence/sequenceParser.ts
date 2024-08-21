@@ -69,22 +69,29 @@ function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray)
 
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
+		if (!elementI) continue;
+
 		messages[elementI] = {};
 		for (let j = 0; j < actors.length; j++) {
 			const elementJ = actors[j];
+			if (!elementJ) continue;
+
 			messages[elementI][elementJ] = null;
 		}
 	}
 
 	for (let i = 0; i < parsedMessages.length; i++) {
-		const arrowMessage = parsedMessages[i].message;
-		const from = parsedMessages[i].from;
-		const to = parsedMessages[i].to;
+		const parsed = parsedMessages[i];
+		if (!parsed) continue;
 
-		if (messages[from][to] === null) {
+		const arrowMessage = parsed.message;
+		const from = parsed.from;
+		const to = parsed.to;
+
+		if (messages[from]?.[to] === null) {
 			messages[from][to] = [arrowMessage];
 		} else {
-			messages[from][to]?.push(arrowMessage);
+			messages[from]?.[to]?.push(arrowMessage);
 		}
 	}
 	return messages;
@@ -101,16 +108,22 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
+		if (!elementI) continue;
+
 		notes[elementI] = null;
 	}
 
 	for (let i = 0; i < parsedMessages.length; i++) {
-		const recievedMessage = parsedMessages[i].message;
-		let fromIndex = actors.indexOf(parsedMessages[i].from);
-		const toIndex = actors.indexOf(parsedMessages[i].to);
+		const parsed = parsedMessages[i];
+		if (!parsed) continue;
+
+		const recievedMessage = parsed.message;
+		let fromIndex = actors.indexOf(parsed.from);
+		const toIndex = actors.indexOf(parsed.to);
 
 		while (fromIndex !== toIndex + 1) {
 			const from = actors[fromIndex];
+			if (!from) continue;
 
 			if (notes[from] === null) {
 				notes[from] = [recievedMessage];
@@ -133,17 +146,19 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
 	const activate: TActivationsDict = {};
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
+		if (!elementI) continue;
+
 		activate[elementI] = [];
 	}
 
 	for (let i = 0; i < parsedArray.length; i++) {
 		if (parsedArray[i].type === TSeqTypes.Activate) {
 			const currentActor: string = parsedArray[i].from;
-			activate[currentActor].push([]);
-			const len = activate[currentActor].length - 1;
+			activate[currentActor]?.push([]);
+			const len = activate[currentActor]!.length - 1;
 			for (let j = i - 1; j < parsedArray.length; j++) {
 				if (arrowTypes.indexOf(parsedArray[j].type) !== -1 && parsedArray[j].from === currentActor) {
-					activate[currentActor][len].push(parsedArray[j].message);
+					activate[currentActor]![len]?.push(parsedArray[j].message);
 				} else if (parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
 					break;
 				}
@@ -162,7 +177,7 @@ function markGraph(parsedDiagram: TParsedDiagramDict): TSequenceMermaidGraphDict
 	const messagesArray: TParsedMessagesArray = parsedDiagram['messages'];
 	const actorsArray: TActorsArray = parsedDiagram['actors'];
 	const notesArray: TParsedNotesArray = parsedDiagram['notes'];
-	const othersElementsArray: TParsedOtherElementsArray = parsedDiagram['others'];
+	// const othersElementsArray: TParsedOtherElementsArray = parsedDiagram['others'];
 	const activateDict: TActivationsDict = parsedDiagram['activations'];
 
 	const mermaidGraph: TSequenceMermaidGraphDict = {

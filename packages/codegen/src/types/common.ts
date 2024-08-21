@@ -1,4 +1,4 @@
-import { Modules } from '../core/modules/index.js';
+import { ModuleNames, Modules } from '../core/modules/index.js';
 import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 
@@ -14,8 +14,9 @@ export type TStateIncludingNotes = {
 
 export type TConstants = Record<string, string | number>;
 
-export interface ICodegenOptions {
-	language: TOutLang;
+export interface ICodegenOptions<T = TOutLang> {
+	language: T;
+	constants: TConstants | null;
 }
 
 /**
@@ -49,24 +50,29 @@ export interface ITypedObject extends ITypedObjectProps {
 	codeBlock: string;
 }
 
-export interface ICodegen {
-	getDictionaries(): string;
+export interface IGetCodeJSOptions {
+	className: string;
+}
 
-	/**
-	 * The output of this method should be a string that represents the action to state mapping.
-	 * Example: {
-	 *     state1: {
-	 *            action1: state2
-	 *     }
-	 * }
-	 */
+export interface IGetCodeTSOptions extends IGetCodeJSOptions {}
 
-	getDefaultContext: () => string;
-	getActionToStateFromState(): string;
+export interface IGetCodePythonOptions {
+	className: string;
+}
 
-	getClassTemplate(className: string): string;
+export interface IGetCodeJavaOptions {
+	className: string;
+}
 
-	getImports(): string;
+export type TGetCodeOptionsMap = {
+	[ModuleNames.JavaScript]: IGetCodeJSOptions;
+	[ModuleNames.Python]: IGetCodePythonOptions;
+	[ModuleNames.TypeScript]: IGetCodeTSOptions;
+	[ModuleNames.Java]: IGetCodeJavaOptions;
+};
+
+export interface ICodegen<T extends TOutLang> {
+	getCode(options: TGetCodeOptionsMap[T]): string;
 }
 
 export type TOutLang = keyof typeof Modules;

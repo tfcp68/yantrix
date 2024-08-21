@@ -1,7 +1,7 @@
 import { TConstants, TExpressionRecord } from './../../types/common';
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { ICodegen, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TModuleParams, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import {
 	TContextItem,
@@ -14,13 +14,16 @@ import {
 	TMapped,
 	maxNestedFuncLevel,
 } from '@yantrix/yantrix-parser';
+import { ModuleNames } from './index';
+
+// import Built_In_Functions from '../../builtins/JavaScript';
 
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
 };
 
 const getFunctionFromDictionary = (name: string) => {
-	return `functionDictionary['${name}']`;
+	return `functionDictionary.get(${name})`;
 };
 
 const getDefaultPropertyContext = (path: string, indetifier: string, expression?: string) => {
@@ -36,9 +39,10 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 					}())`;
 };
 
-export class JavaScriptCodegen implements ICodegen {
+export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	// functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
@@ -50,12 +54,14 @@ export class JavaScriptCodegen implements ICodegen {
 	expressions: TExpressionRecord;
 	dictionaries: string[];
 	protected imports = {
-		'@yantrix/automata': ['GenericAutomata'],
+		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
+		'@yantrix/codegen': ['builtInFunctions'],
 	};
 
 	constructor({ diagram, constants }: TModuleParams) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
+		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
 		this.diagram = diagram;
 
 		this.constants = constants;
@@ -91,6 +97,7 @@ export class JavaScriptCodegen implements ICodegen {
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`);
 	}
 
 	getClassTemplate(className: string) {
@@ -119,6 +126,66 @@ export class JavaScriptCodegen implements ICodegen {
 				});
 			}
 			isKeyOf = ${this.getIsKeyOf()};
+			static id = '${className}';
+			static actions = actionsMap;
+			static states = statesMap;
+			static getState = ${this.getGetStateFunc()};
+			static hasState = ${this.getHasStateFunc(className)};
+			static getAction = ${this.getGetActionFunc()};
+			static createAction = ${this.getCreateActionFunc(className)};
+		}
+		export default ${className};
+		`;
+	}
+
+	protected getHasStateFunc(className: string) {
+		return `(instance, state) => instance.state === ${className}.getState(state)`;
+	}
+
+	protected getGetStateFunc() {
+		return `(state) => statesDictionary[state]`;
+	}
+
+	public getCode(options: TGetCodeOptionsMap[ModuleNames.JavaScript]) {
+		return `
+			${this.getImports()}
+			${this.getDictionaries()}
+			const actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)}
+			const statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)}
+			${this.getDefaultContext()}
+			${this.getActionToStateFromState()}
+			${this.getClassTemplate(options.className)}
+		`;
+	}
+
+	getObjectKeysMap(dict: Record<any, any>) {
+		const obj: Record<string, string> = {};
+		Object.keys(dict).forEach((key: string) => {
+			obj[key] = key;
+		});
+		return obj;
+	}
+
+	getActionsMap() {
+		return this.getObjectKeysMap(this.actionDictionary.getDictionary());
+	}
+
+	getStatesMap() {
+		return this.getObjectKeysMap(this.stateDictionary.getDictionary());
+	}
+
+	protected getGetActionFunc() {
+		return `(action) => actionsDictionary[action];`;
+	}
+
+	protected getCreateActionFunc(className: string) {
+		return `
+		(action, payload) => {
+			const actionId = ${className}.getAction(action);
+			return {
+				action: actionId,
+				payload,
+			}
 		}`;
 	}
 
@@ -142,11 +209,10 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.keys(transitions)
-			.map((key) => {
-				const { actionsPath } = transitions[key];
+		return Object.entries(transitions)
+			.map(([key, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return actionsPath.map(({ action }) => {
+				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
@@ -170,7 +236,7 @@ export class JavaScriptCodegen implements ICodegen {
 	public getDefaultContext() {
 		const state = this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 
-		if (state !== null) {
+		if (state) {
 			const ctx = this.getContextTransition(state);
 
 			return `const getDefaultContext = (prevContext, payload) => { 
@@ -228,8 +294,7 @@ export class JavaScriptCodegen implements ICodegen {
 	}
 
 	protected getActionToStateFromStateDict() {
-		return Object.keys(this.diagram.transitions).map((state) => {
-			const transitions = this.diagram.transitions[state];
+		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
 
@@ -274,7 +339,11 @@ export class JavaScriptCodegen implements ICodegen {
 			return hasInitial.id;
 		}
 
-		const firstState = this.diagram.states[0].id;
+		const firstState = this.diagram.states[0]?.id;
+
+		if (!firstState) {
+			throw new Error('Invalid state');
+		}
 
 		return firstState;
 	}
