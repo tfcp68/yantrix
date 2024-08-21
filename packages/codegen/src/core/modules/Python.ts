@@ -4,7 +4,7 @@ import { fillDictionaries } from '../shared.js';
 import { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes, TModuleParams } from '../../types/common.js';
 import { ModuleNames } from './index';
 
-export class PythonCodegen implements ICodegen<ModuleNames.Python> {
+export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -16,7 +16,7 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
 	};
-	public getCode(options: TGetCodeOptionsMap[ModuleNames.Python]): string {
+	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]): string {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}

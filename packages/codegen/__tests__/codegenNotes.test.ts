@@ -3,6 +3,22 @@ import { describe, expect, it, beforeAll } from 'vitest';
 import { mapFromObjectToString, objectKeysToString, saveAndGenerate } from './fixtures/utils';
 import { constant, generateAssignCase, getReferenceAssign } from './fixtures/defaultAssign';
 
+const getTemplate = (secondNote: string, firstNote?: string) => {
+	return `stateDiagram-v2
+		[*] --> A: toA
+		A --> B: toB
+		${
+			firstNote
+				? `note left of A
+			${firstNote}
+		end note`
+				: ''
+		}
+		note left of B
+			${secondNote}
+		end note`;
+};
+
 const getTemplateInput = (note: string) => {
 	return `stateDiagram-v2
 		[*] --> A: toA
@@ -134,25 +150,22 @@ describe('Default assign', async () => {
 
 		expect(automata.context).toStrictEqual(output);
 	});
+	it('In the function call #{a} <= add($a=10, $b=5)', async () => {
+		const note = `#{a} <= add($a=10, $b=5)`;
+		const input = getTemplateInput(note);
+
+		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'functionDefaultAssign');
+
+		const res = await import(`./fixtures/generated/functionDefaultAssign_generated.js`);
+
+		const automata = new res.Test();
+		automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
+
+		expect(automata.context).toStrictEqual({ a: 15 });
+	});
 });
 
 describe('Reducers', () => {
-	const getTemplate = (secondNote: string, firstNote?: string) => {
-		return `stateDiagram-v2
-		[*] --> A: toA
-		A --> B: toB
-		${
-			firstNote
-				? `note left of A
-			${firstNote}
-		end note`
-				: ''
-		}
-		note left of B
-			${secondNote}
-		end note`;
-	};
-
 	it('#{a,b} from previous to shortcut, prev:{a:3,b:"str"}', async () => {
 		const context = {
 			a: randomInteger(),
@@ -299,6 +312,27 @@ describe('Reducers', () => {
 
 		expect(automata.context).toStrictEqual(output);
 	});
+	it('#{a} <= add($a,$b)', async () => {
+		const output = {
+			a: 4,
+		};
+
+		const input = `#{a} <= add($a,$b)`;
+		const test = `stateDiagram-v2
+		[*] --> B: toB
+		note left of B
+			${input}
+		end note`;
+
+		await saveAndGenerate({ input: test, automataName: 'Test', lang: 'JavaScript' }, 'functionCall');
+		const res = await import(`./fixtures/generated/functionCall_generated.js`);
+
+		const automata = new res.Test();
+
+		automata.dispatch({ action: res.actionsDictionary.toB, payload: { a: 2, b: 2 } });
+
+		expect(automata.context).toStrictEqual(output);
+	});
 });
 
 describe('Constants reference', () => {
@@ -389,6 +423,37 @@ describe('Constants reference', () => {
 });
 
 describe('Initial', () => {
+	it('The +INIT state must be the initial state for the automata', async () => {
+		const input = `stateDiagram-v2
+		C --> A: a
+		A --> F: t
+		note left of A
+			+init
+		end note;
+		`;
+		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'qwerty');
+		const res = await import(`./fixtures/generated/qwerty_generated.js`);
+
+		const automata = new res.Test();
+
+		expect(automata.state).toBe(res.statesDictionary.A);
+	});
+	it('By default start state should be first state in note', async () => {
+		const input = `stateDiagram-v2
+		C --> A: a
+		A --> F: t
+		`;
+
+		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'defaultStartState');
+		const res = await import(`./fixtures/generated/defaultStartState_generated.js`);
+
+		const automata = new res.Test();
+
+		expect(automata.state).toBe(res.statesDictionary.C);
+	});
+});
+
+describe('Default context', () => {
 	it('Reducer from [*] shared between states', async () => {
 		const output = {
 			a: randomInteger(),
@@ -419,32 +484,42 @@ describe('Initial', () => {
 
 		expect(automata.context).toStrictEqual(output);
 	});
-	it('The +INIT state must be the initial state for the automata', async () => {
-		const input = `stateDiagram-v2
-		C --> A: a
-		A --> F: t
-		note left of A
-			+init
-		end note;
-		`;
-		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'qwerty');
-		const res = await import(`./fixtures/generated/qwerty_generated.js`);
+	it('By default, the context should be empty object', async () => {
+		await saveAndGenerate(
+			{
+				input: `stateDiagram-v2
+					[*] --> C: toC
+					`,
+				automataName: 'Test',
+				lang: 'JavaScript',
+			},
+			'defaultContextEmptyObject',
+		);
+		const res = await import(`./fixtures/generated/defaultContextEmptyObject_generated.js`);
 
 		const automata = new res.Test();
 
-		expect(automata.state).toBe(res.statesDictionary.A);
+		expect(automata.context).toStrictEqual({});
 	});
-	it('By default start state should be first state in note', async () => {
-		const input = `stateDiagram-v2
-		C --> A: a
-		A --> F: t
-		`;
+});
 
-		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'defaultStartState');
-		const res = await import(`./fixtures/generated/defaultStartState_generated.js`);
+describe('Functions', () => {
+	it('Nested call, mult(avg($list),$count)', async () => {
+		const input = `#{a} <= mult(avg($list),$count)`;
+		await saveAndGenerate(
+			{
+				input: getTemplateInput(input),
+				automataName: 'Test',
+				lang: 'JavaScript',
+			},
+			'nestedCallFunction',
+		);
+		const res = await import(`./fixtures/generated/nestedCallFunction_generated.js`);
 
 		const automata = new res.Test();
 
-		expect(automata.state).toBe(res.statesDictionary.C);
+		automata.dispatch({ action: res.actionsDictionary.toA, payload: { list: [1, 2, 4, 1], count: 2 } });
+
+		expect(automata.context).toStrictEqual({ a: 4 });
 	});
 });

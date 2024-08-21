@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { saveAndGenerate } from './fixtures/utils.js';
 
 const input = `stateDiagram-v2
             [*] --> INIT: RESET

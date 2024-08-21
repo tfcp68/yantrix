@@ -23,7 +23,7 @@ const getReferenceString = (path: string, identifier: string) => {
 };
 
 const getFunctionFromDictionary = (name: string) => {
-	return `functionDictionary.get(${name})`;
+	return `functionDictionary.get('${name}')`;
 };
 
 const getDefaultPropertyContext = (path: string, indetifier: string, expression?: string) => {
@@ -39,7 +39,7 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 					}())`;
 };
 
-export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
+export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	// functionDictionary: FunctionDictionary;
@@ -146,7 +146,7 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 		return `(state) => statesDictionary[state]`;
 	}
 
-	public getCode(options: TGetCodeOptionsMap[ModuleNames.JavaScript]) {
+	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}
@@ -409,7 +409,7 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 					} else {
 						return `${targetProperty}: (function(){
 						const boundValue = ${el}
-
+		
 						return boundValue
 
 					}())`;

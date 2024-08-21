@@ -4,7 +4,7 @@ import { fillDictionaries } from '../shared.js';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { ModuleNames } from './index';
 
-export class JavaCodegen implements ICodegen<ModuleNames.Java> {
+export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -35,7 +35,7 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 		this.setupDictionaries();
 	}
 
-	public getCode(options: TGetCodeOptionsMap[ModuleNames.Java]): string {
+	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Java]): string {
 		return `
 			${this.getImports()}
 			${this.getClassTemplate(options.className)}
