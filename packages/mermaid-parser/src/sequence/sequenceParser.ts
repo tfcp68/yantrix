@@ -160,6 +160,7 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
 				if (arrowTypes.indexOf(parsedArray[j].type) !== -1 && parsedArray[j].from === currentActor) {
 					activate[currentActor]![len]?.push(parsedArray[j].message);
 				} else if (parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
+					parsedArray[j].type = -1;
 					break;
 				}
 			}
