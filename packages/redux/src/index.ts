@@ -1,7 +1,9 @@
-import { Dispatch } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
+import { createFSMSlice } from './slice/slice';
+import { GamePhaseAutomata } from '../__tests__/fixtures/GamePhaseAutomata_generated';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
@@ -53,3 +55,21 @@ export const useReduxAutomata = (automataId: TAutomataId) => {
 	}
 	return [automata.basicAutomata, automata.dispatch] as const;
 };
+
+export const { actions, name, reducer, selectors } = createFSMSlice({
+	name: 'game_phase',
+	fsm: GamePhaseAutomata,
+});
+const store = configureStore({
+	reducer: combineReducers({
+		[name]: reducer,
+	}),
+});
+
+console.log(store.getState());
+store.dispatch(actions.RESET({}));
+store.dispatch(actions.RUN({}));
+store.dispatch(actions.TO_MENU({}));
+store.dispatch(actions.CREATE_GAME({}));
+
+console.log(store.getState());
