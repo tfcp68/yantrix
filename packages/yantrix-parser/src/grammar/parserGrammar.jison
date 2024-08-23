@@ -18,6 +18,7 @@
 [A-Za-z]{1,}[A-Za-z0-9\.]*(?=[(])    return 'FUNCTION_NAME';
 'subscribe/'                          return 'SUBSCRIBE'
 'emit/'                               return 'EMIT'
+'define/'                            return 'DEFINE'
 'Init'                               return 'INITIAL_STATE'
 'ByPass'                             return 'BY_PASS'
 
@@ -57,7 +58,7 @@ start
         : document 'EOF' {return $1};
 
 document
-        : /* empty */ {$$={contextDescription:[],emit:[],subscribe:[],initialState:false,byPass:false}}
+        : /* empty */ {$$={defines:[], contextDescription:[],emit:[],subscribe:[],initialState:false,byPass:false}}
         | document line {
            if($2 !== '\n') {
               if($2.hasOwnProperty('initialState')){
@@ -69,6 +70,7 @@ document
               if($2.hasOwnProperty('context'))  $1['contextDescription'].push($2)
               if($2.hasOwnProperty('emit')) $1['emit'].push($2['emit'])
               if($2.hasOwnProperty('subscribe')) $1['subscribe'].push($2['subscribe'])
+  if($2.hasOwnProperty('define')) $1['defines'].push($2['defines'])
            }
         };
 
@@ -81,7 +83,8 @@ statements
         |  PLUS BY_PASS {$$ = {byPass:true}}
         |  CONTEXT_STATEMENT
         |  EMIT_STATEMENT
-        |  SUBSCRIBE_STATEMENT;
+        |  SUBSCRIBE_STATEMENT
+        |  DEFINE_STATEMENT {console.log($1)};
 
 CONTEXT_STATEMENT
         : CONTEXT_SYMBOL LEFT_BRACE RAW_KEYLIST RIGHT_BRACE {$$ = {context:$3} }
@@ -108,6 +111,16 @@ SUBSCRIBE_EVENT
         : SUBSCRIBE IDENT IDENT { $$ = {identifier:$2, actionName:$3}};
 
 
+DEFINE_STATEMENT: DEFINE IDENT DEFINE_ARGUMENTS RIGHT_ARROW FUNCTION {console.log($3);$$ = {identifier:$2, ...$3, ...$5}};
+
+DEFINE_ARGUMENTS
+               : LEFT_BRACKET RIGHT_BRACKET {$$ = {Arguments:[]}}
+               | LEFT_BRACKET DEFINE_ARGUMENTS_TYPES RIGHT_BRACKET {$$ = {Arguments:[...$2]}};
+
+DEFINE_ARGUMENTS_TYPES
+               : IDENT  {$$ = $1}
+               | DEFINE_ARGUMENTS_TYPES COMMA IDENT {$$ = [$1].concat($3)}; 
+
 KEY_LIST_STATEMENT
         : LEFT_BRACKET KEY_LIST RIGHT_BRACKET { $$ = $2};
 
@@ -131,7 +144,7 @@ FUNCTION
         : FUNCTION_NAME LEFT_BRACKET ARGUMENTS RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
         | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
-        {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
+        {$$ = { expressionType:3, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
 
 ARGUMENTS
         :  EXPRESSION {$$ = [$1]}
