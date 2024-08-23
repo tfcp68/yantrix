@@ -7,6 +7,8 @@ import { CodegenCreator } from './core/Codegen.js';
 export * from './core/modules/index.js';
 export * from './types/common.js';
 
+export * from './builtins/index.js';
+
 export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMatrix, options: IGenerateOptions) => {
 	const { states, transitions } = diagram;
 	const parserInstance = new YantrixParser();
@@ -26,33 +28,5 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 		language: options.outLang ?? 'TypeScript',
 	});
 
-	return [
-		codegen.getImports(),
-		codegen.getDictionaries(),
-		codegen.getDefaultContext(),
-		codegen.getActionToStateFromState(),
-		codegen.getClassTemplate(options.className),
-	].join('\n');
-};
-
-export const generateJavaAutomata = async (diagram: TStateDiagramMatrix, options: IGenerateOptions) => {
-	const { states, transitions } = diagram;
-	const parserInstance = new YantrixParser();
-
-	const statesIncludingNotes = states.map((state) => {
-		const input = state.notes.flatMap((e) => e.join('\n')).join(' ');
-		if (input === '') return { ...state, notes: null };
-		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
-	});
-
-	const creator = new CodegenCreator({
-		states: statesIncludingNotes,
-		transitions,
-	});
-
-	const codegen = creator.createCodegen({
-		language: options.outLang ?? 'Java',
-	});
-
-	return [codegen.getImports(), codegen.getClassTemplate(options.className)].join('\n');
+	return codegen.getCode(options);
 };

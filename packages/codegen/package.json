@@ -60,6 +60,7 @@
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/yantrix-parser": "workspace:^",
+		"@yantrix/utils": "workspace:^",
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
 		"picocolors": "^1.0.1"
