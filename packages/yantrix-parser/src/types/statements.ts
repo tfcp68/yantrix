@@ -1,7 +1,16 @@
+import { TExpressionDefine } from './expressions.js';
 import { TKeyItems } from './keyItem.js';
 
 export type TAction = TKeyItems<'reducer'>;
 export type TMeta = TKeyItems<'reducer'>;
+
+export type TDefine = {
+	identifier: string;
+	Arguments: string[];
+	expression: TExpressionDefine;
+};
+
+export type TDefines = { defines: TDefine[] };
 
 export type TSubscribeStatement = {
 	identifier: string;
@@ -53,4 +62,4 @@ export type TByPass = {
 	byPass: boolean;
 };
 
-export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents & TByPass;
+export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents & TByPass & TDefines;
