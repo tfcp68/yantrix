@@ -1,12 +1,12 @@
-import {
+import type {
 	TAbstractConstructor,
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
-} from '../types/index.js';
-import ExtendedActionContainer from './ExtendedActionContainer.js';
-import ExtendedEventContainer from './ExtendedEventContainer.js';
-import ExtendedStateContainer from './ExtendedStateContainer.js';
+} from '../types/index.js'
+import ExtendedActionContainer from './ExtendedActionContainer.js'
+import ExtendedEventContainer from './ExtendedEventContainer.js'
+import ExtendedStateContainer from './ExtendedStateContainer.js'
 
 export default function ExtendedValidatorContainer<
 	StateType extends TAutomataBaseStateType,
@@ -21,5 +21,5 @@ export default function ExtendedValidatorContainer<
 			ExtendedEventContainer<EventType, EventMetaType>()(
 				ExtendedActionContainer<ActionType, PayloadType>()(Proto),
 			),
-		) {};
+		) {}
 }

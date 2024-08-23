@@ -2,4 +2,4 @@ export type TLengthArray<T, N extends number, R extends T[] = []> = number exten
 	? T[]
 	: R['length'] extends N
 		? R
-		: TLengthArray<T, N, [T, ...R]>;
+		: TLengthArray<T, N, [T, ...R]>

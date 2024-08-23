@@ -50,12 +50,12 @@
 	],
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
 		"prepack": "pnpm lint && pnpm build --coverage"
 	},
 	"devDependencies": {
-		"@types/node": "^20.11.19"
+		"@types/node": "^22.5.0"
 	},
 	"engines": {
 		"node": ">=18"

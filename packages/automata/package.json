@@ -51,8 +51,8 @@
 	],
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run --coverage --outputFile=../../test_reports/automata.md"
 	},

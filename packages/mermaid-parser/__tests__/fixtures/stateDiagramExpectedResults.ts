@@ -1,10 +1,10 @@
-export const stateDiagramWithLoopConditionExpectedResultString =
-	'Link to itself from the choice side. ChoiceState2-->ChoiceState2';
+export const stateDiagramWithLoopConditionExpectedResultString
+	= 'Link to itself from the choice side. ChoiceState2-->ChoiceState2'
 
 export const emptyStateDiagramExpectedResult = {
 	transitions: {},
 	states: [],
-};
+}
 
 export const simpleTransitionExpectedResult = {
 	transitions: {
@@ -38,7 +38,7 @@ export const simpleTransitionExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const simpleTransitionCompletedExpectedResult = {
 	transitions: {
@@ -52,7 +52,7 @@ export const simpleTransitionCompletedExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -62,7 +62,7 @@ export const simpleTransitionCompletedExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -114,7 +114,7 @@ export const simpleTransitionCompletedExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const simpleTransitionWithCommentsExpectedResult = {
 	transitions: {
@@ -128,7 +128,7 @@ export const simpleTransitionWithCommentsExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -138,7 +138,7 @@ export const simpleTransitionWithCommentsExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -190,12 +190,12 @@ export const simpleTransitionWithCommentsExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithChoiceExpectedResult = {
 	transitions: {
 		'~~~START~~~': {
-			A: {
+			'A': {
 				actionsPath: [
 					{
 						action: ['Start', 'Condition 1'],
@@ -212,7 +212,7 @@ export const stateDiagramWithChoiceExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -257,7 +257,7 @@ export const stateDiagramWithChoiceExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithForkExpectedResult = {
 	transitions: {
@@ -271,7 +271,7 @@ export const stateDiagramWithForkExpectedResult = {
 				],
 			},
 		},
-		Fork: {
+		'Fork': {
 			B: {
 				actionsPath: [
 					{
@@ -289,7 +289,7 @@ export const stateDiagramWithForkExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			Join: {
 				actionsPath: [
 					{
@@ -299,7 +299,7 @@ export const stateDiagramWithForkExpectedResult = {
 				],
 			},
 		},
-		C: {
+		'C': {
 			Join: {
 				actionsPath: [
 					{
@@ -309,7 +309,7 @@ export const stateDiagramWithForkExpectedResult = {
 				],
 			},
 		},
-		Join: {
+		'Join': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -387,7 +387,7 @@ export const stateDiagramWithForkExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithLeftSideNoteExpectedResult = {
 	transitions: {
@@ -401,7 +401,7 @@ export const stateDiagramWithLeftSideNoteExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -411,7 +411,7 @@ export const stateDiagramWithLeftSideNoteExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -463,7 +463,7 @@ export const stateDiagramWithLeftSideNoteExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithRightSideNoteExpectedResult = {
 	transitions: {
@@ -477,7 +477,7 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -487,7 +487,7 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -539,7 +539,7 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithChoiceAndNoteExpectedResult = {
 	transitions: {
@@ -561,7 +561,7 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 				],
 			},
 		},
-		C: {
+		'C': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -571,7 +571,7 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -627,7 +627,7 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithSameActionExpectedResult = {
 	transitions: {
@@ -641,7 +641,7 @@ export const stateDiagramWithSameActionExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -659,7 +659,7 @@ export const stateDiagramWithSameActionExpectedResult = {
 				],
 			},
 		},
-		C: {
+		'C': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -669,7 +669,7 @@ export const stateDiagramWithSameActionExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -736,7 +736,7 @@ export const stateDiagramWithSameActionExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramWithNamedStatesExpectedResult = {
 	transitions: {
@@ -750,7 +750,7 @@ export const stateDiagramWithNamedStatesExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -760,7 +760,7 @@ export const stateDiagramWithNamedStatesExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -812,7 +812,7 @@ export const stateDiagramWithNamedStatesExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}
 
 export const stateDiagramDoublePathExpectedResult = {
 	transitions: {
@@ -826,7 +826,7 @@ export const stateDiagramDoublePathExpectedResult = {
 				],
 			},
 		},
-		A: {
+		'A': {
 			B: {
 				actionsPath: [
 					{
@@ -854,7 +854,7 @@ export const stateDiagramDoublePathExpectedResult = {
 				],
 			},
 		},
-		B: {
+		'B': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -864,7 +864,7 @@ export const stateDiagramDoublePathExpectedResult = {
 				],
 			},
 		},
-		D: {
+		'D': {
 			'~~~END~~~': {
 				actionsPath: [
 					{
@@ -941,4 +941,4 @@ export const stateDiagramDoublePathExpectedResult = {
 			notes: [],
 		},
 	],
-};
+}

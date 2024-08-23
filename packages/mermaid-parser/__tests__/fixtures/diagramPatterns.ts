@@ -1,14 +1,14 @@
-export const blankDiagram = '';
+export const blankDiagram = ''
 
-export const invalidDiagram = 'invalidDiagram';
+export const invalidDiagram = 'invalidDiagram'
 
-export const emptyStateDiagram = 'stateDiagram-v2';
+export const emptyStateDiagram = 'stateDiagram-v2'
 
 export const stateDiagramSimpleTransition = `
    stateDiagram-v2
 
    A --> B
-`;
+`
 
 export const stateDiagramSimpleTransitionCompleted = `
    stateDiagram-v2
@@ -16,7 +16,7 @@ export const stateDiagramSimpleTransitionCompleted = `
    [*] --> A
    A --> B
    B --> [*]
-`;
+`
 
 export const stateDiagramSimpleTransitionWithComments = `
    stateDiagram-v2
@@ -24,7 +24,7 @@ export const stateDiagramSimpleTransitionWithComments = `
    [*] --> A: Start
    A --> B: Transition 1
    B --> [*]: End
-`;
+`
 
 export const stateDiagramAllStatesToEnd = `
 	stateDiagram-v2
@@ -34,7 +34,7 @@ export const stateDiagramAllStatesToEnd = `
 	A --> [*]
 	B --> [*]
 	[*] --> [*]
-`;
+`
 
 export const stateDiagramWithDoubleTransitions = `
 	stateDiagram-v2
@@ -45,7 +45,7 @@ export const stateDiagramWithDoubleTransitions = `
 	A --> B
 	B --> [*]
 	B --> [*]
-`;
+`
 
 export const stateDiagramWithSimpleChoice = `
    stateDiagram-v2
@@ -56,7 +56,7 @@ export const stateDiagramWithSimpleChoice = `
    ChoiceState --> A: Condition 1
    ChoiceState --> [*]: Condition 2
    A --> [*]
-`;
+`
 
 export const stateDiagramWithSimpleFork = `
    stateDiagram-v2
@@ -70,7 +70,7 @@ export const stateDiagramWithSimpleFork = `
    B --> Join
    C --> Join
    Join --> [*]: End
-`;
+`
 
 export const stateDiagramWitNormalForks = `
 	stateDiagram-v2
@@ -100,7 +100,7 @@ export const stateDiagramWitNormalForks = `
 	Z --> Join2: Join Z
 
 	Join2 --> [*]
-`;
+`
 
 export const stateDiagramWithLoopChoice = `
    stateDiagram-v2
@@ -113,7 +113,7 @@ export const stateDiagramWithLoopChoice = `
    ChoiceState1 --> [*]: Condition 1
    ChoiceState1 --> ChoiceState2: Condition 2
    ChoiceState2 --> ChoiceState1
-`;
+`
 
 export const stateDiagramWithOneLineNotes = `
    stateDiagram-v2
@@ -124,7 +124,7 @@ export const stateDiagramWithOneLineNotes = `
 
    note left of A: simple note left of A
    note right of B: simple note right of B
-`;
+`
 
 export const stateDiagramWithEmptyNote = `
    stateDiagram-v2
@@ -137,7 +137,7 @@ export const stateDiagramWithEmptyNote = `
    end note
    note right of B
    end note
-`;
+`
 
 export const stateDiagramWithLeftSideNote = `
    stateDiagram-v2
@@ -149,7 +149,7 @@ export const stateDiagramWithLeftSideNote = `
    note left of A
 		simple left side note
    end note
-`;
+`
 
 export const stateDiagramWithRightSideNote = `
    stateDiagram-v2
@@ -164,7 +164,7 @@ export const stateDiagramWithRightSideNote = `
    note left of A
 		another simple left side note
    end note
-`;
+`
 
 export const stateDiagramWithMultilineNotes = `
    stateDiagram-v2
@@ -183,7 +183,7 @@ export const stateDiagramWithMultilineNotes = `
 		of A that contains
 		more than 1 line
    end note
-`;
+`
 
 export const stateDiagramWithChoiceAndNote = `
    stateDiagram-v2
@@ -203,7 +203,7 @@ export const stateDiagramWithChoiceAndNote = `
 		another simple left side note
 		in 2 lines
    end note
-`;
+`
 
 export const stateDiagramWithSameAction = `
    stateDiagram-v2
@@ -213,7 +213,7 @@ export const stateDiagramWithSameAction = `
    A --> C
    C --> [*]
    B --> [*]
-`;
+`
 
 export const stateDiagramWithNamedStates = `
    stateDiagram-v2
@@ -223,7 +223,7 @@ export const stateDiagramWithNamedStates = `
    [*] --> A
    A --> B
    B --> [*]
-`;
+`
 
 export const stateDiagramDoublePath = `
    stateDiagram-v2
@@ -251,4 +251,4 @@ export const stateDiagramDoublePath = `
 		multiline comment
 		right of second choice
    end note
-`;
+`

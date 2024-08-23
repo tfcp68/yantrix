@@ -1,2 +1,2 @@
-export const StartState = '~~~START~~~';
-export const EndState = '~~~END~~~';
+export const StartState = '~~~START~~~'
+export const EndState = '~~~END~~~'

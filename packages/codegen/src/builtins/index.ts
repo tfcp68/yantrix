@@ -1,1 +1,1 @@
-export * from './JavaScript';
+export * from './JavaScript'

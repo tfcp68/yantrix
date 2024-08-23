@@ -1,7 +1,7 @@
 /**
  * This constant holds a list of reserved words in the  parser.
  */
-export const ReservedList = ['end note, +INITIAL'];
+export const ReservedList = ['end note, +INITIAL']
 
 /**
  * This constant holds a list of special characters that are not allowed in yantrix expressions.
@@ -33,7 +33,7 @@ export const SpecialCharList = [
 	'/',
 	'\\',
 	'|',
-];
+]
 /**
  * This object contains the different types of expressions that can be used in the parser.
  */
@@ -47,6 +47,6 @@ export const ExpressionTypes = {
 	Constant: 'constant',
 	Payload: 'payload',
 	Context: 'context',
-} as const;
+} as const
 
-export const maxNestedFuncLevel = 8;
+export const maxNestedFuncLevel = 8

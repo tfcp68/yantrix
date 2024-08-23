@@ -1,45 +1,46 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
-import { fillDictionaries } from '../shared.js';
-import { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { ModuleNames } from './index';
+import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata'
+import type { TDiagramAction } from '@yantrix/mermaid-parser'
+import { StartState } from '@yantrix/mermaid-parser'
+import { fillDictionaries } from '../shared.js'
+import type { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js'
+import type { ModuleNames } from './index'
 
 export class JavaCodegen implements ICodegen<ModuleNames.Java> {
-	stateDictionary: BasicStateDictionary;
-	actionDictionary: BasicActionDictionary;
-	diagram: TStateDiagramMatrixIncludeNotes;
-	handlersDict: string[];
-	initialContext: string;
-	initialContextKeys: string[];
-	changeStateHandlers: string[];
-	dictionaries: string[];
+	stateDictionary: BasicStateDictionary
+	actionDictionary: BasicActionDictionary
+	diagram: TStateDiagramMatrixIncludeNotes
+	handlersDict: string[]
+	initialContext: string
+	initialContextKeys: string[]
+	changeStateHandlers: string[]
+	dictionaries: string[]
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
-	};
+	}
 
-	private package: string = 'org.example'; // base package name for all automata files
+	private package: string = 'org.example' // base package name for all automata files
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
-		this.actionDictionary = new BasicActionDictionary();
-		this.stateDictionary = new BasicStateDictionary();
-		this.diagram = diagram;
+		this.actionDictionary = new BasicActionDictionary()
+		this.stateDictionary = new BasicStateDictionary()
+		this.diagram = diagram
 
-		this.handlersDict = [];
-		this.changeStateHandlers = [];
-		this.dictionaries = [];
-		this.initialContextKeys = [];
+		this.handlersDict = []
+		this.changeStateHandlers = []
+		this.dictionaries = []
+		this.initialContextKeys = []
 
-		this.initialContext = this.getInitialContext();
+		this.initialContext = this.getInitialContext()
 
-		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
-		this.setupDictionaries();
+		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary)
+		this.setupDictionaries()
 	}
 
 	public getCode(options: TGetCodeOptionsMap[ModuleNames.Java]): string {
 		return `
 			${this.getImports()}
 			${this.getClassTemplate(options.className)}
-		`;
+		`
 	}
 
 	// Package declaration and imports necessary for the automata to function
@@ -50,28 +51,29 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 			`import java.util.Objects;`,
 			`import java.util.HashMap;`,
 			`import java.util.function.Function;`,
-		];
-		return lines.join('\n');
+		]
+		return lines.join('\n')
 	}
 
 	getDictionaries(): string {
-		return this.dictionaries.join('\n');
+		return this.dictionaries.join('\n')
 	}
 
-	public getActionToStateFromState() {
+	public getActionToStateFromState(): string {
 		return `public final Map<TAutomataBaseState, Map<TAutomataBaseAction, AutomataStateTransitionResult>> stateTransitionMatrix =
 			Map.ofEntries(
 				${this.getStateTransitionMatrix()}
 			);
-		`;
+		`
 	}
 
 	// State transition matrix
 	getStateTransitionMatrix(): string {
 		return Object.entries(this.diagram.transitions)
 			.map(([state, transitions]) => {
-				const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-				if (!value) throw new Error(`State ${state} not found`);
+				const value = this.stateDictionary.getStateValues({ keys: [state] })[0]
+				if (!value)
+					throw new Error(`State ${state} not found`)
 
 				return `
 				Map.entry(
@@ -80,21 +82,23 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 						${this.getTransitions(transitions).join(',\n')}
 					)
 				)
-			`;
+			`
 			})
-			.join(',\n');
+			.join(',\n')
 	}
 
-	getTransitions(transitions: Record<string, TDiagramAction>) {
+	getTransitions(transitions: Record<string, TDiagramAction>): string[] {
 		return Object.entries(transitions)
 			.map(([state, transition]) => {
-				const newState = this.stateDictionary.getStateValues({ keys: [state] })[0];
+				const newState = this.stateDictionary.getStateValues({ keys: [state] })[0]
 				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
-					})[0];
-					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${state} not found`);
+					})[0]
+					if (!actionValue)
+						throw new Error(`Action ${action} not found`)
+					if (!newState)
+						throw new Error(`State ${state} not found`)
 
 					// const ctx = this.getSubsyntaxContext(key);
 
@@ -107,10 +111,10 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 									return prevContext;
 								}
 						)
-					`;
-				});
+					`
+				})
 			})
-			.flatMap((el) => `${el.join(',\n\t')}`);
+			.flatMap(el => `${el.join(',\n\t')}`)
 	}
 
 	getDefaultContext(): string {
@@ -119,7 +123,7 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
                 TAutomataBaseContext prevContext = arg.context();
                 return prevContext;
             }
-        `;
+        `
 	}
 
 	// Full class declaration with all dictionaries and handlers inside
@@ -136,53 +140,53 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
                 ${this.toStringMethod()}
                 ${this.getTypes()}
             }
-        `;
+        `
 	}
 
 	// Default constructor for the class
-	private getDefaultConstructor(className: string) {
+	private getDefaultConstructor(className: string): string {
 		return `
             public ${className}() {
                 this.state = TAutomataBaseState.of(${this.getInitialState()}L);
                 this.context = ${this.getInitialContext()};
                 this.rootReducer = ${this.getRootReducer()};
             }
-        `;
+        `
 	}
 
 	// Transforms codegen dictionaries into language-specific text representations
-	private setupDictionaries() {
+	private setupDictionaries(): void {
 		// states dictionary text representation
 		this.dictionaries.push(`
             public static final Map<String, TAutomataBaseState> statesDictionary = Map.of(
                 ${Object.entries(this.stateDictionary.getDictionary())
-					.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
-					.join(',\n')}
+		.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
+		.join(',\n')}
             );
-        `);
+        `)
 
 		// actions dictionary text representation
 		this.dictionaries.push(`
             public static final Map<String, TAutomataBaseAction> actionsDictionary = Map.of(
                 ${Object.entries(this.actionDictionary.getDictionary())
-					.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
-					.join(',\n')}
+		.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
+		.join(',\n')}
             );
-        `);
+        `)
 	}
 
 	// Initial context is empty
-	private getInitialContext() {
-		return 'new TAutomataBaseContext()';
+	private getInitialContext(): string {
+		return 'new TAutomataBaseContext()'
 	}
 
 	// Fetches first state from list
-	private getInitialState() {
-		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
+	private getInitialState(): number | null | undefined {
+		return this.stateDictionary.getStateValues({ keys: [StartState] })[0]
 	}
 
 	// Root reducer function
-	private getRootReducer() {
+	private getRootReducer(): string {
 		return `
             (obj) -> {
                 if(obj.action == null || obj.payload == null) {
@@ -196,21 +200,21 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
 						res.getNewContext().apply(new AutomataPayloadContext(obj.payload, obj.context))
 				);
             }
-        `;
+        `
 	}
 
 	// Checks if state can be found in dictionary for the automata
-	private getRootReducerStateValidation() {
+	private getRootReducerStateValidation(): string {
 		return `
             // state validation
             if(!stateTransitionMatrix.containsKey(obj.state)) {
                 throw new RuntimeException("Invalid state, maybe machine isn't running");
             }
-        `;
+        `
 	}
 
 	// Checks if action can be found in dictionary for the automata & if the action is appropriate for the automata state
-	private getRootReducerActionValidation() {
+	private getRootReducerActionValidation(): string {
 		return `
             // action validation
             if(!stateTransitionMatrix.get(obj.state).containsKey(obj.action)) {
@@ -219,18 +223,18 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
                         obj.context
                 );
             }
-        `;
+        `
 	}
 
-	private setupClassMembers() {
+	private setupClassMembers(): string {
 		return `
             private TAutomataBaseState state;
             private TAutomataBaseContext context;
             private IAutomataReducer rootReducer;
-        `;
+        `
 	}
 
-	private setupClassMembersAccessors() {
+	private setupClassMembersAccessors(): string {
 		return `
             public Map getStateTransitionMatrix() { return this.stateTransitionMatrix; }
             public TAutomataStateContext getContext() { return new TAutomataStateContext(this.state, this.context); }
@@ -240,10 +244,10 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
                 this.state = context.state;
                 this.context = context.context;
             }
-        `;
+        `
 	}
 
-	private dispatchMethod() {
+	private dispatchMethod(): string {
 		return `
             public TAutomataStateContext dispatch(TAutomataActionPayload action) {
                 TAutomataStateContext reducedValue =
@@ -251,10 +255,10 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
                 this.setContext(reducedValue);
                 return reducedValue;
             }
-        `;
+        `
 	}
 
-	private toStringMethod() {
+	private toStringMethod(): string {
 		return `
             @Override
             public String toString() {
@@ -264,11 +268,11 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
                         ", stateTransitionMatrix=" + stateTransitionMatrix +
                         '}';
             }
-        `;
+        `
 	}
 
 	// Types necessary for the automata
-	private getTypes() {
+	private getTypes(): string {
 		return `
             public abstract static class TAutomataBaseType {
                 protected Long value;
@@ -334,6 +338,6 @@ export class JavaCodegen implements ICodegen<ModuleNames.Java> {
             public record TAutomataStateContextActionPayload(TAutomataBaseState state, TAutomataBaseContext context, TAutomataBaseAction action, TAutomataBasePayload payload) {}
             public record AutomataPayloadContext(TAutomataBasePayload payload,TAutomataBaseContext context) {}
             public record TAutomataActionPayload(TAutomataBaseAction action, TAutomataBasePayload payload) {}
-        `;
+        `
 	}
 }

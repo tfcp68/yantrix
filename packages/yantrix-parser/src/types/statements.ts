@@ -1,56 +1,56 @@
-import { TKeyItems } from './keyItem.js';
+import type { TKeyItems } from './keyItem.js'
 
-export type TAction = TKeyItems<'reducer'>;
-export type TMeta = TKeyItems<'reducer'>;
+export type TAction = TKeyItems<'reducer'>
+export type TMeta = TKeyItems<'reducer'>
 
 export type TSubscribeStatement = {
-	identifier: string;
-	actionName: string;
-};
+	identifier: string
+	actionName: string
+}
 
 export type TSubscribeWithPayload = {
-	payload: TKeyItems<'reducer'>;
-} & TSubscribeStatement;
+	payload: TKeyItems<'reducer'>
+} & TSubscribeStatement
 
 export type TSubscribeWithMeta = TSubscribeWithPayload & {
-	meta: TMeta;
-};
+	meta: TMeta
+}
 
-export type TSubscribe = TSubscribeWithMeta | TSubscribeWithPayload | TSubscribeStatement;
+export type TSubscribe = TSubscribeWithMeta | TSubscribeWithPayload | TSubscribeStatement
 
 export type TContext<T extends TKeyItems = TKeyItems> = {
-	context: T;
-};
+	context: T
+}
 
 export type TEventEmitStatement = {
-	identifier: string;
-};
+	identifier: string
+}
 
-export type TEmitWithMeta = TEventEmitStatement & TMeta;
-export type TEmitFull = TEventEmitStatement & TMeta & TContext;
-export type TEvenEmit = TEmitWithMeta | TEmitFull | TEventEmitStatement;
-export type TEvents = { emit: TEvenEmit[] };
+export type TEmitWithMeta = TEventEmitStatement & TMeta
+export type TEmitFull = TEventEmitStatement & TMeta & TContext
+export type TEvenEmit = TEmitWithMeta | TEmitFull | TEventEmitStatement
+export type TEvents = { emit: TEvenEmit[] }
 
 export type TContextShort = {
-	context: TKeyItems;
-};
+	context: TKeyItems
+}
 
 export type TContextReducer = {
-	reducer: TKeyItems<'reducer'>;
-} & TContextShort;
+	reducer: TKeyItems<'reducer'>
+} & TContextShort
 
-export type TContextItem = TContextShort | TContextReducer;
+export type TContextItem = TContextShort | TContextReducer
 
 export type TContextDescription = {
-	contextDescription: TContextItem[];
-};
+	contextDescription: TContextItem[]
+}
 
 export type TInitialState = {
-	initialState: boolean;
-};
+	initialState: boolean
+}
 
 export type TByPass = {
-	byPass: boolean;
-};
+	byPass: boolean
+}
 
-export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents & TByPass;
+export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents & TByPass

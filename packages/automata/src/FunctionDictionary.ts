@@ -1,10 +1,10 @@
-export type AutomataFunction = ((...args: any) => any) | null; // ?
+export type TAutomataFunction = ((...args: any) => any) | null // ?
 
 export class FunctionDictionary {
-	private readonly functions: Record<string, AutomataFunction>;
+	private readonly functions: Record<string, TAutomataFunction>
 
-	constructor(functions: Record<string, AutomataFunction>) {
-		this.functions = functions;
+	constructor(functions: Record<string, TAutomataFunction>) {
+		this.functions = functions
 	}
 
 	/**
@@ -15,19 +15,19 @@ export class FunctionDictionary {
 	 * @param functionKey - name of function
 	 * @param callback - function to invoke
 	 */
-	register(functionKey: string, callback: AutomataFunction): AutomataFunction {
+	register(functionKey: string, callback: TAutomataFunction): TAutomataFunction {
 		if (functionKey.length < 1 || functionKey.length > 255) {
-			throw new Error(`Function key length must be between 1-255 symbols!`);
+			throw new Error(`Function key length must be between 1-255 symbols!`)
 		}
-		if (!functionKey.match(/^[a-zA-Z][a-zA-Z0-9_]+$/)) {
-			throw new Error('Incorrect function key format!');
+		if (!functionKey.match(/^[a-z]\w+$/i)) {
+			throw new Error('Incorrect function key format!')
 		}
 		if (this.functions[functionKey] !== undefined) {
-			throw new Error(`Function with the key ${functionKey} already exists, overwrite not permitted!`);
+			throw new Error(`Function with the key ${functionKey} already exists, overwrite not permitted!`)
 		}
 
-		this.functions[functionKey] = callback;
-		return callback;
+		this.functions[functionKey] = callback
+		return callback
 	}
 
 	/**
@@ -38,9 +38,10 @@ export class FunctionDictionary {
 	 * @param functionKey - name of the function
 	 * @returns function to invoke
 	 */
-	get(functionKey: string): AutomataFunction {
-		const func = this.functions[functionKey];
-		if (func) return func;
-		else throw new Error(`Function with the key ${functionKey} not found!`);
+	get(functionKey: string): TAutomataFunction {
+		const func = this.functions[functionKey]
+		if (func)
+			return func
+		else throw new Error(`Function with the key ${functionKey} not found!`)
 	}
 }

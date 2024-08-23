@@ -1,15 +1,15 @@
-import { uniqId } from '@yantrix/utils';
-import { AbstractBaseClass } from './mixins/BaseClass.js';
-import DictionaryContainer from './mixins/DictionaryContainer.js';
-import ExtendedStateContainer from './mixins/ExtendedStateContainer.js';
-import { TStateKeysCollection, TStateLookupParams, TStateValuesCollection } from './types/dictionaries.js';
-import {
+import { uniqId } from '@yantrix/utils'
+import { AbstractBaseClass } from './mixins/BaseClass.js'
+import DictionaryContainer from './mixins/DictionaryContainer.js'
+import ExtendedStateContainer from './mixins/ExtendedStateContainer.js'
+import type { TStateKeysCollection, TStateLookupParams, TStateValuesCollection } from './types/dictionaries.js'
+import type {
 	TAbstractConstructor,
 	TAutomataBaseStateType,
 	TAutomataStateContext,
 	TContextTransformer,
-} from './types/index.js';
-import { IStateDictionary } from './types/interfaces.js';
+} from './types/index.js'
+import type { IStateDictionary } from './types/interfaces.js'
 
 // type TTransformerDictionaryItem<
 // 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
@@ -31,63 +31,69 @@ export function createStateDictionary<
 				[K in StateType]?: Record<
 					string,
 					{
-						namespace?: string;
-						transformer: TContextTransformer<K, ContextType>;
+						namespace?: string
+						transformer: TContextTransformer<K, ContextType>
 					}
 				>;
-			} = {};
+			} = {}
 
-			#transformersIndex: Record<string, StateType> = {};
+			#transformersIndex: Record<string, StateType> = {}
 
 			getStateKeys({
 				states = [],
 				namespace = undefined,
 			}: TStateValuesCollection<StateType>): Array<string | null> {
 				return (states ?? []).map((state) => {
-					if (!this.validateState(state)) return null;
-					const data = this._getValueData(state);
-					if (!data) return null;
-					if (namespace !== null && namespace !== data.namespace) return null;
-					return data.key;
-				});
+					if (!this.validateState(state))
+						return null
+					const data = this._getValueData(state)
+					if (!data)
+						return null
+					if (namespace !== null && namespace !== data.namespace)
+						return null
+					return data.key
+				})
 			}
 
-			clearStates(namespace?: string) {
-				return this._clearItems(namespace);
+			clearStates(namespace?: string): this {
+				return this._clearItems(namespace)
 			}
 
 			removeStates(
 				{ namespace, states = [], keys = [] }: TStateLookupParams<StateType>,
 				removeContextTransformers?: boolean,
-			) {
+			): this {
 				const statesToDelete = [
 					...states.filter(this.validateState),
-					...keys.flatMap((k) => (k ? [this._findItem(k, namespace)] : [])),
-				].filter((v) => v != null);
+					...keys.flatMap(k => (k ? [this._findItem(k, namespace)] : [])),
+				].filter(v => v != null)
 
 				const stateKeys = statesToDelete
-					.map((State) => this._getValueData(State))
-					.filter((data) => !!data && (namespace == null || namespace === data?.namespace));
+					.map(State => this._getValueData(State))
+					.filter(data => !!data && (namespace == null || namespace === data?.namespace))
 
-				for (const stateKey of stateKeys) if (stateKey) this._deleteItemKey(stateKey.key);
+				for (const stateKey of stateKeys) {
+					if (stateKey)
+						this._deleteItemKey(stateKey.key)
+				}
 
 				if (removeContextTransformers) {
 					statesToDelete
-						.flatMap((State) => Object.keys(this.#transformers[State] ?? {}))
-						.forEach((id) => this.removeContextTransformerById(id));
+						.flatMap(State => Object.keys(this.#transformers[State] ?? {}))
+						.forEach(id => this.removeContextTransformerById(id))
 				}
-				return this;
+				return this
 			}
 
 			getStateValues({
 				namespace = undefined,
 				keys = [],
 			}: TStateKeysCollection<StateType>): Array<StateType | null> {
-				return (keys ?? []).map((k) => this._findItem(k, namespace));
+				return (keys ?? []).map(k => this._findItem(k, namespace))
 			}
 
 			addStates({ namespace = undefined, keys }: TStateKeysCollection<StateType>): StateType[] {
-				return (keys || []).map((k) => this._addItemKey(k, namespace));
+				return (keys || []).map(k => this._addItemKey(k, namespace))
 			}
 
 			addContextTransformer<T extends StateType>(
@@ -95,25 +101,25 @@ export function createStateDictionary<
 				transformer: TContextTransformer<T, ContextType>,
 				namespace?: string,
 			): string {
-				const id = this.#getTransformerKey(state, namespace);
-				this.#transformersIndex[id] = state;
+				const id = this.#getTransformerKey(state, namespace)
+				this.#transformersIndex[id] = state
 				this.#transformers[state] = Object.assign(this.#transformers[state] ?? {}, {
 					[id]: { namespace, transformer },
-				});
-				return id;
+				})
+				return id
 			}
 
 			removeContextTransformerById(id: string): this {
 				if (this.#transformersIndex[id]) {
-					const state = this.#transformersIndex[id];
+					const state = this.#transformersIndex[id]
 					if (state && this.#transformers?.[state]?.[id]) {
 						this.#transformers[state] = Object.fromEntries(
 							Object.entries(this.#transformers[state] ?? {}).filter(([key]) => key !== id),
-						);
+						)
 					}
-					delete this.#transformersIndex[id];
+					delete this.#transformersIndex[id]
 				}
-				return this;
+				return this
 			}
 
 			removeContextTransformer<T extends StateType>(
@@ -122,16 +128,17 @@ export function createStateDictionary<
 				namespace: string | undefined,
 			): this {
 				Object.keys(this.#transformers[state] ?? {}).find((id) => {
-					const item = this.#transformers[state]?.[id];
-					if (!item) return false;
+					const item = this.#transformers[state]?.[id]
+					if (!item)
+						return false
 					if (item.transformer === transformer && (item?.namespace || null) === (namespace || null))
-						this.removeContextTransformerById(id);
-					return true;
-				});
-				return this;
+						this.removeContextTransformerById(id)
+					return true
+				})
+				return this
 			}
 
-			getContextTransformers(namespace?: string) {
+			getContextTransformers(namespace?: string): Record<string, Record<string, TContextTransformer<StateType, ContextType>>> {
 				return Object.keys(this.#transformers).reduce(
 					(obj, state) => ({
 						...obj,
@@ -142,33 +149,34 @@ export function createStateDictionary<
 						),
 					}),
 					{},
-				);
+				)
 			}
 
 			runContextTransformers<T extends StateType>(
 				id: string,
 				context: TAutomataStateContext<T, ContextType>,
 			): TAutomataStateContext<StateType, ContextType> {
-				const stateType = this.#transformersIndex[id];
-				if (stateType !== context?.state) return context;
-				const transformers = this.#transformers[stateType]?.[id]?.transformer;
-				if (!transformers) return context;
-				return transformers(context);
+				const stateType = this.#transformersIndex[id]
+				if (stateType !== context?.state)
+					return context
+				const transformers = this.#transformers[stateType]?.[id]?.transformer
+				if (!transformers)
+					return context
+				return transformers(context)
 			}
 
-			#getTransformerKey(state: StateType, namespace?: string) {
-				return this._getItemKey(state + '/' + uniqId(), namespace);
+			#getTransformerKey(state: StateType, namespace?: string): string {
+				return this._getItemKey(`${state}/${uniqId()}`, namespace)
 			}
-		};
+		}
 }
 
 export class BasicStateDictionary
 	extends createStateDictionary<TAutomataBaseStateType, Record<TAutomataBaseStateType, any>>()(AbstractBaseClass)
-	implements IStateDictionary<TAutomataBaseStateType, Record<TAutomataBaseStateType, any>>
-{
+	implements IStateDictionary<TAutomataBaseStateType, Record<TAutomataBaseStateType, any>> {
 	constructor() {
-		super();
+		super()
 	}
 }
 
-export default BasicStateDictionary;
+export default BasicStateDictionary

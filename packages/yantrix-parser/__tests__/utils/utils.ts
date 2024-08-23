@@ -1,13 +1,13 @@
-import { expressionProperties } from '../fixtures/expressions.js';
-import { randomString, randomInteger, randomDecimal } from '@yantrix/utils';
+import { randomDecimal, randomInteger, randomString } from '@yantrix/utils'
+import { expressionProperties } from '../fixtures/expressions.js'
 
-const KeyItemsCount = 50;
+const KeyItemsCount = 50
 
 export const allowedExpressions = {
 	string: {
 		value: randomString,
 		output: (str: string) => {
-			return expressionProperties.string(str);
+			return expressionProperties.string(str)
 		},
 	},
 	integer: {
@@ -27,9 +27,9 @@ export const allowedExpressions = {
 		output: (property: string) => expressionProperties.payloadReference(property),
 	},
 	function: {
-		value: () => randomString() + '()',
+		value: () => `${randomString()}()`,
 		output: (name: string) => {
-			return expressionProperties.function(name.slice(0, name.length - 2));
+			return expressionProperties.function(name.slice(0, name.length - 2))
 		},
 	},
 	array: {
@@ -40,15 +40,15 @@ export const allowedExpressions = {
 		value: () => `${randomString()}`,
 		output: (s: string) => expressionProperties.constantRefrence(s),
 	},
-} as const;
+} as const
 
-export const generateRandomKeyList = () => {
-	const defaultName = 'prop';
-	const length = Math.floor(Math.random() * KeyItemsCount) + 1;
-	return Array.from({ length }, (_, i) => `${defaultName}${i}`);
-};
-export const getKeyItemsInitialEmpty = () => {
-	const keyItemsName = generateRandomKeyList();
+export function generateRandomKeyList() {
+	const defaultName = 'prop'
+	const length = Math.floor(Math.random() * KeyItemsCount) + 1
+	return Array.from({ length }, (_, i) => `${defaultName}${i}`)
+}
+export function getKeyItemsInitialEmpty() {
+	const keyItemsName = generateRandomKeyList()
 
 	return keyItemsName.map((value) => {
 		return {
@@ -58,16 +58,16 @@ export const getKeyItemsInitialEmpty = () => {
 					keyItem: {
 						identifier: value,
 					},
-				};
+				}
 			},
-		};
-	});
-};
-export const getKeyItemsWithInitial = (expression: any) => {
-	const keyItems = generateRandomKeyList();
+		}
+	})
+}
+export function getKeyItemsWithInitial(expression: any) {
+	const keyItems = generateRandomKeyList()
 
 	return keyItems.map((key) => {
-		const generated = expression.value();
+		const generated = expression.value()
 
 		switch (expression) {
 			case allowedExpressions.string:
@@ -75,73 +75,73 @@ export const getKeyItemsWithInitial = (expression: any) => {
 					key,
 					initialValue: generated,
 					input: `${key}='${generated}'`,
-				};
+				}
 			case allowedExpressions.constant:
 				return {
 					key,
 					initialValue: generated,
 					input: `${key}=%%${generated}`,
-				};
+				}
 			case allowedExpressions.payload:
 				return {
 					key,
 					initialValue: generated,
 					input: `${key}=$${generated}`,
-				};
+				}
 			case allowedExpressions.context:
 				return {
 					key,
 					initialValue: generated,
 					input: `${key}=#${generated}`,
-				};
+				}
 			default:
 				return {
 					key,
 					initialValue: generated,
 					input: `${key}=${generated}`,
-				};
+				}
 		}
-	});
-};
+	})
+}
 
-export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any => {
-	const keyItems = generateRandomKeyList();
-	const expressions = Object.values(allowedExpressions);
+export function getKeyItemsRandomInitial(isRandomEmptyErr: boolean = false): any {
+	const keyItems = generateRandomKeyList()
+	const expressions = Object.values(allowedExpressions)
 
-	const randomExpression = () => expressions[Math.floor(Math.random() * expressions.length)];
+	const randomExpression = () => expressions[Math.floor(Math.random() * expressions.length)]
 
 	const listKeyItem = keyItems.map((el) => {
-		const expressions = randomExpression();
-		const rndValue = expressions?.value() ?? '';
+		const expressions = randomExpression()
+		const rndValue = expressions?.value() ?? ''
 
 		switch (expressions) {
 			case allowedExpressions.string:
 				return {
 					value: `${el}="${rndValue}"`,
 					output: expressions.output(rndValue),
-				};
+				}
 			case allowedExpressions.constant:
 				return {
 					value: `${el}=%%${rndValue}`,
 					output: expressions.output(rndValue),
-				};
+				}
 			case allowedExpressions.context:
 				return {
 					value: `${el}=#${rndValue}`,
 					output: expressions.output(rndValue),
-				};
+				}
 			case allowedExpressions.payload:
 				return {
 					value: `${el}=$${rndValue}`,
 					output: expressions.output(rndValue),
-				};
+				}
 			default:
 				return {
 					value: `${el}=${rndValue}`,
 					output: expressions?.output(rndValue),
-				};
+				}
 		}
-	});
+	})
 
 	if (isRandomEmptyErr) {
 		return [
@@ -150,8 +150,9 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 				value: () => ',',
 				output: () => {},
 			},
-		];
-	} else {
-		return listKeyItem;
+		]
 	}
-};
+	else {
+		return listKeyItem
+	}
+}

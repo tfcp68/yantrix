@@ -1,101 +1,108 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
+import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata'
+import type { TDiagramAction } from '@yantrix/mermaid-parser'
+import { StartState } from '@yantrix/mermaid-parser'
+import type {
+	TContextItem,
+	TExpressionFunction,
+} from '@yantrix/yantrix-parser'
 import {
+	ExpressionTypes,
+	isContextWithReducer,
+	isKeyItemReference,
+	isKeyItemWithExpression,
+} from '@yantrix/yantrix-parser'
+import type {
 	ICodegen,
 	TExpressionRecord,
 	TGetCodeOptionsMap,
 	TStateDiagramMatrixIncludeNotes,
-} from '../../types/common.js';
-import { fillDictionaries, pathRecord } from '../shared.js';
-import {
-	TContextItem,
-	isKeyItemReference,
-	isContextWithReducer,
-	isKeyItemWithExpression,
-	ExpressionTypes,
-	TExpressionFunction,
-} from '@yantrix/yantrix-parser';
-import { ModuleNames } from './index';
+} from '../../types/common.js'
+import { fillDictionaries, pathRecord } from '../shared.js'
+import type { ModuleNames } from './index'
 
 // import Built_In_Functions from '../../builtins/JavaScript';
 
-const getReferenceString = (path: string, identifier: string) => {
-	return `${path}['${identifier}']`;
-};
+function getReferenceString(path: string, identifier: string): string {
+	return `${path}['${identifier}']`
+}
 
-const getFunctionFromDictionary = (name: string) => {
-	return `functionDictionary.get("${name}")`;
-};
+function getFunctionFromDictionary(name: string): string {
+	return `functionDictionary.get("${name}")`
+}
 
 export const Expressions: TExpressionRecord = {
 	[ExpressionTypes.ArrayDeclaration]: () => '[]',
 	[ExpressionTypes.Function]: (func) => {
 		const recursive = (func: TExpressionFunction & { root?: true }) => {
-			const { FunctionDeclaration } = func;
-			const { FunctionName, Arguments } = FunctionDeclaration;
+			const { FunctionDeclaration } = func
+			const { FunctionName, Arguments } = FunctionDeclaration
 
-			const res: string[] = [];
+			const res: string[] = []
 
 			if (Arguments.length !== 0) {
 				Arguments.forEach((item) => {
 					if (isKeyItemReference(item)) {
-						const { expressionType, identifier } = item;
-						const path = pathRecord[expressionType];
+						const { expressionType, identifier } = item
+						const path = pathRecord[expressionType]
 
 						if (isKeyItemWithExpression(item)) {
-							const { expression } = item;
+							const { expression } = item
 
 							if (expression.expressionType === ExpressionTypes.Function) {
-								// @ts-ignore
-								res.push(recursive(expression));
+								// @ts-expect-error invalid type
+								res.push(recursive(expression))
 							}
-							// @ts-ignore
-							const valueExpression = Expressions[expression.expressionType](expression);
+							// @ts-expect-error invalid type
+							const valueExpression = Expressions[expression.expressionType](expression)
 
-							res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
-						} else {
-							res.push(`${getDefaultPropertyContext(path, identifier)}`);
+							res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`)
 						}
-					} else {
-						if (item.expressionType === ExpressionTypes.Function) {
-							// @ts-ignore
-							res.push(recursive(item));
-						} else {
-							// @ts-ignore
-							const valueExpression = Expressions[item.expressionType](item);
-							res.push(valueExpression);
+						else {
+							res.push(`${getDefaultPropertyContext(path, identifier)}`)
 						}
 					}
-				});
-			} else {
-				res.push(FunctionName);
+					else {
+						if (item.expressionType === ExpressionTypes.Function) {
+							// @ts-expect-error invalid type
+							res.push(recursive(item))
+						}
+						else {
+							// @ts-expect-error invalid type
+							const valueExpression = Expressions[item.expressionType](item)
+							res.push(valueExpression)
+						}
+					}
+				})
+			}
+			else {
+				res.push(FunctionName)
 			}
 
-			return getFunctionFromDictionary(FunctionName).concat(`(${res.join(',')})`);
-		};
+			return getFunctionFromDictionary(FunctionName).concat(`(${res.join(',')})`)
+		}
 
-		const res = recursive(func);
-		return res;
+		const res = recursive(func)
+		return res
 	},
 	[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
-		return `${NumberDeclaration}`;
+		return `${NumberDeclaration}`
 	},
 	[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
-		return `${NumberDeclaration}`;
+		return `${NumberDeclaration}`
 	},
 	[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
-		return `'${StringDeclaration}'`;
+		return `'${StringDeclaration}'`
 	},
 	[ExpressionTypes.Context]: ({ identifier }) => {
-		return `'prevContext['${identifier}']'`;
+		return `'prevContext['${identifier}']'`
 	},
 	[ExpressionTypes.Payload]: ({ identifier }) => {
-		return `'payload['${identifier}']'`;
+		return `'payload['${identifier}']'`
 	},
-} as const;
+} as const
 
-const getDefaultPropertyContext = (path: string, indetifier: string, expression?: string) => {
-	const fullPath = getReferenceString(path, indetifier);
+function getDefaultPropertyContext(path: string, indetifier: string, expression?: string): string {
+	const fullPath = getReferenceString(path, indetifier)
 
 	return `(function(){
 						if(${fullPath} !== undefined && ${fullPath} !== null) {
@@ -104,62 +111,62 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 							else {
 								return ${expression || 'null'}
 							}
-					}())`;
-};
+					}())`
+}
 
 export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
-	stateDictionary: BasicStateDictionary;
-	actionDictionary: BasicActionDictionary;
+	stateDictionary: BasicStateDictionary
+	actionDictionary: BasicActionDictionary
 	// functionDictionary: FunctionDictionary;
-	diagram: TStateDiagramMatrixIncludeNotes;
-	handlersDict: string[];
+	diagram: TStateDiagramMatrixIncludeNotes
+	handlersDict: string[]
 	// initialContext: string;
-	initialContextKeys: string[];
-	changeStateHandlers: string[];
-	dictionaries: string[];
+	initialContextKeys: string[]
+	changeStateHandlers: string[]
+	dictionaries: string[]
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
 		'@yantrix/codegen': ['builtInFunctions'],
-	};
-
-	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
-		this.actionDictionary = new BasicActionDictionary();
-		this.stateDictionary = new BasicStateDictionary();
-		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
-		this.diagram = diagram;
-
-		this.handlersDict = [];
-		this.changeStateHandlers = [];
-		this.dictionaries = [];
-		this.initialContextKeys = [];
-
-		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
-		this.setupDictionaries();
 	}
 
-	public getImports() {
-		let imports = '';
+	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
+		this.actionDictionary = new BasicActionDictionary()
+		this.stateDictionary = new BasicStateDictionary()
+		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
+		this.diagram = diagram
+
+		this.handlersDict = []
+		this.changeStateHandlers = []
+		this.dictionaries = []
+		this.initialContextKeys = []
+
+		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary)
+		this.setupDictionaries()
+	}
+
+	public getImports(): string {
+		let imports = ''
 		for (const [key, value] of Object.entries(this.imports)) {
-			imports += `import { ${value.join(', ')} } from '${key}';\n`;
+			imports += `import { ${value.join(', ')} } from '${key}';\n`
 		}
-		return imports;
+		return imports
 	}
 
 	public getDictionaries(): string {
-		return this.dictionaries.join('\n');
+		return this.dictionaries.join('\n')
 	}
 
-	setupDictionaries() {
+	setupDictionaries(): void {
 		this.dictionaries.push(
 			`export const statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
-		);
+		)
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
-		);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`);
+		)
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`)
 	}
 
-	getClassTemplate(className: string) {
+	getClassTemplate(className: string): string {
 		return `export class ${className} extends GenericAutomata {
   		 constructor() {
   			super();
@@ -181,18 +188,18 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 			static createAction = ${this.getCreateActionFunc(className)};
 		}
 		export default ${className};
-		`;
+		`
 	}
 
-	protected getHasStateFunc(className: string) {
-		return `(instance, state) => instance.state === ${className}.getState(state)`;
+	protected getHasStateFunc(className: string): string {
+		return `(instance, state) => instance.state === ${className}.getState(state)`
 	}
 
-	protected getGetStateFunc() {
-		return `(state) => statesDictionary[state]`;
+	protected getGetStateFunc(): string {
+		return `(state) => statesDictionary[state]`
 	}
 
-	public getCode(options: TGetCodeOptionsMap[ModuleNames.JavaScript]) {
+	public getCode(options: TGetCodeOptionsMap[ModuleNames.JavaScript]): string {
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}
@@ -201,30 +208,30 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 			${this.getDefaultContext()}
 			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
-		`;
+		`
 	}
 
-	getObjectKeysMap(dict: Record<any, any>) {
-		const obj: Record<string, string> = {};
+	getObjectKeysMap(dict: Record<any, any>): Record<string, string> {
+		const obj: Record<string, string> = {}
 		Object.keys(dict).forEach((key: string) => {
-			obj[key] = key;
-		});
-		return obj;
+			obj[key] = key
+		})
+		return obj
 	}
 
-	getActionsMap() {
-		return this.getObjectKeysMap(this.actionDictionary.getDictionary());
+	getActionsMap(): Record<string, string> {
+		return this.getObjectKeysMap(this.actionDictionary.getDictionary())
 	}
 
-	getStatesMap() {
-		return this.getObjectKeysMap(this.stateDictionary.getDictionary());
+	getStatesMap(): Record<string, string> {
+		return this.getObjectKeysMap(this.stateDictionary.getDictionary())
 	}
 
-	protected getGetActionFunc() {
-		return `(action) => actionsDictionary[action];`;
+	protected getGetActionFunc(): string {
+		return `(action) => actionsDictionary[action];`
 	}
 
-	protected getCreateActionFunc(className: string) {
+	protected getCreateActionFunc(className: string): string {
 		return `
 		(action, payload) => {
 			const actionId = ${className}.getAction(action);
@@ -232,25 +239,27 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 				action: actionId,
 				payload,
 			}
-		}`;
+		}`
 	}
 
-	public getActionToStateFromState() {
-		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
+	public getActionToStateFromState(): string {
+		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`
 	}
 
-	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
+	getActionToStateDict(transitions: Record<string, TDiagramAction>): string[] {
 		return Object.entries(transitions)
 			.map(([key, transition]) => {
-				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0]
 				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
-					})[0];
-					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${key} not found`);
+					})[0]
+					if (!actionValue)
+						throw new Error(`Action ${action} not found`)
+					if (!newState)
+						throw new Error(`State ${key} not found`)
 
-					const newCtx = this.getContextTransition(key);
+					const newCtx = this.getContextTransition(key)
 					// const ctx = this.getSubsyntaxContext(key);
 
 					return `
@@ -260,17 +269,17 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 				  			return ${newCtx};
 				  	}
 				  },
-				`;
-				});
+				`
+				})
 			})
-			.flatMap((el) => `${el.join('\n\t')}`);
+			.flatMap(el => `${el.join('\n\t')}`)
 	}
 
-	protected getIsKeyOf() {
-		return `(key, obj) => key in obj`;
+	protected getIsKeyOf(): string {
+		return `(key, obj) => key in obj`
 	}
 
-	protected getRootReducer() {
+	protected getRootReducer(): string {
 		return `({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
 					${this.getRootReducerStateValidation()}
@@ -279,117 +288,122 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 
 
 					return {state:newState, context: getNewContext({payload,context})};
-  				}`;
+  				}`
 	}
 
-	protected getRootReducerStateValidation() {
-		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`;
+	protected getRootReducerStateValidation(): string {
+		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`
 	}
 
-	protected getRootReducerStateValidationHead() {
-		return `if (!this.isKeyOf(state, actionToStateFromStateDict))`;
+	protected getRootReducerStateValidationHead(): string {
+		return `if (!this.isKeyOf(state, actionToStateFromStateDict))`
 	}
 
-	protected getRootReducerStateValidationError() {
-		return `throw new Error("Invalid state, maybe machine isn't running.")`;
+	protected getRootReducerStateValidationError(): string {
+		return `throw new Error("Invalid state, maybe machine isn't running.")`
 	}
 
-	protected getRootReducerActionValidation() {
-		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
+	protected getRootReducerActionValidation(): string {
+		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`
 	}
 
-	protected getStateValidator() {
-		return `(s) => Object.values(statesDictionary).includes(s)`;
+	protected getStateValidator(): string {
+		return `(s) => Object.values(statesDictionary).includes(s)`
 	}
 
-	protected getActionValidator() {
-		return `(a) => Object.values(actionsDictionary).includes(a)`;
+	protected getActionValidator(): string {
+		return `(a) => Object.values(actionsDictionary).includes(a)`
 	}
 
-	protected getActionToStateFromStateDict() {
+	protected getActionToStateFromStateDict(): string[] {
 		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
-			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-			if (!value) throw new Error(`State ${state} not found`);
+			const value = this.stateDictionary.getStateValues({ keys: [state] })[0]
+			if (!value)
+				throw new Error(`State ${state} not found`)
 
-			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
-		});
+			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`
+		})
 	}
 
-	protected getContextTransition = (state: string) => {
+	protected getContextTransition(state: string): string {
 		const value = this.diagram.states.find((diagramState) => {
-			return diagramState.id === state;
-		});
+			return diagramState.id === state
+		})
 
 		if (!value) {
-			throw new Error(`Invalid state - ${value}`);
+			throw new Error(`Invalid state - ${value}`)
 		}
 
-		const ctxRes: string[] = [];
+		const ctxRes: string[] = []
 
-		value.notes?.contextDescription.map((ctx) => {
-			const newContext = this.getContextItem(ctx);
+		value.notes?.contextDescription.forEach((ctx) => {
+			const newContext = this.getContextItem(ctx)
 
-			ctxRes.push(...newContext);
-		});
+			ctxRes.push(...newContext)
+		})
 
-		if (ctxRes.length === 0) return 'null';
+		if (ctxRes.length === 0)
+			return 'null'
 
-		return `{${ctxRes.join(',\n\t')}}`;
-	};
+		return `{${ctxRes.join(',\n\t')}}`
+	}
 
-	public getDefaultContext = () => {
+	public getDefaultContext(): string {
 		return `const getDefaultContext = ({payload,context:prevContext}) => {
 			// const initialContext = $//{this.getSubsyntaxContext(StartState)}
 			return prevContext
-		}`;
-	};
-
-	private getInitialState() {
-		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
+		}`
 	}
 
-	private getContextItem = (ctx: TContextItem) => {
+	private getInitialState(): number | null | undefined {
+		return this.stateDictionary.getStateValues({ keys: [StartState] })[0]
+	}
+
+	private getContextItem(ctx: TContextItem): string[] {
 		if (isContextWithReducer(ctx)) {
-			const { context, reducer } = ctx;
+			const { context, reducer } = ctx
 
 			return reducer
 				.map(({ keyItem }) => {
 					if (isKeyItemReference(keyItem)) {
-						const { expressionType, identifier: boundIdentifier } = keyItem;
-						const path = pathRecord[expressionType];
+						const { expressionType, identifier: boundIdentifier } = keyItem
+						const path = pathRecord[expressionType]
 
 						if (isKeyItemWithExpression(keyItem)) {
-							const { expression } = keyItem;
-							console.log(keyItem);
-							// @ts-ignore
-							const expressionValueRight = Expressions[expression.expressionType](expression);
+							const { expression } = keyItem
 
-							return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
-						} else {
-							return getDefaultPropertyContext(path, boundIdentifier);
+							// @ts-expect-error invalid type
+							const expressionValueRight = Expressions[expression.expressionType](expression)
+
+							return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight)
 						}
-					} else {
-						const { expression } = keyItem;
+						else {
+							return getDefaultPropertyContext(path, boundIdentifier)
+						}
+					}
+					else {
+						const { expression } = keyItem
 
-						// @ts-ignore
-						const expressionValueRight = Expressions[expression.expressionType](expression);
+						// @ts-expect-error invalid type
+						const expressionValueRight = Expressions[expression.expressionType](expression)
 						return `(function(){
 						return ${expressionValueRight}
-					}())`;
+					}())`
 					}
 				})
 				.map((el, index) => {
-					const item = context[index];
+					const item = context[index]
 					if (!item) {
-						throw new Error('Unexcpeted index bound property');
+						throw new Error('Unexcpeted index bound property')
 					}
-					const { keyItem } = item;
-					const { identifier: targetProperty } = keyItem;
+					const { keyItem } = item
+					const { identifier: targetProperty } = keyItem
 
 					if (isKeyItemWithExpression(keyItem)) {
-						const { expression } = keyItem;
-						// @ts-ignore
-						const expressionValueRight = Expressions[expression.expressionType](expression);
+						const { expression } = keyItem
+
+						// @ts-expect-error invalid type
+						const expressionValueRight = Expressions[expression.expressionType](expression)
 
 						return `${targetProperty}: (function(){
 						const boundValue = ${el}
@@ -400,8 +414,9 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 							return ${expressionValueRight}
 						}
 
-					}())`;
-					} else {
+					}())`
+					}
+					else {
 						return `${targetProperty}: (function(){
 						const boundValue = ${el}
 
@@ -410,23 +425,25 @@ export class JavaScriptCodegen implements ICodegen<ModuleNames.JavaScript> {
 						}
 						return null
 
-					}())`;
+					}())`
 					}
-				});
-		} else {
-			const { context } = ctx;
+				})
+		}
+		else {
+			const { context } = ctx
 			return context.map(({ keyItem }) => {
-				const { identifier } = keyItem;
+				const { identifier } = keyItem
 				if (isKeyItemWithExpression(keyItem)) {
 					const expressionValue = Expressions[keyItem.expression.expressionType](
-						// @ts-ignore
+						// @ts-expect-error invalid type
 						keyItem.expression,
-					);
-					return getDefaultPropertyContext('prevContext', identifier, expressionValue);
-				} else {
-					return getDefaultPropertyContext('prevContext', identifier);
+					)
+					return getDefaultPropertyContext('prevContext', identifier, expressionValue)
 				}
-			});
+				else {
+					return getDefaultPropertyContext('prevContext', identifier)
+				}
+			})
 		}
-	};
+	}
 }

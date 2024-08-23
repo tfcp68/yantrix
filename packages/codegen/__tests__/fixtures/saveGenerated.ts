@@ -1,13 +1,13 @@
-import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { generateAutomataFromStateDiagram, ModuleNames } from '../../src/index.js';
-import * as fs from 'fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import * as fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser'
+import { ModuleNames, generateAutomataFromStateDiagram } from '../../src/index.js'
 
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
 
-const pathSave = path.resolve(dirname);
+const pathSave = path.resolve(dirname)
 
 const input1 = `stateDiagram-v2
 [*] --> INIT: RESET
@@ -25,7 +25,7 @@ IN_GAME --> [*]: EXIT
 IN_GAME --> SCORE_SCREEN: END_GAME
 IN_GAME --> MAIN_MENU: TO_MENU
 SCORE_SCREEN --> MAIN_MENU: TO_MENU
-SCORE_SCREEN --> [*]: EXIT`;
+SCORE_SCREEN --> [*]: EXIT`
 
 const includeNotesInput = `
 stateDiagram-v2
@@ -42,7 +42,7 @@ note left of A
 #{a=4} <= 3
 end note
 
-`;
+`
 
 /*
 note left of AA
@@ -94,24 +94,24 @@ const diagramsInput = {
 		automataName: 'GeneratedAutomata',
 		outLang: ModuleNames.Java,
 	},
-} as const;
+} as const
 
 const extensions = {
 	TypeScript: 'ts',
 	Java: 'java',
-};
+}
 
 Object.values(diagramsInput).forEach(async (fixture) => {
-	const stateDiagramStructure = await parseStateDiagram(fixture.value);
-	const stateDiagram = await createStateDiagram(stateDiagramStructure);
+	const stateDiagramStructure = await parseStateDiagram(fixture.value)
+	const stateDiagram = await createStateDiagram(stateDiagramStructure)
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: fixture.automataName,
 		outLang: fixture.outLang,
-	});
+	})
 
-	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck';
-	const writable = `${ignoreFlags}\n${generatedAutomataOutput}`;
+	const ignoreFlags = '/* eslint-disable */\n// @ts-nocheck'
+	const writable = `${ignoreFlags}\n${generatedAutomataOutput}`
 
 	fs.writeFileSync(
 		path.resolve(pathSave, `${fixture.automataName}_generated.${extensions[fixture.outLang]}`),
@@ -119,5 +119,5 @@ Object.values(diagramsInput).forEach(async (fixture) => {
 		{
 			encoding: 'utf8',
 		},
-	);
-});
+	)
+})

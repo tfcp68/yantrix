@@ -1,50 +1,50 @@
-import { ExpressionTypes } from '../constants';
-import { TKeyItemReducer } from './keyItem';
+import type { ExpressionTypes } from '../constants'
+import type { TKeyItemReducer } from './keyItem'
 
-export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
+export type TExpressionTypesKeys = keyof typeof ExpressionTypes
 
 export type TRefereneceType =
 	| typeof ExpressionTypes.Payload
 	| typeof ExpressionTypes.Constant
-	| typeof ExpressionTypes.Context;
+	| typeof ExpressionTypes.Context
 
 type TReference = {
-	identifier: string;
-};
+	identifier: string
+}
 
 type TExpressionString = {
-	StringDeclaration: string;
-};
+	StringDeclaration: string
+}
 type TExpressionArray = {
-	ArrayDeclaration: [];
-};
+	ArrayDeclaration: []
+}
 
 type TExpressionNumber = {
-	NumberDeclaration: number;
-};
-type TFunctionArgument = TKeyItemReducer | TExpression;
+	NumberDeclaration: number
+}
+type TFunctionArgument = TKeyItemReducer | TExpression
 
 export type TExpressionFunction = {
 	FunctionDeclaration: {
-		FunctionName: string;
-		Arguments: TFunctionArgument[];
-	};
-};
+		FunctionName: string
+		Arguments: TFunctionArgument[]
+	}
+}
 
 export type TMapped = {
-	[ExpressionTypes.ArrayDeclaration]: TExpressionArray;
-	[ExpressionTypes.Function]: TExpressionFunction;
-	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber;
-	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber;
-	[ExpressionTypes.StringDeclaration]: TExpressionString;
-	[ExpressionTypes.Context]: TReference;
-	[ExpressionTypes.Payload]: TReference;
-	[ExpressionTypes.Context]: TReference;
-};
+	[ExpressionTypes.ArrayDeclaration]: TExpressionArray
+	[ExpressionTypes.Function]: TExpressionFunction
+	[ExpressionTypes.IntegerDeclaration]: TExpressionNumber
+	[ExpressionTypes.DecimalDeclaration]: TExpressionNumber
+	[ExpressionTypes.StringDeclaration]: TExpressionString
+	[ExpressionTypes.Context]: TReference
+	[ExpressionTypes.Payload]: TReference
+	[ExpressionTypes.Context]: TReference
+}
 
-export type TMappedKeys = keyof TMapped;
-export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
+export type TMappedKeys = keyof TMapped
+export type TExpressionMapped<T extends keyof TMapped> = TMapped[T]
 
 export type TExpression<T extends TMappedKeys = TMappedKeys> = {
-	expressionType: T;
-} & TExpressionMapped<T>;
+	expressionType: T
+} & TExpressionMapped<T>

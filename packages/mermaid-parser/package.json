@@ -52,14 +52,14 @@
 	],
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
-		"prepack": "pnpm lint && pnpm build",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
+		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run --coverage --outputFile=../../test_reports/mermaid-parser.md"
 	},
 	"dependencies": {
 		"@yantrix/utils": "workspace:^",
-		"mermaid": "10.1.0"
+		"mermaid": "10.9.1"
 	},
 	"devDependencies": {
 		"@types/d3": "^7.4.0",
