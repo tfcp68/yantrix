@@ -1,9 +1,9 @@
-import { functionDictionary } from './fixtures/GamePhaseAutomata_generated.js';
 import { assert, beforeEach, describe, expect, test } from 'vitest';
 import { randomString, randomInteger } from '@yantrix/utils';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
 import { FunctionDictionary, AutomataFunction } from '@yantrix/automata';
 import { builtInFunctions } from '@yantrix/codegen';
+import { saveAndGenerate } from './fixtures/utils.js';
 
 let functionDictionaryFixture: FunctionDictionary;
 
@@ -23,10 +23,20 @@ const invalidFunctionNamesTemplates = [
 	'%d',
 	'',
 ];
+
+const input = `stateDiagram-v2
+            [*] --> A`;
+
 const createNameFromTemplate = (str: string) =>
 	str.replaceAll('%s', randomString()).replaceAll('%d', randomInteger(0, 9).toString());
 
-describe('JS/TS Function Dictionary', () => {
+describe('JS/TS Function Dictionary', async () => {
+	await saveAndGenerate({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'functions');
+
+	const res = await import(`./fixtures/generated/functions_generated.js`);
+
+	const functionDictionary = res.functionDictionary;
+
 	beforeEach(() => {
 		functionDictionaryFixture = new FunctionDictionary(builtInFunctions);
 	});

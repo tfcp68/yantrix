@@ -1,6 +1,6 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
 import { ExpressionTypes, TRefereneceType } from '@yantrix/yantrix-parser';
+import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
 
 export const fillDictionaries = (
 	diagram: TStateDiagramMatrixIncludeNotes,

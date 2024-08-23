@@ -55,3 +55,4 @@ bun.lockb
 .nx
 
 test_reports
+*_generated.*

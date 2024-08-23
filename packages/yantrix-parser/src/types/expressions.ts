@@ -39,7 +39,7 @@ export type TMapped = {
 	[ExpressionTypes.StringDeclaration]: TExpressionString;
 	[ExpressionTypes.Context]: TReference;
 	[ExpressionTypes.Payload]: TReference;
-	[ExpressionTypes.Context]: TReference;
+	[ExpressionTypes.Constant]: TReference;
 };
 
 export type TMappedKeys = keyof TMapped;

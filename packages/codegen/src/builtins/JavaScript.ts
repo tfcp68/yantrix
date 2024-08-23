@@ -3,10 +3,20 @@ const _if = (condition: boolean, true_value: unknown, false_value: unknown): unk
 	return condition === true ? true_value : false_value;
 };
 
+const _wrapper = <T extends number | boolean | unknown>(callback: (nums: T[]) => T) => {
+	return (...nums: T[]) => {
+		if (nums.length === 1 && Array.isArray(nums[0])) {
+			return callback(nums[0]);
+		} else {
+			return callback(nums as T[]);
+		}
+	};
+};
+
 const _case = (
 	first_case_condition: boolean,
 	first_case_return_value: unknown,
-	other_cases: [condition: boolean, return_value: unknown][],
+	other_cases: Array<[condition: boolean, return_value: unknown]>,
 ): unknown => {
 	if (first_case_condition) {
 		return first_case_return_value;
@@ -17,9 +27,9 @@ const _case = (
 	return (other_cases[other_cases.length - 1] ?? [])[1];
 };
 
-const _coalesce = (...expressions: unknown[]): unknown => {
+const _coalesce = _wrapper((expressions: unknown[]): unknown => {
 	return expressions.find((exp: unknown) => exp !== null) ?? null;
-};
+});
 
 const _random = (min?: number, max?: number): number => {
 	if (min && max) {
@@ -40,18 +50,18 @@ export const Conditionals = {
 
 // Built-Ins: Binary Predicates
 
-const and = (...conditions: boolean[]): boolean => {
+const and = _wrapper((conditions: boolean[]): boolean => {
 	return conditions.find((cond) => cond === false) ?? true;
-};
-const or = (...conditions: boolean[]): boolean => {
+});
+const or = _wrapper((conditions: boolean[]): boolean => {
 	return conditions.find((cond) => cond === true) ?? false;
-};
+});
 const not = (condition: boolean): boolean => {
 	return !condition;
 };
-const none = (...conditions: boolean[]): boolean => {
+const none = _wrapper((conditions: boolean[]): boolean => {
 	return !(conditions.find((cond) => cond === false) ?? true);
-};
+});
 
 export const BinaryPredicates = {
 	and,
@@ -76,7 +86,7 @@ const isInteger = (num: number): boolean => {
 	return Number.isInteger(num);
 };
 const isEqual = (x: unknown, y: unknown): boolean => {
-	return typeof x == typeof y && x === y;
+	return typeof x === typeof y && x === y;
 };
 const isGreater = (x: number, y: number): boolean => {
 	return x > y;
@@ -148,17 +158,18 @@ export const LookupPredicates = {
 // ==================
 
 // Built-Ins: Arithmetics
-const add = (...nums: number[]): number => {
+const add = _wrapper((nums: number[]): number => {
 	const initialValue = 0;
 	return nums.reduce((accumulator, currentValue) => accumulator + currentValue, initialValue);
-};
+});
 const diff = (num1: number, num2: number): number => {
 	return num1 - num2;
 };
-const mult = (...nums: number[]): number => {
+const mult = _wrapper((nums: number[]): number => {
 	const initialValue = 1;
 	return nums.reduce((accumulator, currentValue) => accumulator * currentValue, initialValue);
-};
+});
+
 const div = (num1: number, num2: number): number => {
 	return num1 / num2;
 };
@@ -226,31 +237,31 @@ export const SpecialMaths = { sin, cos, sqrt, log, ln, lg, deg, rad };
 
 // Built-Ins: Statistics
 
-const max = (...nums: number[]): number => {
+const max = _wrapper((nums: number[]): number => {
 	return Math.max(...nums);
-};
+});
 
-const min = (...nums: number[]): number => {
+const min = _wrapper((nums: number[]): number => {
 	return Math.min(...nums);
-};
+});
 
-const avg = (...nums: number[]): number => {
+const avg = _wrapper((nums: number[]): number => {
 	return nums.reduce((accumulator, currentValue) => accumulator + currentValue, 0) / nums.length;
-};
+});
 
-const med = (...nums: number[]): number => {
+const med = _wrapper((nums: number[]): number => {
 	nums.sort((a, b) => a - b);
 	const mid = Math.floor(nums.length / 2);
 	return nums.length % 2 == 0 ? (nums[mid] ?? 0) : ((nums[mid - 1] ?? 0) + (nums[mid] ?? 0)) / 2;
-};
+});
 
-const sum = (...nums: number[]): number => {
+const sum = _wrapper((nums: number[]): number => {
 	return nums.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-};
+});
 
-const sumsq = (...nums: number[]): number => {
+const sumsq = _wrapper((nums: number[]): number => {
 	return nums.reduce((accumulator, currentValue) => accumulator + (currentValue ^ 2), 0);
-};
+});
 
 const sumProduct = (...nums_lists: number[][]): number => {
 	return nums_lists

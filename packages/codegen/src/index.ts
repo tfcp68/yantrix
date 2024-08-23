@@ -19,13 +19,31 @@ export const generateAutomataFromStateDiagram = async (diagram: TStateDiagramMat
 		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
 	});
 
-	const creator = new CodegenCreator({
-		states: statesIncludingNotes,
-		transitions,
-	});
+	let constants: Record<string, any> | null = null;
+
+	if (options?.constants) {
+		constants = JSON.parse(options.constants);
+	}
+
+	if (constants !== null) {
+		Object.entries(constants).forEach(([key, value]) => {
+			if (typeof value !== 'string' && typeof value !== 'number') {
+				throw new Error(`Invalid constant value type. Key: ${key}, value: ${JSON.stringify(value)}`);
+			}
+		});
+	}
+
+	const creator = new CodegenCreator(
+		{
+			states: statesIncludingNotes,
+			transitions,
+		},
+		constants,
+	);
 
 	const codegen = creator.createCodegen({
 		language: options.outLang ?? 'TypeScript',
+		constants,
 	});
 
 	return codegen.getCode(options);
