@@ -42,9 +42,18 @@ export type TMapped = {
 	[ExpressionTypes.Constant]: TReference;
 };
 
+type TWithout<T, K> = Pick<T, Exclude<keyof T, K>>;
+export type TDefineMap = TWithout<TMapped, 'context' | 'payload' | 'constant'>;
+export type TDefineMapKeys = keyof TMapped;
+export type TExpressionDefineMapped<T extends keyof TMapped> = TMapped[T];
+
 export type TMappedKeys = keyof TMapped;
 export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
 
 export type TExpression<T extends TMappedKeys = TMappedKeys> = {
 	expressionType: T;
 } & TExpressionMapped<T>;
+
+export type TExpressionDefine<T extends TDefineMapKeys = TDefineMapKeys> = {
+	expressionType: T;
+} & TExpressionDefineMapped<T>;

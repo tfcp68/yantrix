@@ -70,7 +70,7 @@ document
               if($2.hasOwnProperty('context'))  $1['contextDescription'].push($2)
               if($2.hasOwnProperty('emit')) $1['emit'].push($2['emit'])
               if($2.hasOwnProperty('subscribe')) $1['subscribe'].push($2['subscribe'])
-  if($2.hasOwnProperty('define')) $1['defines'].push($2['defines'])
+              if($2.hasOwnProperty('define')) $1['defines'].push($2['define'])
            }
         };
 
@@ -84,7 +84,7 @@ statements
         |  CONTEXT_STATEMENT
         |  EMIT_STATEMENT
         |  SUBSCRIBE_STATEMENT
-        |  DEFINE_STATEMENT {console.log($1)};
+        |  DEFINE_STATEMENT {$$ = {define:$1}};
 
 CONTEXT_STATEMENT
         : CONTEXT_SYMBOL LEFT_BRACE RAW_KEYLIST RIGHT_BRACE {$$ = {context:$3} }
@@ -111,7 +111,30 @@ SUBSCRIBE_EVENT
         : SUBSCRIBE IDENT IDENT { $$ = {identifier:$2, actionName:$3}};
 
 
-DEFINE_STATEMENT: DEFINE IDENT DEFINE_ARGUMENTS RIGHT_ARROW FUNCTION {console.log($3);$$ = {identifier:$2, ...$3, ...$5}};
+DEFINE_STATEMENT: DEFINE IDENT DEFINE_ARGUMENTS RIGHT_ARROW DEFINE_FUNCTION {$$ = {identifier:$2, ...$3, expression:$5}};
+
+
+
+DEFINE_FUNCTION
+        : FUNCTION_NAME LEFT_BRACKET DEFINE_FUNCTION_ARGUMENTS RIGHT_BRACKET
+        {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
+        | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
+        {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
+
+DEFINE_FUNCTION_ARGUMENTS
+        :  EXPRESSION_DEFINE {$$ = [$1]}
+        |  DEFINE_FUNCTION_ARGUMENTS COMMA EXPRESSION_DEFINE { $$ = [...$1, $3] };
+
+
+EXPRESSION_DEFINE
+        : IMMUTABLE
+        | IDENT {$$ = {epxressionType:ExpressionTypes.Identifier, identifier:$1}}
+        | DEFINE_FUNCTION {counter = Math.max(calcDepthFunc($1), counter);
+                if(counter > maxNestedFuncLevel) {
+                    counter = 0;
+                    throw new Error('nested limit');
+                }};
+
 
 DEFINE_ARGUMENTS
                : LEFT_BRACKET RIGHT_BRACKET {$$ = {Arguments:[]}}
@@ -144,7 +167,7 @@ FUNCTION
         : FUNCTION_NAME LEFT_BRACKET ARGUMENTS RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
         | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
-        {$$ = { expressionType:3, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
+        {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
 
 ARGUMENTS
         :  EXPRESSION {$$ = [$1]}
