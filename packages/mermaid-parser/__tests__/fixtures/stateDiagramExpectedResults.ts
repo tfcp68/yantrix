@@ -1,10 +1,10 @@
 export const stateDiagramWithLoopConditionExpectedResultString
-	= 'Link to itself from the choice side. ChoiceState2-->ChoiceState2'
+	= 'Link to itself from the choice side. ChoiceState2-->ChoiceState2';
 
 export const emptyStateDiagramExpectedResult = {
 	transitions: {},
 	states: [],
-}
+};
 
 export const simpleTransitionExpectedResult = {
 	transitions: {
@@ -38,7 +38,7 @@ export const simpleTransitionExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const simpleTransitionCompletedExpectedResult = {
 	transitions: {
@@ -114,7 +114,7 @@ export const simpleTransitionCompletedExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const simpleTransitionWithCommentsExpectedResult = {
 	transitions: {
@@ -190,7 +190,7 @@ export const simpleTransitionWithCommentsExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithChoiceExpectedResult = {
 	transitions: {
@@ -257,7 +257,7 @@ export const stateDiagramWithChoiceExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithForkExpectedResult = {
 	transitions: {
@@ -387,7 +387,7 @@ export const stateDiagramWithForkExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithLeftSideNoteExpectedResult = {
 	transitions: {
@@ -463,7 +463,7 @@ export const stateDiagramWithLeftSideNoteExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithRightSideNoteExpectedResult = {
 	transitions: {
@@ -539,7 +539,7 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithChoiceAndNoteExpectedResult = {
 	transitions: {
@@ -627,7 +627,7 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithSameActionExpectedResult = {
 	transitions: {
@@ -736,7 +736,7 @@ export const stateDiagramWithSameActionExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramWithNamedStatesExpectedResult = {
 	transitions: {
@@ -812,7 +812,7 @@ export const stateDiagramWithNamedStatesExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};
 
 export const stateDiagramDoublePathExpectedResult = {
 	transitions: {
@@ -941,4 +941,4 @@ export const stateDiagramDoublePathExpectedResult = {
 			notes: [],
 		},
 	],
-}
+};

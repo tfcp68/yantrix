@@ -1,7 +1,7 @@
-import { JavaScriptCodegen } from './JavaScript.js'
-import { TypeScriptCodegen } from './TypeScript.js'
-import { PythonCodegen } from './Python.js'
-import { JavaCodegen } from './Java.js'
+import { JavaScriptCodegen } from './JavaScript.js';
+import { TypeScriptCodegen } from './TypeScript.js';
+import { PythonCodegen } from './Python.js';
+import { JavaCodegen } from './Java.js';
 
 export enum ModuleNames {
 	JavaScript = 'JavaScript',
@@ -15,4 +15,4 @@ export const Modules = {
 	[ModuleNames.TypeScript]: TypeScriptCodegen,
 	[ModuleNames.Python]: PythonCodegen,
 	[ModuleNames.Java]: JavaCodegen,
-} as const
+} as const;

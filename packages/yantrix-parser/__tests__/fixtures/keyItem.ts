@@ -1,11 +1,11 @@
-import { randomString } from '@yantrix/utils'
-import { Map } from 'immutable'
-import type { TMappedKeys } from '../../src/types/expressions.js'
-import type { TKeyItem, TKeyItems } from '../../src/types/keyItem.js'
-import type { TExpressionTypes } from './expressions.js'
-import { expressions, functions, getExpression } from './expressions.js'
+import { randomString } from '@yantrix/utils';
+import { Map } from 'immutable';
+import type { TMappedKeys } from '../../src/types/expressions.js';
+import type { TKeyItem, TKeyItems } from '../../src/types/keyItem.js';
+import type { TExpressionTypes } from './expressions.js';
+import { expressions, functions, getExpression } from './expressions.js';
 
-const identPath = ['contextDescription', 0, 'context', 0, 'keyItem', 'identifier'] as const
+const identPath = ['contextDescription', 0, 'context', 0, 'keyItem', 'identifier'] as const;
 // const reducerPath = ['contextDescription', 0, 'reducer', 0, 'keyItem'] as const;
 
 export function baseKeyItemDeclaration(propertyName?: string, type?: TMappedKeys) {
@@ -14,146 +14,146 @@ export function baseKeyItemDeclaration(propertyName?: string, type?: TMappedKeys
 			identifier: propertyName ?? randomString(),
 			...(type && { expressionType: type }),
 		},
-	}
+	};
 }
 export function createKeyItemDeclaration(keyItem?: TKeyItem) {
-	const base = baseKeyItemDeclaration()
+	const base = baseKeyItemDeclaration();
 	if (keyItem) {
 		return Map(base)
 			.updateIn(['keyItem'], () => keyItem.keyItem)
-			.toJS()
+			.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function createContext(keyItems?: TKeyItems) {
-	const contextItems = keyItems ?? [baseKeyItemDeclaration()]
+	const contextItems = keyItems ?? [baseKeyItemDeclaration()];
 	return {
 		contextDescription: [
 			{
 				context: contextItems,
 			},
 		],
-	}
+	};
 }
 
 export function createContextDescription(contextKeyItems: TKeyItems, reducer?: TKeyItems) {
-	const baseContext = createContext(contextKeyItems)
+	const baseContext = createContext(contextKeyItems);
 	return Map(baseContext)
 		.updateIn(['contextDescription', 0, 'context'], context => contextKeyItems ?? context)
 		.updateIn(['contextDescription', 0, 'reducer'], () => reducer)
-		.toJS()
+		.toJS();
 }
 
 export function getKeyItem(expression: TExpressionTypes | null) {
 	const keyItem = Map(createKeyItemDeclaration())
 		.updateIn(['keyItem', 'expression'], item => expression?.Expression ?? item)
-		.toJS() as unknown as TKeyItem
+		.toJS() as unknown as TKeyItem;
 
-	return createContextDescription([keyItem])
+	return createContextDescription([keyItem]);
 }
 
 export function declarationKeyItem(propertyName?: string, path?: [string | number]) {
-	const base = getKeyItem(null)
+	const base = getKeyItem(null);
 	return Map(base)
 		.updateIn(path ?? identPath, name => propertyName ?? name)
-		.toJS()
+		.toJS();
 }
 
 export function withStringInitial(propertyName?: string, stringProperty?: string) {
-	const base = getKeyItem(expressions.string)
+	const base = getKeyItem(expressions.string);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'StringDeclaration'],
 			v => stringProperty?.substring(1, stringProperty.length - 1) ?? v,
 		)
-		.toJS()
+		.toJS();
 }
 
 export function withArrayInitial(propertyName?: string) {
-	const base = getKeyItem(expressions.array)
+	const base = getKeyItem(expressions.array);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
-		.toJS()
+		.toJS();
 }
 
 export function withIntegerInitial(propertyName?: string, integerValue?: number) {
-	const base = getKeyItem(expressions.integer)
+	const base = getKeyItem(expressions.integer);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'NumberDeclaration'],
 			v => integerValue ?? v,
 		)
-		.toJS()
+		.toJS();
 }
 
 export function withDecimalInitial(propertyName?: string, decimalValue?: number) {
-	const base = getKeyItem(expressions.decimal)
+	const base = getKeyItem(expressions.decimal);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'NumberDeclaration'],
 			v => decimalValue ?? v,
 		)
-		.toJS()
+		.toJS();
 }
 
 export function withConstantInitial(propertyName?: string, constantValue?: string) {
-	const base = getKeyItem(expressions.constantRefrence)
+	const base = getKeyItem(expressions.constantRefrence);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'identifier'],
 			v => constantValue ?? v,
 		)
-		.toJS()
+		.toJS();
 }
 
 export function withPayloadInitial(propertyName?: string, propertyName2?: string) {
-	const base = getKeyItem(expressions.payloadReference)
+	const base = getKeyItem(expressions.payloadReference);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'identifier'],
 			name => propertyName2 ?? name,
 		)
-		.toJS()
+		.toJS();
 }
 
 export function withContextInitial(propertyName?: string, reference?: string) {
-	const base = getKeyItem(expressions.contextReference)
+	const base = getKeyItem(expressions.contextReference);
 	return Map(base)
 		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'identifier'],
 			name => reference ?? name,
 		)
-		.toJS()
+		.toJS();
 }
 
 export function withMultiplyInitial(properties?: Array<[propName: string, propValue: any]>) {
-	const base = Map(getKeyItem(null)).deleteIn(['contextDescription', 0, 'context', 0])
+	const base = Map(getKeyItem(null)).deleteIn(['contextDescription', 0, 'context', 0]);
 	properties?.forEach(([name, value]) => {
-		let keyItem = {}
+		let keyItem = {};
 		if (typeof value === 'string') {
-			keyItem = withStringInitial(name, value)
+			keyItem = withStringInitial(name, value);
 		}
 		else if (typeof value === 'number') {
-			keyItem = Number.isInteger(value) ? withIntegerInitial(name, value) : withDecimalInitial(name, value)
+			keyItem = Number.isInteger(value) ? withIntegerInitial(name, value) : withDecimalInitial(name, value);
 		}
 		else if (Array.isArray(value)) {
-			keyItem = withArrayInitial(name)
+			keyItem = withArrayInitial(name);
 		}
 		base.mergeWith((oldVal: any, newVal: any) => {
-			oldVal[0]?.context.push(...(newVal[0]?.context ?? []))
-			return oldVal
-		}, keyItem)
-	})
-	return base.toJS()
+			oldVal[0]?.context.push(...(newVal[0]?.context ?? []));
+			return oldVal;
+		}, keyItem);
+	});
+	return base.toJS();
 }
 
 /// Base function declaration
@@ -167,28 +167,28 @@ const multiplyProperty = getKeyItem(getExpression(functions.withMultiplyArgs));
 */
 
 export function expression(propertyName?: string, functionName?: string) {
-	const base = getKeyItem(expressions.function)
+	const base = getKeyItem(expressions.function);
 	if (propertyName || functionName) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
 				name => functionName ?? name,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 // TODO MAYBE NEED TO UPDATE FOR MULTIPLE ITEMS
 
 export function withProperty(propertyName?: string, functionName?: string, functionPropertyName?: string) {
-	const base = getKeyItem(getExpression(functions.withPropertyArgs))
+	const base = getKeyItem(getExpression(functions.withPropertyArgs));
 	if (propertyName || functionName || functionPropertyName) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -209,18 +209,18 @@ export function withProperty(propertyName?: string, functionName?: string, funct
 					'identifier',
 				],
 				name => functionPropertyName ?? name,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function withString(propertyName?: string, functionName?: string, stringProperty?: string) {
-	const base = getKeyItem(getExpression(functions.withStringArgs))
+	const base = getKeyItem(getExpression(functions.withStringArgs));
 	if (propertyName || functionName || stringProperty) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -241,18 +241,18 @@ export function withString(propertyName?: string, functionName?: string, stringP
 					'StringDeclaration',
 				],
 				name => stringProperty?.substring(1, stringProperty.length - 1) ?? name,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function withInteger(propertyName?: string, functionName?: string, integerValue?: number) {
-	const base = getKeyItem(getExpression(functions.withIntegerArgs))
+	const base = getKeyItem(getExpression(functions.withIntegerArgs));
 	if (propertyName || functionName || integerValue) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -273,19 +273,19 @@ export function withInteger(propertyName?: string, functionName?: string, intege
 					'NumberDeclaration',
 				],
 				v => integerValue ?? v,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function withDecimal(propertyName?: string, functionName?: string, decimalValue?: number) {
-	if (Number.isInteger(decimalValue)) throw new Error('Decimal value must be a float.')
-	const base = getKeyItem(getExpression(functions.withDecimalArgs))
+	if (Number.isInteger(decimalValue)) throw new Error('Decimal value must be a float.');
+	const base = getKeyItem(getExpression(functions.withDecimalArgs));
 	if (propertyName || functionName || decimalValue) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -306,36 +306,36 @@ export function withDecimal(propertyName?: string, functionName?: string, decima
 					'NumberDeclaration',
 				],
 				v => decimalValue ?? v,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 // ???
 export function withArray(propertyName?: string, functionName?: string) {
-	const base = getKeyItem(getExpression(functions.withArrayArgs))
+	const base = getKeyItem(getExpression(functions.withArrayArgs));
 	if (propertyName || functionName) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
 				name => functionName ?? name,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function withConstant(propertyName?: string, functionName?: string, constantValue?: string) {
-	const base = getKeyItem(getExpression(functions.withConstantArgs))
+	const base = getKeyItem(getExpression(functions.withConstantArgs));
 	if (propertyName || functionName || constantValue) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -356,20 +356,20 @@ export function withConstant(propertyName?: string, functionName?: string, const
 					'identifier',
 				],
 				(v) => {
-					return constantValue ?? v
+					return constantValue ?? v;
 				},
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function recursive(propertyName?: string, functionName?: string, funcRecursiveName?: string) {
-	const base = getKeyItem(getExpression(functions.withRecursiveFunction))
+	const base = getKeyItem(getExpression(functions.withRecursiveFunction));
 	if (propertyName || functionName || funcRecursiveName) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -391,18 +391,18 @@ export function recursive(propertyName?: string, functionName?: string, funcRecu
 					'FunctionName',
 				],
 				name => funcRecursiveName ?? name,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
 export function multiplyProperty(propertyName?: string,	functionName?: string,	funcPropertyName1?: string,	funcPropertyName2?: string) {
-	const base = getKeyItem(getExpression(functions.withArrayArgs))
+	const base = getKeyItem(getExpression(functions.withArrayArgs));
 	if (propertyName || functionName || funcPropertyName1 || funcPropertyName2) {
-		const map = Map(base)
+		const map = Map(base);
 		const updated = map
 			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
@@ -438,11 +438,11 @@ export function multiplyProperty(propertyName?: string,	functionName?: string,	f
 					'Property',
 				],
 				name => funcPropertyName2 ?? name,
-			)
-		return updated.toJS()
+			);
+		return updated.toJS();
 	}
 	else {
-		return base
+		return base;
 	}
 }
 
@@ -456,7 +456,7 @@ export const functionsFixtures = {
 	withProperty,
 	withString,
 	multiplyProperty,
-}
+};
 export const keyItem = {
 	declarationKeyItem,
 	withStringInitial,
@@ -467,4 +467,4 @@ export const keyItem = {
 	withContextInitial,
 	withPayloadInitial,
 	withMultiplyInitial,
-}
+};

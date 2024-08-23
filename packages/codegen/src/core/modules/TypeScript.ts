@@ -1,27 +1,27 @@
-import type { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js'
-import { JavaScriptCodegen } from './JavaScript.js'
-import type { ModuleNames } from './index'
+import type { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { JavaScriptCodegen } from './JavaScript.js';
+import type { ModuleNames } from './index';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<ModuleNames.TypeScript> {
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
-		super(diagram)
-		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator')
+		super(diagram);
+		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
 	protected override getStateValidator(): string {
-		return `(${super.getStateValidator()}) as TValidator<TAutomataBaseStateType>`
+		return `(${super.getStateValidator()}) as TValidator<TAutomataBaseStateType>`;
 	}
 
 	protected override getActionValidator(): string {
-		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`
+		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
 	}
 
 	protected override getIsKeyOf(): string {
-		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`
+		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 
 	protected override getGetActionFunc(): string {
-		return `(action: keyof typeof actionsMap) => actionsDictionary[action]`
+		return `(action: keyof typeof actionsMap) => actionsDictionary[action]`;
 	}
 
 	protected override getCreateActionFunc(className: string): string {
@@ -31,7 +31,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<Mod
 				action: actionId,
 				payload,
 			}
-		}`
+		}`;
 	}
 
 	public override getCode(options: TGetCodeOptionsMap[ModuleNames.TypeScript]): string {
@@ -43,14 +43,14 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<Mod
 			${this.getDefaultContext()}
 			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
-		`
+		`;
 	}
 
 	protected override getHasStateFunc(className: string): string {
-		return `(instance: ${className}, state: keyof typeof ${className}.states) => instance.state === ${className}.getState(state)`
+		return `(instance: ${className}, state: keyof typeof ${className}.states) => instance.state === ${className}.getState(state)`;
 	}
 
 	protected override getGetStateFunc(): string {
-		return `(state: keyof typeof statesMap) => statesDictionary[state]`
+		return `(state: keyof typeof statesMap) => statesDictionary[state]`;
 	}
 }

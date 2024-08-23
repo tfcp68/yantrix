@@ -1,2 +1,2 @@
-export * from './baseStateTypes.js'
-export * from './stateDiagramTypes.js'
+export * from './baseStateTypes.js';
+export * from './stateDiagramTypes.js';

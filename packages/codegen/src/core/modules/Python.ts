@@ -1,22 +1,22 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata'
-import type { TDiagramAction } from '@yantrix/mermaid-parser'
-import { StartState } from '@yantrix/mermaid-parser'
-import { fillDictionaries } from '../shared.js'
-import type { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js'
-import type { ModuleNames } from './index'
+import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import type { TDiagramAction } from '@yantrix/mermaid-parser';
+import { StartState } from '@yantrix/mermaid-parser';
+import { fillDictionaries } from '../shared.js';
+import type { ICodegen, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import type { ModuleNames } from './index';
 
 export class PythonCodegen implements ICodegen<ModuleNames.Python> {
-	stateDictionary: BasicStateDictionary
-	actionDictionary: BasicActionDictionary
-	diagram: TStateDiagramMatrixIncludeNotes
-	handlersDict: string[]
+	stateDictionary: BasicStateDictionary;
+	actionDictionary: BasicActionDictionary;
+	diagram: TStateDiagramMatrixIncludeNotes;
+	handlersDict: string[];
 	// initialContext: string;
-	initialContextKeys: string[]
-	changeStateHandlers: string[]
-	dictionaries: string[]
+	initialContextKeys: string[];
+	changeStateHandlers: string[];
+	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata'],
-	}
+	};
 
 	public getCode(options: TGetCodeOptionsMap[ModuleNames.Python]): string {
 		return `
@@ -25,23 +25,23 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 			${this.getDefaultContext()}
 			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
-		`
+		`;
 	}
 
 	constructor(diagram: TStateDiagramMatrixIncludeNotes) {
-		this.actionDictionary = new BasicActionDictionary()
-		this.stateDictionary = new BasicStateDictionary()
-		this.diagram = diagram
+		this.actionDictionary = new BasicActionDictionary();
+		this.stateDictionary = new BasicStateDictionary();
+		this.diagram = diagram;
 
-		this.handlersDict = []
-		this.changeStateHandlers = []
-		this.dictionaries = []
-		this.initialContextKeys = []
+		this.handlersDict = [];
+		this.changeStateHandlers = [];
+		this.dictionaries = [];
+		this.initialContextKeys = [];
 
 		// this.initialContext = this.getInitialContext();
 
-		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary)
-		this.setupDictionaries()
+		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
+		this.setupDictionaries();
 	}
 
 	public getImports(): string {
@@ -50,16 +50,16 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 		// 	imports += `from '${key}' import ${value.join(', ')}\n`;
 		// }
 		// return imports;
-		return ''
+		return '';
 	}
 
 	public getDictionaries(): string {
-		return this.dictionaries.join('\n')
+		return this.dictionaries.join('\n');
 	}
 
 	setupDictionaries(): void {
-		this.dictionaries.push(`statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`)
-		this.dictionaries.push(`actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`)
+		this.dictionaries.push(`statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`);
+		this.dictionaries.push(`actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`);
 	}
 
 	getClassTemplate(className: string): string {
@@ -73,26 +73,26 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 			`${this.getIsKeyOf()}`,
 			`${this.getStateValidator()}`,
 			`${this.getActionValidator()}`,
-		]
-		return content.join('\n\t')
+		];
+		return content.join('\n\t');
 	}
 
 	public getActionToStateFromState(): string {
-		return `actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`
+		return `actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>): string[] {
 		return Object.entries(transitions)
 			.map(([key, transition]) => {
-				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0]
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
 				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
-					})[0]
+					})[0];
 					if (!actionValue)
-						throw new Error(`Action ${action} not found`)
+						throw new Error(`Action ${action} not found`);
 					if (!newState)
-						throw new Error(`State ${key} not found`)
+						throw new Error(`State ${key} not found`);
 
 					// const ctx = this.getSubsyntaxContext(key);
 
@@ -101,16 +101,16 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 						`\t'state': ${newState},`,
 						`\t'getNewContext': lambda payload, context: ${{}}`,
 						`},`,
-					]
-					return context.join('\n')
-				})
+					];
+					return context.join('\n');
+				});
 			})
-			.flatMap(el => `${el.join('\n\t')}`)
+			.flatMap(el => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf(): string {
-		const content = [`def isKeyOf(self, key, obj):`, `return key in obj`]
-		return content.join('\n\t\t')
+		const content = [`def isKeyOf(self, key, obj):`, `return key in obj`];
+		return content.join('\n\t\t');
 	}
 
 	protected getRootReducer(): string {
@@ -122,52 +122,52 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 			`${this.getRootReducerActionValidation()}`,
 			`stateNew, getNewContext = actionToStateFromStateDict[state][action]`,
 			`return { 'state': stateNew, 'context': getNewContext(payload, context) }`,
-		]
-		return content.join('\n\t\t')
+		];
+		return content.join('\n\t\t');
 	}
 
 	protected getRootReducerStateValidation(): string {
 		const context = [
 			`${this.getRootReducerStateValidationHead()}`,
 			`\t\t\t${this.getRootReducerStateValidationError()}`,
-		]
-		return context.join('\n')
+		];
+		return context.join('\n');
 	}
 
 	protected getRootReducerStateValidationHead(): string {
-		return `if not self.isKeyOf(state, actionToStateFromStateDict):`
+		return `if not self.isKeyOf(state, actionToStateFromStateDict):`;
 	}
 
 	protected getRootReducerStateValidationError(): string {
-		return `raise ValueError("Invalid state, maybe machine isn't running.")`
+		return `raise ValueError("Invalid state, maybe machine isn't running.")`;
 	}
 
 	protected getRootReducerActionValidation(): string {
 		const content = [
 			`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
 			`return {'state': state, 'context': context }`,
-		]
-		return content.join('\n\t\t\t')
+		];
+		return content.join('\n\t\t\t');
 	}
 
 	protected getStateValidator(): string {
-		const content = [`def stateValidator(self, s):`, `return s in statesDictionary.values()`]
-		return content.join('\n\t\t')
+		const content = [`def stateValidator(self, s):`, `return s in statesDictionary.values()`];
+		return content.join('\n\t\t');
 	}
 
 	protected getActionValidator(): string {
-		const content = [`def actionValidator(self, a):`, `return a in actionsDictionary.values()`]
-		return content.join('\n\t\t')
+		const content = [`def actionValidator(self, a):`, `return a in actionsDictionary.values()`];
+		return content.join('\n\t\t');
 	}
 
 	protected getActionToStateFromStateDict(): string[] {
 		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
-			const value = this.stateDictionary.getStateValues({ keys: [state] })[0]
+			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value)
-				throw new Error(`State ${state} not found`)
+				throw new Error(`State ${state} not found`);
 
-			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`
-		})
+			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
+		});
 	}
 
 	// protected getSubsyntaxContext(state: string | null) {
@@ -252,13 +252,13 @@ export class PythonCodegen implements ICodegen<ModuleNames.Python> {
 			`def getDefaultContext(payload, prevContext):`,
 			// `\tinitialContext = ${this.getSubsyntaxContext(StartState)}`,
 			`\treturn {**initialContext, **prevContext}`,
-		]
+		];
 
-		return context.join('\n')
+		return context.join('\n');
 	}
 
 	private getInitialState(): number | null | undefined {
-		return this.stateDictionary.getStateValues({ keys: [StartState] })[0]
+		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
 
 	// private getContextValues(context: TKeyItem, boundProperty: TKeyItem | null, type: TAssignTypes) {

@@ -1,4 +1,4 @@
-import config from '@antfu/eslint-config'
+import config from '@antfu/eslint-config';
 
 export default config(
 	{
@@ -7,6 +7,7 @@ export default config(
 			indent: 'tab',
 			jsx: 'preserve',
 			quotes: 'single',
+			semi: true,
 		},
 		typescript: true,
 		javascript: true,
@@ -94,4 +95,4 @@ export default config(
 			],
 		},
 	},
-)
+);

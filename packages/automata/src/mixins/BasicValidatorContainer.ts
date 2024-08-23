@@ -3,10 +3,10 @@ import type {
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
-} from '../types/index.js'
-import BasicActionContainer from './BasicActionContainer.js'
-import BasicEventContainer from './BasicEventContainer.js'
-import BasicStateContainer from './BasicStateContainer.js'
+} from '../types/index.js';
+import BasicActionContainer from './BasicActionContainer.js';
+import BasicEventContainer from './BasicEventContainer.js';
+import BasicStateContainer from './BasicStateContainer.js';
 
 export default function BasicValidatorContainer<
 	StateType extends TAutomataBaseStateType,
@@ -16,5 +16,5 @@ export default function BasicValidatorContainer<
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractBasicValidatorContainer extends BasicStateContainer<StateType>()(
 			BasicEventContainer<EventType>()(BasicActionContainer<ActionType>()(Proto)),
-		) {}
+		) {};
 }

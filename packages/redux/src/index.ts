@@ -1,56 +1,56 @@
-import type { Dispatch } from '@reduxjs/toolkit'
-import type { GenericAutomata, TAutomataStateContext } from '@yantrix/automata'
-import { uniqId } from '@yantrix/utils'
-import type { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js'
+import type { Dispatch } from '@reduxjs/toolkit';
+import type { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
+import { uniqId } from '@yantrix/utils';
+import type { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
-const reduxConnectedAutomata: TReduxConnectedAutomata = {}
+const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
 export function getReduxConnectedAutomata(): Readonly<TReduxConnectedAutomata> {
-	return reduxConnectedAutomata
+	return reduxConnectedAutomata;
 }
 
 function dispatchToRedux(props: {
-	reduxDispatch: Dispatch
-	reduxActionGenerator: TActionGenerator
-	automataContext: TAutomataStateContext<number, Record<number, any>>
+	reduxDispatch: Dispatch;
+	reduxActionGenerator: TActionGenerator;
+	automataContext: TAutomataStateContext<number, Record<number, any>>;
 }) {
-	const reduxAction = props.reduxActionGenerator(props.automataContext)
-	return props.reduxDispatch(reduxAction)
+	const reduxAction = props.reduxActionGenerator(props.automataContext);
+	return props.reduxDispatch(reduxAction);
 }
 
 export function connectReduxAutomata(props: {
-	automata: GenericAutomata
-	reduxDispatch: Dispatch
-	reduxActionGenerator: TActionGenerator
+	automata: GenericAutomata;
+	reduxDispatch: Dispatch;
+	reduxActionGenerator: TActionGenerator;
 }) {
 	const dispatch: typeof GenericAutomata.prototype.dispatch = (action) => {
-		let newContext = props.automata.context
+		let newContext = props.automata.context;
 		try {
-			newContext = props.automata.dispatch(action)
-			return newContext
+			newContext = props.automata.dispatch(action);
+			return newContext;
 		}
 		finally {
 			dispatchToRedux({
 				reduxDispatch: props.reduxDispatch,
 				reduxActionGenerator: props.reduxActionGenerator,
 				automataContext: newContext,
-			})
+			});
 		}
-	}
-	const automataId = uniqId(10)
+	};
+	const automataId = uniqId(10);
 	reduxConnectedAutomata[automataId] = {
 		basicAutomata: props.automata,
 		reduxDispatch: props.reduxDispatch,
 		reduxActionGenerator: props.reduxActionGenerator,
 		dispatch,
-	}
-	return automataId
+	};
+	return automataId;
 }
 
 export function useReduxAutomata(automataId: TAutomataId) {
-	const automata = reduxConnectedAutomata[automataId]
+	const automata = reduxConnectedAutomata[automataId];
 	if (!automata) {
-		throw new Error(`Automata ${automataId} not found`)
+		throw new Error(`Automata ${automataId} not found`);
 	}
-	return [automata.basicAutomata, automata.dispatch] as const
+	return [automata.basicAutomata, automata.dispatch] as const;
 }

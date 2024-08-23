@@ -1,10 +1,10 @@
-import { AbstractBaseClass } from './mixins/BaseClass.js'
-import DictionaryContainer from './mixins/DictionaryContainer.js'
-import ExtendedEventContainer from './mixins/ExtendedEventContainer.js'
-import type { TEventKeysCollection, TEventLookupParams, TEventValuesCollection } from './types/dictionaries.js'
-import type { TAbstractConstructor } from './types/index.js'
-import type { IEventDictionary } from './types/interfaces.js'
-import type { TAutomataBaseEventType } from './index.js'
+import { AbstractBaseClass } from './mixins/BaseClass.js';
+import DictionaryContainer from './mixins/DictionaryContainer.js';
+import ExtendedEventContainer from './mixins/ExtendedEventContainer.js';
+import type { TEventKeysCollection, TEventLookupParams, TEventValuesCollection } from './types/dictionaries.js';
+import type { TAbstractConstructor } from './types/index.js';
+import type { IEventDictionary } from './types/interfaces.js';
+import type { TAutomataBaseEventType } from './index.js';
 
 export function createEventDictionary<
 	EventType extends TAutomataBaseEventType,
@@ -27,14 +27,14 @@ export function createEventDictionary<
 			}: TEventValuesCollection<EventType>): Array<string | null> {
 				return (events ?? []).map((event) => {
 					if (!this.validateEvent(event))
-						return null
-					const data = this._getValueData(event)
+						return null;
+					const data = this._getValueData(event);
 					if (!data)
-						return null
+						return null;
 					if (namespace !== null && namespace !== data.namespace)
-						return null
-					return data?.key
-				})
+						return null;
+					return data?.key;
+				});
 			}
 
 			/**
@@ -43,7 +43,7 @@ export function createEventDictionary<
 			 * @returns dictionary
 			 */
 			clearEvents(namespace?: string): this {
-				return this._clearItems(namespace)
+				return this._clearItems(namespace);
 			}
 
 			/**
@@ -55,15 +55,15 @@ export function createEventDictionary<
 				const eventsToDelete = [
 					...events.filter(this.validateEvent),
 					...keys.flatMap(k => (k ? [this._findItem(k, namespace)] : [])),
-				].filter(v => v !== null)
+				].filter(v => v !== null);
 				const eventKeys = eventsToDelete
 					.map(event => this._getValueData(event))
-					.filter(data => !!data && (namespace == null || namespace === data?.namespace))
+					.filter(data => !!data && (namespace == null || namespace === data?.namespace));
 				for (const eventKey of eventKeys) {
 					if (eventKey)
-						this._deleteItemKey(eventKey.key)
+						this._deleteItemKey(eventKey.key);
 				}
-				return this
+				return this;
 			}
 
 			/**
@@ -75,7 +75,7 @@ export function createEventDictionary<
 				namespace = undefined,
 				keys = [],
 			}: TEventKeysCollection<EventType>): Array<EventType | null> {
-				return (keys ?? []).flatMap(k => (k ? [this._findItem(k, namespace)] : []))
+				return (keys ?? []).flatMap(k => (k ? [this._findItem(k, namespace)] : []));
 			}
 
 			/**
@@ -84,17 +84,17 @@ export function createEventDictionary<
 			 * @returns Array of added events
 			 */
 			addEvents({ namespace = undefined, keys }: TEventKeysCollection<EventType>): EventType[] {
-				return (keys || []).flatMap(k => (k ? [this._addItemKey(k, namespace)] : []))
+				return (keys || []).flatMap(k => (k ? [this._addItemKey(k, namespace)] : []));
 			}
-		}
+		};
 }
 
 export class BasicEventDictionary
 	extends createEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
 	implements IEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>> {
 	constructor() {
-		super()
+		super();
 	}
 }
 
-export default BasicEventDictionary
+export default BasicEventDictionary;

@@ -1,15 +1,15 @@
-import { uniqId } from '@yantrix/utils'
-import type { IBaseClass } from '../types/index.js'
+import { uniqId } from '@yantrix/utils';
+import type { IBaseClass } from '../types/index.js';
 
 export class AbstractBaseClass implements IBaseClass {
-	correlationId: string
+	correlationId: string;
 
 	constructor(...args: any[]) {
-		(() => [...args])()
-		this.correlationId = uniqId()
+		(() => [...args])();
+		this.correlationId = uniqId();
 	}
 
 	next(): this {
-		return this
+		return this;
 	}
 }
