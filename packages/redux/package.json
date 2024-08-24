@@ -3,6 +3,7 @@
 	"type": "module",
 	"version": "0.0.1",
 	"description": "Redux automata integration for Redux",
+	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"license": "MIT",
 	"homepage": "https://tfcp68.github.io/yantrix",
 	"repository": {
@@ -28,10 +29,10 @@
 	],
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "cross-env TIMING=1 eslint --fix --format=pretty .",
-		"lint": "cross-env TIMING=1 eslint --format=pretty .",
+		"format": "eslint --fix --format=pretty .",
+		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "cd ../codegen && tsx ./__tests__/fixtures/saveGenerated.ts && cd ../redux && bash -c 'cp ../codegen/__tests__/fixtures/*_generated.ts ./__tests__/fixtures/' && vitest run --outputFile=../../test_reports/redux.md"
+		"test": "vitest run --outputFile=../../test_reports/redux.md"
 	},
 	"directories": {
 		"lib": "src",
@@ -41,7 +42,7 @@
 		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {
-		"@reduxjs/toolkit": "^2.2.5",
+		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
 		"tsx": "^4.18.0"
 	}

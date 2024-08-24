@@ -95,11 +95,11 @@ importers:
         specifier: workspace:^
         version: link:../utils
       underscore:
-        specifier: ^1.13.6
+        specifier: ^1.13.7
         version: 1.13.7
     devDependencies:
       '@types/underscore':
-        specifier: ^1.11.4
+        specifier: ^1.11.15
         version: 1.11.15
 
   packages/cli:

@@ -1,1 +1,1 @@
-pnpm install && pnpm build:affected && pnpm test:affected
+pnpm install && pnpm test:affected

@@ -6,8 +6,8 @@
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
 		"test": "vitest run",
-		"lint": "cross-env TIMING=1 eslint --format=pretty src",
-		"format": "cross-env TIMING=1 eslint --fix --format=pretty src",
+		"lint": "eslint --format=pretty src",
+		"format": "eslint --fix --format=pretty src",
 		"prepack": "pnpm run build && pnpm run lint"
 	},
 	"exports": {

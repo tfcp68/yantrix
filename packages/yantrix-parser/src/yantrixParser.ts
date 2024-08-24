@@ -14,19 +14,19 @@ import { JisonParser, JisonParserApi, StateType, SymbolsType, TerminalsType, Pro
 
 export class YantrixParser extends JisonParser implements JisonParserApi {
     $?: any;
-    symbols_: SymbolsType = {"error":2,"start":3,"document":4,"EOF":5,"line":6,"statements":7,"NewLine":8,"PLUS":9,"INITIAL_STATE":10,"BY_PASS":11,"CONTEXT_STATEMENT":12,"EMIT_STATEMENT":13,"SUBSCRIBE_STATEMENT":14,"CONTEXT_SYMBOL":15,"LEFT_BRACE":16,"RAW_KEYLIST":17,"RIGHT_BRACE":18,"LEFT_ARROW":19,"KEY_LIST":20,"EMIT_EVENT":21,"KEY_LIST_STATEMENT":22,"EMIT":23,"IDENT":24,"SUBSCRIBE_EVENT":25,"SUBSCRIBE":26,"LEFT_BRACKET":27,"RIGHT_BRACKET":28,"KEY_ITEM":29,"COMMA":30,"DATA_OBJECT":31,"IMMUTABLE":32,"FUNCTION":33,"RAW_KEYITEM":34,"ASSIGN":35,"EXPRESSION":36,"FUNCTION_NAME":37,"ARGUMENTS":38,"DATA_OBJECT_REFERENCE":39,"CONSTANT":40,"PAYLOAD_REFERENCE":41,"CONTEXT_REFERENCE":42,"CONSTANT_SYMBOL":43,"DOLLAR_SYMBOL":44,"ARRAY":45,"STRING":46,"NUMBER":47,"INTEGER":48,"DECIMAL":49,"$accept":0,"$end":1};
-    terminals_: TerminalsType = {2:"error",5:"EOF",8:"NewLine",9:"PLUS",10:"INITIAL_STATE",11:"BY_PASS",15:"CONTEXT_SYMBOL",16:"LEFT_BRACE",18:"RIGHT_BRACE",19:"LEFT_ARROW",23:"EMIT",24:"IDENT",26:"SUBSCRIBE",27:"LEFT_BRACKET",28:"RIGHT_BRACKET",30:"COMMA",35:"ASSIGN",37:"FUNCTION_NAME",43:"CONSTANT_SYMBOL",44:"DOLLAR_SYMBOL",45:"ARRAY",46:"STRING",48:"INTEGER",49:"DECIMAL"};
-    productions_: ProductionsType = [0,[3,2],[4,0],[4,2],[6,1],[6,1],[7,2],[7,2],[7,1],[7,1],[7,1],[12,4],[12,6],[13,1],[13,2],[13,7],[21,2],[14,1],[14,2],[14,4],[25,3],[22,3],[20,1],[20,3],[29,1],[29,1],[29,1],[17,1],[17,3],[34,1],[34,3],[33,4],[33,3],[38,1],[38,3],[31,3],[31,1],[36,1],[36,1],[36,1],[39,1],[39,1],[39,1],[40,2],[41,2],[42,2],[32,1],[32,1],[32,1],[47,1],[47,1]];
+    symbols_: SymbolsType = {"error":2,"start":3,"document":4,"EOF":5,"line":6,"statements":7,"NewLine":8,"PLUS":9,"INITIAL_STATE":10,"BY_PASS":11,"CONTEXT_STATEMENT":12,"EMIT_STATEMENT":13,"SUBSCRIBE_STATEMENT":14,"DEFINE_STATEMENT":15,"CONTEXT_SYMBOL":16,"LEFT_BRACE":17,"RAW_KEYLIST":18,"RIGHT_BRACE":19,"LEFT_ARROW":20,"KEY_LIST":21,"EMIT_EVENT":22,"KEY_LIST_STATEMENT":23,"EMIT":24,"IDENT":25,"SUBSCRIBE_EVENT":26,"SUBSCRIBE":27,"DEFINE":28,"DEFINE_ARGUMENTS":29,"RIGHT_ARROW":30,"DEFINE_FUNCTION":31,"FUNCTION_NAME":32,"LEFT_BRACKET":33,"DEFINE_FUNCTION_ARGUMENTS":34,"RIGHT_BRACKET":35,"EXPRESSION_DEFINE":36,"COMMA":37,"IMMUTABLE":38,"DEFINE_ARGUMENTS_TYPES":39,"KEY_ITEM":40,"DATA_OBJECT":41,"FUNCTION":42,"RAW_KEYITEM":43,"ASSIGN":44,"EXPRESSION":45,"ARGUMENTS":46,"DATA_OBJECT_REFERENCE":47,"CONSTANT":48,"PAYLOAD_REFERENCE":49,"CONTEXT_REFERENCE":50,"CONSTANT_SYMBOL":51,"DOLLAR_SYMBOL":52,"ARRAY":53,"STRING":54,"NUMBER":55,"INTEGER":56,"DECIMAL":57,"$accept":0,"$end":1};
+    terminals_: TerminalsType = {2:"error",5:"EOF",8:"NewLine",9:"PLUS",10:"INITIAL_STATE",11:"BY_PASS",16:"CONTEXT_SYMBOL",17:"LEFT_BRACE",19:"RIGHT_BRACE",20:"LEFT_ARROW",24:"EMIT",25:"IDENT",27:"SUBSCRIBE",28:"DEFINE",30:"RIGHT_ARROW",32:"FUNCTION_NAME",33:"LEFT_BRACKET",35:"RIGHT_BRACKET",37:"COMMA",44:"ASSIGN",51:"CONSTANT_SYMBOL",52:"DOLLAR_SYMBOL",53:"ARRAY",54:"STRING",56:"INTEGER",57:"DECIMAL"};
+    productions_: ProductionsType = [0,[3,2],[4,0],[4,2],[6,1],[6,1],[7,2],[7,2],[7,1],[7,1],[7,1],[7,1],[12,4],[12,6],[13,1],[13,2],[13,7],[22,2],[14,1],[14,2],[14,4],[26,3],[15,5],[31,4],[31,3],[34,1],[34,3],[36,1],[36,1],[36,1],[29,2],[29,3],[39,1],[39,3],[23,3],[21,1],[21,3],[40,1],[40,1],[40,1],[18,1],[18,3],[43,1],[43,3],[42,4],[42,3],[46,1],[46,3],[41,3],[41,1],[45,1],[45,1],[45,1],[47,1],[47,1],[47,1],[48,2],[49,2],[50,2],[38,1],[38,1],[38,1],[55,1],[55,1]];
     table: Array<StateType>;
-    defaultActions: {[key:number]: any} = {3:[2,1],61:[2,28]};
+    defaultActions: {[key:number]: any} = {3:[2,1],66:[2,30],70:[2,41],83:[2,31]};
 
     constructor (yy = {}, lexer = new YantrixLexer(yy)) {
       super(yy, lexer);
 
       // shorten static method to just `o` for terse STATE_TABLE
-      const $V0=[5,8,9,15,23,26],$V1=[1,20],$V2=[1,26],$V3=[1,45],$V4=[1,37],$V5=[1,43],$V6=[1,44],$V7=[1,34],$V8=[1,35],$V9=[1,41],$Va=[1,42],$Vb=[5,8,9,15,23,26,27],$Vc=[18,30],$Vd=[5,8,9,15,23,26,28],$Ve=[5,8,9,15,23,26,28,30],$Vf=[5,8,9,15,18,23,26,28,30],$Vg=[5,8,9,15,18,23,26,28,30,35],$Vh=[28,30];
+      const $V0=[5,8,9,16,24,27,28],$V1=[1,22],$V2=[1,29],$V3=[1,48],$V4=[1,40],$V5=[1,46],$V6=[1,47],$V7=[1,37],$V8=[1,38],$V9=[1,44],$Va=[1,45],$Vb=[5,8,9,16,24,27,28,33],$Vc=[19,37],$Vd=[5,8,9,16,24,27,28,35],$Ve=[5,8,9,16,24,27,28,35,37],$Vf=[5,8,9,16,19,24,27,28,35,37],$Vg=[5,8,9,16,19,24,27,28,35,37,44],$Vh=[1,82],$Vi=[35,37],$Vj=[1,97];
       const o = JisonParser.expandParseTable;
-      this.table = [o($V0,[2,2],{3:1,4:2}),{1:[3]},{5:[1,3],6:4,7:5,8:[1,6],9:[1,7],12:8,13:9,14:10,15:[1,11],21:12,23:[1,14],25:13,26:[1,15]},{1:[2,1]},o($V0,[2,3]),o($V0,[2,4]),o($V0,[2,5]),{10:[1,16],11:[1,17]},o($V0,[2,8]),o($V0,[2,9]),o($V0,[2,10]),{16:[1,18]},o($V0,[2,13],{22:19,27:$V1}),o($V0,[2,17],{22:21,27:$V1}),{24:[1,22]},{24:[1,23]},o($V0,[2,6]),o($V0,[2,7]),{17:24,24:$V2,34:25},o($V0,[2,14],{19:[1,27]}),{15:$V3,20:28,29:29,31:30,32:31,33:32,37:$V4,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},o($V0,[2,18],{19:[1,46]}),o($Vb,[2,16]),{24:[1,47]},{18:[1,48]},{18:[2,27],30:[1,49]},o($Vc,[2,29],{35:[1,50]}),{15:[1,51]},{28:[1,52]},o($Vd,[2,22],{30:[1,53]}),o($Ve,[2,24]),o($Ve,[2,25]),o($Ve,[2,26]),o($Vf,[2,36],{35:[1,54]}),o($Vf,[2,46]),o($Vf,[2,47]),o($Vf,[2,48]),{27:[1,55]},o($Vg,[2,40]),o($Vg,[2,41]),o($Vg,[2,42]),o($Vf,[2,49]),o($Vf,[2,50]),{24:[1,56]},{24:[1,57]},{24:[1,58]},{22:59,27:$V1},o($Vb,[2,20]),o($V0,[2,11],{19:[1,60]}),{17:61,24:$V2,34:25},{15:$V3,31:64,32:63,33:65,36:62,37:$V4,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},{16:[1,66]},o([5,8,9,15,19,23,26],[2,21]),{15:$V3,20:67,29:29,31:30,32:31,33:32,37:$V4,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},{15:$V3,31:64,32:63,33:65,36:68,37:$V4,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},{15:$V3,28:[1,70],31:64,32:63,33:65,36:71,37:$V4,38:69,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},o($Vg,[2,43]),o($Vg,[2,44]),o($Vg,[2,45]),o($V0,[2,19]),{15:$V3,20:72,29:29,31:30,32:31,33:32,37:$V4,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},{18:[2,28]},o($Vc,[2,30]),o($Vf,[2,37]),o($Vf,[2,38]),o($Vf,[2,39]),{17:73,24:$V2,34:25},o($Vd,[2,23]),o($Vf,[2,35]),{28:[1,74],30:[1,75]},o($Vf,[2,32]),o($Vh,[2,33]),o($V0,[2,12]),{18:[1,76]},o($Vf,[2,31]),{15:$V3,31:64,32:63,33:65,36:77,37:$V4,39:33,40:38,41:39,42:40,43:$V5,44:$V6,45:$V7,46:$V8,47:36,48:$V9,49:$Va},o($V0,[2,15]),o($Vh,[2,34])];
+      this.table = [o($V0,[2,2],{3:1,4:2}),{1:[3]},{5:[1,3],6:4,7:5,8:[1,6],9:[1,7],12:8,13:9,14:10,15:11,16:[1,12],22:13,24:[1,16],26:14,27:[1,17],28:[1,15]},{1:[2,1]},o($V0,[2,3]),o($V0,[2,4]),o($V0,[2,5]),{10:[1,18],11:[1,19]},o($V0,[2,8]),o($V0,[2,9]),o($V0,[2,10]),o($V0,[2,11]),{17:[1,20]},o($V0,[2,14],{23:21,33:$V1}),o($V0,[2,18],{23:23,33:$V1}),{25:[1,24]},{25:[1,25]},{25:[1,26]},o($V0,[2,6]),o($V0,[2,7]),{18:27,25:$V2,43:28},o($V0,[2,15],{20:[1,30]}),{16:$V3,21:31,32:$V4,38:34,40:32,41:33,42:35,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($V0,[2,19],{20:[1,49]}),{29:50,33:[1,51]},o($Vb,[2,17]),{25:[1,52]},{19:[1,53]},{19:[2,40],37:[1,54]},o($Vc,[2,42],{44:[1,55]}),{16:[1,56]},{35:[1,57]},o($Vd,[2,35],{37:[1,58]}),o($Ve,[2,37]),o($Ve,[2,38]),o($Ve,[2,39]),o($Vf,[2,49],{44:[1,59]}),o($Vf,[2,59]),o($Vf,[2,60]),o($Vf,[2,61]),{33:[1,60]},o($Vg,[2,53]),o($Vg,[2,54]),o($Vg,[2,55]),o($Vf,[2,62]),o($Vf,[2,63]),{25:[1,61]},{25:[1,62]},{25:[1,63]},{23:64,33:$V1},{30:[1,65]},{25:[1,68],35:[1,66],39:67},o($Vb,[2,21]),o($V0,[2,12],{20:[1,69]}),{18:70,25:$V2,43:28},{16:$V3,32:$V4,38:72,41:73,42:74,45:71,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{17:[1,75]},o([5,8,9,16,20,24,27,28],[2,34]),{16:$V3,21:76,32:$V4,38:34,40:32,41:33,42:35,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{16:$V3,32:$V4,38:72,41:73,42:74,45:77,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{16:$V3,32:$V4,35:[1,79],38:72,41:73,42:74,45:80,46:78,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vg,[2,56]),o($Vg,[2,57]),o($Vg,[2,58]),o($V0,[2,20]),{31:81,32:$Vh},{30:[2,30]},{35:[1,83],37:[1,84]},o($Vi,[2,32]),{16:$V3,21:85,32:$V4,38:34,40:32,41:33,42:35,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{19:[2,41]},o($Vc,[2,43]),o($Vf,[2,50]),o($Vf,[2,51]),o($Vf,[2,52]),{18:86,25:$V2,43:28},o($Vd,[2,36]),o($Vf,[2,48]),{35:[1,87],37:[1,88]},o($Vf,[2,45]),o($Vi,[2,46]),o($V0,[2,22]),{33:[1,89]},{30:[2,31]},{25:[1,90]},o($V0,[2,13]),{19:[1,91]},o($Vf,[2,44]),{16:$V3,32:$V4,38:72,41:73,42:74,45:92,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{25:$Vj,31:98,32:$Vh,34:93,35:[1,94],36:95,38:96,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vi,[2,33]),o($V0,[2,16]),o($Vi,[2,47]),{35:[1,99],37:[1,100]},o($Ve,[2,24]),o($Vi,[2,25]),o($Vi,[2,27]),o($Vi,[2,28]),o($Vi,[2,29]),o($Ve,[2,23]),{25:$Vj,31:98,32:$Vh,36:101,38:96,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vi,[2,26])];
     }
 
     performAction (yytext:string, yyleng:number, yylineno:number, yy:any, yystate:number /* action[1] */, $$:any /* vstack */, _$:any /* lstack */): any {
@@ -37,7 +37,7 @@ case 1:
 return $$[$0-1]
 break;
 case 2:
-this.$={contextDescription:[],emit:[],subscribe:[],initialState:false,byPass:false}
+this.$={defines:[], contextDescription:[],emit:[],subscribe:[],initialState:false,byPass:false}
 break;
 case 3:
 
@@ -51,6 +51,7 @@ case 3:
               if($$[$0].hasOwnProperty('context'))  $$[$0-1]['contextDescription'].push($$[$0])
               if($$[$0].hasOwnProperty('emit')) $$[$0-1]['emit'].push($$[$0]['emit'])
               if($$[$0].hasOwnProperty('subscribe')) $$[$0-1]['subscribe'].push($$[$0]['subscribe'])
+              if($$[$0].hasOwnProperty('define')) $$[$0-1]['defines'].push($$[$0]['define'])
            }
         
 break;
@@ -61,99 +62,117 @@ case 7:
 this.$ = {byPass:true}
 break;
 case 11:
-this.$ = {context:$$[$0-1]} 
+this.$ = {define:$$[$0]}
 break;
 case 12:
+this.$ = {context:$$[$0-1]} 
+break;
+case 13:
 
                   if($$[$0].length > $$[$0-3].length) {
                         throw new Error('The number of arguments must be equal to or less than the number of context arguments.')}; this.$ = {context: $$[$0-3], reducer:$$[$0]}
 break;
-case 13:
+case 14:
 this.$ = {emit:{...$$[$0]}}
 break;
-case 14:
+case 15:
  this.$ = {emit:{...$$[$0-1], meta:[...$$[$0]]}} 
 break;
-case 15:
+case 16:
  this.$ = {emit:{ ...$$[$0-6], meta: $$[$0-5], context:[...$$[$0-1]] }}
 break;
-case 16:
+case 17:
  this.$ = {identifier:$$[$0]}
 break;
-case 17:
+case 18:
  this.$ = {subscribe:$$[$0]}
 break;
-case 18:
+case 19:
  this.$ = {subscribe:{payload:$$[$0],...$$[$0-1]}}
 break;
-case 19:
+case 20:
  this.$ = {subscribe:{...$$[$0-3],meta:$$[$0], payload:$$[$0-2]}}
 break;
-case 20:
+case 21:
  this.$ = {identifier:$$[$0-1], actionName:$$[$0]}
 break;
-case 21:
- this.$ = $$[$0-1]
+case 22:
+this.$ = {identifier:$$[$0-3], ...$$[$0-2], expression:$$[$0]}
 break;
-case 22: case 27: case 33:
-this.$ = [$$[$0]]
-break;
-case 23:
-this.$ = [$$[$0-2]].concat($$[$0])
-break;
-case 24:
-this.$ = {keyItem:{...$$[$0]}}
-break;
-case 25: case 26:
-this.$ = {keyItem:{expression:$$[$0]}}
-break;
-case 28:
-this.$ =[$$[$0-2]].concat($$[$0])
-break;
-case 29:
-this.$ = {keyItem:{identifier:$$[$0]}}
-break;
-case 30:
-this.$ = {keyItem:{identifier: $$[$0-2], expression: $$[$0]}}
-break;
-case 31:
+case 23: case 44:
 this.$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$$[$0-3], Arguments:[...$$[$0-1]]} } 
 break;
-case 32:
+case 24: case 45:
 this.$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$$[$0-2], Arguments:[] } } 
 break;
-case 34:
+case 25: case 35: case 40: case 46:
+this.$ = [$$[$0]]
+break;
+case 26: case 47:
  this.$ = [...$$[$0-2], $$[$0]] 
 break;
-case 35:
- this.$ = {...$$[$0-2], expression:$$[$0]}
+case 28:
+this.$ = {epxressionType:ExpressionTypes.Identifier, identifier:$$[$0]}
 break;
-case 39:
+case 29: case 52:
 counter = Math.max(calcDepthFunc($$[$0]), counter);
                 if(counter > maxNestedFuncLevel) {
                     counter = 0;
                     throw new Error('nested limit');
                 }
 break;
+case 30:
+this.$ = {Arguments:[]}
+break;
+case 31:
+this.$ = {Arguments:[...$$[$0-1]]}
+break;
+case 32:
+this.$ = $$[$0]
+break;
+case 33: case 36:
+this.$ = [$$[$0-2]].concat($$[$0])
+break;
+case 34:
+ this.$ = $$[$0-1]
+break;
+case 37:
+this.$ = {keyItem:{...$$[$0]}}
+break;
+case 38: case 39:
+this.$ = {keyItem:{expression:$$[$0]}}
+break;
+case 41:
+this.$ =[$$[$0-2]].concat($$[$0])
+break;
+case 42:
+this.$ = {keyItem:{identifier:$$[$0]}}
+break;
 case 43:
+this.$ = {keyItem:{identifier: $$[$0-2], expression: $$[$0]}}
+break;
+case 48:
+ this.$ = {...$$[$0-2], expression:$$[$0]}
+break;
+case 56:
 this.$ = {expressionType:ExpressionTypes.Constant, identifier:$$[$0]}
 break;
-case 44:
+case 57:
  this.$ = {expressionType:ExpressionTypes.Payload, identifier: $$[$0] } 
 break;
-case 45:
+case 58:
 this.$ = {expressionType:ExpressionTypes.Context, identifier:$$[$0] } 
 break;
-case 46:
+case 59:
 this.$ = { ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration} 
 break;
-case 47:
+case 60:
 this.$ = {StringDeclaration:$$[$0].toString(), expressionType:ExpressionTypes.StringDeclaration}
 break;
-case 49:
+case 62:
 this.$ = { NumberDeclaration: Number($$[$0]), expressionType: ExpressionTypes.IntegerDeclaration} 
 break;
-case 50:
+case 63:
 this.$ = { NumberDeclaration: Number($$[$0]), expressionType:ExpressionTypes.DecimalDeclaration} 
 break;
         }
@@ -178,6 +197,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
         /^(?:[A-Za-z]{1,}[A-Za-z0-9\.]*(?=[(]))/i,
         /^(?:subscribe\/)/i,
         /^(?:emit\/)/i,
+        /^(?:define\/)/i,
         /^(?:Init\b)/i,
         /^(?:ByPass\b)/i,
         /^(?:[a-zA-Z]\w*)/i,
@@ -199,7 +219,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
         /^(?:-?[0-9]+)/i,
         /^(?:\[\])/i
     ];
-    conditions: any = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26],"inclusive":true}}
+    conditions: any = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"inclusive":true}}
     performAction (yy:any,yy_:any,$avoiding_name_collisions:any,YY_START:any): any {
           var YYSTATE=YY_START;
         switch($avoiding_name_collisions) {
@@ -207,55 +227,57 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
       break;
     case 1:return 8;
       break;
-    case 2:return 43;
+    case 2:return 51;
       break;
     case 3:/* skip all whitespace */
       break;
-    case 4:return 37;
+    case 4:return 32;
       break;
-    case 5:return 26
+    case 5:return 27
       break;
-    case 6:return 23
+    case 6:return 24
       break;
-    case 7:return 10
+    case 7:return 28
       break;
-    case 8:return 11
+    case 8:return 10
       break;
-    case 9:return 24
+    case 9:return 11
       break;
-    case 10:return 9
+    case 10:return 25
       break;
-    case 11:return 16
+    case 11:return 9
       break;
-    case 12:return 18
+    case 12:return 17
       break;
-    case 13:return 15
+    case 13:return 19
       break;
-    case 14:return 44
+    case 14:return 16
       break;
-    case 15:return 30
+    case 15:return 52
       break;
-    case 16:return 27
+    case 16:return 37
       break;
-    case 17:return 19
+    case 17:return 33
       break;
-    case 18:return 'RIGHT_ARROW'
+    case 18:return 20
       break;
-    case 19:return 35
+    case 19:return 30
       break;
-    case 20:return 28
+    case 20:return 44
       break;
-    case 21:return 'FORWARD_SLASH'
+    case 21:return 35
       break;
-    case 22:yy_.yytext = yy_.yytext.slice(1,-1); return 46
+    case 22:return 'FORWARD_SLASH'
       break;
-    case 23:yy_.yytext = yy_.yytext.slice(1,-1); return 46
+    case 23:yy_.yytext = yy_.yytext.slice(1,-1); return 54
       break;
-    case 24:return 49
+    case 24:yy_.yytext = yy_.yytext.slice(1,-1); return 54
       break;
-    case 25:return 48
+    case 25:return 57
       break;
-    case 26:return 45
+    case 26:return 56
+      break;
+    case 27:return 53
       break;
         }
     }

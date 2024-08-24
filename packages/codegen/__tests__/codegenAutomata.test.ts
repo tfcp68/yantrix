@@ -1,13 +1,33 @@
-import { beforeEach, describe, expect, it, vitest } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { saveAndGenerate } from './fixtures/utils.js';
 
-// @ts-expect-error generated
-import { GamePhaseAutomata, actionsDictionary, statesDictionary } from './fixtures/GamePhaseAutomata_generated.js';
-
-let automata: GamePhaseAutomata;
+const input = `stateDiagram-v2
+            [*] --> INIT: RESET
+            INIT --> INTRO: RUN
+            INTRO --> MAIN_MENU: TO_MENU
+            MAIN_MENU --> [*]: EXIT
+            MAIN_MENU --> MAIN_MENU: MENU_HOVER
+            MAIN_MENU --> GAME_LOBBY: CREATE_GAME
+            MAIN_MENU --> GAME_LOBBY: JOIN_GAME
+            GAME_LOBBY --> [*]: EXIT
+            GAME_LOBBY --> MAIN_MENU: TO_MENU
+            GAME_LOBBY --> GAME_STARTING: START_GAME
+            GAME_STARTING --> IN_GAME: BEGIN_GAME
+            IN_GAME --> [*]: EXIT
+            IN_GAME --> SCORE_SCREEN: END_GAME
+            IN_GAME --> MAIN_MENU: TO_MENU
+            SCORE_SCREEN --> MAIN_MENU: TO_MENU
+            SCORE_SCREEN --> [*]: EXIT`;
 
 describe('codegen output', () => {
-	describe('gamePhaseAutomata', () => {
-		automata = new GamePhaseAutomata();
+	describe('gamePhaseAutomata', async () => {
+		await saveAndGenerate({ input, automataName: 'GamePhaseAutomata', lang: 'JavaScript' }, 'GamePhaseAutomata');
+		const { GamePhaseAutomata, actionsDictionary, statesDictionary } = await import(
+			`./fixtures/generated/GamePhaseAutomata_generated.js`
+		);
+
+		const automata = new GamePhaseAutomata();
+
 		const payload = {};
 		const toInit = [{ action: actionsDictionary.RESET, payload }];
 		const toIntro = [...toInit, { action: actionsDictionary.RUN, payload }];
@@ -29,16 +49,10 @@ describe('codegen output', () => {
 			[toScoreScreen, statesDictionary.SCORE_SCREEN],
 		];
 
-		beforeEach(() => {
-			vitest.clearAllTimers();
-			vitest.clearAllTimers();
-			automata = new GamePhaseAutomata();
-		});
 		it('initial state', () => {
 			expect(automata.state).toBe(statesDictionary['~~~START~~~']);
 		});
 		it('the context and state do not change with the wrong action.', () => {
-			// const prevContext = { ...automata.context };
 			const prevState = automata.state;
 			automata.dispatch({
 				action: actionsDictionary.MENU_HOVER,
@@ -46,7 +60,7 @@ describe('codegen output', () => {
 			});
 
 			expect(automata.state).toBe(prevState);
-			expect(automata.context).toStrictEqual(null);
+			expect(automata.context).toStrictEqual({});
 		});
 		it('automata must have id', () => {
 			expect(GamePhaseAutomata.id).toBeDefined();

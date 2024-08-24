@@ -43,6 +43,7 @@ export default config(
 		test: true,
 		yaml: true,
 		vue: true,
+		ignores: ['**/*_generated.*'],
 	},
 	{
 		files: ['**/*.ts'],

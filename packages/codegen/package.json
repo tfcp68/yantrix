@@ -54,10 +54,10 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "cross-env TIMING=1 eslint --fix --format=pretty .",
-		"lint": "cross-env TIMING=1 eslint --format=pretty .",
+		"format": "eslint --fix --format=pretty .",
+		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "tsx ./__tests__/fixtures/saveGenerated.ts && vitest run --outputFile=../../test_reports/codegen.md"
+		"test": "vitest run --outputFile=../../test_reports/codegen.md"
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
@@ -70,6 +70,7 @@
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
+		"@yantrix/utils": "workspace:^",
 		"tsx": "^4.18.0"
 	},
 	"publishConfig": {
