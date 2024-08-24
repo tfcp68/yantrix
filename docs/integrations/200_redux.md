@@ -124,7 +124,7 @@ const initialState: TAutomataContext = {
 };
 ```
 
-State of the RTK Slice is represented by the return value of an optional functional parameter:
+The State of the RTK Slice is represented by the return value of an optional functional parameter:
 
 ```typescript
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
