@@ -52,6 +52,6 @@ bun.lockb
 .prettiercache
 .eslintcache
 .vercel
-.nx
 
+# Vitest reports
 test_reports

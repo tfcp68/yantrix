@@ -1,0 +1,60 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"remoteCache": { "enabled": true },
+	"globalDependencies": ["tsconfig.json"],
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"bin/**",
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsconfig.json",
+				"tsup.config.ts"
+			],
+			"outputs": ["dist/**"],
+			"outputLogs": "errors-only"
+		},
+		"test": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"../../vitest.config.js",
+				"../../tsconfig.json",
+				"__tests__/**",
+				"src/**",
+				"tsconfig.json"
+			],
+			"outputs": ["coverage/**"],
+			"outputLogs": "new-only"
+		},
+		"lint": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"../../eslint.config.js",
+				"../../tsconfig.json",
+				"bin/**",
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsconfig.json"
+			],
+			"outputs": [],
+			"outputLogs": "errors-only"
+		},
+		"format": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"../../eslint.config.js",
+				"../../tsconfig.json",
+				"bin/**",
+				"src/**",
+				"scripts/**",
+				"package.json",
+				"tsconfig.json"
+			],
+			"outputs": [],
+			"outputLogs": "errors-only"
+		}
+	}
+}

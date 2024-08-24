@@ -1,5 +1,31 @@
 import config from '@antfu/eslint-config';
 
+const allowedConsoleMethods = [
+	'warn',
+	'dir',
+	'time',
+	'timeEnd',
+	'timeLog',
+	'trace',
+	'assert',
+	'clear',
+	'count',
+	'countReset',
+	'group',
+	'groupEnd',
+	'table',
+	'debug',
+	'info',
+	'dirxml',
+	'error',
+	'groupCollapsed',
+	'Console',
+	'profile',
+	'profileEnd',
+	'timeStamp',
+	'context',
+];
+
 export default config(
 	{
 		type: 'lib',
@@ -13,16 +39,16 @@ export default config(
 		javascript: true,
 		gitignore: true,
 		markdown: true,
-		jsonc: false,
+		jsonc: true,
 		test: true,
+		yaml: true,
 		vue: true,
-		ignores: ['vitepress'],
 	},
 	{
 		files: ['**/*.ts'],
 		rules: {
-			'ts/consistent-type-definitions': 'off',
 			'ts/explicit-function-return-type': 'off',
+			'ts/consistent-type-definitions': 'off',
 			'ts/naming-convention': [
 				'error',
 				{
@@ -59,40 +85,11 @@ export default config(
 	{
 		files: ['**/*.{js,ts}'],
 		rules: {
+			'no-console': ['warn', { allow: allowedConsoleMethods }],
 			'eslint-comments/no-unlimited-disable': 'off',
 			'node/prefer-global/process': 'off',
 			'jsdoc/check-param-names': 'off',
 			'antfu/if-newline': 'off',
-			'no-console': [
-				'warn',
-				{
-					allow: [
-						'warn',
-						'dir',
-						'time',
-						'timeEnd',
-						'timeLog',
-						'trace',
-						'assert',
-						'clear',
-						'count',
-						'countReset',
-						'group',
-						'groupEnd',
-						'table',
-						'debug',
-						'info',
-						'dirxml',
-						'error',
-						'groupCollapsed',
-						'Console',
-						'profile',
-						'profileEnd',
-						'timeStamp',
-						'context',
-					],
-				},
-			],
 		},
 	},
 );

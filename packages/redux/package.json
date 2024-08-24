@@ -1,49 +1,48 @@
 {
 	"name": "@yantrix/automata-redux",
+	"type": "module",
 	"version": "0.0.1",
+	"description": "Redux automata integration for Redux",
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"directory": "packages/redux",
+		"type": "git",
+		"url": "git+https://github.com/tfcp68/yantrix.git"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
+	"exports": {
+		"types": "./dist/index.d.ts",
+		"default": "./dist/index.js"
+	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"files": [
 		"dist"
 	],
-	"repository": {
-		"directory": "packages/redux",
-		"type": "git",
-		"url": "git+https://github.com/octaharon/yantrix.git"
-	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "eslint --fix .",
-		"lint": "eslint .",
+		"format": "cross-env TIMING=1 eslint --fix --format=pretty .",
+		"lint": "cross-env TIMING=1 eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "cd ../codegen && tsx ./__tests__/fixtures/saveGenerated.ts && cd ../redux && bash -c 'cp ../codegen/__tests__/fixtures/*_generated.ts ./__tests__/fixtures/' && vitest run --outputFile=../../test_reports/redux.md"
-	},
-	"description": "Redux automata integration for Redux",
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"bugs": {
-		"url": "https://github.com/octaharon/yantrix/issues"
 	},
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
 	},
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
-	},
-	"homepage": "https://github.com/octaharon/yantrix",
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
-	"license": "ISC",
-	"type": "module",
 	"dependencies": {
 		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {
+		"@reduxjs/toolkit": "^2.2.5",
 		"@yantrix/automata": "workspace:^",
-		"tsx": "^4.11.0",
-		"@reduxjs/toolkit": "^2.2.5"
+		"tsx": "^4.18.0"
 	}
 }
