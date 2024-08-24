@@ -14,10 +14,7 @@ signature of
 Most importantly, reducers are [pure functions](https://en.wikipedia.org/wiki/Pure_function). That means the updated
 data state is dependent solely on the current `State` and whatever data is carried with `Action`
 
-All `Reducers` are called within `FSM`s, that are generated with code from Yantrix diagrams, and are the essence of the
-framework and the most important concept to conceive for using Yantrix. They are the carrier of application logic,
-delivered in tiny bundles, each attached to a certain `State` of the finite state machine and it's possible transitions,
-which are atomic and transactional.
+All `Reducers` are called within `FSM`s, that are generated with code from Yantrix diagrams, and are the essence of the framework and the most important concept to conceive for using Yantrix. They are the carrier of application logic, delivered in tiny bundles, each attached to a certain `State` of the finite state machine. They are defined in a `note` block attached to a certain `State`, and are actually invoked right before the `FSM` transitions to that `State`. Reducers are run in the same order they are mentioned.
 
 ## Directive
 

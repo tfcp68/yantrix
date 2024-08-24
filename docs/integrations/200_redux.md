@@ -77,10 +77,7 @@ import TrafficLight from '../generated/traffic-light.ts';
 // provide an integration id as action prefix
 const YantrixSliceId = 'yantrix';
 
-const YantrixSlice = createFSMSlice({
-	name: TrafficLight.id,
-	fsm: TrafficLight,
-});
+const YantrixSlice = createFSMSlice(TrafficLight);
 ```
 
 this will instantiate a `TrafficLight` class and connect it to Redux.
@@ -95,6 +92,20 @@ const store = configureStore({
 		[YantrixSliceId]: YantrixSlice.reducer,
 	}),
 });
+```
+
+### API
+
+```typescript
+declare type CreateFSMSliceOptions<StateType, ContextType = object> = {
+	name: string;
+	fsm: ClassConstructor<IAutomata>;
+	contextToRedux?: (context: ContextType) => StateType;
+	reducerPath?: string;
+	selectors?: Record<string, (state: StateType) => any>;
+};
+
+declare function createFSMSlice(options: CreateFSMSliceOptions): ReturnType<createSlice>;
 ```
 
 ### State
@@ -113,7 +124,7 @@ const initialState: TAutomataContext = {
 };
 ```
 
-State of the RTK Slice is represented by the return value of an optional functional parameter:
+The State of the RTK Slice is represented by the return value of an optional functional parameter:
 
 ```typescript
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
