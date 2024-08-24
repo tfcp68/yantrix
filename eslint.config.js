@@ -37,9 +37,12 @@ export default config(
 		},
 		typescript: true,
 		javascript: true,
+		gitignore: true,
 		markdown: true,
 		jsonc: true,
 		test: true,
+		yaml: true,
+		vue: true,
 		ignores: ['**/*_generated.*'],
 	},
 	{
