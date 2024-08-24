@@ -87,10 +87,15 @@ export default config(
 		files: ['**/*.{js,ts,md,mdx}'],
 		rules: {
 			'no-console': ['warn', { allow: allowedConsoleMethods }],
-			'eslint-comments/no-unlimited-disable': 'off',
 			'node/prefer-global/process': 'off',
 			'jsdoc/check-param-names': 'off',
 			'antfu/if-newline': 'off',
+		},
+	},
+	{
+		files: ['**/*_generated.*', '**/yantrixParser.ts'],
+		rules: {
+			'eslint-comments/no-unlimited-disable': 'off',
 		},
 	},
 );

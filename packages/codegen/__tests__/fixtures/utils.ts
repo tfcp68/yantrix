@@ -71,7 +71,7 @@ export function mapFromObjectToString(a: Record<string, any>, startSymbol: strin
 export function mapFromStringToObject(a: string) {
 	return a.split(',').reduce((acc, el) => {
 		const [key, value] = el.split('=');
-		//@ts-expect-error fck this i dont wanna fix it pls help
+		// @ts-expect-error fck this i dont wanna fix it pls help
 		acc[key] = value || null;
 		return acc;
 	}, {});
