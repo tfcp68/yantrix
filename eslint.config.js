@@ -40,10 +40,10 @@ export default config(
 		markdown: true,
 		jsonc: true,
 		test: true,
-		ignores: ['**/*_generated.{ts,js,java}'],
+		ignores: ['**/*_generated.*'],
 	},
 	{
-		files: ['**/*.ts'],
+		files: ['**/*.{ts,md,mdx}'],
 		rules: {
 			'ts/explicit-function-return-type': 'off',
 			'ts/consistent-type-definitions': 'off',
@@ -81,7 +81,7 @@ export default config(
 		},
 	},
 	{
-		files: ['**/*.{js,ts}'],
+		files: ['**/*.{js,ts,md,mdx}'],
 		rules: {
 			'no-console': ['warn', { allow: allowedConsoleMethods }],
 			'eslint-comments/no-unlimited-disable': 'off',
