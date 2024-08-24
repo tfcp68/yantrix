@@ -4,9 +4,9 @@ title: Javascript API
 
 # Javascript API
 
-When generating a JS/TS class, which instance inherits [IAUtomata](../API-Reference/automata/interfaces/IAutomata.html), there are also static properties added to it to help operating the `FSM`
+When generating a JS/TS class, it has `@yantrix/automata` as dependency and implements [IAutomata](../API-Reference/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
 
-In this section all snippets are provided with the same diagram that is analyzed in [Introduction](../):
+In this section, all snippets are provided with the same diagram analyzed in [Introduction](../):
 
 ```mermaid
 stateDiagram-v2
