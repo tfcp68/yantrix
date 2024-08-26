@@ -1,5 +1,5 @@
 import { TConstants, TExpressionRecord } from './../../types/common';
-import { BasicActionDictionary, BasicStateDictionary, FunctionDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { ICodegen, TModuleParams, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
@@ -15,8 +15,6 @@ import {
 	TMappedKeys,
 } from '@yantrix/yantrix-parser';
 import { ModuleNames } from './index';
-
-import { builtInFunctions } from '../../builtins/JavaScript';
 
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
@@ -42,7 +40,6 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
@@ -61,7 +58,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	constructor({ diagram, constants }: TModuleParams) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-		this.functionDictionary = new FunctionDictionary(builtInFunctions); // + new functions from diagram
+
 		this.diagram = diagram;
 
 		this.constants = constants;
