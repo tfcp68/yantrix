@@ -1,4 +1,4 @@
-import { TExpressionDefine } from './expressions.js';
+import { TExpressionDefineMap } from './expressions.js';
 import { TKeyItems } from './keyItem.js';
 
 export type TAction = TKeyItems<'reducer'>;
@@ -7,7 +7,7 @@ export type TMeta = TKeyItems<'reducer'>;
 export type TDefine = {
 	identifier: string;
 	Arguments: string[];
-	expression: TExpressionDefine;
+	expression: TExpressionDefineMap;
 };
 
 export type TDefines = { defines: TDefine[] };
