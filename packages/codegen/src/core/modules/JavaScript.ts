@@ -1,18 +1,23 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import type { TDiagramAction } from '@yantrix/mermaid-parser';
 import { StartState } from '@yantrix/mermaid-parser';
-import type {
-	TContextItem,
-	TExpression,
+import {
+	ExpressionTypes,
+	type TContextItem,
+	type TExpression,
+	TExpressionFunction,
+	type TMappedKeys,
+	isContextWithReducer,
+	isKeyItemReference,
+	isKeyItemWithExpression,
 	maxNestedFuncLevel,
-	TMappedKeys,
 } from '@yantrix/yantrix-parser';
 import type { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import type { TConstants, TExpressionRecord } from './../../types/common';
 import type { ModuleNames } from './index';
 
-const getReferenceString = (path: string, identifier: string) => {
+function getReferenceString(path: string, identifier: string) {
 	return `${path}['${identifier}']`;
 }
 
@@ -451,6 +456,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		return null;
 	};
+
 	private getExpressionValue<T extends TMappedKeys>(expression: TExpression<T>) {
 		return this.expressions[expression.expressionType](expression);
 	}
