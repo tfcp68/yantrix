@@ -282,7 +282,8 @@ export function withInteger(propertyName?: string, functionName?: string, intege
 }
 
 export function withDecimal(propertyName?: string, functionName?: string, decimalValue?: number) {
-	if (Number.isInteger(decimalValue)) throw new Error('Decimal value must be a float.');
+	if (Number.isInteger(decimalValue))
+		throw new Error('Decimal value must be a float.');
 	const base = getKeyItem(getExpression(functions.withDecimalArgs));
 	if (propertyName || functionName || decimalValue) {
 		const map = Map(base);

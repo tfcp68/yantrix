@@ -49,7 +49,7 @@
 		"dist"
 	],
 	"engines": {
-		"node": ">=18"
+		"node": ">=20"
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",

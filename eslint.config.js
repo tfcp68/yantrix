@@ -1,6 +1,6 @@
 import config from '@antfu/eslint-config';
 
-const allowedConsoleMethods = [
+const consoleAllowedMethods = [
 	'warn',
 	'dir',
 	'time',
@@ -26,17 +26,15 @@ const allowedConsoleMethods = [
 	'context',
 ];
 
-export default config(
+export default await config(
 	{
 		type: 'lib',
 		stylistic: {
 			indent: 'tab',
-			jsx: 'preserve',
+			jsx: true,
 			quotes: 'single',
 			semi: true,
 		},
-		typescript: true,
-		javascript: true,
 		gitignore: true,
 		markdown: true,
 		jsonc: true,
@@ -44,58 +42,53 @@ export default config(
 		yaml: true,
 		vue: true,
 		ignores: ['**/*_generated.*'],
-	},
-	{
-		files: ['**/*.{ts,md,mdx}'],
-		rules: {
-			'ts/explicit-function-return-type': 'off',
-			'ts/consistent-type-definitions': 'off',
-			'ts/naming-convention': [
-				'error',
-				{
-					selector: 'typeLike',
-					format: ['PascalCase'],
-				},
-				{
-					selector: 'typeAlias',
-					format: ['PascalCase'],
-					custom: {
-						regex: '^T\\w{3,}$',
-						match: true,
+		typescript: {
+			overrides: {
+				'ts/consistent-type-imports': 'off',
+				'ts/explicit-function-return-type': 'off',
+				'ts/consistent-type-definitions': 'off',
+				'ts/naming-convention': [
+					'error',
+					{
+						selector: 'typeLike',
+						format: ['PascalCase'],
 					},
-				},
-				{
-					selector: 'interface',
-					format: ['PascalCase'],
-					custom: {
-						regex: '^I\\w{3,}$',
-						match: true,
+					{
+						selector: 'typeAlias',
+						format: ['PascalCase'],
+						custom: {
+							regex: '^T\\w{3,}$',
+							match: true,
+						},
 					},
-				},
-				{
-					selector: 'typeParameter',
-					format: ['PascalCase'],
-					custom: {
-						regex: '^\\w+',
-						match: true,
+					{
+						selector: 'interface',
+						format: ['PascalCase'],
+						custom: {
+							regex: '^I\\w{3,}$',
+							match: true,
+						},
 					},
-				},
-			],
+					{
+						selector: 'typeParameter',
+						format: ['PascalCase'],
+						custom: {
+							regex: '^\\w+',
+							match: true,
+						},
+					},
+				],
+			},
 		},
 	},
 	{
-		files: ['**/*.{js,ts,md,mdx}'],
+		files: ['**/*.{ts,tsx,js,jsx}'],
 		rules: {
-			'no-console': ['warn', { allow: allowedConsoleMethods }],
+			'no-console': ['warn', { allow: consoleAllowedMethods }],
+			'eslint-comments/no-unlimited-disable': 'off',
 			'node/prefer-global/process': 'off',
 			'jsdoc/check-param-names': 'off',
 			'antfu/if-newline': 'off',
-		},
-	},
-	{
-		files: ['**/*_generated.*', '**/yantrixParser.ts'],
-		rules: {
-			'eslint-comments/no-unlimited-disable': 'off',
 		},
 	},
 );

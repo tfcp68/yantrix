@@ -4,24 +4,15 @@ import { StartState } from '@yantrix/mermaid-parser';
 import type {
 	TContextItem,
 	TExpression,
-	TExpressionFunction,
-	TMapped,
-} from '@yantrix/yantrix-parser';
-import {
-	ExpressionTypes,
-	isContextWithReducer,
-	isKeyItemReference,
-	isKeyItemWithExpression,
 	maxNestedFuncLevel,
+	TMappedKeys,
 } from '@yantrix/yantrix-parser';
 import type { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import type { TConstants, TExpressionRecord } from './../../types/common';
 import type { ModuleNames } from './index';
 
-// import Built_In_Functions from '../../builtins/JavaScript';
-
-function getReferenceString(path: string, identifier: string): string {
+const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
 }
 
@@ -45,7 +36,6 @@ function getDefaultPropertyContext(path: string, indetifier: string, expression?
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	// functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
@@ -64,7 +54,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	constructor({ diagram, constants }: TModuleParams) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
+
 		this.diagram = diagram;
 
 		this.constants = constants;
@@ -461,9 +451,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		return null;
 	};
-
-	private getExpressionValue(expression: TExpression<keyof TMapped>) {
-		// @ts-expect-error // idk, help
+	private getExpressionValue<T extends TMappedKeys>(expression: TExpression<T>) {
 		return this.expressions[expression.expressionType](expression);
 	}
 
@@ -501,9 +489,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 									if (expression.expressionType === ExpressionTypes.Function) {
 										currentRecLevel++;
-										// @ts-expect-error // idk
 										res.push(recursive(expression));
 									}
+
 									const valueExpression = this.getExpressionValue(expression);
 
 									res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
@@ -514,7 +502,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 							}
 							else {
 								if (item.expressionType === ExpressionTypes.Function) {
-									// @ts-expect-error // idk
 									res.push(recursive(item));
 								}
 								else {
