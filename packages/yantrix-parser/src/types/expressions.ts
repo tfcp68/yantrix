@@ -22,7 +22,7 @@ type TExpressionArray = {
 type TExpressionNumber = {
 	NumberDeclaration: number;
 };
-type TFunctionArgument = TKeyItemReducer | TExpression;
+type TFunctionArgument = TKeyItemReducer | TExpressionMap;
 
 export type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -50,10 +50,18 @@ export type TExpressionDefineMapped<T extends keyof TMapped> = TMapped[T];
 export type TMappedKeys = keyof TMapped;
 export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
 
-export type TExpression<T extends TMappedKeys = TMappedKeys> = {
+export type TExpression<T extends TMappedKeys> = {
 	expressionType: T;
 } & TExpressionMapped<T>;
 
-export type TExpressionDefine<T extends TDefineMapKeys = TDefineMapKeys> = {
+export type TExpressionDefine<T extends TDefineMapKeys> = {
 	expressionType: T;
 } & TExpressionDefineMapped<T>;
+
+export type TExpressionMap = {
+	[T in TMappedKeys]: TExpression<T>;
+}[TMappedKeys];
+
+export type TExpressionDefineMap = {
+	[T in TDefineMapKeys]: TExpressionDefineMapped<T>;
+}[TDefineMapKeys];

@@ -1,5 +1,5 @@
 import { TConstants, TExpressionRecord } from './../../types/common';
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicStateDictionary, FunctionDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { ICodegen, TModuleParams, TGetCodeOptionsMap, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
@@ -11,12 +11,12 @@ import {
 	isKeyItemReference,
 	TExpressionFunction,
 	TExpression,
-	TMapped,
 	maxNestedFuncLevel,
+	TMappedKeys,
 } from '@yantrix/yantrix-parser';
 import { ModuleNames } from './index';
 
-// import Built_In_Functions from '../../builtins/JavaScript';
+import { builtInFunctions } from '../../builtins/JavaScript';
 
 const getReferenceString = (path: string, identifier: string) => {
 	return `${path}['${identifier}']`;
@@ -42,7 +42,7 @@ const getDefaultPropertyContext = (path: string, indetifier: string, expression?
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	// functionDictionary: FunctionDictionary;
+	functionDictionary: FunctionDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
@@ -61,7 +61,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	constructor({ diagram, constants }: TModuleParams) {
 		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
-		// this.functionDictionary = new FunctionDictionary(Built_In_Functions); // + new functions from diagram
+		this.functionDictionary = new FunctionDictionary(builtInFunctions); // + new functions from diagram
 		this.diagram = diagram;
 
 		this.constants = constants;
@@ -449,8 +449,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		return null;
 	};
-	private getExpressionValue(expression: TExpression<keyof TMapped>) {
-		//@ts-expect-error // idk, help
+	private getExpressionValue<T extends TMappedKeys>(expression: TExpression<T>) {
 		return this.expressions[expression.expressionType](expression);
 	}
 	private setupExpressions(): TExpressionRecord {
@@ -487,10 +486,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 									if (expression.expressionType === ExpressionTypes.Function) {
 										currentRecLevel++;
-										// @ts-ignore
 										res.push(recursive(expression));
 									}
-									// @ts-ignore
+
 									const valueExpression = this.getExpressionValue(expression);
 
 									res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
@@ -499,7 +497,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 								}
 							} else {
 								if (item.expressionType === ExpressionTypes.Function) {
-									// @ts-ignore
 									res.push(recursive(item));
 								} else {
 									const valueExpression = this.getExpressionValue(item);
