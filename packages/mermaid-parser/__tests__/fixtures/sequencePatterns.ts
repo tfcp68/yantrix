@@ -1,3 +1,7 @@
+export const blankDiagram = '';
+
+export const invalidDiagram = 'invalidDiagram';
+
 export const emptySequenceDiagram = 'sequenceDiagram';
 
 export const sequenceDiagramSimpleMessage = `

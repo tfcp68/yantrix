@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { parseSequenceDiagram } from '../src/index.js';
+import { BlankInputError, InvalidInputError } from '../src/sequence/errors/sequenceErrors.js';
 import {
+	blankDiagram,
+	invalidDiagram,
 	emptySequenceDiagram,
 	sequenceDiagramSimpleMessage,
 	sequenceDiagramLoopMessage,
@@ -30,13 +33,13 @@ import {
 
 describe('Sequence Diagram Parser', () => {
 	describe('Common', () => {
-		// test('Empty Input Error', async () => {
-		// 	await expect(parseSequenceDiagram(blankDiagram)).rejects.toThrow(BlankInputError);
-		// });
+		test('Empty Input Error', async () => {
+			await expect(parseSequenceDiagram(blankDiagram)).rejects.toThrow(BlankInputError);
+		});
 
-		// test('Invalid Diagram Type', async () => {
-		// 	await expect(parseSequenceDiagram(invalidDiagram)).rejects.toThrow(InvalidInputError);
-		// });
+		test('Invalid Diagram Type', async () => {
+			await expect(parseSequenceDiagram(invalidDiagram)).rejects.toThrow(InvalidInputError);
+		});
 
 		test('Empty Diagram', async () => {
 			const parsedDiagram = await parseSequenceDiagram(emptySequenceDiagram);

@@ -12,6 +12,7 @@ import {
 	TSeqTypes,
 	arrowTypes,
 } from './types/index.js';
+import { BlankInputError, InvalidInputError } from './errors/sequenceErrors.js';
 
 /**
  * @brief Function that parses a diagram;
@@ -19,43 +20,57 @@ import {
  * @returns Returns parsed diagram dictionary.
  */
 async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
-	mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
-	await mermaid.mermaidAPI.initialize();
-	const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
-
-	// @ts-expect-error IMPLEMENTATION BUG
-	const parsedArray: any = diagram.db.getMessages();
-
-	const parsedMessages: TParsedMessagesArray = [];
-
-	// @ts-expect-error IMPLEMENTATION BUG
-	const parsedActors: TActorsArray = diagram.db.getActorKeys();
-	const parsedNotes: TParsedNotesArray = [];
-	const parsedOtherElements: TParsedOtherElementsArray = [];
-
-	for (let i = 0; i < parsedArray.length; i++) {
-		if (arrowTypes.indexOf(parsedArray[i].type) !== -1) {
-			parsedMessages.push(parsedArray[i]);
-		} else if (parsedArray[i].type === TSeqTypes.Note) {
-			parsedNotes.push(parsedArray[i]);
-		} else {
-			if (parsedArray[i].from !== undefined) {
-				parsedArray[i].from = parsedArray[i].from?.actor;
-			}
-			parsedOtherElements.push(parsedArray[i]);
-		}
+	if (diagramText === '') {
+		throw new BlankInputError();
 	}
+	try {
+		mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
+		await mermaid.mermaidAPI.initialize();
+		const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
 
-	const parsedActivations: TActivationsDict = getActivations(parsedArray, parsedActors);
+		// @ts-expect-error IMPLEMENTATION BUG
+		const parsedArray: any = diagram.db.getMessages();
 
-	const parsedDiagram: TParsedDiagramDict = {
-		messages: parsedMessages,
-		actors: parsedActors,
-		notes: parsedNotes,
-		others: parsedOtherElements,
-		activations: parsedActivations,
-	};
-	return parsedDiagram;
+		const parsedMessages: TParsedMessagesArray = [];
+
+		// @ts-expect-error IMPLEMENTATION BUG
+		const parsedActors: TActorsArray = diagram.db.getActorKeys();
+		const parsedNotes: TParsedNotesArray = [];
+		const parsedOtherElements: TParsedOtherElementsArray = [];
+
+		for (let i = 0; i < parsedArray.length; i++) {
+			if (arrowTypes.indexOf(parsedArray[i].type) !== -1) {
+				parsedMessages.push(parsedArray[i]);
+			} else if (parsedArray[i].type === TSeqTypes.Note) {
+				parsedNotes.push(parsedArray[i]);
+			} else {
+				if (parsedArray[i].from !== undefined) {
+					parsedArray[i].from = parsedArray[i].from?.actor;
+				}
+				parsedOtherElements.push(parsedArray[i]);
+			}
+		}
+
+		const parsedActivations: TActivationsDict = getActivations(parsedArray, parsedActors);
+
+		const parsedDiagram: TParsedDiagramDict = {
+			messages: parsedMessages,
+			actors: parsedActors,
+			notes: parsedNotes,
+			others: parsedOtherElements,
+			activations: parsedActivations,
+		};
+		return parsedDiagram;
+	} catch (e) {
+		if (e instanceof Error) {
+			if (e.name === 'Diagram SequenceDiagram already registered.') {
+				mermaid.mermaidAPI.reset();
+				return diagramParser(diagramText);
+			}
+		}
+
+		throw new InvalidInputError((e as Error).message);
+	}
 }
 
 /**
