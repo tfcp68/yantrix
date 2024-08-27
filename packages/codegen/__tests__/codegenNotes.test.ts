@@ -617,15 +617,25 @@ describe('User defined functions', () => {
 		expect(automata.context).toStrictEqual({ result: 3 });
 	});
 	it(`Codegen should catch cyclic dependencies and throw an error
-		define/lol () => kek()
-		define/kek () => lol()
+			define/lol1 () => kek1()
+			define/kek1 () => kek2()
+			define/kek2 () => kek3()
+			define/kek3 () => kek4()
+			define/kek4 () => kek5()
+			define/kek5 () => kek6()
+			define/kek6 () => lol1()
 		`, async () => {
 		const input = `stateDiagram-v2
 		[*] --> A: toA
 		A --> B: toB
 		note left of [*]
 			define/lol1 () => kek1()
-			define/kek1 () => lol1()
+			define/kek1 () => kek2()
+			define/kek2 () => kek3()
+			define/kek3 () => kek4()
+			define/kek4 () => kek5()
+			define/kek5 () => kek6()
+			define/kek6 () => lol1()
 		end note
 		`;
 
