@@ -286,7 +286,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const {state:newState} = actionToStateFromStateDict[state][action]
 
 					const contextWithInitial = getDefaultContext(context,payload)
-					debugger
+				
 					const newContextFunc = reducer[newState]
 
 					if(typeof newContextFunc !== 'function') {
