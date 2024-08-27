@@ -62,11 +62,11 @@ export type TExpressionDefineMapped<T extends TDefineMapKeys> = TDefineMap[T];
 export type TMappedKeys = keyof TMapped;
 export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
 
-export type TExpression<T extends TMappedKeys> = {
+export type TExpression<T extends TMappedKeys = TMappedKeys> = {
 	expressionType: T;
 } & TExpressionMapped<T>;
 
-export type TExpressionDefine<T extends TDefineMapKeys> = {
+export type TExpressionDefine<T extends TDefineMapKeys = TDefineMapKeys> = {
 	expressionType: T;
 } & TExpressionDefineMapped<T>;
 
