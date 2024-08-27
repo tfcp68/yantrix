@@ -728,7 +728,7 @@ describe('User defined functions', () => {
 
 		expect(automata.context).toStrictEqual({ a: 4 });
 	});
-	it('Complex function with constants', async () => {
+	it('Complex function with constants, define/complexFunc (x, y) => add(mult(%%BASE, x), mult(%%MULTIPLIER, y), %%OFFSET)', async () => {
 		const constants = {
 			BASE: 10,
 			MULTIPLIER: 2,
@@ -769,7 +769,7 @@ describe('User defined functions', () => {
 		expect(automata.context).toStrictEqual({ result: 43 });
 	});
 
-	it('Function with previous context and payload', async () => {
+	it('Function with passed previous context and payload', async () => {
 		const input = `stateDiagram-v2
         [*] --> A: toA
         A --> B: toB
