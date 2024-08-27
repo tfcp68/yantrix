@@ -1,9 +1,9 @@
-export type AutomataFunction = ((...args: any) => any) | null; // ?
+export type TAutomataFunction = ((...args: any) => any) | null; // ?
 
 export class FunctionDictionary {
-	private readonly functions: Record<string, AutomataFunction>;
+	private readonly functions: Record<string, TAutomataFunction>;
 
-	constructor(functions: Record<string, AutomataFunction>) {
+	constructor(functions: Record<string, TAutomataFunction>) {
 		this.functions = functions;
 	}
 
@@ -15,7 +15,7 @@ export class FunctionDictionary {
 	 * @param functionKey - name of function
 	 * @param callback - function to invoke
 	 */
-	register(functionKey: string, callback: AutomataFunction): AutomataFunction {
+	register(functionKey: string, callback: TAutomataFunction): TAutomataFunction {
 		if (functionKey.length < 1 || functionKey.length > 255) {
 			throw new Error(`Function key length must be between 1-255 symbols!`);
 		}
@@ -29,16 +29,25 @@ export class FunctionDictionary {
 		this.functions[functionKey] = callback;
 		return callback;
 	}
-
 	/**
-	 * Fetch function from dictionary;
+	 * Check if a function exists in the dictionary.
+	 *
+	 * @param functionKey - name of the function to check
+	 * @returns true if the function exists, false otherwise
+	 */
+	has(functionKey: string) {
+		const func = this.functions[functionKey];
+		return func !== undefined;
+	}
+	/**
+	 * Get function from dictionary;
 	 *
 	 * If the function is not found - throw an error.
 	 *
 	 * @param functionKey - name of the function
 	 * @returns function to invoke
 	 */
-	get(functionKey: string): AutomataFunction {
+	get(functionKey: string): TAutomataFunction {
 		const func = this.functions[functionKey];
 		if (func) return func;
 		else throw new Error(`Function with the key ${functionKey} not found!`);
