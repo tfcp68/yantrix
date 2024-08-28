@@ -54,7 +54,7 @@
 		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "tsx ./__tests__/fixtures/saveGenerated.ts && vitest run --outputFile=../../test_reports/codegen.md"
+		"test": "vitest run --outputFile=../../test_reports/codegen.md"
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
@@ -66,6 +66,7 @@
 		"picocolors": "^1.0.1"
 	},
 	"devDependencies": {
+		"@yantrix/utils": "workspace:^",
 		"@types/fs-extra": "^11.0.4",
 		"tsx": "^4.11.0"
 	},

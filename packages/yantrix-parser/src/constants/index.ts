@@ -47,6 +47,7 @@ export const ExpressionTypes = {
 	Constant: 'constant',
 	Payload: 'payload',
 	Context: 'context',
+	Identifier: 'identifier',
 } as const;
 
 export const maxNestedFuncLevel = 8;

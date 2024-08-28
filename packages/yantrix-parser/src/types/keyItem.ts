@@ -1,5 +1,4 @@
-import { ExpressionTypes } from '../constants/index.js';
-import { TExpression } from './expressions.js';
+import { TExpressionMap, TRefereneceType } from './expressions.js';
 
 export const KeyItemType = {
 	RAW: 'raw',
@@ -13,16 +12,16 @@ export type TKeyItemBase = {
 };
 
 export type TKeyItemWithExpression = {
-	expression: TExpression;
+	expression: TExpressionMap;
 } & TKeyItemBase;
 
 type TKeyItemEmptyOrExpression = TKeyItemBase | TKeyItemWithExpression;
 
-export type TKeyItemReducer = {
-	expressionType: typeof ExpressionTypes.Constant | typeof ExpressionTypes.Context | typeof ExpressionTypes.Payload;
+export type TKeyItemReducer<T extends TRefereneceType = TRefereneceType> = {
+	expressionType: T;
 } & TKeyItemEmptyOrExpression;
 
-export type TKeyItemReducerOrExpression = TKeyItemReducer | { expression: TExpression };
+export type TKeyItemReducerOrExpression = TKeyItemReducer | { expression: TExpressionMap };
 
 export type TKeyItem<X extends (typeof KeyItemType)[TKeyItemKeys] = typeof KeyItemType.RAW> = {
 	keyItem: X extends typeof KeyItemType.REDUCER ? TKeyItemReducerOrExpression : TKeyItemEmptyOrExpression;
