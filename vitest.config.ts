@@ -9,9 +9,11 @@ export default defineConfig({
 				title: 'Test Cases',
 			}),
 		],
-		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache', '.yarn', '**/fixtures'],
+		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
 		passWithNoTests: true,
-		globals: true,
+		typecheck: {
+			enabled: true,
+		},
 		coverage: {
 			enabled: true,
 			reportOnFailure: true,
@@ -23,12 +25,9 @@ export default defineConfig({
 			exclude: [
 				'vitepress',
 				'*/fixtures',
-				// All ts files that only contain types, due to ALL
 				'/*.{interface,type,d}.ts',
 				'/{interfaces,types}/*.ts',
-				// All index files that *should* only contain exports from other files
 				'/index.{js,ts}',
-				// All exports files that make subpackages available as submodules
 				'**/exports/*.{js,ts}',
 			],
 		},

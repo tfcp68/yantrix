@@ -1,4 +1,4 @@
-import { assert, beforeEach, describe, expect } from 'vitest';
+import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { randomInteger, randomString } from '@yantrix/utils';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
 import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';

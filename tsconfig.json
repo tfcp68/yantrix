@@ -5,6 +5,7 @@
 		"lib": ["ESNext"],
 		"useDefineForClassFields": true,
 		"experimentalDecorators": true,
+		"rootDir": ".",
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
 		"resolveJsonModule": true,

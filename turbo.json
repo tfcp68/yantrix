@@ -1,7 +1,7 @@
 {
 	"$schema": "https://turbo.build/schema.json",
-	"remoteCache": { "enabled": true },
 	"globalDependencies": ["tsconfig.json"],
+	"remoteCache": { "enabled": true },
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
@@ -18,13 +18,7 @@
 		},
 		"test": {
 			"dependsOn": ["^build"],
-			"inputs": [
-				"../../vitest.config.js",
-				"../../tsconfig.json",
-				"__tests__/**",
-				"src/**",
-				"tsconfig.json"
-			],
+			"inputs": ["__tests__/**", "src/**", "package.json", "tsconfig.json"],
 			"outputs": ["coverage/**"],
 			"outputLogs": "new-only"
 		},

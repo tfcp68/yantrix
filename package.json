@@ -40,15 +40,15 @@
 		"node": ">=20"
 	},
 	"scripts": {
-		"build": "turbo run build --concurrency=4",
-		"build:affected": "turbo run build --affected --concurrency=4",
+		"build": "turbo run build --concurrency=50%",
+		"build:affected": "turbo run build --affected --concurrency=50%",
 		"clean": "rimraf --glob **/dist **/coverage **/.turbo",
-		"format": "turbo run format --concurrency=4",
-		"format:affected": "turbo run format --affected --concurrency=4",
-		"lint": "turbo run lint --concurrency=4",
-		"lint:affected": "turbo run lint --affected --concurrency=4",
-		"test": "turbo run test --concurrency=4",
-		"test:affected": "turbo run test --affected --concurrency=4",
+		"format": "turbo run format --concurrency=50%",
+		"format:affected": "turbo run format --affected --concurrency=50%",
+		"lint": "turbo run lint ---concurrency=50%",
+		"lint:affected": "turbo run lint --affected --concurrency=50%",
+		"test": "turbo run test --concurrency=50%",
+		"test:affected": "turbo run test --affected --concurrency=50%",
 		"updeps": "pnpm --recursive update --interactive --latest",
 		"create-package": "turbo gen create-package --args",
 		"prepare": "is-ci || husky"
@@ -80,5 +80,15 @@
 		"typescript": "^5.5.4",
 		"vitest": "^2.0.5",
 		"vitest-markdown-reporter": "^0.1.2"
+	},
+	"pnpm": {
+		"peerDependencyRules": {
+			"ignoreMissing": [
+				"*"
+			],
+			"allowedAny": [
+				"*"
+			]
+		}
 	}
 }

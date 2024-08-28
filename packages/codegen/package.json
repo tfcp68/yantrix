@@ -57,7 +57,7 @@
 		"format": "eslint --fix --format=pretty .",
 		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "vitest run --outputFile=../../test_reports/codegen.md"
+		"test": "vitest run --coverage --outputFile=../../test_reports/codegen.md"
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",

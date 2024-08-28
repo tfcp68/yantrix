@@ -53,13 +53,13 @@
 		"node": ">=20"
 	},
 	"scripts": {
-		"build": "pnpm create-parser && tsc --noEmit &&  tsup",
+		"build": "pnpm create-parser && tsc --noEmit && tsup",
 		"create-parser": "bash ./scripts/generate-yantrix-parser.sh",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
 		"format": "eslint --fix --format=pretty .",
 		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "pnpm build && vitest run --outputFile=../../test_reports/yantrix-parser.md"
+		"test": "vitest run --coverage --outputFile=../../test_reports/yantrix-parser.md"
 	},
 	"dependencies": {
 		"@ts-jison/lexer": "0.4.1-alpha.1",
