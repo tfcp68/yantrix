@@ -3,7 +3,7 @@
  * @description A common parent for all Dictionaries which implements numeric hash for any incoming values, possibly
  * split by namespaces
  */
-import type { TAbstractConstructor } from '../types/index.js';
+import { TAbstractConstructor } from '../types/index.js';
 
 export default function DictionaryContainer<ItemType>() {
 	return <TBase extends TAbstractConstructor = TAbstractConstructor>(base: TBase) =>

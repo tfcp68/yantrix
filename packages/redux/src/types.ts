@@ -1,5 +1,5 @@
-import type { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
-import type { Dispatch, UnknownAction } from '@reduxjs/toolkit';
+import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
+import { Dispatch, UnknownAction } from '@reduxjs/toolkit';
 
 export type TActionGenerator = (
 	automataStateContext: TAutomataStateContext<number, Record<number, any>>,

@@ -1,5 +1,5 @@
-import type { TActionsStructure, TStateDiagramStructure } from './types/index.js';
-import type {
+import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
+import {
 	TActionPathArray,
 	TChoicesId,
 	TDiagramAction,

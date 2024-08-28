@@ -1,6 +1,6 @@
 import mermaid from 'mermaid';
 import { EndState, StartState } from '../constants/index.js';
-import type {
+import {
 	TAction,
 	TActionsStructure,
 	TChoice,

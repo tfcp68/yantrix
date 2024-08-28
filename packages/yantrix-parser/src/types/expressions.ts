@@ -1,5 +1,5 @@
-import type { ExpressionTypes } from '../constants';
-import type { TKeyItemReducer } from './keyItem';
+import { ExpressionTypes } from '../constants';
+import { TKeyItemReducer } from './keyItem';
 
 export type TExpressionTypesKeys = keyof typeof ExpressionTypes;
 

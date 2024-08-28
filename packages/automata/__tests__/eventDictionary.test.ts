@@ -3,8 +3,8 @@ import * as _ from 'underscore';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { BasicEventDictionary } from '../src/EventDictionary.js';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import type { TValidator } from '../src/types/index.js';
-import type { TTestEvent } from './fixtures/index.js';
+import { TValidator } from '../src/types/index.js';
+import { TTestEvent } from './fixtures/index.js';
 
 class EventDictionaryTest extends BasicEventDictionary {
 	#defaultEventValidator: typeof this.validateEvent;

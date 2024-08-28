@@ -1,9 +1,9 @@
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedActionContainer from './mixins/ExtendedActionContainer.js';
-import type { TActionKeysCollection, TActionLookupParams, TActionValuesCollection } from './types/dictionaries.js';
-import type { TAbstractConstructor, TAutomataBaseActionType } from './types/index.js';
-import type { IActionDictionary } from './types/interfaces.js';
+import { TActionKeysCollection, TActionLookupParams, TActionValuesCollection } from './types/dictionaries.js';
+import { TAbstractConstructor, TAutomataBaseActionType } from './types/index.js';
+import { IActionDictionary } from './types/interfaces.js';
 
 export function createActionDictionary<
 	ActionType extends TAutomataBaseActionType,

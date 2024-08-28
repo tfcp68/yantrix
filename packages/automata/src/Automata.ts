@@ -1,7 +1,7 @@
 import { isPositiveInteger } from '@yantrix/utils';
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import BasicValidatorContainer from './mixins/BasicValidatorContainer.js';
-import type {
+import {
 	TAbstractConstructor,
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
@@ -13,7 +13,7 @@ import type {
 	TAutomataStateContext,
 } from './types/index.js';
 
-import type { IAutomata, IAutomataEventAdapter } from './types/interfaces.js';
+import { IAutomata, IAutomataEventAdapter } from './types/interfaces.js';
 
 export function createAutomata<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,

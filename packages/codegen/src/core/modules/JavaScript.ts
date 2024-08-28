@@ -1,21 +1,20 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TDiagramAction } from '@yantrix/mermaid-parser';
-import { StartState } from '@yantrix/mermaid-parser';
+import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ExpressionTypes,
-	type TContextItem,
-	type TExpression,
+	TContextItem,
+	TExpression,
 	TExpressionFunction,
-	type TMappedKeys,
+	TMappedKeys,
 	isContextWithReducer,
 	isKeyItemReference,
 	isKeyItemWithExpression,
 	maxNestedFuncLevel,
 } from '@yantrix/yantrix-parser';
-import type { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
-import type { TConstants, TExpressionRecord } from './../../types/common';
-import type { ModuleNames } from './index';
+import { TConstants, TExpressionRecord } from './../../types/common';
+import { ModuleNames } from './index';
 
 function getReferenceString(path: string, identifier: string) {
 	return `${path}['${identifier}']`;

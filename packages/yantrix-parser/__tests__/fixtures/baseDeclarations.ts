@@ -1,5 +1,5 @@
-import type { TMapped } from '../../src/index.js';
-import type { TKeyItems } from '../../src/types/keyItem.js';
+import { TMapped } from '../../src/index.js';
+import { TKeyItems } from '../../src/types/keyItem.js';
 import { baseKeyItemDeclaration, createContextDescription } from './keyItem.js';
 
 export const baseEmpty = {

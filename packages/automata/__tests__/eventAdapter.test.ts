@@ -2,8 +2,8 @@ import { isPositiveInteger, pickFromArray, sampleArray, sampleRange } from '@yan
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { createEventAdapter } from '../src/index.js';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import type { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../src/types/index.js';
-import type { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index.js';
+import { TAutomataEventEmitter, TAutomataEventHandler, TValidator } from '../src/types/index.js';
+import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index.js';
 
 class EventAdapterTest extends createEventAdapter<
 	TTestState,

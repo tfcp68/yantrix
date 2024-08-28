@@ -44,7 +44,7 @@ export default config(
 		ignores: ['**/*_generated.*'],
 		typescript: {
 			overrides: {
-				'ts/consistent-type-imports': ['off', { prefer: 'no-type-imports' }],
+				'ts/consistent-type-imports': ['error', { prefer: 'no-type-imports' }],
 				'ts/explicit-function-return-type': 'off',
 				'ts/consistent-type-definitions': 'off',
 				'ts/naming-convention': [

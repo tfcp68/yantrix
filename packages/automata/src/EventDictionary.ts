@@ -1,10 +1,10 @@
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedEventContainer from './mixins/ExtendedEventContainer.js';
-import type { TEventKeysCollection, TEventLookupParams, TEventValuesCollection } from './types/dictionaries.js';
-import type { TAbstractConstructor } from './types/index.js';
-import type { IEventDictionary } from './types/interfaces.js';
-import type { TAutomataBaseEventType } from './index.js';
+import { TEventKeysCollection, TEventLookupParams, TEventValuesCollection } from './types/dictionaries.js';
+import { TAbstractConstructor } from './types/index.js';
+import { IEventDictionary } from './types/interfaces.js';
+import { TAutomataBaseEventType } from './index.js';
 
 export function createEventDictionary<
 	EventType extends TAutomataBaseEventType,

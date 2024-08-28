@@ -2,8 +2,8 @@ import { sampleRange } from '@yantrix/utils';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { createAutomata, createEventAdapter } from '../src/index.js';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import type { TAutomataActionPayload, TAutomataEvent, TValidator } from '../src/types/index.js';
-import type { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index.js';
+import { TAutomataActionPayload, TAutomataEvent, TValidator } from '../src/types/index.js';
+import { TTestAction, TTestContext, TTestEvent, TTestEventMeta, TTestPayload, TTestState } from './fixtures/index.js';
 
 const EventAdapterTest = createEventAdapter<
 	TTestState,

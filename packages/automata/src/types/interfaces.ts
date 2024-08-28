@@ -1,4 +1,4 @@
-import type {
+import {
 	TActionDictionaryMapping,
 	TActionKeysCollection,
 	TActionLookupParams,
@@ -12,7 +12,7 @@ import type {
 	TStateLookupParams,
 	TStateValuesCollection,
 } from './dictionaries.js';
-import type {
+import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,

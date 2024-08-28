@@ -1,5 +1,5 @@
-import type { TContextReducer } from '../types/statements';
-import type { TKeyItemReducer, TKeyItemWithExpression } from './keyItem';
+import { TContextReducer } from '../types/statements';
+import { TKeyItemReducer, TKeyItemWithExpression } from './keyItem';
 
 export function isKeyItemBase(obj: any): obj is TKeyItemReducer {
 	return typeof obj === 'object' && Object.keys(obj).includes('expressionType');

@@ -2,8 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import type { TOutLang } from '../../src';
-import { generateAutomataFromStateDiagram } from '../../src';
+import { TOutLang, generateAutomataFromStateDiagram } from '../../src';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

@@ -1,5 +1,5 @@
 import { microtime } from './isomorphic.js';
-import type { TLengthArray } from './types.js';
+import { TLengthArray } from './types.js';
 
 export function randomString(length: number = 10) {
 	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';

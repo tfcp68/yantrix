@@ -1,7 +1,7 @@
-import type { Dispatch } from '@reduxjs/toolkit';
-import type { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
+import { Dispatch } from '@reduxjs/toolkit';
+import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
-import type { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
+import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 

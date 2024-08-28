@@ -1,5 +1,5 @@
 import { isPositiveInteger } from '@yantrix/utils';
-import type { TAbstractConstructor, TAutomataBaseActionType, TValidator } from '../types/index.js';
+import { TAbstractConstructor, TAutomataBaseActionType, TValidator } from '../types/index.js';
 
 export default function BasicActionContainer<ActionType extends TAutomataBaseActionType>() {
 	return <T extends TAbstractConstructor>(Base: T) =>

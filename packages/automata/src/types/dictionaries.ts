@@ -1,4 +1,4 @@
-import type { TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType } from './index.js';
+import { TAutomataBaseActionType, TAutomataBaseEventType, TAutomataBaseStateType } from './index.js';
 
 export type TStateDictionaryMapping<StateType extends TAutomataBaseStateType> = Record<string, StateType>;
 export type TActionDictionaryMapping<ActionType extends TAutomataBaseActionType> = Record<string, ActionType>;

@@ -1,7 +1,7 @@
-import type { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import type { TRefereneceType } from '@yantrix/yantrix-parser';
-import { ExpressionTypes } from '@yantrix/yantrix-parser';
-import type { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { ExpressionTypes, TRefereneceType } from '@yantrix/yantrix-parser';
+
+import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
 
 export function fillDictionaries(diagram: TStateDiagramMatrixIncludeNotes, stateDictionary: BasicStateDictionary, actionDictionary: BasicActionDictionary): void {
 	const stateKeys = diagram.states.map(s => s.id);

@@ -3,8 +3,8 @@ import * as _ from 'underscore';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { BasicActionDictionary } from '../src/ActionDictionary.js';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import type { TValidator } from '../src/types/index.js';
-import type { TTestAction } from './fixtures/index.js';
+import { TValidator } from '../src/types/index.js';
+import { TTestAction } from './fixtures/index.js';
 
 class ActionDictionaryTest extends BasicActionDictionary {
 	#defaultActionValidator: typeof this.validateAction;

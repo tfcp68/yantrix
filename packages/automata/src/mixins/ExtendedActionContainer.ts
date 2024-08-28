@@ -1,4 +1,4 @@
-import type {
+import {
 	TAbstractConstructor,
 	TAutomataActionPayload,
 	TAutomataBaseActionType,

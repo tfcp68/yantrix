@@ -1,9 +1,8 @@
 import { randomString } from '@yantrix/utils';
 import { Map } from 'immutable';
-import type { TMappedKeys } from '../../src/types/expressions.js';
-import type { TKeyItem, TKeyItems } from '../../src/types/keyItem.js';
-import type { TExpressionTypes } from './expressions.js';
-import { expressions, functions, getExpression } from './expressions.js';
+import { TMappedKeys } from '../../src/types/expressions.js';
+import { TKeyItem, TKeyItems } from '../../src/types/keyItem.js';
+import { TExpressionTypes, expressions, functions, getExpression } from './expressions.js';
 
 const identPath = ['contextDescription', 0, 'context', 0, 'keyItem', 'identifier'] as const;
 // const reducerPath = ['contextDescription', 0, 'reducer', 0, 'keyItem'] as const;

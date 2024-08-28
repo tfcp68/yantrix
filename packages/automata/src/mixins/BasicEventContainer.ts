@@ -1,5 +1,5 @@
 import { isPositiveInteger } from '@yantrix/utils';
-import type { TAbstractConstructor, TAutomataBaseEventType, TValidator } from '../types/index.js';
+import { TAbstractConstructor, TAutomataBaseEventType, TValidator } from '../types/index.js';
 
 export default function BasicEventContainer<EventType extends TAutomataBaseEventType>() {
 	return <T extends TAbstractConstructor>(Base: T) =>

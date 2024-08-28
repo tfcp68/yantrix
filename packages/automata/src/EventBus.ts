@@ -1,5 +1,5 @@
-import type { TAbstractConstructor, TAutomataBaseEventType, TAutomataEventStack, TEventBusHandler } from './types/index.js';
-import type { IAutomataEventBus } from './types/interfaces.js';
+import { TAbstractConstructor, TAutomataBaseEventType, TAutomataEventStack, TEventBusHandler } from './types/index.js';
+import { IAutomataEventBus } from './types/interfaces.js';
 import ExtendedEventContainer from './mixins/ExtendedEventContainer.js';
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 

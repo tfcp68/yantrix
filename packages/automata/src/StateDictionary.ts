@@ -2,14 +2,14 @@ import { uniqId } from '@yantrix/utils';
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedStateContainer from './mixins/ExtendedStateContainer.js';
-import type { TStateKeysCollection, TStateLookupParams, TStateValuesCollection } from './types/dictionaries.js';
-import type {
+import { TStateKeysCollection, TStateLookupParams, TStateValuesCollection } from './types/dictionaries.js';
+import {
 	TAbstractConstructor,
 	TAutomataBaseStateType,
 	TAutomataStateContext,
 	TContextTransformer,
 } from './types/index.js';
-import type { IStateDictionary } from './types/interfaces.js';
+import { IStateDictionary } from './types/interfaces.js';
 
 // type TTransformerDictionaryItem<
 // 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
