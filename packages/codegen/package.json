@@ -71,7 +71,7 @@
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
 		"@yantrix/utils": "workspace:^",
-		"tsx": "^4.18.0"
+		"tsx": "^4.19.0"
 	},
 	"publishConfig": {
 		"access": "public",

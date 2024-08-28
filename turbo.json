@@ -1,7 +1,6 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"remoteCache": { "enabled": true },
-	"ui": "tui",
 	"globalDependencies": ["tsconfig.json"],
 	"tasks": {
 		"build": {
