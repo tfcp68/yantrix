@@ -7,9 +7,6 @@ describe('createFSMSlice test', () => {
 	const { actions, name, reducer } = createFSMSlice({
 		name: GamePhaseTest.id,
 		fsm: GamePhaseTest,
-		contextToRedux: (context) => ({
-			context,
-		}),
 	});
 	const { states, getState } = GamePhaseTest;
 

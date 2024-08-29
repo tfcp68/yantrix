@@ -1,11 +1,10 @@
-import { TAutomataTypeStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
+import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { GenericAutomata } from '@yantrix/automata';
 
-export const createFSMSlice = <Automata extends typeof GenericAutomata & TAutomataTypeStaticMethods>(
-	options: TCreateFSMSliceOptions<Automata>,
-): TCreateFSMSlicerReturned<keyof Automata['actions']> => {
-	const { fsm, name, contextToRedux, selectors } = options;
+export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
+	options: TCreateFSMSliceOptions<Automata, TStateFSMSlice, TStateFSMSlice['context']>,
+): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice> => {
+	const { fsm, name, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new fsm();
 	const actionsNameList = Object.keys(fsm.actions);
 
@@ -36,6 +35,7 @@ export const createFSMSlice = <Automata extends typeof GenericAutomata & TAutoma
 
 	return createSlice({
 		name,
+		reducerPath: reducerPath ?? '',
 		initialState,
 		reducers,
 		selectors: selectors

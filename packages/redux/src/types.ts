@@ -24,26 +24,26 @@ export type TConnectedAutomataOptions = {
 
 export type TReduxConnectedAutomata = Record<TAutomataId, TConnectedAutomataOptions>;
 
-export type TCreateFSMSliceOptions<Automata> = {
+export type TCreateFSMSliceOptions<Automata, StateType, ContextType = object> = {
 	name: string;
 	fsm: Automata;
-	contextToRedux?: (context?: TStateFSMSlice) => any;
+	contextToRedux?: (context?: ContextType) => StateType;
 	reducerPath?: string;
-	selectors?: SliceSelectors<TStateFSMSlice>;
+	selectors?: SliceSelectors<StateType>;
 };
 
 export type TCreateFSMSlicerReturned<
 	Actions extends string | number | symbol,
-	State extends TStateFSMSlice = TStateFSMSlice,
+	State,
 	Name extends string = string,
 	ReducerPath extends string = Name,
-	Selectors extends SliceSelectors<TStateFSMSlice> = SliceSelectors<TStateFSMSlice>,
-> = ReturnType<typeof createSlice<State, TReducersFSMSlice<Actions>, Name, Selectors, ReducerPath>>;
+	Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+> = ReturnType<typeof createSlice<State, TReducersFSMSlice<Actions, State>, Name, Selectors, ReducerPath>>;
 
-export type TReducersFSMSlice<
-	Actions extends string | number | symbol,
-	State extends TStateFSMSlice = TStateFSMSlice,
-> = ValidateSliceCaseReducers<State, Record<Actions, CaseReducer<State, PayloadAction<Partial<State>>>>>;
+export type TReducersFSMSlice<Actions extends string | number | symbol, State> = ValidateSliceCaseReducers<
+	State,
+	Record<Actions, CaseReducer<State, PayloadAction<Partial<State>>>>
+>;
 
 export type TStateFSMSlice = {
 	state: number | null;
@@ -52,10 +52,12 @@ export type TStateFSMSlice = {
 
 export type TAutomataTypeStaticMethods = {
 	id: string;
-	actions: any;
-	states: any;
-	getState: any;
-	hasState: any;
-	getAction: any;
-	createAction: any;
+	actions: Record<string, string>;
+	states: Record<string, string>;
+	getState: (state: any) => any;
+	hasState: (instance: any, state: any) => boolean;
+	getAction: (action: any) => any;
+	createAction: (action: any, payload: any) => any;
 };
+
+export type TAutomataWithStaticMethods = typeof GenericAutomata & TAutomataTypeStaticMethods;
