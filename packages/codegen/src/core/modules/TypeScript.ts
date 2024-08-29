@@ -40,15 +40,6 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			${this.getDictionaries()}
 			const actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)} as const
 			const statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)} as const
-			export type T${options.className} = {
-				id: string;
-				actions:  typeof actionsMap;
-				states: typeof statesMap;
-				getState: (state: keyof typeof statesMap) => any;
-				hasState: (instance: ${options.className}, state: keyof typeof statesMap) => boolean;
-				getAction: (action: keyof typeof actionsMap) => any;
-				createAction: (action: keyof typeof actionsMap, payload: any) => { action: any; payload: any };
-			}
 			${this.getDefaultContext()}
 			${this.getActionToStateFromState()}
 			${this.getClassTemplate(options.className)}
