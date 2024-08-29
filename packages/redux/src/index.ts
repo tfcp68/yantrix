@@ -2,6 +2,8 @@ import { Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
+import { createFSMSlice } from './slice/slice';
+import GamePhaseTest from '../__tests__/fixtures/GamePhaseAutomataTest_generated';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
@@ -53,3 +55,13 @@ export const useReduxAutomata = (automataId: TAutomataId) => {
 	}
 	return [automata.basicAutomata, automata.dispatch] as const;
 };
+
+const { actions, name, reducer, selectors } = createFSMSlice({
+	name: GamePhaseTest.id,
+	fsm: GamePhaseTest,
+	contextToRedux: (context) => ({
+		context,
+	}),
+});
+
+console.log(actions, name, reducer, selectors);

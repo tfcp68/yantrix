@@ -24,17 +24,16 @@ export type TConnectedAutomataOptions = {
 
 export type TReduxConnectedAutomata = Record<TAutomataId, TConnectedAutomataOptions>;
 
-export type TCreateFSMSliceOptions<Actions extends string> = {
+export type TCreateFSMSliceOptions<Automata> = {
 	name: string;
-	fsm: typeof GenericAutomata;
+	fsm: Automata;
 	contextToRedux?: (context?: TStateFSMSlice) => any;
-	actionsFSM: Record<Actions, number>;
 	reducerPath?: string;
 	selectors?: SliceSelectors<TStateFSMSlice>;
 };
 
 export type TCreateFSMSlicerReturned<
-	Actions extends string,
+	Actions extends string | number | symbol,
 	State extends TStateFSMSlice = TStateFSMSlice,
 	Name extends string = string,
 	ReducerPath extends string = Name,
@@ -42,7 +41,7 @@ export type TCreateFSMSlicerReturned<
 > = ReturnType<typeof createSlice<State, TReducersFSMSlice<Actions>, Name, Selectors, ReducerPath>>;
 
 export type TReducersFSMSlice<
-	Actions extends string,
+	Actions extends string | number | symbol,
 	State extends TStateFSMSlice = TStateFSMSlice,
 > = ValidateSliceCaseReducers<State, Record<Actions, CaseReducer<State, PayloadAction<Partial<State>>>>>;
 
@@ -50,3 +49,9 @@ export type TStateFSMSlice = {
 	state: number | null;
 	context: any;
 };
+
+export interface IGamePhaseTest {
+	id: string;
+	actions: Record<string, string>;
+	states: Record<string, string>;
+}

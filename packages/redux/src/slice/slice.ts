@@ -1,37 +1,34 @@
 import { TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import GamePhaseTest from '../../__tests__/fixtures/GamePhaseAutomataTest_generated';
 
-export const createFSMSlice = <Actions extends string>(
-	options: TCreateFSMSliceOptions<Actions>,
-): TCreateFSMSlicerReturned<Actions> => {
-	const { fsm, name, contextToRedux, actionsFSM, selectors } = options;
+export const createFSMSlice = <Automata extends typeof GamePhaseTest = typeof GamePhaseTest>(
+	options: TCreateFSMSliceOptions<Automata>,
+): TCreateFSMSlicerReturned<keyof typeof options.fsm.actions> => {
+	const { fsm, name, contextToRedux, selectors } = options;
 	const _fsm = new fsm();
+	const actionsNameList = Object.keys(fsm.actions);
 
-	const actionsNameList = Object.keys(actionsFSM) as Actions[];
+	const reducers = actionsNameList.reduce((acc, actionName) => {
+		acc[actionName] = (state: TStateFSMSlice, action: PayloadAction<TStateFSMSlice>) => {
+			const rootReducer = _fsm.getReducer();
+			if (!rootReducer) return {};
+			const newState = rootReducer({
+				action: fsm.getAction(actionName as keyof typeof fsm.actions),
+				state: state.state,
+				context: state.context,
+				payload: action.payload,
+			});
 
-	const reducers = actionsNameList.reduce(
-		(acc, actionName) => {
-			acc[actionName] = (state: TStateFSMSlice, action: PayloadAction<TStateFSMSlice>) => {
-				const rootReducer = _fsm.getReducer();
-				if (!rootReducer) return {};
-				const newState = rootReducer({
-					action: actionsFSM[actionName as keyof typeof actionsFSM],
-					state: state.state,
-					context: state.context,
-					payload: action.payload,
-				});
-
-				state = {
-					state: newState.state,
-					context: newState.context,
-				};
-
-				return state;
+			state = {
+				state: newState.state,
+				context: newState.context,
 			};
-			return acc;
-		},
-		{} as Record<Actions, any>,
-	);
+
+			return state;
+		};
+		return acc;
+	}, {} as any);
 
 	const initialState: TStateFSMSlice = _fsm.getContext();
 

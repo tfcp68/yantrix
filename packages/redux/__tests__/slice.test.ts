@@ -1,19 +1,19 @@
 import { describe, expect, test } from 'vitest';
 import { createFSMSlice } from '../src/slice/slice';
-import { actionsDictionary, GamePhaseAutomata, statesDictionary } from './fixtures/GamePhaseAutomata_generated';
+import { GamePhaseAutomata } from './fixtures/GamePhaseAutomata_generated';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-
-// const fixtures
+import GamePhaseTest from './fixtures/GamePhaseAutomataTest_generated';
 
 describe('createFSMSlice test', () => {
 	const { actions, name, reducer } = createFSMSlice({
-		name: 'game_phase',
-		fsm: GamePhaseAutomata,
-		actionsFSM: actionsDictionary,
+		name: GamePhaseTest.id,
+		fsm: GamePhaseTest,
 		contextToRedux: (context) => ({
 			context,
 		}),
 	});
+	const { states, getState } = GamePhaseTest;
+
 	const store = configureStore({
 		reducer: combineReducers({
 			[name]: reducer,
@@ -24,10 +24,10 @@ describe('createFSMSlice test', () => {
 		store.dispatch(actions.RESET({}));
 		const currState = store.getState()[name];
 
-		expect(currState?.state).equal(statesDictionary.INIT);
+		expect(currState?.state).equal(getState(states.INIT));
 	});
 
-	test('equal state', () => {
+	test('validate state', () => {
 		const { validateState } = new GamePhaseAutomata();
 		const currState = store.getState()[name]?.state;
 
