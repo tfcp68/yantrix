@@ -18,7 +18,7 @@
 		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run --outputFile=../../test_reports/redux.md",
-		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/game_phase.mermaid --outfile __tests__/fixtures/GamePhaseAutomataTest_generated.ts --language TypeScript --className GamePhaseTest"
+		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/game_phase.mermaid --outfile __tests__/fixtures/GamePhaseAutomataTest.ts --language TypeScript --className GamePhaseTest"
 	},
 	"description": "Redux automata integration for Redux",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",

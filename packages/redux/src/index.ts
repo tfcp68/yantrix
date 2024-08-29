@@ -3,7 +3,7 @@ import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 import { createFSMSlice } from './slice/slice';
-import GamePhaseTest from '../__tests__/fixtures/GamePhaseAutomataTest_generated';
+import GamePhaseTest from '../__tests__/fixtures/GamePhaseAutomataTest';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
