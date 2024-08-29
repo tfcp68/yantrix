@@ -56,7 +56,7 @@ export const useReduxAutomata = (automataId: TAutomataId) => {
 	return [automata.basicAutomata, automata.dispatch] as const;
 };
 
-const { actions, name, reducer, selectors } = createFSMSlice({
+const { actions, name, reducer, selectors } = createFSMSlice<typeof GamePhaseTest>({
 	name: GamePhaseTest.id,
 	fsm: GamePhaseTest,
 	contextToRedux: (context) => ({

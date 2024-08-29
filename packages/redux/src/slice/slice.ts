@@ -1,10 +1,10 @@
-import { TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
+import { TAutomataTypeStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import GamePhaseTest from '../../__tests__/fixtures/GamePhaseAutomataTest_generated';
+import { GenericAutomata } from '@yantrix/automata';
 
-export const createFSMSlice = <Automata extends typeof GamePhaseTest = typeof GamePhaseTest>(
+export const createFSMSlice = <Automata extends typeof GenericAutomata & TAutomataTypeStaticMethods>(
 	options: TCreateFSMSliceOptions<Automata>,
-): TCreateFSMSlicerReturned<keyof typeof options.fsm.actions> => {
+): TCreateFSMSlicerReturned<keyof Automata['actions']> => {
 	const { fsm, name, contextToRedux, selectors } = options;
 	const _fsm = new fsm();
 	const actionsNameList = Object.keys(fsm.actions);

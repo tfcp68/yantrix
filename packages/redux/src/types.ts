@@ -50,8 +50,12 @@ export type TStateFSMSlice = {
 	context: any;
 };
 
-export interface IGamePhaseTest {
+export type TAutomataTypeStaticMethods = {
 	id: string;
-	actions: Record<string, string>;
-	states: Record<string, string>;
-}
+	actions: any;
+	states: any;
+	getState: any;
+	hasState: any;
+	getAction: any;
+	createAction: any;
+};

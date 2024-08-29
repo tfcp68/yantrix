@@ -26,6 +26,9 @@ jobs:
               run: pnpm install
             - name: Build
               run: pnpm build
+            - name: Generate automata for Redux packet
+              run: pnpm create_test_automata
+              working-directory: packages/redux
             - name: Tests
               run: pnpm run test
             - name: Upload coverage reports to Codecov
