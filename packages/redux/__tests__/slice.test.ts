@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import { createFSMSlice } from '../src/slice/slice';
-import { GamePhaseAutomata } from './fixtures/GamePhaseAutomata_generated';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import GamePhaseTest from './fixtures/GamePhaseAutomataTest';
 
@@ -28,7 +27,7 @@ describe('createFSMSlice test', () => {
 	});
 
 	test('validate state', () => {
-		const { validateState } = new GamePhaseAutomata();
+		const { validateState } = new GamePhaseTest();
 		const currState = store.getState()[name]?.state;
 
 		expect(validateState(currState)).toBeTruthy();
