@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { saveAndGenerate } from './fixtures/utils.js';
 
@@ -19,11 +21,14 @@ const input = `stateDiagram-v2
             SCORE_SCREEN --> MAIN_MENU: TO_MENU
             SCORE_SCREEN --> [*]: EXIT`;
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const getGeneratedFixturePath = (name: string) => path.resolve(__dirname, 'fixtures/generated', name);
+
 describe('codegen output', () => {
 	describe('gamePhaseAutomata', async () => {
 		await saveAndGenerate({ input, automataName: 'GamePhaseAutomata', lang: 'JavaScript' }, 'GamePhaseAutomata');
 		const { GamePhaseAutomata, actionsDictionary, statesDictionary } = await import(
-			`./fixtures/generated/GamePhaseAutomata_generated.js`
+			getGeneratedFixturePath('GamePhaseAutomata_generated.js')
 		);
 
 		const automata = new GamePhaseAutomata();

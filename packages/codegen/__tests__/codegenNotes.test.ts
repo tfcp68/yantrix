@@ -1,7 +1,12 @@
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { randomArray, randomDecimal, randomInteger, randomString } from '@yantrix/utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { mapFromObjectToString, objectKeysToString, saveAndGenerate } from './fixtures/utils';
 import { constant, generateAssignCase, getReferenceAssign } from './fixtures/defaultAssign';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const getGeneratedFixturePath = (name: string) => path.resolve(__dirname, 'fixtures/generated', name);
 
 function getTemplate(secondNote: string, firstNote?: string) {
 	return `stateDiagram-v2
@@ -112,7 +117,7 @@ describe('default assign', async () => {
 	it('left assign #{a=string | constant | number | list  | emptyPayload = {} | emptypreviousContext = {} }', async () => {
 		const { output, dispatchObject } = defautlAssignLeft;
 
-		const res = await import(`./fixtures/generated/LeftAssign_generated.js`);
+		const res = await import(getGeneratedFixturePath('LeftAssign_generated.js'));
 
 		const automata = new res.Test();
 		automata.dispatch({ action: res.actionsDictionary.toA, payload: dispatchObject });
@@ -122,7 +127,7 @@ describe('default assign', async () => {
 	it('left assign with previous context and payload #{ a=$payload, $b=#prevContext } prevContext - all expressions', async () => {
 		const { output, dispatchObject } = defaultAssignLeftPrevious;
 
-		const res = await import(`./fixtures/generated/LeftAsssignWithPreviusReference_generated.js`);
+		const res = await import(getGeneratedFixturePath('LeftAsssignWithPreviusReference_generated.js'));
 
 		const automata = new res.Test();
 		automata.dispatch({ action: res.actionsDictionary.toA, payload: dispatchObject });
@@ -133,7 +138,7 @@ describe('default assign', async () => {
 	it('right assign with #a,#b = (list, constant, integer, string, payload = {}, prevContext = {})', async () => {
 		const { output, dispatchObject } = defautlAssignRightContext;
 
-		const res = await import(`./fixtures/generated/RightAssignPreviousContext_generated.js`);
+		const res = await import(getGeneratedFixturePath('RightAssignPreviousContext_generated.js'));
 
 		const automata = new res.Test();
 		automata.dispatch({ action: res.actionsDictionary.toA, payload: dispatchObject });
@@ -144,7 +149,7 @@ describe('default assign', async () => {
 	it('right assign payload $a,$b = (list, constant, integer, string, payload = {}, prevContext = {}', async () => {
 		const { output, dispatchObject } = defaultAssignRightPayload;
 
-		const res = await import(`./fixtures/generated/RightAssignPayload_generated.js`);
+		const res = await import(getGeneratedFixturePath('RightAssignPayload_generated.js'));
 
 		const automata = new res.Test();
 		automata.dispatch({ action: res.actionsDictionary.toA, payload: dispatchObject });
@@ -157,7 +162,7 @@ describe('default assign', async () => {
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'functionDefaultAssign');
 
-		const res = await import(`./fixtures/generated/functionDefaultAssign_generated.js`);
+		const res = await import(getGeneratedFixturePath('functionDefaultAssign_generated.js'));
 
 		const automata = new res.Test();
 		automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
@@ -178,7 +183,7 @@ describe('reducers', () => {
 		const input = getTemplate(`#{${current}}`, `#{${previousContextString}}`);
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'shortcutContext');
-		const res = await import(`./fixtures/generated/shortcutContext_generated.js`);
+		const res = await import(getGeneratedFixturePath('shortcutContext_generated.js'));
 
 		const automata = new res.Test();
 
@@ -197,7 +202,7 @@ describe('reducers', () => {
 		const input = getTemplate(`#{${left}}`);
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'shortcutContextWithNull');
-		const res = await import(`./fixtures/generated/shortcutContextWithNull_generated.js`);
+		const res = await import(getGeneratedFixturePath('shortcutContextWithNull_generated.js'));
 
 		const automata = new res.Test();
 
@@ -218,7 +223,7 @@ describe('reducers', () => {
 		const input = getTemplate(`#{${left}} <= ${right}`, `#{${previousContextString}}`);
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'defaultContext');
-		const res = await import(`./fixtures/generated/defaultContext_generated.js`);
+		const res = await import(getGeneratedFixturePath('defaultContext_generated.js'));
 
 		const automata = new res.Test();
 
@@ -238,7 +243,7 @@ describe('reducers', () => {
 		const input = getTemplate(`#{${left}} <= ${right}`);
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'nullContextFull');
-		const res = await import(`./fixtures/generated/nullContextFull_generated.js`);
+		const res = await import(getGeneratedFixturePath('nullContextFull_generated.js'));
 
 		const automata = new res.Test();
 
@@ -261,7 +266,7 @@ describe('reducers', () => {
 		const input = getTemplate(`#{${left}} <= ${right}`);
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'payloadBase');
-		const res = await import(`./fixtures/generated/payloadBase_generated.js`);
+		const res = await import(getGeneratedFixturePath('payloadBase_generated.js'));
 
 		const automata = new res.Test();
 
@@ -282,7 +287,7 @@ describe('reducers', () => {
 			{ input: getTemplate(input), automataName: 'Test', lang: 'JavaScript' },
 			'payloadWithEmptyObject',
 		);
-		const res = await import(`./fixtures/generated/payloadWithEmptyObject_generated.js`);
+		const res = await import(getGeneratedFixturePath('payloadWithEmptyObject_generated.js'));
 
 		const automata = new res.Test();
 
@@ -304,7 +309,7 @@ describe('reducers', () => {
 			{ input: getTemplate(input), automataName: 'Test', lang: 'JavaScript' },
 			'expressionReducer',
 		);
-		const res = await import(`./fixtures/generated/expressionReducer_generated.js`);
+		const res = await import(getGeneratedFixturePath('expressionReducer_generated.js'));
 
 		const automata = new res.Test();
 
@@ -326,7 +331,7 @@ describe('reducers', () => {
 		end note`;
 
 		await saveAndGenerate({ input: test, automataName: 'Test', lang: 'JavaScript' }, 'functionCall');
-		const res = await import(`./fixtures/generated/functionCall_generated.js`);
+		const res = await import(getGeneratedFixturePath('functionCall_generated.js'));
 
 		const automata = new res.Test();
 
@@ -361,7 +366,7 @@ describe('constants reference', () => {
 			'constants',
 		);
 
-		const res = await import(`./fixtures/generated/constants_generated.js`);
+		const res = await import(getGeneratedFixturePath('constants_generated.js'));
 		const automata = new res.Test();
 
 		automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
@@ -433,7 +438,7 @@ describe('initial', () => {
 		end note;
 		`;
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'qwerty');
-		const res = await import(`./fixtures/generated/qwerty_generated.js`);
+		const res = await import(getGeneratedFixturePath('qwerty_generated.js'));
 
 		const automata = new res.Test();
 
@@ -446,7 +451,7 @@ describe('initial', () => {
 		`;
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'defaultStartState');
-		const res = await import(`./fixtures/generated/defaultStartState_generated.js`);
+		const res = await import(getGeneratedFixturePath('defaultStartState_generated.js'));
 
 		const automata = new res.Test();
 
@@ -477,7 +482,7 @@ describe('default context', () => {
 		`;
 
 		await saveAndGenerate({ input, automataName: 'Test', lang: 'JavaScript' }, 'tata');
-		const res = await import(`./fixtures/generated/tata_generated.js`);
+		const res = await import(getGeneratedFixturePath('tata_generated.js'));
 
 		const automata = new res.Test();
 
@@ -496,7 +501,7 @@ describe('default context', () => {
 			},
 			'defaultContextEmptyObject',
 		);
-		const res = await import(`./fixtures/generated/defaultContextEmptyObject_generated.js`);
+		const res = await import(getGeneratedFixturePath('defaultContextEmptyObject_generated.js'));
 
 		const automata = new res.Test();
 
@@ -515,7 +520,8 @@ describe('functions', () => {
 			},
 			'nestedCallFunction',
 		);
-		const res = await import(`./fixtures/generated/nestedCallFunction_generated.js`);
+
+		const res = await import(getGeneratedFixturePath('nestedCallFunction_generated.js'));
 
 		const automata = new res.Test();
 

@@ -6,7 +6,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 jobs:
-  tests:
+  Integration-tests:
     name: Tests
     runs-on: ubuntu-latest
     steps:

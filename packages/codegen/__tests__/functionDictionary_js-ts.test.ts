@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
 import { randomInteger, randomString } from '@yantrix/utils';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
@@ -32,10 +34,13 @@ function createNameFromTemplate(str: string) {
 	return str.replaceAll('%s', randomString()).replaceAll('%d', randomInteger(0, 9).toString());
 }
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const getGeneratedFixturePath = (name: string) => path.resolve(__dirname, 'fixtures/generated', name);
+
 describe('jS/TS Function Dictionary', async () => {
 	await saveAndGenerate({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'functions');
 
-	const res = await import(`./fixtures/generated/functions_generated.js`);
+	const res = await import(getGeneratedFixturePath('functions_generated.js'));
 
 	const functionDictionary = res.functionDictionary;
 
