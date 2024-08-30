@@ -54,7 +54,6 @@
 		"prepare": "is-ci || husky"
 	},
 	"dependencies": {
-		"esbuild-plugin-version-injector": "^1.2.1",
 		"lodash-es": "^4.17.21",
 		"prettier": "^3.3.3",
 		"turbo": "^2.1.0",
