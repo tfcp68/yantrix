@@ -42,7 +42,7 @@
 	"scripts": {
 		"build": "turbo run build --concurrency=50%",
 		"build:affected": "turbo run build --affected --concurrency=50%",
-		"clean": "rimraf --glob '**/dist **/coverage **/.turbo !.turbo/daemon'",
+		"clean": "rimraf --glob '**/dist **/coverage **/*_generated.*",
 		"format": "turbo run format --concurrency=50%",
 		"format:affected": "turbo run format --affected --concurrency=50%",
 		"lint": "turbo run lint --concurrency=50%",

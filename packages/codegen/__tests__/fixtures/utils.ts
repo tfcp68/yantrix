@@ -36,7 +36,7 @@ export async function generateAutomata(options: TGenerateAutomataParams) {
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: options.automataName,
 		outLang: options.lang,
-		constants: options.constants as string,
+		constants: options.constants!,
 	});
 
 	return generatedAutomataOutput;
@@ -48,8 +48,8 @@ export async function saveAndGenerate(options: TGenerateAutomataParams, fileName
 
 	try {
 		await saveFile(fileName, automata, ext);
-	} catch (e) {
-		console.error(e);
+	} catch (error) {
+		console.error(error);
 	}
 }
 
@@ -69,10 +69,9 @@ export function mapFromObjectToString(a: Record<string, any>, startSymbol: strin
 export function mapFromStringToObject(a: string) {
 	return a.split(',').reduce((acc, el) => {
 		const [key, value] = el.split('=');
-		// @ts-expect-error fck this i dont wanna fix it pls help
-		acc[key] = value || null;
+		acc[key as keyof typeof acc] = value || null;
 		return acc;
-	}, {});
+	}, Object.create(null));
 }
 
 export function objectKeysToString(obj: Record<string, any>, startSymbol: string = '') {
