@@ -27,7 +27,7 @@ export type TReduxConnectedAutomata = Record<TAutomataId, TConnectedAutomataOpti
 export type TCreateFSMSliceOptions<Automata, StateType, ContextType = object> = {
 	name: string;
 	fsm: Automata;
-	contextToRedux?: (context?: ContextType) => StateType;
+	contextToRedux?: (context?: ContextType) => any;
 	reducerPath?: string;
 	selectors?: SliceSelectors<StateType>;
 };
