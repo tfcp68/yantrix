@@ -31,7 +31,18 @@ export class FunctionDictionary {
 	}
 
 	/**
-	 * Fetch function from dictionary;
+	 * Check if a function exists in the dictionary.
+	 *
+	 * @param functionKey - name of the function to check
+	 * @returns true if the function exists, false otherwise
+	 */
+	has(functionKey: string) {
+		const func = this.functions[functionKey];
+		return func !== undefined;
+	}
+
+	/**
+	 * Get function from dictionary;
 	 *
 	 * If the function is not found - throw an error.
 	 *

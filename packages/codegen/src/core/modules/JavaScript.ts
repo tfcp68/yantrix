@@ -4,6 +4,8 @@ import {
 	ExpressionTypes,
 	TContextItem,
 	TExpression,
+	TExpressionDefine,
+	TExpressionDefineMap,
 	TExpressionFunction,
 	TMappedKeys,
 	isContextWithReducer,
@@ -46,7 +48,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	// initialContext: string;
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
-
+	dependencyGraph: Map<string, Set<string>>;
 	constants: TConstants | null;
 	expressions: TExpressionRecord;
 	dictionaries: string[];
@@ -62,7 +64,11 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.diagram = diagram;
 
 		this.constants = constants;
+
 		this.expressions = this.setupExpressions();
+
+		this.dependencyGraph = new Map();
+		this.buildDependencyGraph();
 
 		this.handlersDict = [];
 		this.changeStateHandlers = [];
@@ -74,7 +80,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.setupDictionaries();
 	}
 
-	public getImports(): string {
+	public getImports() {
 		let imports = '';
 		for (const [key, value] of Object.entries(this.imports)) {
 			imports += `import { ${value.join(', ')} } from '${key}';\n`;
@@ -86,7 +92,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return this.dictionaries.join('\n');
 	}
 
-	setupDictionaries(): void {
+	setupDictionaries() {
 		this.dictionaries.push(
 			`export const statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
 		);
@@ -94,7 +100,31 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions);`);
+
+		this.checkForCyclicDependencies();
+		this.registerCustomFunctions();
+	}
+
+	private getFunctionBody(expression: TExpressionDefineMap): string {
+		if (expression.expressionType === ExpressionTypes.Function) {
+			const { FunctionName, Arguments } = expression.FunctionDeclaration;
+
+			const argsList = Arguments.map((arg) => {
+				if (arg.expressionType === ExpressionTypes.Function) {
+					return this.getFunctionBody(arg);
+				} else {
+					return this.getExpressionValueDefine(arg);
+				}
+			}).join(', ');
+
+			return `(function() {
+				const func = functionDictionary.get('${FunctionName}');
+				return func(${argsList});
+			})()`;
+		} else {
+			return this.getExpressionValueDefine(expression);
+		}
 	}
 
 	getClassTemplate(className: string) {
@@ -135,11 +165,11 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		`;
 	}
 
-	protected getHasStateFunc(className: string): string {
+	protected getHasStateFunc(className: string) {
 		return `(instance, state) => instance.state === ${className}.getState(state)`;
 	}
 
-	protected getGetStateFunc(): string {
+	protected getGetStateFunc() {
 		return `(state) => statesDictionary[state]`;
 	}
 
@@ -155,7 +185,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		`;
 	}
 
-	getObjectKeysMap(dict: Record<any, any>): Record<string, string> {
+	getObjectKeysMap(dict: Record<any, any>) {
 		const obj: Record<string, string> = {};
 		Object.keys(dict).forEach((key: string) => {
 			obj[key] = key;
@@ -163,19 +193,19 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return obj;
 	}
 
-	getActionsMap(): Record<string, string> {
+	getActionsMap() {
 		return this.getObjectKeysMap(this.actionDictionary.getDictionary());
 	}
 
-	getStatesMap(): Record<string, string> {
+	getStatesMap() {
 		return this.getObjectKeysMap(this.stateDictionary.getDictionary());
 	}
 
-	protected getGetActionFunc(): string {
+	protected getGetActionFunc() {
 		return `(action) => actionsDictionary[action];`;
 	}
 
-	protected getCreateActionFunc(className: string): string {
+	protected getCreateActionFunc(className: string) {
 		return `
 		(action, payload) => {
 			const actionId = ${className}.getAction(action);
@@ -186,7 +216,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}`;
 	}
 
-	public getActionToStateFromState(): string {
+	public getActionToStateFromState() {
 		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
 	}
 
@@ -213,10 +243,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
-					if (!actionValue)
-						throw new Error(`Action ${action} not found`);
-					if (!newState)
-						throw new Error(`State ${key} not found`);
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
 
 					return `
 				  ${actionValue}: {
@@ -228,7 +256,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			.flatMap(el => `${el.join('\n\t')}`);
 	}
 
-	protected getIsKeyOf(): string {
+	protected getIsKeyOf() {
 		return `(key, obj) => key in obj`;
 	}
 
@@ -259,6 +287,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const {state:newState} = actionToStateFromStateDict[state][action]
 
 					const contextWithInitial = getDefaultContext(context,payload)
+
 					const newContextFunc = reducer[newState]
 
 					if(typeof newContextFunc !== 'function') {
@@ -268,35 +297,136 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
   				}`;
 	}
 
-	protected getRootReducerStateValidation(): string {
+	protected getRootReducerStateValidation() {
 		return `${this.getRootReducerStateValidationHead()} ${this.getRootReducerStateValidationError()}`;
 	}
 
-	protected getRootReducerStateValidationHead(): string {
+	protected getRootReducerStateValidationHead() {
 		return `if (!this.isKeyOf(state, actionToStateFromStateDict))`;
 	}
 
-	protected getRootReducerStateValidationError(): string {
+	protected getRootReducerStateValidationError() {
 		return `throw new Error("Invalid state, maybe machine isn't running.")`;
 	}
 
-	protected getRootReducerActionValidation(): string {
+	protected getRootReducerActionValidation() {
 		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
 	}
 
-	protected getStateValidator(): string {
+	protected getStateValidator() {
 		return `(s) => Object.values(statesDictionary).includes(s)`;
 	}
 
-	protected getActionValidator(): string {
+	private buildDependencyGraph(): void {
+		const defines = this.diagram.states.flatMap(state => state.notes?.defines ?? []);
+
+		const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
+			const { FunctionName, Arguments } = expression.FunctionDeclaration;
+
+			if (!this.dependencyGraph.has(currentFunc)) {
+				this.dependencyGraph.set(currentFunc, new Set());
+			}
+
+			this.dependencyGraph.get(currentFunc)!.add(FunctionName);
+
+			for (const arg of Arguments) {
+				if (arg.expressionType === 'function') {
+					addDependencies(arg, currentFunc);
+				}
+			}
+		};
+
+		for (const define of defines) {
+			if (define.expression.expressionType === ExpressionTypes.Function) {
+				addDependencies(define.expression, define.identifier);
+			}
+		}
+	}
+
+	private detectCycles(): string[][] {
+		const visited = new Set<string>();
+		const recursionStack = new Set<string>();
+		const cycles: string[][] = [];
+
+		const dfs = (node: string, path: string[] = []): boolean => {
+			if (!visited.has(node)) {
+				visited.add(node);
+				recursionStack.add(node);
+
+				const neighbors = this.dependencyGraph.get(node) || new Set();
+				for (const neighbor of neighbors) {
+					if (!visited.has(neighbor)) {
+						if (dfs(neighbor, [...path, node])) {
+							return true;
+						}
+					} else if (recursionStack.has(neighbor)) {
+						cycles.push([...path, node, neighbor]);
+						return true;
+					}
+				}
+			}
+
+			recursionStack.delete(node);
+			return false;
+		};
+
+		for (const node of this.dependencyGraph.keys()) {
+			if (!visited.has(node)) {
+				dfs(node);
+			}
+		}
+
+		return cycles;
+	}
+
+	private checkForCyclicDependencies() {
+		const cycles = this.detectCycles();
+		if (cycles.length > 0) {
+			const cycleStrings = cycles.map(cycle => cycle.join(' -> '));
+			throw new Error(`Cyclic dependencies detected in function definitions:\n${cycleStrings.join('\n')}`);
+		}
+	}
+
+	private registerCustomFunctions() {
+		const defines = this.diagram.states.flatMap(state => state.notes?.defines ?? []);
+		const registered = new Set<string>();
+
+		const registerFunction = (funcName: string) => {
+			if (registered.has(funcName)) return;
+
+			const funcDef = defines.find(def => def.identifier === funcName);
+			if (!funcDef) return;
+
+			const dependencies = this.dependencyGraph.get(funcName) || new Set();
+			for (const dep of dependencies) {
+				if (!registered.has(dep)) {
+					registerFunction(dep);
+				}
+			}
+
+			const functionBody = this.getFunctionBody(funcDef.expression);
+			this.dictionaries
+				.push(`functionDictionary.register('${funcName}', function(${funcDef.Arguments.join(', ')}) {
+				return ${functionBody};
+			});`);
+			registered.add(funcName);
+		};
+
+		for (const funcName of this.dependencyGraph.keys()) {
+			if (!registered.has(funcName)) {
+				registerFunction(funcName);
+			}
+		}
+	}
+
+	protected getActionValidator() {
 		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
 
-	protected getActionToStateFromStateDict(): string[] {
+	protected getActionToStateFromStateDict() {
 		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-			if (!value)
-				throw new Error(`State ${state} not found`);
+			if (!value) throw new Error(`State ${state} not found`);
 
 			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
 		});
@@ -325,8 +455,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			ctxRes.push(...newContext);
 		});
 
-		if (ctxRes.length === 0)
-			return 'null';
+		if (ctxRes.length === 0) return 'null';
 
 		return `{${ctxRes.join(',\n\t')}}`;
 	};
@@ -349,7 +478,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return firstState;
 	}
 
-	private getContextItem(ctx: TContextItem): string[] {
+	private getContextItem = (ctx: TContextItem) => {
 		if (isContextWithReducer(ctx)) {
 			const { context, reducer } = ctx;
 
@@ -455,6 +584,17 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return this.expressions[expression.expressionType](expression);
 	}
 
+	private getExpressionValueDefine(expression: TExpressionDefineMap) {
+		switch (expression.expressionType) {
+			case ExpressionTypes.Identifier:
+				return expression.identifier;
+			case ExpressionTypes.Function:
+				return this.getFunctionBody(expression);
+			default:
+				return this.getExpressionValue(expression);
+		}
+	}
+
 	private setupExpressions(): TExpressionRecord {
 		return {
 			[ExpressionTypes.ArrayDeclaration]: () => '[]',
@@ -483,7 +623,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 							if (isKeyItemReference(item)) {
 								const { expressionType, identifier } = item;
 								const path = pathRecord[expressionType];
-
 								if (isKeyItemWithExpression(item)) {
 									const { expression } = item;
 
@@ -496,7 +635,12 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 									res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
 								} else {
-									res.push(`${getDefaultPropertyContext(path, identifier)}`);
+									if (item.expressionType === ExpressionTypes.Constant) {
+										const expressionValueRight = this.getExpressionValue(item);
+										res.push(expressionValueRight);
+									} else {
+										res.push(`${getDefaultPropertyContext(path, identifier)}`);
+									}
 								}
 							} else {
 								if (item.expressionType === ExpressionTypes.Function) {

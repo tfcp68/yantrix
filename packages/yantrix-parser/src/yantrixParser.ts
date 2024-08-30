@@ -14,19 +14,19 @@ import { JisonParser, JisonParserApi, StateType, SymbolsType, TerminalsType, Pro
 
 export class YantrixParser extends JisonParser implements JisonParserApi {
     $?: any;
-    symbols_: SymbolsType = {"error":2,"start":3,"document":4,"EOF":5,"line":6,"statements":7,"NewLine":8,"PLUS":9,"INITIAL_STATE":10,"BY_PASS":11,"CONTEXT_STATEMENT":12,"EMIT_STATEMENT":13,"SUBSCRIBE_STATEMENT":14,"DEFINE_STATEMENT":15,"CONTEXT_SYMBOL":16,"LEFT_BRACE":17,"RAW_KEYLIST":18,"RIGHT_BRACE":19,"LEFT_ARROW":20,"KEY_LIST":21,"EMIT_EVENT":22,"KEY_LIST_STATEMENT":23,"EMIT":24,"IDENT":25,"SUBSCRIBE_EVENT":26,"SUBSCRIBE":27,"DEFINE":28,"DEFINE_ARGUMENTS":29,"RIGHT_ARROW":30,"DEFINE_FUNCTION":31,"FUNCTION_NAME":32,"LEFT_BRACKET":33,"DEFINE_FUNCTION_ARGUMENTS":34,"RIGHT_BRACKET":35,"EXPRESSION_DEFINE":36,"COMMA":37,"IMMUTABLE":38,"DEFINE_ARGUMENTS_TYPES":39,"KEY_ITEM":40,"DATA_OBJECT":41,"FUNCTION":42,"RAW_KEYITEM":43,"ASSIGN":44,"EXPRESSION":45,"ARGUMENTS":46,"DATA_OBJECT_REFERENCE":47,"CONSTANT":48,"PAYLOAD_REFERENCE":49,"CONTEXT_REFERENCE":50,"CONSTANT_SYMBOL":51,"DOLLAR_SYMBOL":52,"ARRAY":53,"STRING":54,"NUMBER":55,"INTEGER":56,"DECIMAL":57,"$accept":0,"$end":1};
-    terminals_: TerminalsType = {2:"error",5:"EOF",8:"NewLine",9:"PLUS",10:"INITIAL_STATE",11:"BY_PASS",16:"CONTEXT_SYMBOL",17:"LEFT_BRACE",19:"RIGHT_BRACE",20:"LEFT_ARROW",24:"EMIT",25:"IDENT",27:"SUBSCRIBE",28:"DEFINE",30:"RIGHT_ARROW",32:"FUNCTION_NAME",33:"LEFT_BRACKET",35:"RIGHT_BRACKET",37:"COMMA",44:"ASSIGN",51:"CONSTANT_SYMBOL",52:"DOLLAR_SYMBOL",53:"ARRAY",54:"STRING",56:"INTEGER",57:"DECIMAL"};
-    productions_: ProductionsType = [0,[3,2],[4,0],[4,2],[6,1],[6,1],[7,2],[7,2],[7,1],[7,1],[7,1],[7,1],[12,4],[12,6],[13,1],[13,2],[13,7],[22,2],[14,1],[14,2],[14,4],[26,3],[15,5],[31,4],[31,3],[34,1],[34,3],[36,1],[36,1],[36,1],[29,2],[29,3],[39,1],[39,3],[23,3],[21,1],[21,3],[40,1],[40,1],[40,1],[18,1],[18,3],[43,1],[43,3],[42,4],[42,3],[46,1],[46,3],[41,3],[41,1],[45,1],[45,1],[45,1],[47,1],[47,1],[47,1],[48,2],[49,2],[50,2],[38,1],[38,1],[38,1],[55,1],[55,1]];
+    symbols_: SymbolsType = {"error":2,"start":3,"document":4,"EOF":5,"line":6,"statements":7,"NewLine":8,"PLUS":9,"INITIAL_STATE":10,"BY_PASS":11,"CONTEXT_STATEMENT":12,"EMIT_STATEMENT":13,"SUBSCRIBE_STATEMENT":14,"DEFINE_STATEMENT":15,"CONTEXT_SYMBOL":16,"LEFT_BRACE":17,"RAW_KEYLIST":18,"RIGHT_BRACE":19,"LEFT_ARROW":20,"KEY_LIST":21,"EMIT_EVENT":22,"KEY_LIST_STATEMENT":23,"EMIT":24,"IDENT":25,"SUBSCRIBE_EVENT":26,"SUBSCRIBE":27,"DEFINE":28,"DEFINE_ARGUMENTS":29,"RIGHT_ARROW":30,"DEFINE_FUNCTION":31,"FUNCTION_NAME":32,"LEFT_BRACKET":33,"DEFINE_FUNCTION_ARGUMENTS":34,"RIGHT_BRACKET":35,"IMMUTABLE":36,"CONSTANT":37,"EXPRESSION_DEFINE":38,"COMMA":39,"DEFINE_ARGUMENTS_TYPES":40,"KEY_ITEM":41,"DATA_OBJECT":42,"FUNCTION":43,"RAW_KEYITEM":44,"ASSIGN":45,"EXPRESSION":46,"ARGUMENTS":47,"DATA_OBJECT_REFERENCE":48,"PAYLOAD_REFERENCE":49,"CONTEXT_REFERENCE":50,"CONSTANT_SYMBOL":51,"DOLLAR_SYMBOL":52,"ARRAY":53,"STRING":54,"NUMBER":55,"INTEGER":56,"DECIMAL":57,"$accept":0,"$end":1};
+    terminals_: TerminalsType = {2:"error",5:"EOF",8:"NewLine",9:"PLUS",10:"INITIAL_STATE",11:"BY_PASS",16:"CONTEXT_SYMBOL",17:"LEFT_BRACE",19:"RIGHT_BRACE",20:"LEFT_ARROW",24:"EMIT",25:"IDENT",27:"SUBSCRIBE",28:"DEFINE",30:"RIGHT_ARROW",32:"FUNCTION_NAME",33:"LEFT_BRACKET",35:"RIGHT_BRACKET",39:"COMMA",45:"ASSIGN",51:"CONSTANT_SYMBOL",52:"DOLLAR_SYMBOL",53:"ARRAY",54:"STRING",56:"INTEGER",57:"DECIMAL"};
+    productions_: ProductionsType = [0,[3,2],[4,0],[4,2],[6,1],[6,1],[7,2],[7,2],[7,1],[7,1],[7,1],[7,1],[12,4],[12,6],[13,1],[13,2],[13,7],[22,2],[14,1],[14,2],[14,4],[26,3],[15,5],[31,4],[31,3],[31,1],[31,1],[34,1],[34,3],[38,1],[38,1],[38,1],[38,1],[29,2],[29,3],[40,1],[40,3],[23,3],[21,1],[21,3],[41,1],[41,1],[41,1],[18,1],[18,3],[44,1],[44,3],[43,4],[43,3],[47,1],[47,3],[42,3],[42,1],[46,1],[46,1],[46,1],[48,1],[48,1],[48,1],[37,2],[49,2],[50,2],[36,1],[36,1],[36,1],[55,1],[55,1]];
     table: Array<StateType>;
-    defaultActions: {[key:number]: any} = {3:[2,1],66:[2,30],70:[2,41],83:[2,31]};
+    defaultActions: {[key:number]: any} = {3:[2,1],66:[2,33],70:[2,44],85:[2,34]};
 
     constructor (yy = {}, lexer = new YantrixLexer(yy)) {
       super(yy, lexer);
 
       // shorten static method to just `o` for terse STATE_TABLE
-      const $V0=[5,8,9,16,24,27,28],$V1=[1,22],$V2=[1,29],$V3=[1,48],$V4=[1,40],$V5=[1,46],$V6=[1,47],$V7=[1,37],$V8=[1,38],$V9=[1,44],$Va=[1,45],$Vb=[5,8,9,16,24,27,28,33],$Vc=[19,37],$Vd=[5,8,9,16,24,27,28,35],$Ve=[5,8,9,16,24,27,28,35,37],$Vf=[5,8,9,16,19,24,27,28,35,37],$Vg=[5,8,9,16,19,24,27,28,35,37,44],$Vh=[1,82],$Vi=[35,37],$Vj=[1,97];
+      const $V0=[5,8,9,16,24,27,28],$V1=[1,22],$V2=[1,29],$V3=[1,48],$V4=[1,40],$V5=[1,46],$V6=[1,47],$V7=[1,37],$V8=[1,38],$V9=[1,44],$Va=[1,45],$Vb=[5,8,9,16,24,27,28,33],$Vc=[19,39],$Vd=[5,8,9,16,24,27,28,35],$Ve=[5,8,9,16,24,27,28,35,39],$Vf=[5,8,9,16,19,24,27,28,35,39],$Vg=[5,8,9,16,19,24,27,28,35,39,45],$Vh=[1,82],$Vi=[35,39],$Vj=[1,99];
       const o = JisonParser.expandParseTable;
-      this.table = [o($V0,[2,2],{3:1,4:2}),{1:[3]},{5:[1,3],6:4,7:5,8:[1,6],9:[1,7],12:8,13:9,14:10,15:11,16:[1,12],22:13,24:[1,16],26:14,27:[1,17],28:[1,15]},{1:[2,1]},o($V0,[2,3]),o($V0,[2,4]),o($V0,[2,5]),{10:[1,18],11:[1,19]},o($V0,[2,8]),o($V0,[2,9]),o($V0,[2,10]),o($V0,[2,11]),{17:[1,20]},o($V0,[2,14],{23:21,33:$V1}),o($V0,[2,18],{23:23,33:$V1}),{25:[1,24]},{25:[1,25]},{25:[1,26]},o($V0,[2,6]),o($V0,[2,7]),{18:27,25:$V2,43:28},o($V0,[2,15],{20:[1,30]}),{16:$V3,21:31,32:$V4,38:34,40:32,41:33,42:35,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($V0,[2,19],{20:[1,49]}),{29:50,33:[1,51]},o($Vb,[2,17]),{25:[1,52]},{19:[1,53]},{19:[2,40],37:[1,54]},o($Vc,[2,42],{44:[1,55]}),{16:[1,56]},{35:[1,57]},o($Vd,[2,35],{37:[1,58]}),o($Ve,[2,37]),o($Ve,[2,38]),o($Ve,[2,39]),o($Vf,[2,49],{44:[1,59]}),o($Vf,[2,59]),o($Vf,[2,60]),o($Vf,[2,61]),{33:[1,60]},o($Vg,[2,53]),o($Vg,[2,54]),o($Vg,[2,55]),o($Vf,[2,62]),o($Vf,[2,63]),{25:[1,61]},{25:[1,62]},{25:[1,63]},{23:64,33:$V1},{30:[1,65]},{25:[1,68],35:[1,66],39:67},o($Vb,[2,21]),o($V0,[2,12],{20:[1,69]}),{18:70,25:$V2,43:28},{16:$V3,32:$V4,38:72,41:73,42:74,45:71,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{17:[1,75]},o([5,8,9,16,20,24,27,28],[2,34]),{16:$V3,21:76,32:$V4,38:34,40:32,41:33,42:35,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{16:$V3,32:$V4,38:72,41:73,42:74,45:77,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{16:$V3,32:$V4,35:[1,79],38:72,41:73,42:74,45:80,46:78,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vg,[2,56]),o($Vg,[2,57]),o($Vg,[2,58]),o($V0,[2,20]),{31:81,32:$Vh},{30:[2,30]},{35:[1,83],37:[1,84]},o($Vi,[2,32]),{16:$V3,21:85,32:$V4,38:34,40:32,41:33,42:35,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{19:[2,41]},o($Vc,[2,43]),o($Vf,[2,50]),o($Vf,[2,51]),o($Vf,[2,52]),{18:86,25:$V2,43:28},o($Vd,[2,36]),o($Vf,[2,48]),{35:[1,87],37:[1,88]},o($Vf,[2,45]),o($Vi,[2,46]),o($V0,[2,22]),{33:[1,89]},{30:[2,31]},{25:[1,90]},o($V0,[2,13]),{19:[1,91]},o($Vf,[2,44]),{16:$V3,32:$V4,38:72,41:73,42:74,45:92,47:36,48:41,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{25:$Vj,31:98,32:$Vh,34:93,35:[1,94],36:95,38:96,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vi,[2,33]),o($V0,[2,16]),o($Vi,[2,47]),{35:[1,99],37:[1,100]},o($Ve,[2,24]),o($Vi,[2,25]),o($Vi,[2,27]),o($Vi,[2,28]),o($Vi,[2,29]),o($Ve,[2,23]),{25:$Vj,31:98,32:$Vh,36:101,38:96,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vi,[2,26])];
+      this.table = [o($V0,[2,2],{3:1,4:2}),{1:[3]},{5:[1,3],6:4,7:5,8:[1,6],9:[1,7],12:8,13:9,14:10,15:11,16:[1,12],22:13,24:[1,16],26:14,27:[1,17],28:[1,15]},{1:[2,1]},o($V0,[2,3]),o($V0,[2,4]),o($V0,[2,5]),{10:[1,18],11:[1,19]},o($V0,[2,8]),o($V0,[2,9]),o($V0,[2,10]),o($V0,[2,11]),{17:[1,20]},o($V0,[2,14],{23:21,33:$V1}),o($V0,[2,18],{23:23,33:$V1}),{25:[1,24]},{25:[1,25]},{25:[1,26]},o($V0,[2,6]),o($V0,[2,7]),{18:27,25:$V2,44:28},o($V0,[2,15],{20:[1,30]}),{16:$V3,21:31,32:$V4,36:34,37:41,41:32,42:33,43:35,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($V0,[2,19],{20:[1,49]}),{29:50,33:[1,51]},o($Vb,[2,17]),{25:[1,52]},{19:[1,53]},{19:[2,43],39:[1,54]},o($Vc,[2,45],{45:[1,55]}),{16:[1,56]},{35:[1,57]},o($Vd,[2,38],{39:[1,58]}),o($Ve,[2,40]),o($Ve,[2,41]),o($Ve,[2,42]),o($Vf,[2,52],{45:[1,59]}),o($Vf,[2,62]),o($Vf,[2,63]),o($Vf,[2,64]),{33:[1,60]},o($Vg,[2,56]),o($Vg,[2,57]),o($Vg,[2,58]),o($Vf,[2,65]),o($Vf,[2,66]),{25:[1,61]},{25:[1,62]},{25:[1,63]},{23:64,33:$V1},{30:[1,65]},{25:[1,68],35:[1,66],40:67},o($Vb,[2,21]),o($V0,[2,12],{20:[1,69]}),{18:70,25:$V2,44:28},{16:$V3,32:$V4,36:72,37:41,42:73,43:74,46:71,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{17:[1,75]},o([5,8,9,16,20,24,27,28],[2,37]),{16:$V3,21:76,32:$V4,36:34,37:41,41:32,42:33,43:35,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{16:$V3,32:$V4,36:72,37:41,42:73,43:74,46:77,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{16:$V3,32:$V4,35:[1,79],36:72,37:41,42:73,43:74,46:80,47:78,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vg,[2,59]),o($Vg,[2,60]),o($Vg,[2,61]),o($V0,[2,20]),{31:81,32:$Vh,36:83,37:84,51:$V5,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{30:[2,33]},{35:[1,85],39:[1,86]},o($Vi,[2,35]),{16:$V3,21:87,32:$V4,36:34,37:41,41:32,42:33,43:35,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{19:[2,44]},o($Vc,[2,46]),o($Vf,[2,53]),o($Vf,[2,54]),o($Vf,[2,55]),{18:88,25:$V2,44:28},o($Vd,[2,39]),o($Vf,[2,51]),{35:[1,89],39:[1,90]},o($Vf,[2,48]),o($Vi,[2,49]),o($V0,[2,22]),{33:[1,91]},o($V0,[2,25]),o($V0,[2,26]),{30:[2,34]},{25:[1,92]},o($V0,[2,13]),{19:[1,93]},o($Vf,[2,47]),{16:$V3,32:$V4,36:72,37:41,42:73,43:74,46:94,48:36,49:42,50:43,51:$V5,52:$V6,53:$V7,54:$V8,55:39,56:$V9,57:$Va},{25:$Vj,31:101,32:$Vh,34:95,35:[1,96],36:98,37:100,38:97,51:$V5,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vi,[2,36]),o($V0,[2,16]),o($Vi,[2,50]),{35:[1,102],39:[1,103]},o($Ve,[2,24]),o($Vi,[2,27]),o($Vi,[2,29]),o($Vi,[2,30]),o($Vi,[2,31]),o($Vi,[2,32]),o($Ve,[2,23]),{25:$Vj,31:101,32:$Vh,36:98,37:100,38:104,51:$V5,53:$V7,54:$V8,55:39,56:$V9,57:$Va},o($Vi,[2,28])];
     }
 
     performAction (yytext:string, yyleng:number, yylineno:number, yy:any, yystate:number /* action[1] */, $$:any /* vstack */, _$:any /* lstack */): any {
@@ -99,80 +99,80 @@ break;
 case 22:
 this.$ = {identifier:$$[$0-3], ...$$[$0-2], expression:$$[$0]}
 break;
-case 23: case 44:
+case 23: case 47:
 this.$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$$[$0-3], Arguments:[...$$[$0-1]]} } 
 break;
-case 24: case 45:
+case 24: case 48:
 this.$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$$[$0-2], Arguments:[] } } 
 break;
-case 25: case 35: case 40: case 46:
+case 27: case 38: case 43: case 49:
 this.$ = [$$[$0]]
 break;
-case 26: case 47:
+case 28: case 50:
  this.$ = [...$$[$0-2], $$[$0]] 
 break;
-case 28:
-this.$ = {epxressionType:ExpressionTypes.Identifier, identifier:$$[$0]}
+case 30:
+this.$ = {expressionType:ExpressionTypes.Identifier, identifier:$$[$0]}
 break;
-case 29: case 52:
+case 32: case 55:
 counter = Math.max(calcDepthFunc($$[$0]), counter);
                 if(counter > maxNestedFuncLevel) {
                     counter = 0;
                     throw new Error('nested limit');
                 }
 break;
-case 30:
+case 33:
 this.$ = {Arguments:[]}
 break;
-case 31:
+case 34:
 this.$ = {Arguments:[...$$[$0-1]]}
 break;
-case 32:
+case 35:
 this.$ = $$[$0]
 break;
-case 33: case 36:
+case 36: case 39:
 this.$ = [$$[$0-2]].concat($$[$0])
 break;
-case 34:
+case 37:
  this.$ = $$[$0-1]
 break;
-case 37:
+case 40:
 this.$ = {keyItem:{...$$[$0]}}
 break;
-case 38: case 39:
+case 41: case 42:
 this.$ = {keyItem:{expression:$$[$0]}}
 break;
-case 41:
+case 44:
 this.$ =[$$[$0-2]].concat($$[$0])
 break;
-case 42:
+case 45:
 this.$ = {keyItem:{identifier:$$[$0]}}
 break;
-case 43:
+case 46:
 this.$ = {keyItem:{identifier: $$[$0-2], expression: $$[$0]}}
 break;
-case 48:
+case 51:
  this.$ = {...$$[$0-2], expression:$$[$0]}
 break;
-case 56:
+case 59:
 this.$ = {expressionType:ExpressionTypes.Constant, identifier:$$[$0]}
 break;
-case 57:
+case 60:
  this.$ = {expressionType:ExpressionTypes.Payload, identifier: $$[$0] } 
 break;
-case 58:
+case 61:
 this.$ = {expressionType:ExpressionTypes.Context, identifier:$$[$0] } 
 break;
-case 59:
+case 62:
 this.$ = { ArrayDeclaration:[], expressionType:ExpressionTypes.ArrayDeclaration} 
 break;
-case 60:
+case 63:
 this.$ = {StringDeclaration:$$[$0].toString(), expressionType:ExpressionTypes.StringDeclaration}
 break;
-case 62:
+case 65:
 this.$ = { NumberDeclaration: Number($$[$0]), expressionType: ExpressionTypes.IntegerDeclaration} 
 break;
-case 63:
+case 66:
 this.$ = { NumberDeclaration: Number($$[$0]), expressionType:ExpressionTypes.DecimalDeclaration} 
 break;
         }
@@ -255,7 +255,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
       break;
     case 15:return 52
       break;
-    case 16:return 37
+    case 16:return 39
       break;
     case 17:return 33
       break;
@@ -263,7 +263,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
       break;
     case 19:return 30
       break;
-    case 20:return 44
+    case 20:return 45
       break;
     case 21:return 35
       break;
