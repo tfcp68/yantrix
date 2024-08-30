@@ -51,6 +51,9 @@ importers:
       eslint:
         specifier: ^9.9.1
         version: 9.9.1(jiti@1.21.6)
+      eslint-formatter-compact:
+        specifier: ^8.40.0
+        version: 8.40.0
       eslint-formatter-pretty:
         specifier: ^6.0.1
         version: 6.0.1
@@ -2523,6 +2526,10 @@ packages:
 
   eslint-flat-config-utils@0.3.1:
     resolution: {integrity: sha512-eFT3EaoJN1hlN97xw4FIEX//h0TiFUobgl2l5uLkIwhVN9ahGq95Pbs+i1/B5UACA78LO3rco3JzuvxLdTUOPA==}
+
+  eslint-formatter-compact@8.40.0:
+    resolution: {integrity: sha512-cwGUs113TgmTQXecx5kfRjB7m0y2wkDLSadPTE2pK6M/wO4N8PjmUaoWOFNCP9MHgsiZwgqd5bZFnDCnszC56Q==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
   eslint-formatter-pretty@6.0.1:
     resolution: {integrity: sha512-znAUcXmBthdIUmlnRkPSxz3zSJHFUhfHF/nJPcCMVKg/mOa4yUie2Olqg1Ghbi5JJRBZVU3rIgzWSObvIspxMA==}
@@ -7945,6 +7952,8 @@ snapshots:
     dependencies:
       '@types/eslint': 9.6.1
       pathe: 1.1.2
+
+  eslint-formatter-compact@8.40.0: {}
 
   eslint-formatter-pretty@6.0.1:
     dependencies:

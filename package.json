@@ -70,6 +70,7 @@
 		"@vitest/coverage-istanbul": "^2.0.5",
 		"cross-env": "^7.0.3",
 		"eslint": "^9.9.1",
+		"eslint-formatter-compact": "^8.40.0",
 		"eslint-formatter-pretty": "^6.0.1",
 		"husky": "^9.1.5",
 		"is-ci": "^3.0.1",
