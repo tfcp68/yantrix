@@ -5,7 +5,7 @@ import { randomInteger, randomString } from '@yantrix/utils';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
 import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';
 
-import { builtInFunctions } from '..';
+import { builtInFunctions } from '@yantrix/codegen';
 import { saveAndGenerate } from './fixtures/utils.js';
 
 let functionDictionaryFixture: FunctionDictionary;
