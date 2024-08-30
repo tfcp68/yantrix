@@ -1,6 +1,5 @@
-import { PlopTypes } from '@turbo/gen';
-
-export default function generator(plop: PlopTypes.NodePlopAPI) {
+/** @param plop {import('@turbo/gen').PlopTypes.NodePlopAPI} */
+module.exports = (plop) => {
 	plop.setGenerator('create-package', {
 		description: '',
 		prompts: [
@@ -35,4 +34,4 @@ export default function generator(plop: PlopTypes.NodePlopAPI) {
 			},
 		],
 	});
-}
+};

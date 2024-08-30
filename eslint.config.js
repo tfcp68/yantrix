@@ -90,7 +90,6 @@ export default config(
 			'unicorn/consistent-function-scoping': 'off',
 			'node/prefer-global/process': 'off',
 			'jsdoc/check-param-names': 'off',
-			'antfu/no-import-dist': 'off',
 			'antfu/if-newline': 'off',
 		},
 	},

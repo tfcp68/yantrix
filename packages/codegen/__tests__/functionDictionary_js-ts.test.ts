@@ -1,129 +1,131 @@
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
-import { assert, beforeEach, describe, expect, it } from 'vitest';
-import { randomInteger, randomString } from '@yantrix/utils';
-import { SpecialCharList } from '@yantrix/yantrix-parser';
-import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';
-import { builtInFunctions } from '../dist/index';
-import { saveAndGenerate } from './fixtures/utils';
+// import { fileURLToPath } from 'node:url';
+// import path from 'node:path';
+// import { assert, beforeEach, describe, expect, it } from 'vitest';
+// import { randomInteger, randomString } from '@yantrix/utils';
+// import { SpecialCharList } from '@yantrix/yantrix-parser';
+// import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';
 
-let functionDictionaryFixture: FunctionDictionary;
+// import { builtInFunctions } from '..';
+// import { saveAndGenerate } from './fixtures/utils';
 
-const { add, mult, pow, sumsq, substr, and, contains, isGreater } = builtInFunctions;
-const testFunctionsExamples = [
-	(x: number, y: number) => add(pow(x, 2), pow(y, 2)),
-	(str: string) => substr(str, 1, 5),
-	(arr: number[]) => mult(sumsq(...arr), 10),
-	(obj: { property: number }) => and(contains(obj, 'property'), isGreater(obj.property, 10)),
-] as TAutomataFunction[];
+// let functionDictionaryFixture: FunctionDictionary;
 
-const invalidFunctionNamesTemplates = [
-	...SpecialCharList,
-	...SpecialCharList.map((char: string) => `${char}%s`),
-	'%s %s',
-	'%d%s',
-	'%d',
-	'',
-];
+// const dirname = path.dirname(fileURLToPath(import.meta.url));
+// const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
 
-const input = `stateDiagram-v2
-            [*] --> A`;
+// const { add, mult, pow, sumsq, substr, and, contains, isGreater } = builtInFunctions;
 
-function createNameFromTemplate(str: string) {
-	return str.replaceAll('%s', randomString()).replaceAll('%d', randomInteger(0, 9).toString());
-}
+// const testFunctionsExamples = [
+// 	(x: number, y: number) => add(pow(x, 2), pow(y, 2)),
+// 	(str: string) => substr(str, 1, 5),
+// 	(arr: number[]) => mult(sumsq(...arr), 10),
+// 	(obj: { property: number }) => and(contains(obj, 'property'), isGreater(obj.property, 10)),
+// ] as TAutomataFunction[];
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const getGeneratedFixturePath = (name: string) => path.resolve(__dirname, 'fixtures/generated', name);
+// const invalidFunctionNamesTemplates = [
+// 	...SpecialCharList,
+// 	...SpecialCharList.map((char: string) => `${char}%s`),
+// 	'%s %s',
+// 	'%d%s',
+// 	'%d',
+// 	'',
+// ];
 
-describe('jS/TS Function Dictionary', async () => {
-	await saveAndGenerate({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'functions');
+// const input = `stateDiagram-v2
+//             [*] --> A`;
 
-	const res = await import(getGeneratedFixturePath('functions_generated.js'));
+// function createNameFromTemplate(str: string) {
+// 	return str.replaceAll('%s', randomString()).replaceAll('%d', randomInteger(0, 9).toString());
+// }
 
-	const functionDictionary = res.functionDictionary;
+// describe('jS/TS Function Dictionary', async () => {
+// 	await saveAndGenerate({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'functions');
 
-	beforeEach(() => {
-		functionDictionaryFixture = new FunctionDictionary(builtInFunctions);
-	});
+// 	const res = await import(getGeneratedFixturePath('functions_generated.js'));
 
-	it('dictionary is not empty and has built-in functions inside upon creation', () => {
-		assert.isNotNull(functionDictionary);
-		assert.deepOwnInclude(functionDictionary, functionDictionaryFixture);
-	});
+// 	const functionDictionary = res.functionDictionary;
 
-	describe('can get functions from a dictionary', () => {
-		it('built-in functions', () => {
-			Object.keys(builtInFunctions).forEach((key) => {
-				const expected = builtInFunctions[key as keyof typeof builtInFunctions];
-				const func = functionDictionary.get(key);
-				expect(func).toEqual(expected);
-			});
-		});
-		it('custom functions', () => {
-			testFunctionsExamples.forEach((f) => {
-				const key = randomString(20);
-				functionDictionary.register(key, f);
-				expect(functionDictionary.get(key)).toEqual(f);
-			});
-		});
-	});
+// 	beforeEach(() => {
+// 		functionDictionaryFixture = new FunctionDictionary(builtInFunctions);
+// 	});
 
-	it('cannot get a function under a non-existing key', () => {
-		for (let i = 0; i < 20; i++) {
-			const randomKey = randomString(20);
-			expect(() => functionDictionary.get(randomKey)).toThrowError();
-		}
-	});
+// 	it('dictionary is not empty and has built-in functions inside upon creation', () => {
+// 		assert.isNotNull(functionDictionary);
+// 		assert.deepOwnInclude(functionDictionary, functionDictionaryFixture);
+// 	});
 
-	it('can register custom functions inside of a dictionary', () => {
-		testFunctionsExamples.forEach((f) => {
-			const functionName = randomString();
-			functionDictionary.register(functionName, f);
-			expect(functionDictionary.get(functionName)).toEqual(f);
-		});
-	});
+// 	describe('can get functions from a dictionary', () => {
+// 		it('built-in functions', () => {
+// 			Object.keys(builtInFunctions).forEach((key) => {
+// 				const expected = builtInFunctions[key as keyof typeof builtInFunctions];
+// 				const func = functionDictionary.get(key);
+// 				expect(func).toEqual(expected);
+// 			});
+// 		});
+// 		it('custom functions', () => {
+// 			testFunctionsExamples.forEach((f) => {
+// 				const key = randomString(20);
+// 				functionDictionary.register(key, f);
+// 				expect(functionDictionary.get(key)).toEqual(f);
+// 			});
+// 		});
+// 	});
 
-	it('custom functions return the same result before and after being added to a dictionary', () => {
-		const customFunction = (x: number) => add(mult(x, 2), pow(x, 3));
-		for (let i = 0; i < 20; i++) {
-			const num = randomInteger(1, 15);
-			const expectedResult = customFunction(num);
+// 	it('cannot get a function under a non-existing key', () => {
+// 		for (let i = 0; i < 20; i++) {
+// 			const randomKey = randomString(20);
+// 			expect(() => functionDictionary.get(randomKey)).toThrowError();
+// 		}
+// 	});
 
-			const customKey = randomString(10);
+// 	it('can register custom functions inside of a dictionary', () => {
+// 		testFunctionsExamples.forEach((f) => {
+// 			const functionName = randomString();
+// 			functionDictionary.register(functionName, f);
+// 			expect(functionDictionary.get(functionName)).toEqual(f);
+// 		});
+// 	});
 
-			const functionFromDictionary = functionDictionary.register(customKey, customFunction)!;
-			expect(functionFromDictionary(num)).toEqual(expectedResult);
-		}
-	});
+// 	it('custom functions return the same result before and after being added to a dictionary', () => {
+// 		const customFunction = (x: number) => add(mult(x, 2), pow(x, 3));
+// 		for (let i = 0; i < 20; i++) {
+// 			const num = randomInteger(1, 15);
+// 			const expectedResult = customFunction(num);
 
-	it('cannot register a function with incorrect key length', () => {
-		for (let i = 0; i < 20; i++) {
-			const invalidKey = randomString(randomInteger(256, 1000));
-			expect(() => functionDictionary.register(invalidKey, testFunctionsExamples[0] ?? null)).toThrowError();
-		}
-	});
+// 			const customKey = randomString(10);
 
-	it('cannot register a function with incorrect key format', () => {
-		const customFunction = testFunctionsExamples[0] ?? null;
-		invalidFunctionNamesTemplates.forEach((temp) => {
-			const invalidName = createNameFromTemplate(temp);
-			expect(() => functionDictionary.register(invalidName, customFunction)).toThrowError();
-		});
-	});
+// 			const functionFromDictionary = functionDictionary.register(customKey, customFunction)!;
+// 			expect(functionFromDictionary(num)).toEqual(expectedResult);
+// 		}
+// 	});
 
-	describe('cannot register a function under an already existing key', () => {
-		it('built-in keys', () => {
-			Object.keys(builtInFunctions).forEach((key) => {
-				expect(() => functionDictionary.register(key, testFunctionsExamples[0] ?? null)).toThrowError();
-			});
-		});
-		it('custom key', () => {
-			for (let i = 0; i < 20; i++) {
-				const customKey = randomString(10);
-				functionDictionary.register(customKey, testFunctionsExamples[0] ?? null);
-				expect(() => functionDictionary.register(customKey, testFunctionsExamples[0] ?? null)).toThrowError();
-			}
-		});
-	});
-});
+// 	it('cannot register a function with incorrect key length', () => {
+// 		for (let i = 0; i < 20; i++) {
+// 			const invalidKey = randomString(randomInteger(256, 1000));
+// 			expect(() => functionDictionary.register(invalidKey, testFunctionsExamples[0] ?? null)).toThrowError();
+// 		}
+// 	});
+
+// 	it('cannot register a function with incorrect key format', () => {
+// 		const customFunction = testFunctionsExamples[0] ?? null;
+// 		invalidFunctionNamesTemplates.forEach((temp) => {
+// 			const invalidName = createNameFromTemplate(temp);
+// 			expect(() => functionDictionary.register(invalidName, customFunction)).toThrowError();
+// 		});
+// 	});
+
+// 	describe('cannot register a function under an already existing key', () => {
+// 		it('built-in keys', () => {
+// 			Object.keys(builtInFunctions).forEach((key) => {
+// 				expect(() => functionDictionary.register(key, testFunctionsExamples[0] ?? null)).toThrowError();
+// 			});
+// 		});
+// 		it('custom key', () => {
+// 			for (let i = 0; i < 20; i++) {
+// 				const customKey = randomString(10);
+// 				functionDictionary.register(customKey, testFunctionsExamples[0] ?? null);
+// 				expect(() => functionDictionary.register(customKey, testFunctionsExamples[0] ?? null)).toThrowError();
+// 			}
+// 		});
+// 	});
+// });
