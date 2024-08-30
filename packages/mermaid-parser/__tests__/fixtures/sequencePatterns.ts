@@ -89,5 +89,5 @@ sequenceDiagram
     A3->>+A2: Message2
     A2-->>-A3: Message3
     A3-->>-A1: Message4
-	A1->>A1: Message5
+    A1->>A1: Message5
 `;
