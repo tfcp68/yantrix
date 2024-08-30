@@ -169,8 +169,7 @@ export function createAutomata<
 					throw new Error(`Invalid Reduced State: ${reducedValue}`);
 				if (this.isPaused()) {
 					this.#actionQueue = this.getActionQueue().concat(action);
-				}
-				else if (this.isEnabled()) {
+				} else if (this.isEnabled()) {
 					this.clearActionQueue();
 					this.setContext(reducedValue);
 				}

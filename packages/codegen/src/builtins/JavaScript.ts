@@ -7,8 +7,7 @@ function _wrapper<T extends number | boolean | unknown>(callback: (nums: T[]) =>
 	return (...nums: T[]) => {
 		if (nums.length === 1 && Array.isArray(nums[0])) {
 			return callback(nums[0]);
-		}
-		else {
+		} else {
 			return callback(nums as T[]);
 		}
 	};
@@ -32,8 +31,7 @@ const _coalesce = _wrapper((expressions: unknown[]): unknown => {
 function _random(min?: number, max?: number): number {
 	if (min && max) {
 		return Math.floor(Math.random() * (max - min) + min);
-	}
-	else {
+	} else {
 		return Math.random() > 0.5 ? 1 : 0;
 	}
 }
@@ -126,11 +124,9 @@ export const NumericPredicates = {
 function contains(a: unknown, b: unknown): boolean {
 	if (typeof a === 'string' && typeof b === 'string') {
 		return a.includes(b);
-	}
-	else if (typeof a === 'object' && typeof b === 'string') {
+	} else if (typeof a === 'object' && typeof b === 'string') {
 		return Object.values(a as object).includes(b); // ?
-	}
-	else if (Array.isArray(a)) {
+	} else if (Array.isArray(a)) {
 		return a.includes(b);
 	}
 	return false;
@@ -139,8 +135,7 @@ function contains(a: unknown, b: unknown): boolean {
 function has(a: unknown, b: unknown): boolean {
 	if (typeof a === 'object' && a != null && typeof b === 'string') {
 		return b in a;
-	}
-	else if (Array.isArray(a) && typeof b === 'number') {
+	} else if (Array.isArray(a) && typeof b === 'number') {
 		return a[b] !== undefined;
 	}
 	return false;

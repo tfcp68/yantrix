@@ -151,8 +151,7 @@ export function getKeyItemsRandomInitial(isRandomEmptyErr: boolean = false): any
 				output: () => {},
 			},
 		];
-	}
-	else {
+	} else {
 		return listKeyItem;
 	}
 }

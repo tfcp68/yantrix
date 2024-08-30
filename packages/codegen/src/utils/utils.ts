@@ -6,8 +6,7 @@ export async function fmt(code: string, cfg: string): Promise<string> {
 		const prettierCfgRaw = await readFile(cfg, 'utf-8');
 		const prettierCfg = JSON.parse(prettierCfgRaw);
 		return format(code, { ...prettierCfg, parser: 'babel-ts' });
-	}
-	catch {
+	} catch {
 		return code;
 	}
 }

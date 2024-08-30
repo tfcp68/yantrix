@@ -84,8 +84,10 @@ export default config(
 	{
 		files: ['**/*.{ts,tsx,js,jsx}'],
 		rules: {
+			'style/brace-style': ['error', '1tbs', { allowSingleLine: true }],
 			'no-console': ['warn', { allow: consoleAllowedMethods }],
 			'eslint-comments/no-unlimited-disable': 'off',
+			'unicorn/consistent-function-scoping': 'off',
 			'node/prefer-global/process': 'off',
 			'jsdoc/check-param-names': 'off',
 			'antfu/if-newline': 'off',

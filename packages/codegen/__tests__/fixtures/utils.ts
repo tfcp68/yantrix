@@ -48,8 +48,7 @@ export async function saveAndGenerate(options: TGenerateAutomataParams, fileName
 
 	try {
 		await saveFile(fileName, automata, ext);
-	}
-	catch (e) {
+	} catch (e) {
 		console.error(e);
 	}
 }

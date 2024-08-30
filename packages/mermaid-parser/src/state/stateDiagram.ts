@@ -187,8 +187,7 @@ function unravelChoices(
 			from,
 			actionsPath: actionPathes,
 		});
-	}
-	else {
+	} else {
 		const transitionsFrom = transitions[from];
 		if (!transitionsFrom)
 			return transitions;

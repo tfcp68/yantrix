@@ -200,7 +200,7 @@ describe('base grammar declarations', () => {
 		it('#{Left1, Left2} <= #Right1, #Right2 is #{Left2, Left1} <= #Right2, #Right1', () => {
 			const parser = new YantrixParser();
 
-			const [left1, left2, right1, right2] = Array.from(Array(4), () => randomString());
+			const [left1, left2, right1, right2] = Array.from(Array.from({ length: 4 }), () => randomString());
 
 			const parsedLeft = parser.parse(`#{${left1}, ${left2}} <= $${right1}, $${right2}`);
 			const parsedRight = parser.parse(`#{${left2}, ${left1}} <= $${right2}, $${right1}`);
@@ -219,7 +219,7 @@ describe('base grammar declarations', () => {
 
 		it('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', () => {
 			const parser = new YantrixParser();
-			const [left1, left2, left3, right1, right2] = Array.from(Array(4), () => randomString());
+			const [left1, left2, left3, right1, right2] = Array.from(Array.from({ length: 4 }), () => randomString());
 			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}} <= $${right1}, $${right2}`);
 			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= $${right2}, $${right1}`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];

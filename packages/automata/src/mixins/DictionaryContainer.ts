@@ -122,8 +122,7 @@ export default function DictionaryContainer<ItemType>() {
 						this._deleteItemKey(itemKey);
 					}
 					delete this._namespaceIndex[namespace];
-				}
-				else {
+				} else {
 					this._namespaceIndex = {};
 					this._dictionaryIndex.clear();
 					this._dictionary = {};

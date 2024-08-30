@@ -11,8 +11,7 @@ function recursiveDepth() {
 
 		if (args.length === 0 || funcArgs.length === 0) {
 			return 1;
-		}
-		else {
+		} else {
 			const arrArgs: number[] = [];
 			for (const func of funcArgs) {
 				arrArgs.push(calcDepthFunc(func));

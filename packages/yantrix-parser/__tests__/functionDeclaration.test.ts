@@ -133,8 +133,7 @@ function generateFunctionString(level: number = 0) {
 			const nestedFunction = generateFunctionString(level + 1);
 			if (nestedFunction)
 				args.push(nestedFunction);
-		}
-		else {
+		} else {
 			args.push(argsTypes[randomIndex]?.().toString() ?? '');
 		}
 	}

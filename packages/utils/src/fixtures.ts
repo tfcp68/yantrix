@@ -58,16 +58,16 @@ export function popFromArray<T>(arr: T[], n = 1): T[] {
 
 export function sampleArray<T = number, N extends number = number>(item: null | ((index?: number) => T) | T, n: N) {
 	if (item === null) {
-		return Array(n)
+		return Array.from({ length: n })
 			.fill(null)
 			.map((_, ix) => ix + 1) as TLengthArray<T, N>;
 	}
 	if (item instanceof Function) {
-		return Array(n)
+		return Array.from({ length: n })
 			.fill(null)
 			.map((_, ix) => item(ix)) as TLengthArray<T, N>;
 	}
-	return Array(n).fill(item) as TLengthArray<T, N>;
+	return Array.from({ length: n }).fill(item) as TLengthArray<T, N>;
 }
 
 /**

@@ -39,8 +39,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramArray> 
 		const parsedDiagram: TParsedDiagramArray = diagram.db.getRootDoc();
 
 		return parsedDiagram;
-	}
-	catch (e) {
+	} catch (e) {
 		if (e instanceof Error) {
 			if (e.message === 'Diagram stateDiagram already registered.') {
 				mermaid.mermaidAPI.reset();
@@ -78,12 +77,10 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 			if (st1 === '[*]') {
 				directionI.push(StartState);
 				directionI.push(st2);
-			}
-			else if (st2 === '[*]') {
+			} else if (st2 === '[*]') {
 				directionI.push(st1);
 				directionI.push(EndState);
-			}
-			else {
+			} else {
 				directionI.push(st1);
 				directionI.push(st2);
 			}
@@ -91,8 +88,7 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 			if (keys.includes('description')) {
 				const descr: string = parsedDiagram[i]?.description as string;
 				directionI.push(descr);
-			}
-			else {
+			} else {
 				directionI.push('');
 			}
 			transitions.push(directionI);
@@ -225,8 +221,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
 					const visitedKeys = Object.keys(visited);
 					if (visitedKeys.includes(from)) {
 						notes[visited[from] as number]?.text.push(noteText);
-					}
-					else {
+					} else {
 						const note: TNote = {
 							text: [noteText],
 							over: from,

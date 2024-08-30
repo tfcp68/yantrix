@@ -21,8 +21,7 @@ export function createKeyItemDeclaration(keyItem?: TKeyItem) {
 		return Map(base)
 			.updateIn(['keyItem'], () => keyItem.keyItem)
 			.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -140,11 +139,9 @@ export function withMultiplyInitial(properties?: Array<[propName: string, propVa
 		let keyItem = {};
 		if (typeof value === 'string') {
 			keyItem = withStringInitial(name, value);
-		}
-		else if (typeof value === 'number') {
+		} else if (typeof value === 'number') {
 			keyItem = Number.isInteger(value) ? withIntegerInitial(name, value) : withDecimalInitial(name, value);
-		}
-		else if (Array.isArray(value)) {
+		} else if (Array.isArray(value)) {
 			keyItem = withArrayInitial(name);
 		}
 		base.mergeWith((oldVal: any, newVal: any) => {
@@ -176,8 +173,7 @@ export function expression(propertyName?: string, functionName?: string) {
 				name => functionName ?? name,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -210,8 +206,7 @@ export function withProperty(propertyName?: string, functionName?: string, funct
 				name => functionPropertyName ?? name,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -242,8 +237,7 @@ export function withString(propertyName?: string, functionName?: string, stringP
 				name => stringProperty?.substring(1, stringProperty.length - 1) ?? name,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -274,8 +268,7 @@ export function withInteger(propertyName?: string, functionName?: string, intege
 				v => integerValue ?? v,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -308,8 +301,7 @@ export function withDecimal(propertyName?: string, functionName?: string, decima
 				v => decimalValue ?? v,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -326,8 +318,7 @@ export function withArray(propertyName?: string, functionName?: string) {
 				name => functionName ?? name,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -360,8 +351,7 @@ export function withConstant(propertyName?: string, functionName?: string, const
 				},
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -393,8 +383,7 @@ export function recursive(propertyName?: string, functionName?: string, funcRecu
 				name => funcRecursiveName ?? name,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }
@@ -440,8 +429,7 @@ export function multiplyProperty(propertyName?: string,	functionName?: string,	f
 				name => funcPropertyName2 ?? name,
 			);
 		return updated.toJS();
-	}
-	else {
+	} else {
 		return base;
 	}
 }

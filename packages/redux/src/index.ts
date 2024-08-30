@@ -28,8 +28,7 @@ export function connectReduxAutomata(props: {
 		try {
 			newContext = props.automata.dispatch(action);
 			return newContext;
-		}
-		finally {
+		} finally {
 			dispatchToRedux({
 				reduxDispatch: props.reduxDispatch,
 				reduxActionGenerator: props.reduxActionGenerator,

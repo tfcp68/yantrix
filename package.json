@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/yantrix",
+	"name": "@yantrix/monorepo",
 	"type": "module",
 	"version": "0.0.1",
 	"private": true,
@@ -42,10 +42,10 @@
 	"scripts": {
 		"build": "turbo run build --concurrency=50%",
 		"build:affected": "turbo run build --affected --concurrency=50%",
-		"clean": "rimraf --glob **/dist **/coverage **/.turbo",
+		"clean": "rimraf --glob '**/dist **/coverage **/.turbo !.turbo/daemon'",
 		"format": "turbo run format --concurrency=50%",
 		"format:affected": "turbo run format --affected --concurrency=50%",
-		"lint": "turbo run lint ---concurrency=50%",
+		"lint": "turbo run lint --concurrency=50%",
 		"lint:affected": "turbo run lint --affected --concurrency=50%",
 		"test": "turbo run test --concurrency=50%",
 		"test:affected": "turbo run test --affected --concurrency=50%",
@@ -61,7 +61,7 @@
 		"vitest": "^2.0.5"
 	},
 	"devDependencies": {
-		"@antfu/eslint-config": "^2.27.3",
+		"@antfu/eslint-config": "^3.0.0",
 		"@commitlint/cli": "^19.4.1",
 		"@commitlint/config-conventional": "^19.4.1",
 		"@commitlint/types": "^19.0.3",

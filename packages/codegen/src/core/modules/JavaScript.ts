@@ -372,12 +372,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 							const expressionValueRight = this.getExpressionValue(expression);
 
 							return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
-						}
-						else {
+						} else {
 							return getDefaultPropertyContext(path, boundIdentifier);
 						}
-					}
-					else {
+					} else {
 						const { expression } = keyItem;
 
 						const expressionValueRight = this.getExpressionValue(expression);
@@ -409,8 +407,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 						}
 
 					}())`;
-					}
-					else {
+					} else {
 						return `${targetProperty}: (function(){
 						const boundValue = ${el}
 
@@ -419,8 +416,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					}())`;
 					}
 				});
-		}
-		else {
+		} else {
 			const { context } = ctx;
 			return context.map(({ keyItem }) => {
 				const { identifier } = keyItem;
@@ -428,8 +424,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const expressionValue = this.getExpressionValue(keyItem.expression);
 
 					return `${identifier}: ${getDefaultPropertyContext('prevContext', identifier, expressionValue)}`;
-				}
-				else {
+				} else {
 					return `${identifier}: ${getDefaultPropertyContext('prevContext', identifier)}`;
 				}
 			});
@@ -500,23 +495,19 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 									const valueExpression = this.getExpressionValue(expression);
 
 									res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
-								}
-								else {
+								} else {
 									res.push(`${getDefaultPropertyContext(path, identifier)}`);
 								}
-							}
-							else {
+							} else {
 								if (item.expressionType === ExpressionTypes.Function) {
 									res.push(recursive(item));
-								}
-								else {
+								} else {
 									const valueExpression = this.getExpressionValue(item);
 									res.push(valueExpression);
 								}
 							}
 						});
-					}
-					else {
+					} else {
 						throw new Error(`Max level of nested functions reached ${maxNestedFuncLevel}`);
 					}
 

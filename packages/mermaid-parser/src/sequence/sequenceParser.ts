@@ -37,11 +37,9 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
 	for (let i = 0; i < parsedArray.length; i++) {
 		if (arrowTypes.includes(parsedArray[i].type)) {
 			parsedMessages.push(parsedArray[i]);
-		}
-		else if (parsedArray[i].type === TSeqTypes.Note) {
+		} else if (parsedArray[i].type === TSeqTypes.Note) {
 			parsedNotes.push(parsedArray[i]);
-		}
-		else {
+		} else {
 			if (parsedArray[i].from !== undefined) {
 				parsedArray[i].from = parsedArray[i].from?.actor;
 			}
@@ -96,8 +94,7 @@ function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray)
 
 		if (messages[from]?.[to] === null) {
 			messages[from][to] = [arrowMessage];
-		}
-		else {
+		} else {
 			messages[from]?.[to]?.push(arrowMessage);
 		}
 	}
@@ -137,8 +134,7 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 
 			if (notes[from] === null) {
 				notes[from] = [recievedMessage];
-			}
-			else {
+			} else {
 				notes[from]?.push(recievedMessage);
 			}
 			fromIndex++;
@@ -171,8 +167,7 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
 			for (let j = i - 1; j < parsedArray.length; j++) {
 				if (arrowTypes.includes(parsedArray[j].type) && parsedArray[j].from === currentActor) {
 					activate[currentActor]![len]?.push(parsedArray[j].message);
-				}
-				else if (parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
+				} else if (parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
 					parsedArray[j].type = -1;
 					break;
 				}

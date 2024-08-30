@@ -34,7 +34,6 @@ try {
 	});
 
 	console.info('Successfully replaced imports with constants content.');
-}
-catch (err) {
+} catch (err) {
 	console.error(`Error: ${err.message}`);
 }

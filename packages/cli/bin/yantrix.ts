@@ -45,8 +45,7 @@ program
 			}
 
 			diagramText = options.eval;
-		}
-		else {
+		} else {
 			if (!diagramFile) {
 				error('Diagram file path is required.');
 				process.exit(1);
@@ -56,8 +55,7 @@ program
 				wait(`Reading diagram from ${filePath}...`);
 			try {
 				diagramText = fs.readFileSync(filePath, 'utf-8');
-			}
-			catch (err) {
+			} catch (err) {
 				if (err instanceof Error)
 					error(err.message);
 				process.exit(1);
@@ -133,8 +131,7 @@ program
 			if (options.verbose) {
 				success(`Generated Automata saved to ${outputFilePath}`);
 			}
-		}
-		catch (err) {
+		} catch (err) {
 			if (err instanceof Error) error(err.message);
 			process.exit(1);
 		}

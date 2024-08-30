@@ -5,17 +5,12 @@ export default defineConfig({
 	test: {
 		reporters: [
 			'default',
-			new VitestMarkdownReporter({
-				title: 'Test Cases',
-			}),
+			new VitestMarkdownReporter({ title: 'Test Cases' }),
 		],
 		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
 		passWithNoTests: true,
-		typecheck: {
-			enabled: true,
-		},
 		coverage: {
-			enabled: true,
+			enabled: false,
 			reportOnFailure: true,
 			all: true,
 			clean: true,

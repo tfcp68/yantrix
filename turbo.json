@@ -20,7 +20,7 @@
 			"dependsOn": ["^build"],
 			"inputs": ["__tests__/**", "src/**", "package.json", "tsconfig.json"],
 			"outputs": ["coverage/**"],
-			"outputLogs": "new-only"
+			"outputLogs": "full"
 		},
 		"lint": {
 			"dependsOn": ["^build"],
