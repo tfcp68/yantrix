@@ -1,5 +1,6 @@
 import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { TAutomataReducer } from '@yantrix/automata';
 
 export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 	options: TCreateFSMSliceOptions<Automata, TStateFSMSlice, TStateFSMSlice['context']>,
@@ -18,10 +19,15 @@ export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 
 	const reducers = actionsNameList.reduce((acc, actionName) => {
 		acc[actionName] = (state: TStateFSMSlice, action: PayloadAction<TStateFSMSlice>) => {
-			const rootReducer = _fsm.getReducer();
+			const rootReducer = _fsm.getReducer() as TAutomataReducer<
+				number,
+				number,
+				Record<number, any>,
+				Record<number, any>
+			> | null;
 			const newState = rootReducer
 				? rootReducer({
-						action: fsm.getAction(actionName as keyof typeof fsm.actions),
+						action: fsm.getAction(actionName),
 						state: state.state,
 						context: state.context,
 						payload: action.payload,
