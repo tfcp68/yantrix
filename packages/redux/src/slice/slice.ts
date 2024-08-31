@@ -7,17 +7,27 @@ export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 	const { fsm, name, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new fsm();
 	const actionsNameList = Object.keys(fsm.actions);
+	const initialState: TStateFSMSlice = _fsm.getContext();
+
+	const selectorsSlice = selectors
+		? selectors
+		: {
+				state: (sliceState: TStateFSMSlice): TStateFSMSlice['state'] => sliceState.state,
+				context: (sliceState: TStateFSMSlice): TStateFSMSlice['context'] => sliceState.context,
+			};
 
 	const reducers = actionsNameList.reduce((acc, actionName) => {
 		acc[actionName] = (state: TStateFSMSlice, action: PayloadAction<TStateFSMSlice>) => {
 			const rootReducer = _fsm.getReducer();
-			if (!rootReducer) return {};
-			const newState = rootReducer({
-				action: fsm.getAction(actionName as keyof typeof fsm.actions),
-				state: state.state,
-				context: state.context,
-				payload: action.payload,
-			});
+
+			const newState = rootReducer
+				? {
+						action: fsm.getAction(actionName as keyof typeof fsm.actions),
+						state: state.state,
+						context: state.context,
+						payload: action.payload,
+					}
+				: initialState;
 
 			state = {
 				state: newState.state,
@@ -29,8 +39,6 @@ export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 		return acc;
 	}, {} as any);
 
-	const initialState: TStateFSMSlice = _fsm.getContext();
-
 	if (contextToRedux) initialState.context = contextToRedux(initialState.context);
 
 	return createSlice({
@@ -38,11 +46,6 @@ export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 		reducerPath: reducerPath ?? '',
 		initialState,
 		reducers,
-		selectors: selectors
-			? selectors
-			: {
-					state: (sliceState): TStateFSMSlice['state'] => sliceState.state,
-					context: (sliceState): TStateFSMSlice['context'] => sliceState.context,
-				},
+		selectors: selectorsSlice,
 	});
 };

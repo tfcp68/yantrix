@@ -1,4 +1,4 @@
-import { Dispatch } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata, TStateFSMSlice } from './types.js';
@@ -56,7 +56,7 @@ export const useReduxAutomata = (automataId: TAutomataId) => {
 	return [automata.basicAutomata, automata.dispatch] as const;
 };
 
-const { actions, name, reducer, selectors } = createFSMSlice({
+const { actions, name, reducer } = createFSMSlice({
 	name: GamePhaseTest.id,
 	fsm: GamePhaseTest,
 	reducerPath: 'lol',
@@ -66,4 +66,10 @@ const { actions, name, reducer, selectors } = createFSMSlice({
 	},
 });
 
-console.log(actions, name, reducer, selectors);
+const store = configureStore({
+	reducer: combineReducers({
+		[name]: reducer,
+	}),
+});
+store.dispatch(actions.RESET({}));
+console.log(store.getState());
