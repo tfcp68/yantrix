@@ -13,6 +13,8 @@ import {
 	TExpression,
 	maxNestedFuncLevel,
 	TMappedKeys,
+	TExpressionDefineMap,
+	TExpressionDefine,
 } from '@yantrix/yantrix-parser';
 import { ModuleNames } from './index';
 
@@ -46,7 +48,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	// initialContext: string;
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
-
+	dependencyGraph: Map<string, Set<string>>;
 	constants: TConstants | null;
 	expressions: TExpressionRecord;
 	dictionaries: string[];
@@ -62,7 +64,11 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.diagram = diagram;
 
 		this.constants = constants;
+
 		this.expressions = this.setupExpressions();
+
+		this.dependencyGraph = new Map();
+		this.buildDependencyGraph();
 
 		this.handlersDict = [];
 		this.changeStateHandlers = [];
@@ -94,7 +100,30 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions)`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions);`);
+
+		this.checkForCyclicDependencies();
+		this.registerCustomFunctions();
+	}
+	private getFunctionBody(expression: TExpressionDefineMap): string {
+		if (expression.expressionType === ExpressionTypes.Function) {
+			const { FunctionName, Arguments } = expression.FunctionDeclaration;
+
+			const argsList = Arguments.map((arg) => {
+				if (arg.expressionType === ExpressionTypes.Function) {
+					return this.getFunctionBody(arg);
+				} else {
+					return this.getExpressionValueDefine(arg);
+				}
+			}).join(', ');
+
+			return `(function() {
+				const func = functionDictionary.get('${FunctionName}');
+				return func(${argsList});
+			})()`;
+		} else {
+			return this.getExpressionValueDefine(expression);
+		}
 	}
 
 	getClassTemplate(className: string) {
@@ -257,6 +286,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const {state:newState} = actionToStateFromStateDict[state][action]
 
 					const contextWithInitial = getDefaultContext(context,payload)
+				
 					const newContextFunc = reducer[newState]
 
 					if(typeof newContextFunc !== 'function') {
@@ -286,6 +316,107 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return `(s) => Object.values(statesDictionary).includes(s)`;
 	}
 
+	private buildDependencyGraph(): void {
+		const defines = this.diagram.states.flatMap((state) => state.notes?.defines ?? []);
+
+		const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
+			const { FunctionName, Arguments } = expression.FunctionDeclaration;
+
+			if (!this.dependencyGraph.has(currentFunc)) {
+				this.dependencyGraph.set(currentFunc, new Set());
+			}
+
+			this.dependencyGraph.get(currentFunc)!.add(FunctionName);
+
+			for (const arg of Arguments) {
+				if (arg.expressionType === 'function') {
+					addDependencies(arg, currentFunc);
+				}
+			}
+		};
+
+		for (const define of defines) {
+			if (define.expression.expressionType === ExpressionTypes.Function) {
+				addDependencies(define.expression, define.identifier);
+			}
+		}
+	}
+
+	private detectCycles(): string[][] {
+		const visited = new Set<string>();
+		const recursionStack = new Set<string>();
+		const cycles: string[][] = [];
+
+		const dfs = (node: string, path: string[] = []): boolean => {
+			if (!visited.has(node)) {
+				visited.add(node);
+				recursionStack.add(node);
+
+				const neighbors = this.dependencyGraph.get(node) || new Set();
+				for (const neighbor of neighbors) {
+					if (!visited.has(neighbor)) {
+						if (dfs(neighbor, [...path, node])) {
+							return true;
+						}
+					} else if (recursionStack.has(neighbor)) {
+						cycles.push([...path, node, neighbor]);
+						return true;
+					}
+				}
+			}
+
+			recursionStack.delete(node);
+			return false;
+		};
+
+		for (const node of this.dependencyGraph.keys()) {
+			if (!visited.has(node)) {
+				dfs(node);
+			}
+		}
+
+		return cycles;
+	}
+
+	private checkForCyclicDependencies() {
+		const cycles = this.detectCycles();
+		if (cycles.length > 0) {
+			const cycleStrings = cycles.map((cycle) => cycle.join(' -> '));
+			throw new Error(`Cyclic dependencies detected in function definitions:\n${cycleStrings.join('\n')}`);
+		}
+	}
+
+	private registerCustomFunctions() {
+		const defines = this.diagram.states.flatMap((state) => state.notes?.defines ?? []);
+		const registered = new Set<string>();
+
+		const registerFunction = (funcName: string) => {
+			if (registered.has(funcName)) return;
+
+			const funcDef = defines.find((def) => def.identifier === funcName);
+			if (!funcDef) return;
+
+			const dependencies = this.dependencyGraph.get(funcName) || new Set();
+			for (const dep of dependencies) {
+				if (!registered.has(dep)) {
+					registerFunction(dep);
+				}
+			}
+
+			const functionBody = this.getFunctionBody(funcDef.expression);
+			this.dictionaries
+				.push(`functionDictionary.register('${funcName}', function(${funcDef.Arguments.join(', ')}) {
+				return ${functionBody};
+			});`);
+			registered.add(funcName);
+		};
+
+		for (const funcName of this.dependencyGraph.keys()) {
+			if (!registered.has(funcName)) {
+				registerFunction(funcName);
+			}
+		}
+	}
 	protected getActionValidator() {
 		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
@@ -449,6 +580,16 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	private getExpressionValue<T extends TMappedKeys>(expression: TExpression<T>) {
 		return this.expressions[expression.expressionType](expression);
 	}
+	private getExpressionValueDefine(expression: TExpressionDefineMap) {
+		switch (expression.expressionType) {
+			case ExpressionTypes.Identifier:
+				return expression.identifier;
+			case ExpressionTypes.Function:
+				return this.getFunctionBody(expression);
+			default:
+				return this.getExpressionValue(expression);
+		}
+	}
 	private setupExpressions(): TExpressionRecord {
 		return {
 			[ExpressionTypes.ArrayDeclaration]: () => '[]',
@@ -477,7 +618,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 							if (isKeyItemReference(item)) {
 								const { expressionType, identifier } = item;
 								const path = pathRecord[expressionType];
-
 								if (isKeyItemWithExpression(item)) {
 									const { expression } = item;
 
@@ -490,7 +630,12 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 									res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
 								} else {
-									res.push(`${getDefaultPropertyContext(path, identifier)}`);
+									if (item.expressionType === ExpressionTypes.Constant) {
+										const expressionValueRight = this.getExpressionValue(item);
+										res.push(expressionValueRight);
+									} else {
+										res.push(`${getDefaultPropertyContext(path, identifier)}`);
+									}
 								}
 							} else {
 								if (item.expressionType === ExpressionTypes.Function) {

@@ -119,7 +119,9 @@ DEFINE_FUNCTION
         : FUNCTION_NAME LEFT_BRACKET DEFINE_FUNCTION_ARGUMENTS RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
         | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
-        {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
+        {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } }
+        | IMMUTABLE
+        | CONSTANT;
 
 DEFINE_FUNCTION_ARGUMENTS
         :  EXPRESSION_DEFINE {$$ = [$1]}
@@ -128,7 +130,8 @@ DEFINE_FUNCTION_ARGUMENTS
 
 EXPRESSION_DEFINE
         : IMMUTABLE
-        | IDENT {$$ = {epxressionType:ExpressionTypes.Identifier, identifier:$1}}
+        | IDENT {$$ = {expressionType:ExpressionTypes.Identifier, identifier:$1}}
+        | CONSTANT
         | DEFINE_FUNCTION {counter = Math.max(calcDepthFunc($1), counter);
                 if(counter > maxNestedFuncLevel) {
                     counter = 0;
