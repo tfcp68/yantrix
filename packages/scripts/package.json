@@ -1,0 +1,46 @@
+{
+	"name": "@yantrix/scripts",
+	"type": "commonjs",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Utility scripts for Yantrix",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"funding": "https://github.com/tfcp68/yantrix?sponsor",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/scripts"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"fsm",
+		"typescript",
+		"state",
+		"management",
+		"eda",
+		"uml",
+		"mermaidjs"
+	],
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"lint": "eslint --format=pretty .",
+		"format": "eslint --fix --format=pretty ."
+	},
+	"dependencies": {
+		"@turbo/gen": "^2.1.0"
+	}
+}

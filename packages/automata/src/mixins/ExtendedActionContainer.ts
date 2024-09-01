@@ -33,8 +33,8 @@ export default function ExtendedActionContainer<
 			}
 
 			_defaultPayloadValidator = (p: any): p is TDefinedValues<TAutomataActionPayload<ActionType, PayloadType>> =>
-				!!this.validateAction &&
-				this.validateAction(p?.action) &&
-				(p?.payload === null || typeof p.payload === 'object');
+				!!this.validateAction
+				&& this.validateAction(p?.action)
+				&& (p?.payload === null || typeof p.payload === 'object');
 		};
 }

@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-
+import path, { dirname } from 'node:path';
 import { Command, Option } from 'commander';
 import fs from 'fs-extra';
-import path, { dirname } from 'path';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Modules, generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import pc from 'picocolors';
@@ -53,11 +51,13 @@ program
 				process.exit(1);
 			}
 			const filePath = path.resolve(diagramFile);
-			if (options.verbose) wait(`Reading diagram from ${filePath}...`);
+			if (options.verbose)
+				wait(`Reading diagram from ${filePath}...`);
 			try {
 				diagramText = fs.readFileSync(filePath, 'utf-8');
 			} catch (err) {
-				if (err instanceof Error) error(err.message);
+				if (err instanceof Error)
+					error(err.message);
 				process.exit(1);
 			}
 		}
@@ -85,43 +85,39 @@ program
 		}
 
 		const className = options.className ?? 'GeneratedAutomata';
-		if (!/^[\w]+$/.test(className)) {
+		if (!/^\w+$/.test(className)) {
 			error('Invalid characters in class name specified.');
 			process.exit(1);
 		}
 
-		const withError = async <T>(promise: Promise<T>) => {
-			const [settled] = await Promise.allSettled([promise]);
-			return settled.status === 'fulfilled'
-				? ([null, settled.value as T] as const)
-				: ([settled.reason as Error, null] as const);
-		};
-
-		const [genErr, generatedAutomata] = await withError(
-			(async () => {
-				if (options.verbose) {
-					wait('Parsing given state diagram: ');
-					for (const line of diagramText.split('\n')) wait(line);
-				}
-
-				const structure = await parseStateDiagram(diagramText);
-				const diagram = await createStateDiagram(structure);
-
-				return generateAutomataFromStateDiagram(diagram, {
-					outLang: options.language,
-					className,
-				});
-			})(),
-		);
-
-		if (genErr) {
-			error(`Failed to parse state diagram. ${genErr.message}`);
-			error(genErr.stack ?? '');
-			process.exit(1);
+		if (options.verbose) {
+			wait('Parsing given state diagram: ');
+			for (const line of diagramText.split('\n')) wait(line);
 		}
 
+		const structure = await parseStateDiagram(diagramText).catch((err) => {
+			error('An error occurred while parsing given state diagram');
+			if (err instanceof Error) error(err.message);
+			process.exit(1);
+		});
+
+		const matrix = await createStateDiagram(structure).catch((err) => {
+			error('An error occurred creating matrix from given state diagram');
+			if (err instanceof Error) error(err.message);
+			process.exit(1);
+		});
+
+		const automata = await generateAutomataFromStateDiagram(matrix, {
+			outLang: options.language,
+			className,
+		}).catch((err) => {
+			error('An error occurred while generating Automata');
+			if (err instanceof Error) error(err.message);
+			process.exit(1);
+		});
+
 		const disableFlagLines = checkDisableFlags.join('\n');
-		const textToWrite = `${disableFlagLines}\n\n${generatedAutomata}`;
+		const textToWrite = `${disableFlagLines}\n\n${automata}`;
 		const outputFilePath = path.resolve(options.outfile);
 
 		try {

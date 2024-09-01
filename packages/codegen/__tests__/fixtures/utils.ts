@@ -1,8 +1,9 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAutomataFromStateDiagram, TOutLang } from '../../src';
-import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import fs from 'node:fs';
+import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
+import { ensureDir } from 'fs-extra';
+import { TOutLang, generateAutomataFromStateDiagram } from '../../src';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -22,36 +23,36 @@ type TGenerateAutomataParams = {
 	constants?: string;
 };
 
-export const saveFile = async (fileName: string, content: string, ext: string) => {
-	if (!fs.existsSync(path.resolve(pathSave, 'generated'))) {
-		await fs.mkdirSync(path.resolve(pathSave, 'generated'));
-	}
-	await fs.writeFileSync(path.resolve(pathSave, `generated/${fileName}_generated.${ext}`), content);
-};
+export async function saveFile(fileName: string, content: string, ext: string) {
+	ensureDir(path.resolve(pathSave, `generated`));
+	fs.writeFileSync(path.resolve(pathSave, `generated/${fileName}_generated.${ext}`), content);
+}
 
-export const generateAutomata = async (options: TGenerateAutomataParams) => {
+export async function generateAutomata(options: TGenerateAutomataParams) {
 	const stateDiagramStructure = await parseStateDiagram(options.input);
 	const stateDiagram = await createStateDiagram(stateDiagramStructure);
 
 	const generatedAutomataOutput = await generateAutomataFromStateDiagram(stateDiagram, {
 		className: options.automataName,
 		outLang: options.lang,
-		constants: options.constants,
+		constants: options.constants!,
 	});
 
 	return generatedAutomataOutput;
-};
+}
 
-export const saveAndGenerate = async (options: TGenerateAutomataParams, fileName: string) => {
+export async function saveAndGenerate(options: TGenerateAutomataParams, fileName: string) {
 	const ext = langToExt[options.lang];
 	const automata = await generateAutomata(options);
 
 	try {
 		await saveFile(fileName, automata, ext);
-	} catch (error) {}
-};
+	} catch (error) {
+		console.error(error);
+	}
+}
 
-export const mapFromObjectToString = (a: Record<string, any>, startSymbol: string = '') => {
+export function mapFromObjectToString(a: Record<string, any>, startSymbol: string = '') {
 	return Object.entries(a)
 		.map(([key, value]) => {
 			if (value === null) {
@@ -62,16 +63,18 @@ export const mapFromObjectToString = (a: Record<string, any>, startSymbol: strin
 			return `${startSymbol}${key}=${value}`;
 		})
 		.join(',');
-};
+}
 
-export const mapFromStringToObject = (a: string) =>
-	a.split(',').reduce((acc, el) => {
+export function mapFromStringToObject(a: string) {
+	return a.split(',').reduce((acc, el) => {
 		const [key, value] = el.split('=');
-		acc[key] = value || null;
+		acc[key as keyof typeof acc] = value || null;
 		return acc;
-	}, {});
+	}, Object.create(null));
+}
 
-export const objectKeysToString = (obj: Record<string, any>, startSymbol: string = '') =>
-	Object.keys(obj)
-		.map((el) => `${startSymbol}${el}`)
+export function objectKeysToString(obj: Record<string, any>, startSymbol: string = '') {
+	return Object.keys(obj)
+		.map(el => `${startSymbol}${el}`)
 		.join(',');
+}

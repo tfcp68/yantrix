@@ -24,7 +24,8 @@ function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
 
 	for (let i = 0; i < notes.length; i++) {
 		const note = notes[i];
-		if (!note) continue;
+		if (!note)
+			continue;
 
 		if (!Object.keys(notesId).includes(note.over)) {
 			notesId[note.over] = [];
@@ -32,11 +33,13 @@ function getNotesId(stateDiagramStructure: TStateDiagramStructure): TNotesId {
 		const notesArray: string[] = [];
 		for (let j = 0; j < note.text.length; j++) {
 			const noteArray = note.text[j]?.trim().split('\n');
-			if (!noteArray) continue;
+			if (!noteArray)
+				continue;
 
 			for (let k = 0; k < noteArray.length; k++) {
 				const note = noteArray[k];
-				if (!note) continue;
+				if (!note)
+					continue;
 
 				notesArray.push(note.trim());
 			}
@@ -56,7 +59,8 @@ function getChoicesId(stateDiagramStructure: TStateDiagramStructure): TChoicesId
 	const choicesId: TChoicesId = [];
 	for (let i = 0; i < choices.length; i++) {
 		const choice = choices[i];
-		if (!choice) continue;
+		if (!choice)
+			continue;
 
 		choicesId.push(choice.id);
 	}
@@ -82,7 +86,8 @@ function addNotesForChoices(
 	}
 	for (let j = 0; j < notesId[choice]!.length; j++) {
 		const noteId = notesId[choice]?.[j];
-		if (!noteId) continue;
+		if (!noteId)
+			continue;
 
 		choiceAction.actionsPath[0]?.note.push(noteId);
 	}
@@ -102,14 +107,17 @@ function getFromChoices(actions: TActionsStructure, choicesId: TChoicesId, notes
 	let fromChoices: TFromChoiceArray = [];
 	for (let i = 0; i < actions.length; i++) {
 		const choice = actions[i]?.to;
-		if (!choice) continue;
+		if (!choice)
+			continue;
 
 		if (choicesId.includes(choice)) {
 			const from = actions[i]?.from;
-			if (!from) continue;
+			if (!from)
+				continue;
 
 			const actionId = actions[i]?.id;
-			if (!actionId) continue;
+			if (!actionId)
+				continue;
 
 			const choiceAction: TFromChoice = {
 				choice,
@@ -138,14 +146,17 @@ function concatActionPathes(fromChoice: TActionPathArray, toChoice: TActionPathA
 	for (let i = 0; i < fromChoice.length; i++) {
 		for (let j = 0; j < toChoice.length; j++) {
 			const toChoiceAction = toChoice[j]?.action;
-			if (!toChoiceAction) continue;
+			if (!toChoiceAction)
+				continue;
 
 			const toChoiceNote = toChoice[j]?.note;
-			if (!toChoiceNote) continue;
+			if (!toChoiceNote)
+				continue;
 
 			const action = fromChoice[i]?.action.concat(toChoiceAction);
 			const note = fromChoice[i]?.note.concat(toChoiceNote);
-			if (!action || !note) continue;
+			if (!action || !note)
+				continue;
 
 			actionPathArray.push({ action, note });
 		}
@@ -178,7 +189,8 @@ function unravelChoices(
 		});
 	} else {
 		const transitionsFrom = transitions[from];
-		if (!transitionsFrom) return transitions;
+		if (!transitionsFrom)
+			return transitions;
 
 		if (!Object.keys(transitionsFrom).includes(to)) {
 			transitionsFrom[to] = {
@@ -188,7 +200,8 @@ function unravelChoices(
 
 		for (let i = 0; i < actionPathes.length; i++) {
 			const actionPath = actionPathes[i];
-			if (!actionPath) continue;
+			if (!actionPath)
+				continue;
 
 			transitionsFrom[to]?.actionsPath.push(actionPath);
 		}
@@ -210,7 +223,8 @@ function deleteRowChoices(
 	const choices = stateDiagramStructure.choices;
 	for (let i = 0; i < choices.length; i++) {
 		const choicesId = choices[i]?.id;
-		if (choicesId) delete transitions[choicesId];
+		if (choicesId)
+			delete transitions[choicesId];
 	}
 
 	return transitions;
@@ -233,29 +247,33 @@ function markChoicesInTransitions(
 
 	while (fromChoices.length) {
 		const fromChoice = fromChoices[fromChoices.length - 1];
-		if (!fromChoice) continue;
+		if (!fromChoice)
+			continue;
 
 		if (
-			choicesId.includes(fromChoice?.from) &&
-			choicesId.includes(fromChoice?.choice) &&
-			fromChoice?.from === fromChoice?.choice
+			choicesId.includes(fromChoice?.from)
+			&& choicesId.includes(fromChoice?.choice)
+			&& fromChoice?.from === fromChoice?.choice
 		) {
-			throw new ChoiceCycleError(fromChoice?.from + '-->' + fromChoice?.choice);
+			throw new ChoiceCycleError(`${fromChoice?.from}-->${fromChoice?.choice}`);
 		}
 		fromChoices.pop();
 		const { choice, from } = fromChoice;
 		const toChoice = transitions[choice];
-		if (!toChoice) continue;
+		if (!toChoice)
+			continue;
 
 		delete transitions[from]?.[choice];
 		const toChoiceKeys = Object.keys(toChoice);
 		for (let i = 0; i < toChoiceKeys.length; i++) {
 			const to = toChoiceKeys[i];
-			if (!to) continue;
+			if (!to)
+				continue;
 
 			const fromChoicePath = fromChoice?.actionsPath;
 			const toChoicePath = toChoice[to]?.actionsPath;
-			if (!fromChoicePath || !toChoicePath) continue;
+			if (!fromChoicePath || !toChoicePath)
+				continue;
 
 			const actionPathes: TActionPathArray = concatActionPathes(fromChoicePath, toChoicePath);
 			transitions = unravelChoices(choicesId, fromChoices, from, to, actionPathes, transitions);
@@ -278,7 +296,8 @@ function getTransitions(stateDiagramStructure: TStateDiagramStructure): TDiagram
 		const from = actions[i]?.from;
 		const to = actions[i]?.to;
 		const actionId = actions[i]?.id;
-		if (!from || !to || !actionId) continue;
+		if (!from || !to || !actionId)
+			continue;
 
 		const action: TDiagramAction = {
 			actionsPath: [],
@@ -288,7 +307,8 @@ function getTransitions(stateDiagramStructure: TStateDiagramStructure): TDiagram
 		}
 
 		const transitionsFrom = transitions[from];
-		if (!transitionsFrom) continue;
+		if (!transitionsFrom)
+			continue;
 
 		if (!Object.keys(transitionsFrom).includes(to)) {
 			transitions[from]![to] = action;
@@ -315,19 +335,23 @@ function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: st
 		return [];
 	}
 	const transitionsTo = transitions[stateId];
-	if (!transitionsTo) return [];
+	if (!transitionsTo)
+		return [];
 
 	const transitionsToKeys = Object.keys(transitionsTo);
 	for (let i = 0; i < transitionsToKeys.length; i++) {
 		const to = transitionsToKeys[i];
-		if (!to) continue;
+		if (!to)
+			continue;
 
 		const actionsPathTo = transitionsTo[to]?.actionsPath;
-		if (!actionsPathTo) continue;
+		if (!actionsPathTo)
+			continue;
 
 		for (let j = 0; j < actionsPathTo.length; j++) {
 			const actionPath = actionsPathTo[j];
-			if (!actionPath) continue;
+			if (!actionPath)
+				continue;
 
 			actionsPath.push(actionPath);
 		}
@@ -337,7 +361,7 @@ function getActionsPathesForStates(transitions: TDiagramTransitions, stateId: st
 
 const formattedStartOrEndDict: Record<string, '[*]'> = {
 	'~~~START~~~': '[*]',
-	END_STATE: '[*]',
+	'END_STATE': '[*]',
 } as const;
 
 /**
@@ -356,7 +380,8 @@ function getStates(
 	const choicesId = getChoicesId(stateDiagramStructure);
 	for (let i = 0; i < stateDiagramStructure.states.length; i++) {
 		const stateId = stateDiagramStructure.states[i]?.id;
-		if (!stateId) continue;
+		if (!stateId)
+			continue;
 
 		if (choicesId.includes(stateId)) {
 			continue;
@@ -367,7 +392,8 @@ function getStates(
 
 		if (notesIdKeys.includes(stateIdFormatted)) {
 			const notesIdState = notesId[stateIdFormatted];
-			if (!notesIdState) continue;
+			if (!notesIdState)
+				continue;
 
 			notes = notesIdState;
 		}
@@ -375,7 +401,8 @@ function getStates(
 		const actionsPath: TActionPathArray = getActionsPathesForStates(transitions, stateId);
 		const caption = stateDiagramStructure.states[i]?.caption;
 
-		if (!caption) continue;
+		if (!caption)
+			continue;
 
 		states.push({
 			id: stateId,

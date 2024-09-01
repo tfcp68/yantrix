@@ -5,24 +5,24 @@ import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
-export const getReduxConnectedAutomata = (): Readonly<TReduxConnectedAutomata> => {
+export function getReduxConnectedAutomata(): Readonly<TReduxConnectedAutomata> {
 	return reduxConnectedAutomata;
-};
+}
 
-const dispatchToRedux = (props: {
+function dispatchToRedux(props: {
 	reduxDispatch: Dispatch;
 	reduxActionGenerator: TActionGenerator;
 	automataContext: TAutomataStateContext<number, Record<number, any>>;
-}) => {
+}) {
 	const reduxAction = props.reduxActionGenerator(props.automataContext);
 	return props.reduxDispatch(reduxAction);
-};
+}
 
-export const connectReduxAutomata = (props: {
+export function connectReduxAutomata(props: {
 	automata: GenericAutomata;
 	reduxDispatch: Dispatch;
 	reduxActionGenerator: TActionGenerator;
-}) => {
+}) {
 	const dispatch: typeof GenericAutomata.prototype.dispatch = (action) => {
 		let newContext = props.automata.context;
 		try {
@@ -44,12 +44,12 @@ export const connectReduxAutomata = (props: {
 		dispatch,
 	};
 	return automataId;
-};
+}
 
-export const useReduxAutomata = (automataId: TAutomataId) => {
+export function useReduxAutomata(automataId: TAutomataId) {
 	const automata = reduxConnectedAutomata[automataId];
 	if (!automata) {
 		throw new Error(`Automata ${automataId} not found`);
 	}
 	return [automata.basicAutomata, automata.dispatch] as const;
-};
+}

@@ -10,6 +10,7 @@ import {
 	TAutomataEventHandler,
 	TAutomataEventMetaType,
 	TAutomataStateContext,
+	TDefinedValues,
 } from './types/index.js';
 import { IAutomataEventAdapter } from './types/interfaces.js';
 
@@ -33,6 +34,7 @@ export function createEventAdapter<
 			#eventListeners: {
 				[T in EventType]?: Array<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>;
 			};
+
 			#eventEmitters: {
 				[T in StateType]?: Array<TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>>;
 			};
@@ -46,7 +48,7 @@ export function createEventAdapter<
 			public addEventEmitter<T extends StateType>(
 				on: T,
 				emitter: TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>,
-			) {
+			): (() => void) | null {
 				if (on === null || on === undefined || !(emitter instanceof Function) || !this.validateState(on))
 					return null;
 				this.#eventEmitters = Object.assign(this.#eventEmitters ?? {}, {
@@ -54,8 +56,9 @@ export function createEventAdapter<
 				});
 				return () => {
 					if (this.#eventEmitters?.[on]) {
-						const newEmitters = (this.#eventEmitters[on] || []).filter((v) => v !== emitter);
-						if (!newEmitters.length) delete this.#eventEmitters[on];
+						const newEmitters = (this.#eventEmitters[on] || []).filter(v => v !== emitter);
+						if (!newEmitters.length)
+							delete this.#eventEmitters[on];
 						else this.#eventEmitters[on] = newEmitters;
 					}
 				};
@@ -64,7 +67,7 @@ export function createEventAdapter<
 			public addEventListener<T extends EventType>(
 				type: T,
 				handler: TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>,
-			) {
+			): (() => void) | null {
 				if (type === null || type === undefined || !(handler instanceof Function) || !this.validateEvent(type))
 					return null;
 				this.#eventListeners = Object.assign(this.#eventListeners ?? {}, {
@@ -72,8 +75,9 @@ export function createEventAdapter<
 				});
 				return () => {
 					if (this.#eventListeners?.[type]) {
-						const newHandlers = (this.#eventListeners[type] || []).filter((v) => v !== handler);
-						if (!newHandlers.length) delete this.#eventListeners[type];
+						const newHandlers = (this.#eventListeners[type] || []).filter(v => v !== handler);
+						if (!newHandlers.length)
+							delete this.#eventListeners[type];
 						else this.#eventListeners[type] = newHandlers;
 					}
 				};
@@ -82,28 +86,31 @@ export function createEventAdapter<
 			public handleEvent<T extends EventType>(
 				event: TAutomataEventMetaType<T, EventMetaType>,
 			): Array<ReturnType<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>> {
-				if (!this.validateEventMeta(event)) return [];
+				if (!this.validateEventMeta(event))
+					return [];
 				return (this.#eventListeners?.[event.event] || [])
-					.map((handler) => handler(event))
-					.filter((action) => this.validateAction(action.action));
+					.map(handler => handler(event))
+					.filter(action => this.validateAction(action.action));
 			}
 
 			public handleTransition<T extends StateType>(
 				newState: TAutomataStateContext<T, ContextType>,
 			): Array<ReturnType<TAutomataEventEmitter<EventType, T, EventMetaType, ContextType>>> {
-				if (!this.validateContext(newState)) return [];
+				if (!this.validateContext(newState))
+					return [];
 				return (this.#eventEmitters?.[newState.state] || [])
-					.map((emitter) => emitter(newState))
-					.filter((event) => this.validateEvent(event.event));
+					.map(emitter => emitter(newState))
+					.filter(event => this.validateEvent(event.event));
 			}
 
-			public removeAllListeners<T extends EventType>(type: T | null = null) {
+			public removeAllListeners<T extends EventType>(type: T | null = null): this {
 				switch (true) {
 					case type === null:
 						this.#eventListeners = {};
 						break;
 					default:
-						if (this.validateEvent(type) && this.#eventListeners?.[type]) delete this.#eventListeners[type];
+						if (this.validateEvent(type) && this.#eventListeners?.[type])
+							delete this.#eventListeners[type];
 				}
 				return this;
 			}
@@ -114,22 +121,23 @@ export function createEventAdapter<
 						this.#eventEmitters = {};
 						break;
 					default:
-						if (this.validateState(type) && this.#eventEmitters?.[type]) delete this.#eventEmitters[type];
+						if (this.validateState(type) && this.#eventEmitters?.[type])
+							delete this.#eventEmitters[type];
 				}
 				return this;
 			}
 
-			public getObservedEvents() {
+			public getObservedEvents(): TDefinedValues<EventType>[] {
 				return Object.keys(this.#eventListeners)
 					.map(unifyObjectKey<EventType>)
-					.filter((k) => this.#eventListeners[k]?.length)
+					.filter(k => this.#eventListeners[k]?.length)
 					.filter(this.validateEvent);
 			}
 
-			public getObservedStates() {
+			public getObservedStates(): TDefinedValues<StateType>[] {
 				return Object.keys(this.#eventEmitters)
 					.map(unifyObjectKey<StateType>)
-					.filter((k) => this.#eventEmitters[k]?.length)
+					.filter(k => this.#eventEmitters[k]?.length)
 					.filter(this.validateState);
 			}
 		};
@@ -145,8 +153,7 @@ export class AutomataEventAdapter
 			Record<TAutomataBaseStateType, any>,
 			Record<TAutomataBaseActionType, any>,
 			Record<TAutomataBaseEventType, any>
-		>
-{
+		> {
 	public constructor() {
 		super();
 	}

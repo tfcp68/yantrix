@@ -1,11 +1,13 @@
 export * from '../constants/index';
 
-const recursiveDepth = () => {
+export const calcDepthFunc = recursiveDepth();
+
+function recursiveDepth() {
 	let counterDepth = 1;
 
 	return (funcObj: any) => {
 		const args = funcObj.FunctionDeclaration.Arguments;
-		const funcArgs = args.filter((item: any) => item.hasOwnProperty('FunctionDeclaration'));
+		const funcArgs = args.filter((item: any) => 'FunctionDeclaration' in item);
 
 		if (args.length === 0 || funcArgs.length === 0) {
 			return 1;
@@ -18,6 +20,4 @@ const recursiveDepth = () => {
 			return counterDepth;
 		}
 	};
-};
-
-export const calcDepthFunc = recursiveDepth();
+}

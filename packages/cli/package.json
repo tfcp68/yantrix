@@ -1,32 +1,32 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/cli",
+	"type": "module",
 	"version": "0.1.0",
 	"description": "CLI for Yantrix components",
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
-	"homepage": "https://github.com/tfcp68/yantrix",
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/cli"
-	},
-	"license": "MIT",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
-		"Etheresk <https://github.com/Etheresk>",
+		"Noktomezo <https://github.com/Noktomezo>",
 		"Denis Perevertov <https://github.com/denis-perevertov>",
 		"Nikita Beliaew <https://github.com/Nekitech>",
 		"Sin <https://github.com/Volshebnik09>",
 		"Alexey Geraim <https://github.com/obl1v1onZzz>",
 		"Саша <https://github.com/22sasha>"
 	],
-	"type": "module",
+	"license": "MIT",
+	"homepage": "https://github.com/tfcp68/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/cli"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
 	"bin": {
 		"yantrix": "dist/yantrix.js"
 	},
@@ -36,10 +36,13 @@
 	"files": [
 		"dist"
 	],
+	"engines": {
+		"node": ">=20"
+	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix bin",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint bin",
+		"format": "eslint --fix --format=pretty .",
+		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build"
 	},
 	"dependencies": {
@@ -52,10 +55,7 @@
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.4",
-		"tsx": "^4.11.0"
-	},
-	"engines": {
-		"node": ">=18"
+		"tsx": "^4.19.0"
 	},
 	"publishConfig": {
 		"access": "public",

@@ -1,5 +1,5 @@
+import { randomDecimal, randomInteger, randomString } from '@yantrix/utils';
 import { expressionProperties } from '../fixtures/expressions.js';
-import { randomString, randomInteger, randomDecimal } from '@yantrix/utils';
 
 const KeyItemsCount = 50;
 
@@ -27,7 +27,7 @@ export const allowedExpressions = {
 		output: (property: string) => expressionProperties.payloadReference(property),
 	},
 	function: {
-		value: () => randomString() + '()',
+		value: () => `${randomString()}()`,
 		output: (name: string) => {
 			return expressionProperties.function(name.slice(0, name.length - 2));
 		},
@@ -42,12 +42,12 @@ export const allowedExpressions = {
 	},
 } as const;
 
-export const generateRandomKeyList = () => {
+export function generateRandomKeyList() {
 	const defaultName = 'prop';
 	const length = Math.floor(Math.random() * KeyItemsCount) + 1;
 	return Array.from({ length }, (_, i) => `${defaultName}${i}`);
-};
-export const getKeyItemsInitialEmpty = () => {
+}
+export function getKeyItemsInitialEmpty() {
 	const keyItemsName = generateRandomKeyList();
 
 	return keyItemsName.map((value) => {
@@ -62,8 +62,8 @@ export const getKeyItemsInitialEmpty = () => {
 			},
 		};
 	});
-};
-export const getKeyItemsWithInitial = (expression: any) => {
+}
+export function getKeyItemsWithInitial(expression: any) {
 	const keyItems = generateRandomKeyList();
 
 	return keyItems.map((key) => {
@@ -102,9 +102,9 @@ export const getKeyItemsWithInitial = (expression: any) => {
 				};
 		}
 	});
-};
+}
 
-export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any => {
+export function getKeyItemsRandomInitial(isRandomEmptyErr: boolean = false): any {
 	const keyItems = generateRandomKeyList();
 	const expressions = Object.values(allowedExpressions);
 
@@ -154,4 +154,4 @@ export const getKeyItemsRandomInitial = (isRandomEmptyErr: boolean = false): any
 	} else {
 		return listKeyItem;
 	}
-};
+}

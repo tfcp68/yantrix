@@ -18,35 +18,30 @@ export const baseContextWithPrevious = createContextDescription(
 	[baseKeyItemDeclaration('RightSideProperty', 'payload' as keyof TMapped)],
 );
 
-export const createSubscribeStatement = (
-	eventName: string = 'event',
-	actionName: string = 'action',
-	payloadItems: TKeyItems = [baseKeyItemDeclaration('m', 'context' as keyof TMapped)],
-	context: TKeyItems = [baseKeyItemDeclaration('k', 'context' as keyof TMapped)],
-) => ({
-	subscribe: [
-		{
-			identifier: eventName,
-			actionName,
-			meta: [...context],
-			payload: [...payloadItems],
-		},
-	],
-});
+export function createSubscribeStatement(eventName: string = 'event',	actionName: string = 'action',	payloadItems: TKeyItems = [baseKeyItemDeclaration('m', 'context' as keyof TMapped)],	context: TKeyItems = [baseKeyItemDeclaration('k', 'context' as keyof TMapped)]) {
+	return {
+		subscribe: [
+			{
+				identifier: eventName,
+				actionName,
+				meta: [...context],
+				payload: [...payloadItems],
+			},
+		],
+	};
+}
 
-export const createEmitStatement = (
-	eventName: string = 'event',
-	payloadItems: TKeyItems = [baseKeyItemDeclaration('t', 'context' as keyof TMapped)],
-	context: TKeyItems = [baseKeyItemDeclaration('ab')],
-) => ({
-	emit: [
-		{
-			identifier: eventName,
-			meta: [...payloadItems],
-			context: [...context],
-		},
-	],
-});
+export function createEmitStatement(eventName: string = 'event',	payloadItems: TKeyItems = [baseKeyItemDeclaration('t', 'context' as keyof TMapped)],	context: TKeyItems = [baseKeyItemDeclaration('ab')]) {
+	return {
+		emit: [
+			{
+				identifier: eventName,
+				meta: [...payloadItems],
+				context: [...context],
+			},
+		],
+	};
+}
 
 export const baseSubscribe = createSubscribeStatement();
 export const baseEmitEvent = createEmitStatement();

@@ -1,4 +1,4 @@
-import { randomDecimal, randomString, randomInteger } from './../../../utils/src/fixtures';
+import { randomDecimal, randomInteger, randomString } from './../../../utils/src/fixtures';
 
 const assignTypes = ['string', 'decimal', 'integer', 'list', 'payload', 'context', 'constant', 'payload'];
 
@@ -6,7 +6,7 @@ export const constant = {
 	pi: 3.14,
 };
 
-export const getRandomPayload = () => {
+export function getRandomPayload() {
 	const rnd = randomInteger(0, 120);
 
 	if (rnd < 30) {
@@ -22,10 +22,10 @@ export const getRandomPayload = () => {
 		return () => [];
 	}
 
-	throw new Error('');
-};
+	throw new Error('Unexpected error');
+}
 
-export const generateAssign = (type) => {
+export function generateAssign(type: typeof assignTypes[number]) {
 	switch (type) {
 		case 'string':
 			return (() => {
@@ -121,9 +121,9 @@ export const generateAssign = (type) => {
 		default:
 			throw new Error('Unknown assign type');
 	}
-};
+}
 
-export const getReferenceAssign = (startIdentSymbol?: string) => {
+export function getReferenceAssign(startIdentSymbol?: string) {
 	return assignTypes.map((type) => {
 		const assign = generateAssign(type);
 
@@ -138,22 +138,24 @@ export const getReferenceAssign = (startIdentSymbol?: string) => {
 			input: ctxAssign,
 		};
 	});
-};
+}
 
-export const generateAssignCase = (input: string, name: string, output) => {
+export function generateAssignCase(input: string, name: string, output: ReturnType<typeof generateAssign>[]) {
 	return {
 		input,
 		name,
 		output: output.reduce((acc, curr) => {
+			// @ts-expect-error idk
 			acc[curr.ident] = curr.value;
 
 			return acc;
 		}, {}),
 		dispatchObject: output.reduce((acc, curr) => {
 			if (curr.referenceType === 'payload') {
+				// @ts-expect-error idk
 				acc[curr.payloadIdent] = curr.value;
 			}
 			return acc;
 		}, {}),
 	};
-};
+}

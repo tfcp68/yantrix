@@ -1,41 +1,41 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/codegen",
+	"type": "module",
 	"version": "0.1.0",
 	"description": "Generates automata from given mermaid state diagram",
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
-	"homepage": "https://github.com/tfcp68/yantrix",
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/codegen"
-	},
-	"license": "MIT",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
-		"Etheresk <https://github.com/Etheresk>",
+		"Noktomezo <https://github.com/Noktomezo>",
 		"Denis Perevertov <https://github.com/denis-perevertov>",
 		"Nikita Beliaew <https://github.com/Nekitech>",
 		"Sin <https://github.com/Volshebnik09>",
 		"Alexey Geraim <https://github.com/obl1v1onZzz>",
 		"Саша <https://github.com/22sasha>"
 	],
-	"type": "module",
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/codegen"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
 	"exports": {
 		".": {
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			},
 			"import": {
 				"types": "./dist/index.d.ts",
 				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
 			}
 		}
 	},
@@ -49,29 +49,29 @@
 	"files": [
 		"dist"
 	],
+	"engines": {
+		"node": ">=20"
+	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
+		"format": "eslint --fix --format=pretty .",
+		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run --outputFile=../../test_reports/codegen.md"
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
 		"@yantrix/utils": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
 		"commander": "^12.1.0",
 		"fs-extra": "^11.2.0",
 		"picocolors": "^1.0.1"
 	},
 	"devDependencies": {
-		"@yantrix/utils": "workspace:^",
 		"@types/fs-extra": "^11.0.4",
-		"tsx": "^4.11.0"
-	},
-	"engines": {
-		"node": ">=18"
+		"@yantrix/utils": "workspace:^",
+		"tsx": "^4.19.0"
 	},
 	"publishConfig": {
 		"access": "public",

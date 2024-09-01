@@ -1,5 +1,6 @@
 import { randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
-import { assert, describe, expect, test } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
+import { YantrixParser } from '../src/yantrixParser.js';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
 	allowedExpressions,
@@ -7,7 +8,6 @@ import {
 	getKeyItemsRandomInitial,
 	getKeyItemsWithInitial,
 } from './utils/utils.js';
-import { YantrixParser } from '../src/yantrixParser.js';
 
 const validCases = [
 	[`#{%s}`, keyItem.declarationKeyItem],
@@ -52,12 +52,12 @@ const templateFunctions: { [key: string]: (...args: any) => any } = {
 	'%arr': (templateString: string, propertyName: string, func: (...args: any) => any) => {
 		return [templateString.replace('%arr', '[]'), func(propertyName)];
 	},
-	default: (templateString: string, propertyName: string, func: (...args: any) => any) => {
+	'default': (templateString: string, propertyName: string, func: (...args: any) => any) => {
 		return [templateString, func(propertyName)];
 	},
 };
 
-const generateExpressionStringAndExpectedObject = (args: [string, (...args: any) => any]) => {
+function generateExpressionStringAndExpectedObject(args: [string, (...args: any) => any]) {
 	const templateString = args[0];
 	const func = args[1];
 
@@ -72,18 +72,18 @@ const generateExpressionStringAndExpectedObject = (args: [string, (...args: any)
 			return templateFunctions[regex]?.(templateStringWithName, propertyName, func);
 		}
 	}
-	return templateFunctions['default']?.(templateStringWithName, propertyName, func);
-};
-const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
+	return templateFunctions.default?.(templateStringWithName, propertyName, func);
+}
+function generateExpressionCases(templates: any[], casesAmount: number = randomInteger(1, 50)) {
 	return templates.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
 	});
-};
+}
 
-describe('Key list', () => {
+describe('key list', () => {
 	const parser = new YantrixParser();
 
-	describe('The number of arguments must be equal to or less than the number of context arguments', () => {
+	describe('the number of arguments must be equal to or less than the number of context arguments', () => {
 		const keyItem = getKeyItemsInitialEmpty()[0];
 		const strInput = `#{${keyItem?.value}} <= #a, #b`;
 
@@ -92,18 +92,18 @@ describe('Key list', () => {
 		);
 	});
 
-	describe('Single key item', () => {
+	describe('single key item', () => {
 		const cases = generateExpressionCases(validCases);
-		test.each(cases)('%s', (input, res) => {
+		it.each(cases)('%s', (input, res) => {
 			const output = parser.parse(input);
 			assert.deepOwnInclude(output, res);
 		});
 	});
 
-	describe('Random number of keyItem', () => {
-		describe('INPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
-			Object.entries(allowedExpressions).forEach(([key, value]: [string, any]) => {
-				test(`Data type - ${key}`, () => {
+	describe('random number of keyItem', () => {
+		describe('iNPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
+			Object.entries(allowedExpressions).forEach(([_, value]: [string, any]) => {
+				it(`data type - `, () => {
 					for (let index = 0; index < 100; index++) {
 						const keyItems = getKeyItemsWithInitial(value);
 
@@ -117,7 +117,7 @@ describe('Key list', () => {
 
 						expect(targetPropertyCount).toBe(context.length);
 
-						keyItems.map(({ initialValue, /*input,*/ key }, index) => {
+						keyItems.forEach(({ initialValue, /* input, */ key }, index) => {
 							const { keyItem } = context[index];
 							const { identifier } = keyItem;
 
@@ -134,7 +134,7 @@ describe('Key list', () => {
 				});
 			});
 		});
-		test(`INPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
+		it(`iNPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
 			for (let index = 0; index < 10; index++) {
 				const parser = new YantrixParser();
 
@@ -163,8 +163,8 @@ describe('Key list', () => {
 				});
 			}
 		});
-		describe('Empty last initial value', () => {
-			test('INPUT = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', () => {
+		describe('empty last initial value', () => {
+			it('iNPUT = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', () => {
 				for (let index = 0; index < 10; index++) {
 					const parser = new YantrixParser();
 
@@ -197,7 +197,7 @@ describe('Key list', () => {
 					expect(lastContextItem).toStrictEqual({ ...f });
 				}
 			});
-			test('INPUT = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', () => {
+			it('iNPUT = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', () => {
 				for (let index = 0; index < 10; index++) {
 					const parser = new YantrixParser();
 
@@ -206,7 +206,7 @@ describe('Key list', () => {
 
 					const keyItems = [...generatedRandomInitial, ...generatedEmpty];
 
-					const formattedArr = keyItems.map((el) => el.value);
+					const formattedArr = keyItems.map(el => el.value);
 					const formattedInput = `#{${formattedArr.join(',')}}`;
 
 					const output = parser.parse(formattedInput);
@@ -215,15 +215,15 @@ describe('Key list', () => {
 					const context = contextDescription[0].context;
 
 					const emptyOutputElements = context.slice(generatedRandomInitial.length);
-					emptyOutputElements.map((el: any, index: any) => {
+					emptyOutputElements.forEach((el: any, index: any) => {
 						expect(el).toStrictEqual(generatedEmpty[index]?.output());
 					});
 					expect(emptyOutputElements.length).toBe(generatedEmpty.length);
 				}
 			});
 		});
-		describe('Incorect input', () => {
-			test('INPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
+		describe('incorect input', () => {
+			it('iNPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
 				const parser = new YantrixParser();
 				const keyItems = getKeyItemsRandomInitial(true);
 
@@ -232,7 +232,7 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
-			test('INPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', () => {
+			it('iNPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', () => {
 				const parser = new YantrixParser();
 				const keyItems = [...getKeyItemsRandomInitial(), { value: 'prop3,' }];
 
@@ -241,7 +241,7 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
-			test('INPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
+			it('iNPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
 				const parser = new YantrixParser();
 				const keyItems = [{ value: ',prop3=' }, ...getKeyItemsRandomInitial()];
 
@@ -250,7 +250,7 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
-			test('INPUT = #{prop1=5, prop2=10, , prop5=5 } ------- the comma is duplicated', () => {
+			it('iNPUT = #{prop1=5, prop2=10, , prop5=5 } ------- the comma is duplicated', () => {
 				const parser = new YantrixParser();
 				const keyItems = getKeyItemsRandomInitial();
 
@@ -264,7 +264,7 @@ describe('Key list', () => {
 				const formattedInput = `#{${itemsValue.join(',')}}`;
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
-			test('INPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
+			it('iNPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
 				const parser = new YantrixParser();
 				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
 				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];

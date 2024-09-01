@@ -1,43 +1,43 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/mermaid-parser",
+	"type": "module",
 	"version": "0.1.0",
 	"description": "Provides Yantrix abstractions from MermaidJS State and Sequence diagrams",
-	"keywords": [
-		"FSM",
-		"MermaidJS",
-		"diagrams",
-		"parser"
-	],
-	"homepage": "https://github.com/tfcp68/yantrix/tree/main/packages/automata#readme",
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/mermaid-parser"
-	},
-	"license": "MIT",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
-		"Etheresk <https://github.com/Etheresk>",
+		"Noktomezo <https://github.com/Noktomezo>",
 		"Denis Perevertov <https://github.com/denis-perevertov>",
 		"Nikita Beliaew <https://github.com/Nekitech>",
 		"Sin <https://github.com/Volshebnik09>",
 		"Alexey Geraim <https://github.com/obl1v1onZzz>",
 		"Саша <https://github.com/22sasha>"
 	],
-	"type": "module",
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/mermaid-parser"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"FSM",
+		"MermaidJS",
+		"diagrams",
+		"parser"
+	],
 	"exports": {
 		".": {
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			},
 			"import": {
 				"types": "./dist/index.d.ts",
 				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
 			}
 		}
 	},
@@ -50,23 +50,23 @@
 	"files": [
 		"dist"
 	],
+	"engines": {
+		"node": ">=20"
+	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
-		"prepack": "pnpm lint && pnpm build",
-		"test": "vitest run --coverage --outputFile=../../test_reports/mermaid-parser.md"
+		"format": "eslint --fix --format=pretty .",
+		"lint": "eslint --format=pretty .",
+		"prepack": "pnpm lint && pnpm test && pnpm build",
+		"test": "vitest run --outputFile=../../test_reports/mermaid-parser.md"
 	},
 	"dependencies": {
 		"@yantrix/utils": "workspace:^",
-		"mermaid": "10.1.0"
+		"mermaid": "11.0.2"
 	},
 	"devDependencies": {
 		"@types/d3": "^7.4.0",
 		"@types/dompurify": "^3.0.2"
-	},
-	"engines": {
-		"node": ">=18"
 	},
 	"publishConfig": {
 		"access": "public",

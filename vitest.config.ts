@@ -5,15 +5,12 @@ export default defineConfig({
 	test: {
 		reporters: [
 			'default',
-			new VitestMarkdownReporter({
-				title: 'Test Cases',
-			}),
+			new VitestMarkdownReporter({ title: 'Test Cases' }),
 		],
-		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache', '.yarn', '**/fixtures'],
+		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
 		passWithNoTests: true,
-		globals: true,
 		coverage: {
-			enabled: true,
+			enabled: false,
 			reportOnFailure: true,
 			all: true,
 			clean: true,
@@ -23,12 +20,9 @@ export default defineConfig({
 			exclude: [
 				'vitepress',
 				'*/fixtures',
-				// All ts files that only contain types, due to ALL
 				'/*.{interface,type,d}.ts',
 				'/{interfaces,types}/*.ts',
-				// All index files that *should* only contain exports from other files
 				'/index.{js,ts}',
-				// All exports files that make subpackages available as submodules
 				'**/exports/*.{js,ts}',
 			],
 		},

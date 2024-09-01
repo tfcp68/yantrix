@@ -54,7 +54,7 @@ The hook returns an object with key APIs and some helper functions to make usage
 import { useFSM } from '@yantrix/react';
 import TrafficLight from '../generated/traffic-light.ts';
 
-const ToggleComponent = () => {
+function ToggleComponent() {
 	// creates a singleton FSM
 	const { getContext, dispatch } = useFSM(TrafficLight);
 
@@ -99,7 +99,7 @@ Since an `IAutomata` created by a hook call is a singleton, every component will
 **WARNING:** note that you still don't need to instantiate an `FSM` and should pass a constructor as a property value
 
 ```tsx
-const Toggler = ({ id: string }) => {
+function Toggler({ id: string }) {
 	const { dispatch } = useFSM({
 		fsm: TrafficLight,
 		id
@@ -115,13 +115,14 @@ const Toggler = ({ id: string }) => {
 
 	return (
 		<div
-			class='toggle'
-			onClick={clickHandler)
-			}></div>
+			class="toggle"
+			onClick={clickHandler}
+		>
+		</div>
 	);
-};
+}
 
-const Counter = ({ id: string }) => {
+function Counter({ id: string }) {
 	const { getContext } = useFSM({
 		fsm: TrafficLight,
 		id
@@ -129,19 +130,19 @@ const Counter = ({ id: string }) => {
 
 	const { counter } = getContext();
 
-	return <div class='counter'>{counter}</div>;
-};
+	return <div class="counter">{counter}</div>;
+}
 
 // The parent component creates a unique ID that makes both children Components use the same FSM
-const TrafficLight = () => {
+function TrafficLight() {
 	const [id, setId] = useState(Math.random().toFixed(6));
 	return (
-		<div class='trafficLight'>
+		<div class="trafficLight">
 			<Toggler id={id} />
 			<Counter id={id} />
 		</div>
 	);
-};
+}
 ```
 
 ## Dictionaries
@@ -149,7 +150,7 @@ const TrafficLight = () => {
 To avoid importing generated class into your modules for the sake of having access to `Action` and `State` dictionaries, you could rather import those helpers from the same hook:
 
 ```tsx
-const Toggler = () => {
+function Toggler() {
 	const FSM = useFSM(TrafficLight);
 
 	const { getState, StateDictionary } = FSM;
@@ -169,10 +170,11 @@ const Toggler = () => {
 			onClick={() =>
 				dispatch({
 					action: getAction('switch'),
-				})
-			}></div>
+				})}
+		>
+		</div>
 	);
-};
+}
 ```
 
 ## Debugging
@@ -180,7 +182,7 @@ const Toggler = () => {
 `trace` method returns the last dispatched `Payload` and the preceding `Context`, which is useful for debugging or even for building some kind of dev tools. The resulting `Context` is not returned by this function as it is always identical to `getContext()` return value at the moment of call.
 
 ```tsx
-const DebugBar = ({ id: string }) => {
+function DebugBar({ id: string }) {
 	const { trace } = useFSM({
 		fsm: TrafficLight,
 		id,
@@ -199,9 +201,9 @@ const DebugBar = ({ id: string }) => {
 			<span>{JSON.stringify(previousContext)}</span>
 		</div>
 	);
-};
+}
 
-const TrafficLight = () => {
+function TrafficLight() {
 	const [id, setId] = useState(Math.random().toFixed(6));
 	return (
 		<>
@@ -214,7 +216,7 @@ const TrafficLight = () => {
 			</div>
 		</>
 	);
-};
+}
 ```
 
 Each dispatched `Action` gets a unique transaction id and timestamp, so essentially `trace` is a one-entry log. It's probably easy enough to extend this instrument to a full debug log, however, we believe such a functionality is something that React-Yantrix integration bridge should not be responsible for. The transaction stores the call stack of the original `dispatch` call.

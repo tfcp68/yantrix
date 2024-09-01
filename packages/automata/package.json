@@ -1,41 +1,41 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/automata",
+	"type": "module",
 	"version": "0.1.0",
 	"description": "Miely Machine representation with bus adapters",
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
-	"homepage": "https://github.com/tfcp68/yantrix",
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/automata"
-	},
-	"license": "MIT",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
-		"Etheresk <https://github.com/Etheresk>",
+		"Noktomezo <https://github.com/Noktomezo>",
 		"Denis Perevertov <https://github.com/denis-perevertov>",
 		"Nikita Beliaew <https://github.com/Nekitech>",
 		"Sin <https://github.com/Volshebnik09>",
 		"Alexey Geraim <https://github.com/obl1v1onZzz>",
 		"Саша <https://github.com/22sasha>"
 	],
-	"type": "module",
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/automata"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"FSM",
+		"Miely Machine"
+	],
 	"exports": {
 		".": {
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			},
 			"import": {
 				"types": "./dist/index.d.ts",
 				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
 			}
 		}
 	},
@@ -49,22 +49,22 @@
 	"files": [
 		"dist"
 	],
+	"engines": {
+		"node": ">=20"
+	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "prettier --write . && cross-env TIMING=1 eslint --fix src __tests__",
-		"lint": "prettier --check . && cross-env TIMING=1 eslint src __tests__",
+		"format": "eslint --fix --format=pretty .",
+		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "vitest run --coverage --outputFile=../../test_reports/automata.md"
+		"test": "vitest run --outputFile=../../test_reports/automata.md"
 	},
 	"dependencies": {
 		"@yantrix/utils": "workspace:^",
-		"underscore": "^1.13.6"
+		"underscore": "^1.13.7"
 	},
 	"devDependencies": {
-		"@types/underscore": "^1.11.4"
-	},
-	"engines": {
-		"node": ">=18"
+		"@types/underscore": "^1.11.15"
 	},
 	"publishConfig": {
 		"access": "public",
