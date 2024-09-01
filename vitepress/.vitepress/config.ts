@@ -4,10 +4,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
-
-const menuOrder = ['', 'architecture', 'syntax', 'integrations', 'contributing', 'api' +
-' reference'];
-
+const menuOrder = ['', 'architecture', 'syntax', 'integrations', 'contributing', 'api' + ' reference'];
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid({
@@ -20,7 +17,7 @@ export default withMermaid({
 	appearance: 'force-dark',
 	lastUpdated: true,
 	search: {
-		provider: 'local'
+		provider: 'local',
 	},
 	head: [
 		['meta', { name: 'theme-color', content: '#000000' }],
@@ -28,31 +25,43 @@ export default withMermaid({
 		['meta', { property: 'og:image:width', content: '512' }],
 		['meta', { property: 'og:image:height', content: '512' }],
 		['meta', { property: 'og:title', content: 'Yantrix Documentation' }],
-		['meta', {
-			property: 'og:description', content: 'Low-Code Finite State' +
-				' Machines'
-		}],
+		[
+			'meta',
+			{
+				property: 'og:description',
+				content: 'Low-Code Finite State' + ' Machines',
+			},
+		],
 		['link', { rel: 'icon', href: '/yantrix/favicon.ico' }],
-		['link', {
-			rel: 'icon',
-			type: 'image/png',
-			href: '/yantrix/icon-white.png',
-			sizes: '64x64'
-		}],
-		['link', {
-			rel: 'icon',
-			type: 'image/png',
-			href: '/yantrix/logo.png',
-			sizes: '512x512'
-		}]
+		[
+			'link',
+			{
+				rel: 'icon',
+				type: 'image/png',
+				href: '/yantrix/icon-white.png',
+				sizes: '64x64',
+			},
+		],
+		[
+			'link',
+			{
+				rel: 'icon',
+				type: 'image/png',
+				href: '/yantrix/logo.png',
+				sizes: '512x512',
+			},
+		],
 	],
 	themeConfig: {
 		// https://vitepress.dev/reference/default-theme-config
 		logo: '/icon-white.png',
 		siteTitle: 'Yantrix',
 		socialLinks: [],
-		sidebar: getSidebarItems(path.resolve(__dirname, '../src'))
-	}
+		outline: {
+			level: [2, 3],
+		},
+		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
+	},
 });
 
 function getMdData(filePath: string) {
@@ -64,9 +73,9 @@ function getSortIndex(filePath: string) {
 	const order = parseInt(path.basename(filePath, '.md').split('_')[0]) || 0;
 	const prefix = filePath
 		.replace(/^\//, '')
-		.split('/').map(
-			t => t.replaceAll('-', ' ').toLowerCase())
-		.filter(t => menuOrder.includes(t))[0];
+		.split('/')
+		.map((t) => t.replaceAll('-', ' ').toLowerCase())
+		.filter((t) => menuOrder.includes(t))[0];
 	const dirOrder = menuOrder.indexOf(prefix);
 	return order + dirOrder * 1000;
 }
@@ -82,14 +91,14 @@ function getFolderItem(folderDir: string, link: string): DefaultTheme.SidebarIte
 			collapsed: true,
 			items: [],
 			rel: getSortIndex(folderDir),
-			link: frontmatter.content.length > 0 ? link : undefined
+			link: frontmatter.content.length > 0 ? link : undefined,
 		};
 	} else {
 		return {
 			text: path.basename(folderDir),
 			collapsed: true,
 			rel: getSortIndex(folderDir),
-			items: []
+			items: [],
 		};
 	}
 }
@@ -100,7 +109,7 @@ function getFileItem(filePath: string, link: string): DefaultTheme.SidebarItem {
 	return {
 		text: frontmatter.data.title || name,
 		rel: getSortIndex(filePath),
-		link
+		link,
 	};
 }
 
@@ -149,7 +158,5 @@ function getSidebarItems(startDir: string, baseDir = '') {
 
 	const root = getFolderItem(startDir, '/');
 
-	return [root, ..._getSidebarItems().sort((a, b) =>
-		parseInt(a.rel) - parseInt(b.rel)
-	)];
+	return [root, ..._getSidebarItems().sort((a, b) => parseInt(a.rel) - parseInt(b.rel))];
 }
