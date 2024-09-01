@@ -88,10 +88,6 @@ const ToggleComponent = () => {
 };
 ```
 
-## Shorthand methods
-
-The hook is similar to `useState` in a way that it returns a method to read the value (the value being a `Context` of the machine) and a method to set the same value (via `Action`). Despite these methods having namesakes in [IAutomata](../API-Reference/automata/interfaces/IAutomata.html), they are not quite the same, though they have similar signature. However, when working with the hook, you should rely on `Actions` and `States` dictionaries exported by [static members and/or helpers](./150_JSAPI.md#dictionaries) of the generated class.
-
 ## Multiple instances
 
 Since an `IAutomata` created by a hook call is a singleton, every component will receive the same `Context` at the given moment of time. Thus, dispatching an `Action` will update all subscribed components. If you need a different behavior, i.e., create a separate instance of the generated `FSM` for a component, you can specify a unique handle for a created `FSM`. All hooks invoked with the same handle share a single instance of `FSM` requested. In the previous example the `id` property is inherited from class static property `id` (i.e., `TrafficLight.id === "TrafficLight"`)
