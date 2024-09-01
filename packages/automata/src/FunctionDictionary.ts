@@ -2,16 +2,16 @@ import { TAutomataFunction } from './types';
 import { IAutomataFunctionRegistry } from './types/interfaces';
 
 /**
- * Implementation of {@link IAutomataFunctionRegistry}, where functions are stored as a map.
+ * Implementation of {@link IAutomataFunctionRegistry}, where functions are stored in a map.
  *
  * Has strict requirements for registering new functions, overwrites are not possible.
  *
  * One {@link FunctionDictionary} singleton can be created per slice.
  */
 export class FunctionDictionary implements IAutomataFunctionRegistry {
-	static _instance: FunctionDictionary;
+	static _instance: FunctionDictionary | null;
 
-	private readonly functions: Record<string, TAutomataFunction>;
+	private functions: Record<string, TAutomataFunction>;
 
 	private constructor() {
 		this.functions = {};
@@ -22,6 +22,10 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 			this._instance = new FunctionDictionary();
 		}
 		return this._instance;
+	}
+
+	static clearInstance() {
+		this._instance = null;
 	}
 
 	/**
@@ -52,9 +56,20 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 	 * @param functionMap - map of functions to register
 	 * @returns map of all registered functions
 	 */
-	registerMultiple(functionMap: Record<string, TAutomataFunction>): Record<string, TAutomataFunction> {
-		Object.entries(functionMap).forEach(([name, callback]) => this.register(name, callback));
-		return functionMap;
+	registerMultiple(
+		functionMap: Record<string, TAutomataFunction>,
+		overwrite: boolean,
+	): Record<string, TAutomataFunction> {
+		if (overwrite) {
+			return Object.assign(this.functions, functionMap);
+		} else {
+			Object.entries(functionMap).forEach(([name, callback]) => this.register(name, callback));
+			return functionMap;
+		}
+	}
+
+	clear() {
+		this.functions = {};
 	}
 
 	has(functionKey: string) {
@@ -69,5 +84,17 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		const func = this.functions[functionKey];
 		if (func) return func;
 		else throw new Error(`Function with the key ${functionKey} not found!`);
+	}
+
+	/**
+	 * @throws Will throw an error if:
+	 *
+	 * 1). Function is not found by the specified key.
+	 *
+	 * 2). Arguments for the function are incorrect(as specified in their implementation).
+	 */
+	call(functionKey: string, ...args: any[]) {
+		const func = this.get(functionKey)!;
+		return func(...args);
 	}
 }

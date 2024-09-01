@@ -100,7 +100,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions);`);
+		this.dictionaries.push(`export const functionDictionary = FunctionDictionary.getInstance();`);
+		this.dictionaries.push(`functionDictionary.registerMultiple(builtInFunctions, true);`);
 
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
@@ -141,17 +142,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		const initialContext = Object.assign({}, a, b);
 
 		return `export class ${className} extends GenericAutomata {
-  		 constructor() {
-  			super();
-  			this.init({
-  				state: ${stateValue},
-  				context:${JSON.stringify(initialContext)},
-                rootReducer: ${this.getRootReducer()},
-  				stateValidator: ${this.getStateValidator()},
-  				actionValidator: ${this.getActionValidator()},
-				});
-			}
-			isKeyOf = ${this.getIsKeyOf()};
+
 			static id = '${className}';
 			static actions = actionsMap;
 			static states = statesMap;
@@ -159,7 +150,32 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			static hasState = ${this.getHasStateFunc(className)};
 			static getAction = ${this.getGetActionFunc()};
 			static createAction = ${this.getCreateActionFunc(className)};
+
+			#functionRegistry = {};
+
+			constructor() {
+				super();
+				this.init({
+					state: ${stateValue},
+					context:${JSON.stringify(initialContext)},
+					rootReducer: ${this.getRootReducer()},
+					stateValidator: ${this.getStateValidator()},
+					actionValidator: ${this.getActionValidator()},
+				});
+				this.setFunctionRegistry(functionDictionary);
+			}
+
+			getFunctionRegistry() {
+				return this.functionRegistry;
+			}
+
+			setFunctionRegistry(registry) {
+				this.functionRegistry = registry;
+			}
+
+			isKeyOf = ${this.getIsKeyOf()};
 		}
+
 		export default ${className};
 		`;
 	}
@@ -227,7 +243,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				throw new Error('Invalid state');
 			}
 
-			return `${stateValue}: (prevContext, payload) => {
+			return `${stateValue}: (prevContext, payload, functionDictionary) => {
 	
 				return ${this.getContextTransition(stateValue)}
 			}`;
@@ -292,7 +308,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload)};
+					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.functionRegistry)};
   				}`;
 	}
 

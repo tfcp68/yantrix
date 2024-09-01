@@ -724,4 +724,15 @@ export interface IAutomataFunctionRegistry {
 	 * @returns true if the function exists, false otherwise
 	 */
 	has(functionKey: string): boolean;
+
+	/**
+	 * Retrieve function from the registry and immediately call it, returning the result to the consumer.
+	 *
+	 * Should return an error if the arguments for a specific function are incorrect.
+	 *
+	 * @param functionKey - name of the function to call
+	 * @param args - arguments necessary for the function
+	 * @returns result of calling the function
+	 */
+	call(functionKey: string, ...args: any[]): unknown;
 }
