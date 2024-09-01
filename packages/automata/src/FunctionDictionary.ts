@@ -60,12 +60,13 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		functionMap: Record<string, TAutomataFunction>,
 		overwrite: boolean,
 	): Record<string, TAutomataFunction> {
+		// временный костыль для тестов
 		if (overwrite) {
-			return Object.assign(this.functions, functionMap);
+			this.functions = Object.assign(this.functions, functionMap);
 		} else {
 			Object.entries(functionMap).forEach(([name, callback]) => this.register(name, callback));
-			return functionMap;
 		}
+		return functionMap;
 	}
 
 	clear() {
