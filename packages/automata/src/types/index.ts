@@ -166,3 +166,5 @@ export type TEventBusHandler<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = (event: TAutomataEventMetaType<EventType, EventMetaType>) => TEventBusTask<EventType, EventMetaType>;
+
+export type TAutomataFunction = ((...args: any) => any) | null;
