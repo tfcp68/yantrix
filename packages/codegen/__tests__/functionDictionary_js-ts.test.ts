@@ -1,11 +1,11 @@
-import { assert, beforeEach, describe, expect, test } from 'vitest';
+import { afterAll, afterEach, assert, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { randomString, randomInteger } from '@yantrix/utils';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
-import { FunctionDictionary, AutomataFunction } from '@yantrix/automata';
-import { builtInFunctions } from '@yantrix/codegen';
+import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';
+import { builtInFunctions } from '../dist';
 import { saveAndGenerate } from './fixtures/utils.js';
 
-let functionDictionaryFixture: FunctionDictionary;
+let functionDictionaryTestFixture: FunctionDictionary;
 
 const { add, mult, pow, sumsq, substr, and, contains, isGreater } = builtInFunctions;
 const testFunctionsExamples = [
@@ -13,7 +13,7 @@ const testFunctionsExamples = [
 	(str: string) => substr(str, 1, 5),
 	(arr: number[]) => mult(sumsq(...arr), 10),
 	(obj: { property: number }) => and(contains(obj, 'property'), isGreater(obj['property'], 10)),
-] as AutomataFunction[];
+] as TAutomataFunction[];
 
 const invalidFunctionNamesTemplates = [
 	...SpecialCharList,
@@ -35,15 +35,28 @@ describe('JS/TS Function Dictionary', async () => {
 
 	const res = await import(`./fixtures/generated/functions_generated.js`);
 
-	const functionDictionary = res.functionDictionary;
+	const automata = new res.FunctionDictionaryTest();
+	const functionDictionary = automata.getFunctionRegistry();
+
+	beforeAll(() => {
+		functionDictionaryTestFixture = FunctionDictionary.getInstance();
+	});
 
 	beforeEach(() => {
-		functionDictionaryFixture = new FunctionDictionary(builtInFunctions);
+		functionDictionaryTestFixture.registerMultiple(builtInFunctions, true);
+	});
+
+	afterEach(() => {
+		functionDictionaryTestFixture.clear();
+	});
+
+	afterAll(() => {
+		FunctionDictionary.clearInstance();
 	});
 
 	test('Dictionary is not empty and has built-in functions inside upon creation', () => {
 		assert.isNotNull(functionDictionary);
-		assert.deepOwnInclude(functionDictionary, functionDictionaryFixture);
+		assert.deepOwnInclude(functionDictionary, functionDictionaryTestFixture);
 	});
 
 	describe('Can get functions from a dictionary', () => {
@@ -119,5 +132,23 @@ describe('JS/TS Function Dictionary', async () => {
 				expect(() => functionDictionary.register(customKey, testFunctionsExamples[0] ?? null)).toThrowError();
 			}
 		});
+	});
+
+	describe('Generated Automata Function Registry Replacement', async () => {
+		let fixture;
+
+		beforeEach(() => {
+			fixture = Object.assign({}, FunctionDictionary.getInstance());
+		});
+
+		test('Can replace registry in an automata', () => {
+			fixture.id = 'replaced_id';
+			automata.setFunctionRegistry(fixture);
+			const id = automata.getFunctionRegistry().id;
+			expect(id).toBeDefined();
+			expect(id).toEqual('replaced_id');
+		});
+
+		// todo add more tests
 	});
 });
