@@ -31,6 +31,7 @@ import {
 	TEventBusHandler,
 	TSubscriptionCancelFunction,
 	TValidator,
+	TAutomataFunction,
 } from './index.js';
 
 export interface IAutomataEventContainer<EventType extends TAutomataBaseEventType> {
@@ -694,4 +695,33 @@ export interface IAutomataEventBus<
 	 * @returns The processed event stack.
 	 */
 	processEvents: () => TAutomataEventStack<EventType, EventMetaType>;
+}
+
+/**
+ * Interface for any data structure capable of storing and returning automata functions.
+ */
+export interface IAutomataFunctionRegistry {
+	/**
+	 * Register function under a specific name in the registry.
+	 *
+	 * @param functionKey - name of function
+	 * @param callback - function to invoke
+	 */
+	register(functionKey: string, callback: TAutomataFunction): TAutomataFunction;
+
+	/**
+	 * Get function from registry.
+	 *
+	 * @param functionKey - name of the function
+	 * @returns function to invoke
+	 */
+	get(functionKey: string): TAutomataFunction;
+
+	/**
+	 * Check if a function exists in the registry.
+	 *
+	 * @param functionKey - name of the function to check
+	 * @returns true if the function exists, false otherwise
+	 */
+	has(functionKey: string): boolean;
 }
