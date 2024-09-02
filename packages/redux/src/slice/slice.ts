@@ -28,9 +28,8 @@ export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 			const newState = rootReducer
 				? rootReducer({
 						action: fsm.getAction(actionName),
-						state: state.state,
-						context: state.context,
 						payload: action.payload,
+						...state,
 					})
 				: initialState;
 
