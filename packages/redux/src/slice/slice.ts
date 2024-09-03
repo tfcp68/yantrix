@@ -1,21 +1,19 @@
-import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TAutomataReducer } from '@yantrix/automata';
+import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 
-export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
+export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 	options: TCreateFSMSliceOptions<Automata, TStateFSMSlice, TStateFSMSlice['context']>,
-): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice> => {
+): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice> {
 	const { fsm, name, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new fsm();
 	const actionsNameList = Object.keys(fsm.actions);
 	const initialState: TStateFSMSlice = _fsm.getContext();
 
-	const selectorsSlice = selectors
-		? selectors
-		: {
-				state: (sliceState: TStateFSMSlice): TStateFSMSlice['state'] => sliceState.state,
-				context: (sliceState: TStateFSMSlice): TStateFSMSlice['context'] => sliceState.context,
-			};
+	const selectorsSlice = selectors || {
+		state: (sliceState: TStateFSMSlice): TStateFSMSlice['state'] => sliceState.state,
+		context: (sliceState: TStateFSMSlice): TStateFSMSlice['context'] => sliceState.context,
+	};
 
 	const reducers = actionsNameList.reduce((acc, actionName) => {
 		acc[actionName] = (state: TStateFSMSlice, action: PayloadAction<TStateFSMSlice>) => {
@@ -52,4 +50,4 @@ export const createFSMSlice = <Automata extends TAutomataWithStaticMethods>(
 		reducers,
 		selectors: selectorsSlice,
 	});
-};
+}
