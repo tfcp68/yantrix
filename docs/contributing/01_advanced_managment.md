@@ -29,7 +29,7 @@ Also, you can install a local package on a system-wide scope by specifying the `
 > [!TIP]
 > Since we are dealing with TypeScript, we need to rebuild the necessary package after each change. To get rid of this routine, you can automate this by adding the `--watch` flag to the `yantrix` package build script. In the root of the `yantrix` repository, run `pnpm turbo run build --filter='@yantrix/<some-package>' -- --watch`.
 
-If you want to use a specific package in another package in the same monorepository, just add it to the dependencies using `workspace:^` as package version, e.g.:
+If you want to use a specific package elsewhere in the same monorepository, just add it to the dependencies using `workspace:^` as the package version, e.g.:
 ```json
 {
 	"dependencies": {
