@@ -97,7 +97,7 @@ const store = configureStore({
 ### API
 
 ```typescript
-declare type TCreateFSMSliceOptions<StateType, ContextType = object> = {
+declare type CreateFSMSliceOptions<StateType, ContextType = object> = {
 	name: string;
 	fsm: ClassConstructor<IAutomata>;
 	contextToRedux?: (context: ContextType) => StateType;
@@ -105,7 +105,7 @@ declare type TCreateFSMSliceOptions<StateType, ContextType = object> = {
 	selectors?: Record<string, (state: StateType) => any>;
 };
 
-declare function createFSMSlice(options: TCreateFSMSliceOptions): ReturnType<createSlice>;
+declare function createFSMSlice(options: CreateFSMSliceOptions): ReturnType<createSlice>;
 ```
 
 ### State
@@ -115,12 +115,16 @@ The type of the return value is also the shape of `initialState` of a produced s
 ```typescript
 type TAutomataContext = {
 	state: 'Off' | 'Red' | 'RedYellow' | 'Yellow' | 'Green';
-	counter: number;
+	context: {
+		counter: number;
+	};
 };
 
 const initialState: TAutomataContext = {
 	state: 'Off',
-	counter: 0,
+	context: {
+		counter: 0,
+	},
 };
 ```
 
@@ -132,17 +136,17 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 const YantrixSlice = createFSMSlice({
 	name: TrafficLight.id,
 	fsm: TrafficLight,
-	contextToRedux: context => context, // optional, default mapper
+	contextToRedux: (context) => context, // optional, default mapper
 });
 ```
 
-If needed, a `Context` of an FSM can be transformed in a different manner to reduce polymorphism and optimise execution:
+If needed, a `Context` of an FSM can be transformed in a different manner to reduce polymorphism and optimize execution:
 
 ```typescript
 const YantrixSlice = createFSMSlice({
 	name: TrafficLight.id,
 	fsm: TrafficLight,
-	contextToRedux: context => ({
+	contextToRedux: (context) => ({
 		counter: context.counter,
 		redColorOn: ['Red', 'RedYellow'].includes(context.state),
 		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
@@ -207,21 +211,20 @@ import TrafficLight from '../generated/traffic-light.ts';
 
 export const store = configureStore({
 	reducer: combineReducers({
-		/* ... */
+		/*... */
 	}),
-	middleware: getDefaultMiddleware =>
+	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware().concat(
 			createMiddleware(
 				TrafficLight,
-				({ type, payload }) => (type !== 'yantrix/trafficLight')
-					? null
-					: TrafficLight.createAction('Switch'),
+				({ type, payload }) => (type !== 'yantrix/trafficLight') ?
+					null :
+					TrafficLight.createAction('Switch'),
 				({ state, context }) => ({
 					type: 'changeTrafficLight', // assume this action is handled elsewhere in Redux
 					payload: { color: state, counter: context.counter }
 				})
 			)
-		)
 });
 ```
 
