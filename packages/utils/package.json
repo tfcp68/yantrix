@@ -49,7 +49,7 @@
 		"dist"
 	],
 	"engines": {
-		"node": ">=20"
+		"node": ">=18"
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
@@ -58,7 +58,7 @@
 		"prepack": "pnpm lint && pnpm build --coverage"
 	},
 	"devDependencies": {
-		"@types/node": "^22.5.1"
+		"@types/node": "^22.5.3"
 	},
 	"publishConfig": {
 		"access": "public",

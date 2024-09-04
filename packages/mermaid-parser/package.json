@@ -51,7 +51,7 @@
 		"dist"
 	],
 	"engines": {
-		"node": ">=20"
+		"node": ">=18"
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
@@ -65,8 +65,8 @@
 		"mermaid": "11.0.2"
 	},
 	"devDependencies": {
-		"@types/d3": "^7.4.0",
-		"@types/dompurify": "^3.0.2"
+		"@types/d3": "^7.4.3",
+		"@types/dompurify": "^3.0.5"
 	},
 	"publishConfig": {
 		"access": "public",

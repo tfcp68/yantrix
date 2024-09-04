@@ -23,7 +23,10 @@ const wait = (m: string) => console.warn(pc.bold(pc.yellow(`⌛ ${m}`)));
 
 const checkDisableFlags = ['/* eslint-disable */', '// @ts-nocheck'];
 
-program.name('yantrix').description('Set of CLI tools for Yantrix').version('1.0.0');
+program
+	.name('yantrix')
+	.description('Set of CLI tools for Yantrix')
+	.version('1.0.0');
 
 program
 	.command('codegen')

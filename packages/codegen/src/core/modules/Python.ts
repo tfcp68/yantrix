@@ -82,7 +82,8 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>): string[] {
-		return Object.entries(transitions)
+		return Object
+			.entries(transitions)
 			.map(([key, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
 				return transition.actionsPath.map(({ action }) => {

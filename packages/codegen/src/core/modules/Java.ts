@@ -69,7 +69,8 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 
 	// State transition matrix
 	getStateTransitionMatrix(): string {
-		return Object.entries(this.diagram.transitions)
+		return Object
+			.entries(this.diagram.transitions)
 			.map(([state, transitions]) => {
 				const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 				if (!value)
@@ -88,7 +89,8 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	getTransitions(transitions: Record<string, TDiagramAction>): string[] {
-		return Object.entries(transitions)
+		return Object
+			.entries(transitions)
 			.map(([state, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [state] })[0];
 				return transition.actionsPath.map(({ action }) => {
@@ -158,21 +160,23 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	private setupDictionaries(): void {
 		// states dictionary text representation
 		this.dictionaries.push(`
-            public static final Map<String, TAutomataBaseState> statesDictionary = Map.of(
-                ${Object.entries(this.stateDictionary.getDictionary())
+		public static final Map<String, TAutomataBaseState> statesDictionary = Map.of(
+		${Object
+		.entries(this.stateDictionary.getDictionary())
 		.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
 		.join(',\n')}
-            );
-        `);
+		);
+		`);
 
 		// actions dictionary text representation
 		this.dictionaries.push(`
-            public static final Map<String, TAutomataBaseAction> actionsDictionary = Map.of(
-                ${Object.entries(this.actionDictionary.getDictionary())
+		public static final Map<String, TAutomataBaseAction> actionsDictionary = Map.of(
+		${Object
+		.entries(this.actionDictionary.getDictionary())
 		.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
 		.join(',\n')}
-            );
-        `);
+		);
+		`);
 	}
 
 	// Initial context is empty

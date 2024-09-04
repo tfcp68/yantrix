@@ -34,13 +34,13 @@
 		"mermaidjs"
 	],
 	"engines": {
-		"node": ">=20"
+		"node": ">=18"
 	},
 	"scripts": {
 		"lint": "eslint --format=pretty .",
 		"format": "eslint --fix --format=pretty ."
 	},
 	"dependencies": {
-		"@turbo/gen": "^2.1.0"
+		"@turbo/gen": "^2.1.1"
 	}
 }

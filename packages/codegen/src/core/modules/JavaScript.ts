@@ -236,7 +236,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.entries(transitions)
+		return Object
+			.entries(transitions)
 			.map(([key, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
 				return transition.actionsPath.map(({ action }) => {
@@ -405,8 +406,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			}
 
 			const functionBody = this.getFunctionBody(funcDef.expression);
-			this.dictionaries
-				.push(`functionDictionary.register('${funcName}', function(${funcDef.Arguments.join(', ')}) {
+			this.dictionaries.push(`functionDictionary.register('${funcName}', function(${funcDef.Arguments.join(', ')}) {
 				return ${functionBody};
 			});`);
 			registered.add(funcName);
