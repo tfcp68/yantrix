@@ -34,7 +34,7 @@
 		"mermaidjs"
 	],
 	"engines": {
-		"node": ">=20"
+		"node": ">=18"
 	},
 	"scripts": {
 		"lint": "eslint --format=pretty .",
