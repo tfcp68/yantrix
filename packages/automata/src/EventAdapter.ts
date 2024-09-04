@@ -128,11 +128,19 @@ export function createEventAdapter<
 			}
 
 			public getObservedEvents(): TDefinedValues<EventType>[] {
-				return Object.keys(this.#eventListeners).map(unifyObjectKey<EventType>).filter(k => this.#eventListeners[k]?.length).filter(this.validateEvent);
+				return Object
+					.keys(this.#eventListeners)
+					.map(unifyObjectKey<EventType>)
+					.filter(k => this.#eventListeners[k]?.length)
+					.filter(this.validateEvent);
 			}
 
 			public getObservedStates(): TDefinedValues<StateType>[] {
-				return Object.keys(this.#eventEmitters).map(unifyObjectKey<StateType>).filter(k => this.#eventEmitters[k]?.length).filter(this.validateState);
+				return Object
+					.keys(this.#eventEmitters)
+					.map(unifyObjectKey<StateType>)
+					.filter(k => this.#eventEmitters[k]?.length)
+					.filter(this.validateState);
 			}
 		};
 }

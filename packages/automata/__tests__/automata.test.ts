@@ -314,7 +314,12 @@ describe(`automata`, () => {
 			const reducer = sampleInstance.getReducer();
 			if (!reducer)
 				throw new Error('No Reducer');
-			const sampleValues = Array.from({ length: sampleRange(5, 10) }).fill(null).map(() => sampleRange(0, 100));
+
+			const sampleValues = Array
+				.from({ length: sampleRange(5, 10) })
+				.fill(null)
+				.map(() => sampleRange(0, 100));
+
 			for (const count of sampleValues) {
 				const result = sampleInstance.consumeAction(count);
 				expect(result).toEqual({
@@ -368,10 +373,13 @@ describe(`automata`, () => {
 			}> = [];
 			beforeEach(() => {
 				sampleInstance.clearActionQueue();
-				testActions = Array.from({ length: sampleRange(7, 10) }).fill(null).map(() => ({
-					action: sampleRange(1, 100),
-					payload: { payload: sampleRange(1, 100) },
-				}));
+				testActions = Array
+					.from({ length: sampleRange(7, 10) })
+					.fill(null)
+					.map(() => ({
+						action: sampleRange(1, 100),
+						payload: { payload: sampleRange(1, 100) },
+					}));
 			});
 			it('pops all Actions from Action Queue and returns computed Context, when called with number greater than queue length', () => {
 				const reducer = sampleInstance.getReducer();

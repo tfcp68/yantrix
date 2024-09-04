@@ -322,7 +322,10 @@ describe(`eventAdapter`, () => {
 		});
 		describe('handleEvent (multiple listeners)', () => {
 			beforeEach(() => {
-				sampleEvents = Array.from({ length: sampleRange(12, 15) }).fill(null).map(() => sampleRange(1, 10));
+				sampleEvents = Array
+					.from({ length: sampleRange(12, 15) })
+					.fill(null)
+					.map(() => sampleRange(1, 10));
 				sampleEvents.forEach((eventId, ix) => {
 					sampleInstance.addEventListener(eventId, ({ /* event, */ meta }) => ({
 						action: ix,
@@ -554,7 +557,10 @@ describe(`eventAdapter`, () => {
 		});
 		describe('handleTransition (multiple emitters)', () => {
 			beforeEach(() => {
-				sampleStates = Array.from({ length: sampleRange(12, 15) }).fill(null).map(() => sampleRange(1, 10));
+				sampleStates = Array
+					.from({ length: sampleRange(12, 15) })
+					.fill(null)
+					.map(() => sampleRange(1, 10));
 				sampleStates.forEach((stateId, ix) => {
 					sampleInstance.addEventEmitter(stateId, ({ state, context }) => ({
 						event: ix,

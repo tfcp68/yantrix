@@ -236,22 +236,25 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.entries(transitions).map(([key, transition]) => {
-			const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-			return transition.actionsPath.map(({ action }) => {
-				const actionValue = this.actionDictionary.getActionValues({
-					keys: action,
-				})[0];
-				if (!actionValue) throw new Error(`Action ${action} not found`);
-				if (!newState) throw new Error(`State ${key} not found`);
+		return Object
+			.entries(transitions)
+			.map(([key, transition]) => {
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+				return transition.actionsPath.map(({ action }) => {
+					const actionValue = this.actionDictionary.getActionValues({
+						keys: action,
+					})[0];
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
 
-				return `
+					return `
 				  ${actionValue}: {
 				  	state: ${newState},
 				  },
 				`;
-			});
-		}).flatMap(el => `${el.join('\n\t')}`);
+				});
+			})
+			.flatMap(el => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf() {

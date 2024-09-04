@@ -84,13 +84,29 @@ export default config(
 	{
 		files: ['**/*.{ts,tsx,js,jsx}'],
 		rules: {
-			'style/brace-style': ['error', '1tbs', { allowSingleLine: true }],
-			'no-console': ['warn', { allow: consoleAllowedMethods }],
 			'eslint-comments/no-unlimited-disable': 'off',
 			'unicorn/consistent-function-scoping': 'off',
+			'style/newline-per-chained-call': 'warn',
 			'node/prefer-global/process': 'off',
+			'antfu/top-level-function': 'off',
 			'jsdoc/check-param-names': 'off',
 			'antfu/if-newline': 'off',
+			'style/brace-style': ['error', '1tbs', {
+				allowSingleLine: true,
+			}],
+			'no-console': ['warn', {
+				allow: consoleAllowedMethods,
+			}],
+			'style/max-len': ['warn', {
+				code: 80,
+				ignoreTrailingComments: true,
+				ignoreTemplateLiterals: true,
+				ignoreRegExpLiterals: true,
+				ignoreComments: true,
+				ignoreStrings: true,
+				ignoreUrls: true,
+				tabWidth: 4,
+			}],
 		},
 	},
 );

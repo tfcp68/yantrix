@@ -40,15 +40,15 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"build": "turbo run build --concurrency=50%",
-		"build:affected": "turbo run build --filter=...[origin/main] --concurrency=50%",
+		"build": "turbo run build --concurrency=4",
+		"build:affected": "turbo run build --filter=...[origin/main] --concurrency=4",
 		"clean": "rimraf --glob **/dist **/coverage **/*_generated.*",
-		"format": "turbo run format --concurrency=50%",
-		"format:affected": "turbo run format --filter=...[origin/main] --concurrency=50%",
-		"lint": "turbo run lint --concurrency=50%",
-		"lint:affected": "turbo run lint --filter=...[origin/main] --concurrency=50%",
-		"test": "turbo run test --concurrency=50%",
-		"test:affected": "turbo run test --filter=...[origin/main] --concurrency=50%",
+		"format": "turbo run format --concurrency=4",
+		"format:affected": "turbo run format --filter=...[origin/main] --concurrency=4",
+		"lint": "turbo run lint --concurrency=4",
+		"lint:affected": "turbo run lint --filter=...[origin/main] --concurrency=4",
+		"test": "turbo run test --concurrency=4",
+		"test:affected": "turbo run test --filter=...[origin/main] --concurrency=4",
 		"updeps": "pnpx taze latest --interactive --recursive --write --install",
 		"create-package": "turbo gen create-package --args",
 		"prepare": "is-ci || (husky && pnpm build)"
