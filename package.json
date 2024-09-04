@@ -41,14 +41,14 @@
 	},
 	"scripts": {
 		"build": "turbo run build --concurrency=50%",
-		"build:affected": "turbo run build --affected --concurrency=50%",
+		"build:affected": "turbo run build --filter=...[origin/main] --concurrency=50%",
 		"clean": "rimraf --glob **/dist **/coverage **/*_generated.*",
 		"format": "turbo run format --concurrency=50%",
-		"format:affected": "turbo run format --affected --concurrency=50%",
+		"format:affected": "turbo run format --filter=...[origin/main] --concurrency=50%",
 		"lint": "turbo run lint --concurrency=50%",
-		"lint:affected": "turbo run lint --affected --concurrency=50%",
+		"lint:affected": "turbo run lint --filter=...[origin/main] --concurrency=50%",
 		"test": "turbo run test --concurrency=50%",
-		"test:affected": "turbo run test --affected --concurrency=50%",
+		"test:affected": "turbo run test --filter=...[origin/main] --concurrency=50%",
 		"updeps": "pnpx taze latest --interactive --recursive --write --install",
 		"create-package": "turbo gen create-package --args",
 		"prepare": "is-ci || (husky && pnpm build)"
