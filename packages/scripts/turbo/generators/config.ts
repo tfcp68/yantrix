@@ -1,17 +1,18 @@
-/** @param plop {import('@turbo/gen').PlopTypes.NodePlopAPI} */
-module.exports = (plop) => {
+import { PlopTypes } from '@turbo/gen';
+
+export default function generator(plop: PlopTypes.NodePlopAPI): void {
 	plop.setGenerator('create-package', {
 		description: '',
 		prompts: [
 			{
 				type: 'input',
 				name: 'name',
-				message: 'The name of the new package',
+				message: 'The name of the new package:',
 			},
 			{
 				type: 'input',
 				name: 'description',
-				message: 'The description of the new package.',
+				message: 'The description of the new package (optional):',
 			},
 		],
 		actions: [

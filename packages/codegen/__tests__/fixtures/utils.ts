@@ -53,16 +53,14 @@ export async function saveAndGenerate(options: TGenerateAutomataParams, fileName
 }
 
 export function mapFromObjectToString(a: Record<string, any>, startSymbol: string = '') {
-	return Object.entries(a)
-		.map(([key, value]) => {
-			if (value === null) {
-				return `${startSymbol}${key}`;
-			}
-			if (typeof value === 'string') return `${startSymbol}${key}="${value}"`;
+	return Object.entries(a).map(([key, value]) => {
+		if (value === null) {
+			return `${startSymbol}${key}`;
+		}
+		if (typeof value === 'string') return `${startSymbol}${key}="${value}"`;
 
-			return `${startSymbol}${key}=${value}`;
-		})
-		.join(',');
+		return `${startSymbol}${key}=${value}`;
+	}).join(',');
 }
 
 export function mapFromStringToObject(a: string) {
@@ -74,7 +72,5 @@ export function mapFromStringToObject(a: string) {
 }
 
 export function objectKeysToString(obj: Record<string, any>, startSymbol: string = '') {
-	return Object.keys(obj)
-		.map(el => `${startSymbol}${el}`)
-		.join(',');
+	return Object.keys(obj).map(el => `${startSymbol}${el}`).join(',');
 }

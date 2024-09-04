@@ -10,7 +10,7 @@ export default defineConfig({
 		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
 		passWithNoTests: true,
 		coverage: {
-			enabled: false,
+			enabled: true,
 			reportOnFailure: true,
 			all: true,
 			clean: true,

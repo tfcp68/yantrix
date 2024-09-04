@@ -82,30 +82,28 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	}
 
 	getActionToStateDict(transitions: Record<string, TDiagramAction>): string[] {
-		return Object.entries(transitions)
-			.map(([key, transition]) => {
-				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return transition.actionsPath.map(({ action }) => {
-					const actionValue = this.actionDictionary.getActionValues({
-						keys: action,
-					})[0];
-					if (!actionValue)
-						throw new Error(`Action ${action} not found`);
-					if (!newState)
-						throw new Error(`State ${key} not found`);
+		return Object.entries(transitions).map(([key, transition]) => {
+			const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+			return transition.actionsPath.map(({ action }) => {
+				const actionValue = this.actionDictionary.getActionValues({
+					keys: action,
+				})[0];
+				if (!actionValue)
+					throw new Error(`Action ${action} not found`);
+				if (!newState)
+					throw new Error(`State ${key} not found`);
 
-					// const ctx = this.getSubsyntaxContext(key);
+				// const ctx = this.getSubsyntaxContext(key);
 
-					const context = [
-						`${actionValue}: {`,
-						`\t'state': ${newState},`,
-						`\t'getNewContext': lambda payload, context: ${{}}`,
-						`},`,
-					];
-					return context.join('\n');
-				});
-			})
-			.flatMap(el => `${el.join('\n\t')}`);
+				const context = [
+					`${actionValue}: {`,
+					`\t'state': ${newState},`,
+					`\t'getNewContext': lambda payload, context: ${{}}`,
+					`},`,
+				];
+				return context.join('\n');
+			});
+		}).flatMap(el => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf(): string {
