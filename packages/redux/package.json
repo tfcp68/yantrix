@@ -41,9 +41,9 @@
 		"test": "__tests__"
 	},
 	"dependencies": {
-		"@yantrix/utils": "workspace:^",
 		"@yantrix/cli": "workspace:^",
-		"@yantrix/codegen": "workspace:^"
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {
 		"@reduxjs/toolkit": "^2.2.7",

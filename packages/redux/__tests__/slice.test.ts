@@ -1,12 +1,12 @@
-import { describe, expect, test } from 'vitest';
-import { createFSMSlice } from '../src/slice/slice';
+import { describe, expect, it } from 'vitest';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { createFSMSlice } from '../src/slice/slice';
 import GamePhaseTest from './fixtures/GamePhaseAutomataTest';
 
 describe('createFSMSlice test', () => {
 	const { actions, name, reducer } = createFSMSlice({
 		name: GamePhaseTest.id,
-		fsm: GamePhaseTest,
+		Fsm: GamePhaseTest,
 	});
 	const { states, getState } = GamePhaseTest;
 
@@ -16,14 +16,14 @@ describe('createFSMSlice test', () => {
 		}),
 	});
 
-	test('equal state', () => {
+	it('equal state', () => {
 		store.dispatch(actions.RESET({}));
 		const currState = store.getState()[name];
 
 		expect(currState?.state).equal(getState(states.INIT));
 	});
 
-	test('validate state', () => {
+	it('validate state', () => {
 		const { validateState } = new GamePhaseTest();
 		const currState = store.getState()[name]?.state;
 

@@ -1,13 +1,13 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { TAutomataReducer } from '@yantrix/automata';
 import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 
 export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 	options: TCreateFSMSliceOptions<Automata, TStateFSMSlice, TStateFSMSlice['context']>,
 ): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice> {
-	const { fsm, name, contextToRedux, selectors, reducerPath } = options;
-	const _fsm = new fsm();
-	const actionsNameList = Object.keys(fsm.actions);
+	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
+	const _fsm = new Fsm();
+	const actionsNameList = Object.keys(Fsm.actions);
 	const initialState: TStateFSMSlice = _fsm.getContext();
 
 	const selectorsSlice = selectors || {
@@ -16,32 +16,37 @@ export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 	};
 
 	const reducers = actionsNameList.reduce((acc, actionName) => {
-		acc[actionName] = (state: TStateFSMSlice, action: PayloadAction<TStateFSMSlice>) => {
-			const rootReducer = _fsm.getReducer() as TAutomataReducer<
-				number,
-				number,
-				Record<number, any>,
-				Record<number, any>
-			> | null;
-			const newState = rootReducer
-				? rootReducer({
-						action: fsm.getAction(actionName),
+		acc[actionName]
+			= (
+				state: TStateFSMSlice,
+				action: PayloadAction<TStateFSMSlice>,
+			) => {
+				const rootReducer = _fsm.getReducer() as TAutomataReducer<
+					number,
+					number,
+					Record<number, any>,
+					Record<number, any>
+				> | null;
+				const newState = rootReducer
+					? rootReducer({
+						action: Fsm.getAction(actionName),
 						payload: action.payload,
 						...state,
 					})
-				: initialState;
+					: initialState;
 
-			state = {
-				state: newState.state,
-				context: newState.context,
+				state = {
+					state: newState.state,
+					context: newState.context,
+				};
+
+				return state;
 			};
-
-			return state;
-		};
 		return acc;
 	}, {} as any);
 
-	if (contextToRedux) initialState.context = contextToRedux(initialState.context);
+	if (contextToRedux)
+		initialState.context = contextToRedux(initialState.context);
 
 	return createSlice({
 		name,
