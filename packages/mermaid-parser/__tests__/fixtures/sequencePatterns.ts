@@ -1,30 +1,30 @@
 import { BlankInputError, InvalidInputError } from '../../src/sequence/errors/sequenceErrors';
 
 export type TTestCase = {
-	groupName: string;
-	testName: string;
-	input: string;
-	expected: any;
+	testBehaviour: string;
+	testCase: string;
+	inputDiagram: string;
+	expectedResult: any;
 };
 
 export const testCases: TTestCase[] = [
 	{
-		groupName: 'Common',
-		testName: 'Empty Input Error',
-		input: '',
-		expected: new BlankInputError(),
+		testBehaviour: 'Common',
+		testCase: 'Empty Input Error',
+		inputDiagram: '',
+		expectedResult: new BlankInputError(),
 	},
 	{
-		groupName: 'Common',
-		testName: 'Invalid Diagram Type',
-		input: 'invalidDiagram',
-		expected: new InvalidInputError(),
+		testBehaviour: 'Common',
+		testCase: 'Invalid Diagram Type',
+		inputDiagram: 'invalidDiagram',
+		expectedResult: new InvalidInputError(),
 	},
 	{
-		groupName: 'Common',
-		testName: 'Empty Diagram',
-		input: 'sequenceDiagram',
-		expected: {
+		testBehaviour: 'Common',
+		testCase: 'Empty Diagram',
+		inputDiagram: 'sequenceDiagram',
+		expectedResult: {
 			messages: {},
 			notes: {},
 			actors: [],
@@ -32,16 +32,16 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Actors',
-		testName: 'Actors and participants',
-		input: `
+		testBehaviour: 'Actors',
+		testCase: 'Actors and participants',
+		inputDiagram: `
         sequenceDiagram
             actor A
             participant B
             A->>B: Message1
             B->>C: Message2
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -73,14 +73,14 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Notes',
-		testName: 'Side note',
-		input: `
+		testBehaviour: 'Notes',
+		testCase: 'Side note',
+		inputDiagram: `
         sequenceDiagram
             note left of A: Note1
             A->>B: Message1
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -103,9 +103,9 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Notes',
-		testName: 'Spanning note',
-		input: `
+		testBehaviour: 'Notes',
+		testCase: 'Spanning note',
+		inputDiagram: `
         sequenceDiagram
             actor A
             participant B
@@ -114,7 +114,7 @@ export const testCases: TTestCase[] = [
             A->>+B: Message1
             B-->>-A: Message2
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -137,13 +137,13 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Messages',
-		testName: 'Simple message',
-		input: `
+		testBehaviour: 'Messages',
+		testCase: 'Simple message',
+		inputDiagram: `
         sequenceDiagram
             A->>B: Message1
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -166,13 +166,13 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Messages',
-		testName: 'Loop message',
-		input: `
+		testBehaviour: 'Messages',
+		testCase: 'Loop message',
+		inputDiagram: `
         sequenceDiagram
             A->>A: Message1
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: ['Message1'],
@@ -188,9 +188,9 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Messages',
-		testName: 'Different arrow messages',
-		input: `
+		testBehaviour: 'Messages',
+		testCase: 'Different arrow messages',
+		inputDiagram: `
         sequenceDiagram
             A->B: Message1
             B-->A: Message2
@@ -201,7 +201,7 @@ export const testCases: TTestCase[] = [
             A-)B: Message7
             B--)A: Message8
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -224,14 +224,14 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Activations',
-		testName: 'Simple activations',
-		input: `
+		testBehaviour: 'Activations',
+		testCase: 'Simple activations',
+		inputDiagram: `
         sequenceDiagram
             A->>+B: Message1
             B-->>-A: Message2
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -254,9 +254,9 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Activations',
-		testName: 'Complex activations',
-		input: `
+		testBehaviour: 'Activations',
+		testCase: 'Complex activations',
+		inputDiagram: `
         sequenceDiagram
             B->>+A: Message1
             A->>+B: Message2
@@ -265,7 +265,7 @@ export const testCases: TTestCase[] = [
             B->>-A: Message5
             A->>-B: Message6
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				B: {
 					B: null,
@@ -288,9 +288,9 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Activations',
-		testName: 'Double actor activations',
-		input: `
+		testBehaviour: 'Activations',
+		testCase: 'Double actor activations',
+		inputDiagram: `
         sequenceDiagram
             A->>+B: Message1
             A->>+B: Message2
@@ -302,7 +302,7 @@ export const testCases: TTestCase[] = [
             B->>B: Message8
             B->>-A: Message9
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A: {
 					A: null,
@@ -329,9 +329,9 @@ export const testCases: TTestCase[] = [
 		},
 	},
 	{
-		groupName: 'Activations',
-		testName: 'Three actors activations',
-		input: `
+		testBehaviour: 'Activations',
+		testCase: 'Three actors activations',
+		inputDiagram: `
         sequenceDiagram
             autonumber
             actor A1
@@ -343,7 +343,7 @@ export const testCases: TTestCase[] = [
             A3-->>-A1: Message4
             A1->>A1: Message5
         `,
-		expected: {
+		expectedResult: {
 			messages: {
 				A1: {
 					A1: ['Message5'],

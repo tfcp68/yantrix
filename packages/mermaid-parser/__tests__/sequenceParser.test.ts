@@ -7,26 +7,26 @@ function groupTestCases(testCases: TTestCase[]): Record<string, TTestCase[]> {
 	const groups: Record<string, TTestCase[]> = {};
 
 	for (const testCase of testCases) {
-		if (!groups[testCase.groupName]) {
-			groups[testCase.groupName] = [];
+		if (!groups[testCase.testBehaviour]) {
+			groups[testCase.testBehaviour] = [];
 		}
-		groups[testCase.groupName]!.push(testCase);
+		groups[testCase.testBehaviour]!.push(testCase);
 	}
 
 	return groups;
 }
 
-const runTestGroup = (groupName: string, testCases: TTestCase[]) => {
-	describe(groupName, () => {
-		testCases.forEach(({ testName, input, expected }) => {
-			test(testName, async () => {
-				if (expected instanceof InvalidInputError) {
-					await expect(parseSequenceDiagram(input)).rejects.toThrow(InvalidInputError);
-				} else if (expected instanceof BlankInputError) {
-					await expect(parseSequenceDiagram(input)).rejects.toThrow(BlankInputError);
+const runTestGroup = (testBehaviour: string, testCases: TTestCase[]) => {
+	describe(testBehaviour, () => {
+		testCases.forEach(({ testCase, inputDiagram, expectedResult }) => {
+			test(testCase, async () => {
+				if (expectedResult instanceof InvalidInputError) {
+					await expect(parseSequenceDiagram(inputDiagram)).rejects.toThrow(InvalidInputError);
+				} else if (expectedResult instanceof BlankInputError) {
+					await expect(parseSequenceDiagram(inputDiagram)).rejects.toThrow(BlankInputError);
 				} else {
-					const parsedDiagram = await parseSequenceDiagram(input);
-					expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expected));
+					const parsedDiagram = await parseSequenceDiagram(inputDiagram);
+					expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
 				}
 			});
 		});
@@ -35,8 +35,8 @@ const runTestGroup = (groupName: string, testCases: TTestCase[]) => {
 
 function runTests() {
 	const groupedTestCases = groupTestCases(testCases);
-	for (const groupName of Object.keys(groupedTestCases)) {
-		runTestGroup(groupName, groupedTestCases[groupName]!);
+	for (const testBehaviour of Object.keys(groupedTestCases)) {
+		runTestGroup(testBehaviour, groupedTestCases[testBehaviour]!);
 	}
 }
 
