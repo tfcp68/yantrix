@@ -1,7 +1,12 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { TAutomataReducer } from '@yantrix/automata';
 import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 
+/**
+ * Функция для создания обертки над redux slice.
+ * Хранит в себе текущее состояни автомата, возвращает готовый слайс с редьюсерами,
+ * каждый из которых вызывается как action автомата
+ * @param options
+ */
 export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 	options: TCreateFSMSliceOptions<Automata, TStateFSMSlice, TStateFSMSlice['context']>,
 ): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice> {
@@ -21,12 +26,7 @@ export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 				state: TStateFSMSlice,
 				action: PayloadAction<TStateFSMSlice>,
 			) => {
-				const rootReducer = _fsm.getReducer() as TAutomataReducer<
-					number,
-					number,
-					Record<number, any>,
-					Record<number, any>
-				> | null;
+				const rootReducer = _fsm.getReducer();
 				const newState = rootReducer
 					? rootReducer({
 						action: Fsm.getAction(actionName),

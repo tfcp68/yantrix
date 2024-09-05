@@ -59,7 +59,6 @@ export function useReduxAutomata(automataId: TAutomataId) {
 const { actions, name, reducer } = createFSMSlice({
 	name: GamePhaseTest.id,
 	Fsm: GamePhaseTest,
-	reducerPath: 'lol',
 	selectors: {
 		state: (sliceState): TStateFSMSlice['state'] => sliceState.state,
 		context: (sliceState): TStateFSMSlice['context'] => sliceState.context,
