@@ -1,115 +1,43 @@
 import { describe, expect, test } from 'vitest';
 import { parseSequenceDiagram } from '../src/index.js';
-import { BlankInputError, InvalidInputError } from '../src/sequence/errors/sequenceErrors.js';
-import {
-	blankDiagram,
-	invalidDiagram,
-	emptySequenceDiagram,
-	sequenceDiagramSimpleMessage,
-	sequenceDiagramLoopMessage,
-	sequenceDiagramDifferentArrowMessages,
-	sequenceDiagramActors,
-	sequenceDiagramSimpleActivations,
-	sequenceDiagramComplexActivations,
-	sequenceDiagramDoubleActorActivations,
-	sequenceDiagramSideNote,
-	sequenceDiagramSpanningNote,
-	sequenceDiagramThreeActorsActivations,
-} from './fixtures/sequencePatterns.js';
+import { testCases, TTestCase } from './fixtures/sequencePatterns.js';
+import { InvalidInputError, BlankInputError } from '../src/sequence/errors/sequenceErrors.js';
 
-import {
-	emptySequenceDiagramExpectedResult,
-	sequenceDiagramSimpleMessageExpectedResult,
-	sequenceDiagramLoopMessageExpectedResult,
-	sequenceDiagramDifferentArrowMessagesExpectedResult,
-	sequenceDiagramActorsExpectedResult,
-	sequenceDiagramSimpleActivationsExpectedResult,
-	sequenceDiagramComplexActivationsExpectedResult,
-	sequenceDiagramDoubleActorActivationsExpectedResult,
-	sequenceDiagramSideNoteExpectedResult,
-	sequenceDiagramSpanningNoteExpectedResult,
-	sequenceDiagramThreeActorsActivationsExpectedResult,
-} from './fixtures/sequenceParserExpectedResult.js';
+function groupTestCases(testCases: TTestCase[]): Record<string, TTestCase[]> {
+	const groups: Record<string, TTestCase[]> = {};
 
-describe('Sequence Diagram Parser', () => {
-	describe('Common', () => {
-		test('Empty Input Error', async () => {
-			await expect(parseSequenceDiagram(blankDiagram)).rejects.toThrow(BlankInputError);
-		});
+	for (const testCase of testCases) {
+		if (!groups[testCase.groupName]) {
+			groups[testCase.groupName] = [];
+		}
+		groups[testCase.groupName]!.push(testCase);
+	}
 
-		test('Invalid Diagram Type', async () => {
-			await expect(parseSequenceDiagram(invalidDiagram)).rejects.toThrow(InvalidInputError);
-		});
+	return groups;
+}
 
-		test('Empty Diagram', async () => {
-			const parsedDiagram = await parseSequenceDiagram(emptySequenceDiagram);
-			const expectedResult = emptySequenceDiagramExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
+const runTestGroup = (groupName: string, testCases: TTestCase[]) => {
+	describe(groupName, () => {
+		testCases.forEach(({ testName, input, expected }) => {
+			test(testName, async () => {
+				if (expected instanceof InvalidInputError) {
+					await expect(parseSequenceDiagram(input)).rejects.toThrow(InvalidInputError);
+				} else if (expected instanceof BlankInputError) {
+					await expect(parseSequenceDiagram(input)).rejects.toThrow(BlankInputError);
+				} else {
+					const parsedDiagram = await parseSequenceDiagram(input);
+					expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expected));
+				}
+			});
 		});
 	});
+};
 
-	describe('Actors', () => {
-		test('Actors and participants', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramActors);
-			const expectedResult = sequenceDiagramActorsExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-	});
-	describe('Notes', () => {
-		test('Side note', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramSideNote);
-			const expectedResult = sequenceDiagramSideNoteExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
+function runTests() {
+	const groupedTestCases = groupTestCases(testCases);
+	for (const groupName of Object.keys(groupedTestCases)) {
+		runTestGroup(groupName, groupedTestCases[groupName]!);
+	}
+}
 
-		test('Spanning note', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramSpanningNote);
-			const expectedResult = sequenceDiagramSpanningNoteExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-	});
-	describe('Messages', () => {
-		test('Simple message', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramSimpleMessage);
-			const expectedResult = sequenceDiagramSimpleMessageExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-
-		test('Loop message', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramLoopMessage);
-			const expectedResult = sequenceDiagramLoopMessageExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-
-		test('Different arrow messages', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramDifferentArrowMessages);
-			const expectedResult = sequenceDiagramDifferentArrowMessagesExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-	});
-	describe('Activations', () => {
-		test('Simple activations', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramSimpleActivations);
-			const expectedResult = sequenceDiagramSimpleActivationsExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-
-		test('Complex activations', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramComplexActivations);
-			const expectedResult = sequenceDiagramComplexActivationsExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-
-		test('Double actor activations', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramDoubleActorActivations);
-			const expectedResult = sequenceDiagramDoubleActorActivationsExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-
-		test('Three actors activations', async () => {
-			const parsedDiagram = await parseSequenceDiagram(sequenceDiagramThreeActorsActivations);
-			const expectedResult = sequenceDiagramThreeActorsActivationsExpectedResult;
-			expect(JSON.stringify(parsedDiagram)).toEqual(JSON.stringify(expectedResult));
-		});
-	});
-});
+runTests();
