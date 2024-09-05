@@ -4,6 +4,7 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+importers:
 
     .:
         dependencies:
