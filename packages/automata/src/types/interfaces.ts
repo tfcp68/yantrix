@@ -3,14 +3,14 @@ import {
 	TActionKeysCollection,
 	TActionLookupParams,
 	TActionValuesCollection,
-	TStateDictionaryMapping,
-	TStateKeysCollection,
-	TStateLookupParams,
-	TStateValuesCollection,
 	TEventDictionaryMapping,
 	TEventKeysCollection,
 	TEventLookupParams,
 	TEventValuesCollection,
+	TStateDictionaryMapping,
+	TStateKeysCollection,
+	TStateLookupParams,
+	TStateValuesCollection,
 } from './dictionaries.js';
 import {
 	TAutomataActionPayload,
@@ -36,19 +36,19 @@ import {
 export interface IAutomataEventContainer<EventType extends TAutomataBaseEventType> {
 	validateEvent: TValidator<EventType>;
 
-	setEventValidator(eventValidator?: TValidator<EventType>): this;
+	setEventValidator: (eventValidator?: TValidator<EventType>) => this;
 }
 
 export interface IAutomataStateContainer<StateType extends TAutomataBaseStateType> {
 	validateState: TValidator<StateType>;
 
-	setStateValidator(stateValidator?: TValidator<StateType>): this;
+	setStateValidator: (stateValidator?: TValidator<StateType>) => this;
 }
 
 export interface IAutomataActionContainer<ActionType extends TAutomataBaseActionType> {
 	validateAction: TValidator<ActionType>;
 
-	setActionValidator(actionValidator?: TValidator<ActionType> | null): this;
+	setActionValidator: (actionValidator?: TValidator<ActionType> | null) => this;
 }
 
 export interface IAutomataValidatorContainer<
@@ -56,8 +56,8 @@ export interface IAutomataValidatorContainer<
 	ActionType extends TAutomataBaseActionType,
 	EventType extends TAutomataBaseEventType,
 > extends IAutomataEventContainer<EventType>,
-		IAutomataStateContainer<StateType>,
-		IAutomataActionContainer<ActionType> {}
+	IAutomataStateContainer<StateType>,
+	IAutomataActionContainer<ActionType> {}
 
 export interface IAutomataExtendedActionContainer<
 	ActionType extends TAutomataBaseActionType,
@@ -65,9 +65,9 @@ export interface IAutomataExtendedActionContainer<
 > extends IAutomataActionContainer<ActionType> {
 	validateActionPayload: TValidator<TAutomataActionPayload<ActionType, PayloadType>>;
 
-	setActionPayloadValidator(
+	setActionPayloadValidator: (
 		actionPayloadValidator?: TValidator<TAutomataActionPayload<ActionType, PayloadType>>,
-	): this;
+	) => this;
 }
 
 export interface IAutomataExtendedStateContainer<
@@ -76,7 +76,7 @@ export interface IAutomataExtendedStateContainer<
 > extends IAutomataStateContainer<StateType> {
 	validateContext: TValidator<TAutomataStateContext<StateType, ContextType>>;
 
-	setContextValidator(contextValidator?: TValidator<TAutomataStateContext<StateType, ContextType>>): this;
+	setContextValidator: (contextValidator?: TValidator<TAutomataStateContext<StateType, ContextType>>) => this;
 }
 
 /**
@@ -90,7 +90,7 @@ export interface IAutomataExtendedEventContainer<
 > extends IAutomataEventContainer<EventType> {
 	validateEventMeta: TValidator<TAutomataEventMetaType<EventType, EventMetaType>>;
 
-	setEventMetaValidator(eventMetaValidator?: TValidator<TAutomataEventMetaType<EventType, EventMetaType>>): this;
+	setEventMetaValidator: (eventMetaValidator?: TValidator<TAutomataEventMetaType<EventType, EventMetaType>>) => this;
 }
 
 /**
@@ -110,9 +110,9 @@ export interface IAutomataExtendedValidatorContainer<
 	PayloadType extends { [K in ActionType]: any },
 	EventMetaType extends { [K in EventType]: any },
 > extends IAutomataValidatorContainer<StateType, ActionType, EventType>,
-		IAutomataExtendedActionContainer<ActionType, PayloadType>,
-		IAutomataExtendedEventContainer<EventType, EventMetaType>,
-		IAutomataExtendedStateContainer<StateType, ContextType> {}
+	IAutomataExtendedActionContainer<ActionType, PayloadType>,
+	IAutomataExtendedEventContainer<EventType, EventMetaType>,
+	IAutomataExtendedStateContainer<StateType, ContextType> {}
 
 /**
  * Interface for an Automata event adapter.
@@ -217,7 +217,7 @@ export interface IAutomata<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends TAutomataStateContext<StateType, ContextType>,
-		IAutomataValidatorContainer<StateType, ActionType, EventType> {
+	IAutomataValidatorContainer<StateType, ActionType, EventType> {
 	eventAdapter: IAutomataEventAdapter<
 		StateType,
 		ActionType,

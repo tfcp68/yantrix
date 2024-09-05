@@ -52,7 +52,6 @@ bun.lockb
 .prettiercache
 .eslintcache
 .vercel
-.nx
 
 test_reports
 *_generated.*

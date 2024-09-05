@@ -50,12 +50,13 @@ export const testReducer: TAutomataReducer<
 	TTestContext<TTestState>,
 	TTestPayload<TTestAction>
 > = ({ state, context, payload, action }) => {
-	if (testStateValidator(state))
+	if (testStateValidator(state)) {
 		return {
 			state: action,
 			context: {
 				context: (context?.context || 0) + (payload?.payload || 0),
 			},
 		};
+	}
 	return { state, context };
 };

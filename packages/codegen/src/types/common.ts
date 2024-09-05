@@ -1,6 +1,6 @@
-import { ModuleNames, Modules } from '../core/modules/index.js';
 import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
+import { ModuleNames, Modules } from '../core/modules/index.js';
 
 export type TStateDiagramMatrixIncludeNotes = {
 	states: TStateIncludingNotes[];
@@ -72,7 +72,7 @@ export type TGetCodeOptionsMap = {
 };
 
 export interface ICodegen<T extends TOutLang> {
-	getCode(options: TGetCodeOptionsMap[T]): string;
+	getCode: (options: TGetCodeOptionsMap[T]) => string;
 }
 
 export type TOutLang = keyof typeof Modules;

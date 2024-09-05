@@ -46,13 +46,13 @@ type TParsedOtherElementsDict = {
 	wrap: boolean;
 };
 
-//Array type that is responsible for collecting dictionaries of parsed messages;
+// Array type that is responsible for collecting dictionaries of parsed messages;
 export type TParsedMessagesArray = TParsedMessagesDict[];
 
-//Array type for dictionaries of parsed notes;
+// Array type for dictionaries of parsed notes;
 export type TParsedNotesArray = TParsedMessagesDict[];
 
-//Array type for dictionaries of parsed other elements;
+// Array type for dictionaries of parsed other elements;
 export type TParsedOtherElementsArray = TParsedOtherElementsDict[];
 
 /**
@@ -67,7 +67,7 @@ export type TParsedDiagramDict = {
 	activations: TActivationsDict;
 };
 
-//Dict type for messages, actors, notes and activated messages;
+// Dict type for messages, actors, notes and activated messages;
 export type TSequenceMermaidGraphDict = {
 	messages: TMessagesDict;
 	notes: TNotesDict;
@@ -75,12 +75,12 @@ export type TSequenceMermaidGraphDict = {
 	activations: TActivationsDict;
 };
 
-//Enumeration with types from the mermaid parser;
+// Enumeration with types from the mermaid parser;
 export enum TSeqTypes {
 	Note = 2,
 	Activate = 17,
 	Deactivate = 18,
 }
 
-//Enumeration with arrow types from the mermaid parser;
+// Enumeration with arrow types from the mermaid parser;
 export const arrowTypes = [0, 1, 3, 4, 5, 6, 24, 25];

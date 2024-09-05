@@ -7,22 +7,26 @@ import { TExpressionTypes, expressions, functions, getExpression } from './expre
 const identPath = ['contextDescription', 0, 'context', 0, 'keyItem', 'identifier'] as const;
 // const reducerPath = ['contextDescription', 0, 'reducer', 0, 'keyItem'] as const;
 
-export const baseKeyItemDeclaration = (propertyName?: string, type?: TMappedKeys) => ({
-	keyItem: {
-		identifier: propertyName ?? randomString(),
-		...(type && { expressionType: type }),
-	},
-});
-export const createKeyItemDeclaration = (keyItem?: TKeyItem) => {
+export function baseKeyItemDeclaration(propertyName?: string, type?: TMappedKeys) {
+	return {
+		keyItem: {
+			identifier: propertyName ?? randomString(),
+			...(type && { expressionType: type }),
+		},
+	};
+}
+export function createKeyItemDeclaration(keyItem?: TKeyItem) {
 	const base = baseKeyItemDeclaration();
 	if (keyItem) {
 		return Map(base)
 			.updateIn(['keyItem'], () => keyItem.keyItem)
 			.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const createContext = (keyItems?: TKeyItems) => {
+export function createContext(keyItems?: TKeyItems) {
 	const contextItems = keyItems ?? [baseKeyItemDeclaration()];
 	return {
 		contextDescription: [
@@ -31,105 +35,105 @@ export const createContext = (keyItems?: TKeyItems) => {
 			},
 		],
 	};
-};
+}
 
-export const createContextDescription = (contextKeyItems: TKeyItems, reducer?: TKeyItems) => {
+export function createContextDescription(contextKeyItems: TKeyItems, reducer?: TKeyItems) {
 	const baseContext = createContext(contextKeyItems);
 	return Map(baseContext)
-		.updateIn(['contextDescription', 0, 'context'], (context) => contextKeyItems ?? context)
+		.updateIn(['contextDescription', 0, 'context'], context => contextKeyItems ?? context)
 		.updateIn(['contextDescription', 0, 'reducer'], () => reducer)
 		.toJS();
-};
+}
 
-export const getKeyItem = (expression: TExpressionTypes | null) => {
+export function getKeyItem(expression: TExpressionTypes | null) {
 	const keyItem = Map(createKeyItemDeclaration())
-		.updateIn(['keyItem', 'expression'], (item) => expression?.Expression ?? item)
-		.toJS() as TKeyItem;
+		.updateIn(['keyItem', 'expression'], item => expression?.Expression ?? item)
+		.toJS() as unknown as TKeyItem;
 
 	return createContextDescription([keyItem]);
-};
+}
 
-export const declarationKeyItem = (propertyName?: string, path?: [string | number]) => {
+export function declarationKeyItem(propertyName?: string, path?: [string | number]) {
 	const base = getKeyItem(null);
 	return Map(base)
-		.updateIn(path ?? identPath, (name) => propertyName ?? name)
+		.updateIn(path ?? identPath, name => propertyName ?? name)
 		.toJS();
-};
+}
 
-export const withStringInitial = (propertyName?: string, stringProperty?: string) => {
+export function withStringInitial(propertyName?: string, stringProperty?: string) {
 	const base = getKeyItem(expressions.string);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'StringDeclaration'],
-			(v) => stringProperty?.substring(1, stringProperty.length - 1) ?? v,
+			v => stringProperty?.substring(1, stringProperty.length - 1) ?? v,
 		)
 		.toJS();
-};
+}
 
-export const withArrayInitial = (propertyName?: string) => {
+export function withArrayInitial(propertyName?: string) {
 	const base = getKeyItem(expressions.array);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.toJS();
-};
+}
 
-export const withIntegerInitial = (propertyName?: string, integerValue?: number) => {
+export function withIntegerInitial(propertyName?: string, integerValue?: number) {
 	const base = getKeyItem(expressions.integer);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'NumberDeclaration'],
-			(v) => integerValue ?? v,
+			v => integerValue ?? v,
 		)
 		.toJS();
-};
+}
 
-export const withDecimalInitial = (propertyName?: string, decimalValue?: number) => {
+export function withDecimalInitial(propertyName?: string, decimalValue?: number) {
 	const base = getKeyItem(expressions.decimal);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'NumberDeclaration'],
-			(v) => decimalValue ?? v,
+			v => decimalValue ?? v,
 		)
 		.toJS();
-};
+}
 
-export const withConstantInitial = (propertyName?: string, constantValue?: string) => {
+export function withConstantInitial(propertyName?: string, constantValue?: string) {
 	const base = getKeyItem(expressions.constantRefrence);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'identifier'],
-			(v) => constantValue ?? v,
+			v => constantValue ?? v,
 		)
 		.toJS();
-};
+}
 
-export const withPayloadInitial = (propertyName?: string, propertyName2?: string) => {
+export function withPayloadInitial(propertyName?: string, propertyName2?: string) {
 	const base = getKeyItem(expressions.payloadReference);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'identifier'],
-			(name) => propertyName2 ?? name,
+			name => propertyName2 ?? name,
 		)
 		.toJS();
-};
+}
 
-export const withContextInitial = (propertyName?: string, reference?: string) => {
+export function withContextInitial(propertyName?: string, reference?: string) {
 	const base = getKeyItem(expressions.contextReference);
 	return Map(base)
-		.updateIn(identPath, (name) => propertyName ?? name)
+		.updateIn(identPath, name => propertyName ?? name)
 		.updateIn(
 			['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'identifier'],
-			(name) => reference ?? name,
+			name => reference ?? name,
 		)
 		.toJS();
-};
+}
 
-export const withMultiplyInitial = (properties?: Array<[propName: string, propValue: any]>) => {
+export function withMultiplyInitial(properties?: Array<[propName: string, propValue: any]>) {
 	const base = Map(getKeyItem(null)).deleteIn(['contextDescription', 0, 'context', 0]);
 	properties?.forEach(([name, value]) => {
 		let keyItem = {};
@@ -146,7 +150,7 @@ export const withMultiplyInitial = (properties?: Array<[propName: string, propVa
 		}, keyItem);
 	});
 	return base.toJS();
-};
+}
 
 /// Base function declaration
 /*
@@ -158,31 +162,33 @@ const recursive = getKeyItem(getExpression(functions.withRecursiveFunction));
 const multiplyProperty = getKeyItem(getExpression(functions.withMultiplyArgs));
 */
 
-export const expression = (propertyName?: string, functionName?: string) => {
+export function expression(propertyName?: string, functionName?: string) {
 	const base = getKeyItem(expressions.function);
 	if (propertyName || functionName) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
 // TODO MAYBE NEED TO UPDATE FOR MULTIPLE ITEMS
 
-export const withProperty = (propertyName?: string, functionName?: string, functionPropertyName?: string) => {
+export function withProperty(propertyName?: string, functionName?: string, functionPropertyName?: string) {
 	const base = getKeyItem(getExpression(functions.withPropertyArgs));
 	if (propertyName || functionName || functionPropertyName) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -197,21 +203,23 @@ export const withProperty = (propertyName?: string, functionName?: string, funct
 					0,
 					'identifier',
 				],
-				(name) => functionPropertyName ?? name,
+				name => functionPropertyName ?? name,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const withString = (propertyName?: string, functionName?: string, stringProperty?: string) => {
+export function withString(propertyName?: string, functionName?: string, stringProperty?: string) {
 	const base = getKeyItem(getExpression(functions.withStringArgs));
 	if (propertyName || functionName || stringProperty) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -226,21 +234,23 @@ export const withString = (propertyName?: string, functionName?: string, stringP
 					0,
 					'StringDeclaration',
 				],
-				(name) => stringProperty?.substring(1, stringProperty.length - 1) ?? name,
+				name => stringProperty?.substring(1, stringProperty.length - 1) ?? name,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const withInteger = (propertyName?: string, functionName?: string, integerValue?: number) => {
+export function withInteger(propertyName?: string, functionName?: string, integerValue?: number) {
 	const base = getKeyItem(getExpression(functions.withIntegerArgs));
 	if (propertyName || functionName || integerValue) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -255,22 +265,25 @@ export const withInteger = (propertyName?: string, functionName?: string, intege
 					0,
 					'NumberDeclaration',
 				],
-				(v) => integerValue ?? v,
+				v => integerValue ?? v,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const withDecimal = (propertyName?: string, functionName?: string, decimalValue?: number) => {
-	if (Number.isInteger(decimalValue)) throw new Error();
+export function withDecimal(propertyName?: string, functionName?: string, decimalValue?: number) {
+	if (Number.isInteger(decimalValue))
+		throw new Error('Decimal value must be a float.');
 	const base = getKeyItem(getExpression(functions.withDecimalArgs));
 	if (propertyName || functionName || decimalValue) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -285,36 +298,40 @@ export const withDecimal = (propertyName?: string, functionName?: string, decima
 					0,
 					'NumberDeclaration',
 				],
-				(v) => decimalValue ?? v,
+				v => decimalValue ?? v,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
 // ???
-export const withArray = (propertyName?: string, functionName?: string) => {
+export function withArray(propertyName?: string, functionName?: string) {
 	const base = getKeyItem(getExpression(functions.withArrayArgs));
 	if (propertyName || functionName) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const withConstant = (propertyName?: string, functionName?: string, constantValue?: string) => {
+export function withConstant(propertyName?: string, functionName?: string, constantValue?: string) {
 	const base = getKeyItem(getExpression(functions.withConstantArgs));
 	if (propertyName || functionName || constantValue) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -334,18 +351,20 @@ export const withConstant = (propertyName?: string, functionName?: string, const
 				},
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const recursive = (propertyName?: string, functionName?: string, funcRecursiveName?: string) => {
+export function recursive(propertyName?: string, functionName?: string, funcRecursiveName?: string) {
 	const base = getKeyItem(getExpression(functions.withRecursiveFunction));
 	if (propertyName || functionName || funcRecursiveName) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -361,26 +380,23 @@ export const recursive = (propertyName?: string, functionName?: string, funcRecu
 					'FunctionDeclaration',
 					'FunctionName',
 				],
-				(name) => funcRecursiveName ?? name,
+				name => funcRecursiveName ?? name,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
-export const multiplyProperty = (
-	propertyName?: string,
-	functionName?: string,
-	funcPropertyName1?: string,
-	funcPropertyName2?: string,
-) => {
+export function multiplyProperty(propertyName?: string,	functionName?: string,	funcPropertyName1?: string,	funcPropertyName2?: string) {
 	const base = getKeyItem(getExpression(functions.withArrayArgs));
 	if (propertyName || functionName || funcPropertyName1 || funcPropertyName2) {
 		const map = Map(base);
 		const updated = map
-			.updateIn(identPath, (name) => propertyName ?? name)
+			.updateIn(identPath, name => propertyName ?? name)
 			.updateIn(
 				['contextDescription', 0, 'context', 0, 'keyItem', 'expression', 'FunctionDeclaration', 'FunctionName'],
-				(name) => functionName ?? name,
+				name => functionName ?? name,
 			)
 			.updateIn(
 				[
@@ -395,7 +411,7 @@ export const multiplyProperty = (
 					0,
 					'Property',
 				],
-				(name) => funcPropertyName1 ?? name,
+				name => funcPropertyName1 ?? name,
 			)
 			.updateIn(
 				[
@@ -410,11 +426,13 @@ export const multiplyProperty = (
 					1,
 					'Property',
 				],
-				(name) => funcPropertyName2 ?? name,
+				name => funcPropertyName2 ?? name,
 			);
 		return updated.toJS();
-	} else return base;
-};
+	} else {
+		return base;
+	}
+}
 
 export const functionsFixtures = {
 	expression,

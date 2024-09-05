@@ -115,12 +115,16 @@ The type of the return value is also the shape of `initialState` of a produced s
 ```typescript
 type TAutomataContext = {
 	state: 'Off' | 'Red' | 'RedYellow' | 'Yellow' | 'Green';
-	counter: number;
+	context: {
+		counter: number;
+	};
 };
 
 const initialState: TAutomataContext = {
 	state: 'Off',
-	counter: 0,
+	context: {
+		counter: 0,
+	},
 };
 ```
 
@@ -136,7 +140,7 @@ const YantrixSlice = createFSMSlice({
 });
 ```
 
-If needed, a `Context` of an FSM can be transformed in a different manner to reduce polymorphism and optimise execution:
+If needed, a `Context` of an FSM can be transformed in a different manner to reduce polymorphism and optimize execution:
 
 ```typescript
 const YantrixSlice = createFSMSlice({
