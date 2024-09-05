@@ -2,60 +2,69 @@ name: Deploy docs to Github Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'vitepress/**'
       - 'docs/**'
       - .github/workflows/vitepress.yml
+  workflow_dispatch:
 
-permissions: write-all
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: docs-pages
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Setup Node.js
+
+      - name: Install Node.js v20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          version: 9.6.0
-          run_install: false
-      - name: Build dependencies packages
-        run: pnpm install
+          node-version: 20
+
+      - name: Install dependencies
+        uses: ./packages/actions/src/pnpmCache
+
       - name: Build packages
         run: pnpm build
-      - name: Run tests
-        run: pnpm run test
-      - name: Install dependencies
+
+      - name: Run tests for packages
+        run: pnpm test
+
+      - name: Install dependencies for vitepress
         run: npm install
         working-directory: vitepress
+
       - name: Pre build script
         run: sh pre_build.sh
         working-directory: vitepress
+
       - name: Generate typedoc
         run: sh typedoc_build.sh
         working-directory: vitepress
+
       - name: Generate test cases
         run: sh tests_build.sh
         working-directory: vitepress
+
       - name: Build
         run: npm run build
         working-directory: vitepress
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
