@@ -54,7 +54,7 @@
 	},
 	"scripts": {
 		"build": "pnpm create-parser && tsc --noEmit && tsup",
-		"create-parser": "bash ./scripts/generate-yantrix-parser.sh",
+		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison && node scripts/disableTypeCheck.js",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
 		"format": "eslint --fix --format=pretty .",
 		"lint": "eslint --format=pretty .",

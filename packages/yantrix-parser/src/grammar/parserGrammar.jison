@@ -113,31 +113,29 @@ SUBSCRIBE_EVENT
 
 DEFINE_STATEMENT: DEFINE IDENT DEFINE_ARGUMENTS RIGHT_ARROW DEFINE_FUNCTION {$$ = {identifier:$2, ...$3, expression:$5}};
 
-
-
 DEFINE_FUNCTION
         : FUNCTION_NAME LEFT_BRACKET DEFINE_FUNCTION_ARGUMENTS RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
         | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
         {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } }
-        | IMMUTABLE
+        | DEFINE_FUNCTION_VALUE;
+
+DEFINE_FUNCTION_VALUE
+        : IMMUTABLE
         | CONSTANT;
 
 DEFINE_FUNCTION_ARGUMENTS
         :  EXPRESSION_DEFINE {$$ = [$1]}
         |  DEFINE_FUNCTION_ARGUMENTS COMMA EXPRESSION_DEFINE { $$ = [...$1, $3] };
 
-
 EXPRESSION_DEFINE
         : IMMUTABLE
-        | IDENT {$$ = {expressionType:ExpressionTypes.Identifier, identifier:$1}}
         | CONSTANT
-        | DEFINE_FUNCTION {counter = Math.max(calcDepthFunc($1), counter);
-                if(counter > maxNestedFuncLevel) {
-                    counter = 0;
-                    throw new Error('nested limit');
-                }};
-
+        | IDENT {$$ = {expressionType:ExpressionTypes.Identifier, identifier:$1}}
+        | FUNCTION_NAME LEFT_BRACKET DEFINE_FUNCTION_ARGUMENTS RIGHT_BRACKET
+        {$$ = { expressionType:ExpressionTypes.Function,FunctionDeclaration: { FunctionName:$1, Arguments:[...$3]} } }
+        | FUNCTION_NAME LEFT_BRACKET RIGHT_BRACKET
+        {$$ = { expressionType:ExpressionTypes.Function, FunctionDeclaration: { FunctionName:$1, Arguments:[] } } };
 
 DEFINE_ARGUMENTS
                : LEFT_BRACKET RIGHT_BRACKET {$$ = {Arguments:[]}}
