@@ -31,7 +31,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        uses: ./packages/actions/src/pnpmCache
+        uses: ./packages/scripts/actions/pnpmCache
 
       - name: Build packages
         run: pnpm build
