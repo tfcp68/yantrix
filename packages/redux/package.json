@@ -28,17 +28,21 @@
 		"dist"
 	],
 	"scripts": {
+		"dev": "npm run build && node dist/index.js",
 		"build": "tsc --noEmit && tsup",
 		"format": "eslint --fix --format=pretty .",
 		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "vitest run --outputFile=../../test_reports/redux.md"
+		"test": "vitest run --outputFile=../../test_reports/redux.md",
+		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/game_phase.mermaid --outfile __tests__/fixtures/GamePhaseAutomataTest.ts --language TypeScript --className GamePhaseTest"
 	},
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
 	},
 	"dependencies": {
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
 		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {
