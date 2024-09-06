@@ -10,8 +10,7 @@ export function createEventBus<
 	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
 		class AbstractAutomataEventBus
 			extends ExtendedEventContainer<EventType, EventMetaType>()(Proto)
-			implements IAutomataEventBus<EventType, EventMetaType>
-		{
+			implements IAutomataEventBus<EventType, EventMetaType> {
 			#isProcessing: boolean;
 			#isPaused: boolean;
 			#eventStack: TAutomataEventStack<EventType, EventMetaType>;
@@ -81,7 +80,8 @@ export function createEventBus<
 				this.#isProcessing = true;
 				while (this.#eventStack.length > 0) {
 					const eventObject = this.#eventStack.shift();
-					if (!eventObject) continue;
+					if (!eventObject)
+						continue;
 					if (this.validateEventMeta(eventObject)) {
 						const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
 						if (eventCallbacks) {
@@ -100,8 +100,7 @@ export function createEventBus<
 
 export class BasicEventBus
 	extends createEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
-	implements IAutomataEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>
-{
+	implements IAutomataEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>> {
 	constructor() {
 		super();
 	}

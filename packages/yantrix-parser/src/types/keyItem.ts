@@ -1,4 +1,4 @@
-import { TExpression, TMappedKeys, TRefereneceType } from './expressions.js';
+import { TExpressionMap, TRefereneceType } from './expressions.js';
 
 export const KeyItemType = {
 	RAW: 'raw',
@@ -11,8 +11,8 @@ export type TKeyItemBase = {
 	identifier: string;
 };
 
-export type TKeyItemWithExpression<T extends TMappedKeys = TMappedKeys> = {
-	expression: TExpression<T>;
+export type TKeyItemWithExpression = {
+	expression: TExpressionMap;
 } & TKeyItemBase;
 
 type TKeyItemEmptyOrExpression = TKeyItemBase | TKeyItemWithExpression;
@@ -21,7 +21,7 @@ export type TKeyItemReducer<T extends TRefereneceType = TRefereneceType> = {
 	expressionType: T;
 } & TKeyItemEmptyOrExpression;
 
-export type TKeyItemReducerOrExpression = TKeyItemReducer | { expression: TExpression };
+export type TKeyItemReducerOrExpression = TKeyItemReducer | { expression: TExpressionMap };
 
 export type TKeyItem<X extends (typeof KeyItemType)[TKeyItemKeys] = typeof KeyItemType.RAW> = {
 	keyItem: X extends typeof KeyItemType.REDUCER ? TKeyItemReducerOrExpression : TKeyItemEmptyOrExpression;

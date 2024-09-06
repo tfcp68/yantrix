@@ -1,4 +1,5 @@
 import mermaid from 'mermaid';
+import { EndState, StartState } from '../constants/index.js';
 import {
 	TAction,
 	TActionsStructure,
@@ -16,7 +17,6 @@ import {
 } from './types/index.js';
 
 import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
-import { EndState, StartState } from '../constants/index.js';
 
 /**
  * @brief Function that parses a diagram;
@@ -67,7 +67,8 @@ function getTransitions(parsedDiagram: TParsedDiagramArray): TTransitionsArray {
 			const tempSt2 = parsedDiagram[i]?.state2 as Record<string, string>;
 			const st1 = tempSt1.id;
 			const st2 = tempSt2.id;
-			if (!st1 || !st2) continue;
+			if (!st1 || !st2)
+				continue;
 
 			if (st1 === '[*]' && st2 === '[*]') {
 				directionI.push(StartState);
@@ -244,7 +245,7 @@ function getNotes(parsedDiagram: TParsedDiagramArray): TNotesStructure {
  * @returns Returns unique id for anonymous action.
  */
 function generateIdForAnonymousAction(from: string, to: string, num: number) {
-	return from + ', ' + to + ', ' + String(num);
+	return `${from}, ${to}, ${String(num)}`;
 }
 
 /**

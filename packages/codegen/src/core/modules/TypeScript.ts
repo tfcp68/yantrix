@@ -8,23 +8,23 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 		this.imports['@yantrix/automata'].push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
-	protected override getStateValidator() {
+	protected override getStateValidator(): string {
 		return `(${super.getStateValidator()}) as TValidator<TAutomataBaseStateType>`;
 	}
 
-	protected override getActionValidator() {
+	protected override getActionValidator(): string {
 		return `(${super.getActionValidator()}) as TValidator<TAutomataBaseActionType>`;
 	}
 
-	protected override getIsKeyOf() {
+	protected override getIsKeyOf(): string {
 		return `(${super.getIsKeyOf()}) as (key: any, obj: object) => key is keyof typeof obj`;
 	}
 
-	protected override getGetActionFunc() {
+	protected override getGetActionFunc(): string {
 		return `(action: keyof typeof actionsMap) => actionsDictionary[action]`;
 	}
 
-	protected override getCreateActionFunc(className: string) {
+	protected override getCreateActionFunc(className: string): string {
 		return `(action: keyof typeof actionsMap, payload:any) => {
 			const actionId = ${className}.getAction(action);
 			return {
@@ -46,10 +46,11 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 		`;
 	}
 
-	protected override getHasStateFunc(className: string) {
+	protected override getHasStateFunc(className: string): string {
 		return `(instance: ${className}, state: keyof typeof ${className}.states) => instance.state === ${className}.getState(state)`;
 	}
-	protected override getGetStateFunc() {
+
+	protected override getGetStateFunc(): string {
 		return `(state: keyof typeof statesMap) => statesDictionary[state]`;
 	}
 }

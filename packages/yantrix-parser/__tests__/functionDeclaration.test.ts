@@ -1,7 +1,7 @@
 import { randomArray, randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
-import { assert, describe, expect, test } from 'vitest';
-import { functionsFixtures } from './fixtures/keyItem.js';
+import { assert, describe, expect, it } from 'vitest';
 import { YantrixParser } from '../src/yantrixParser.js';
+import { functionsFixtures } from './fixtures/keyItem.js';
 
 type TCaseFunction = [
 	string,
@@ -104,7 +104,7 @@ const multiplyNestedFunctionsArguments = [
  * @param casesAmount
  * @return string[]
  */
-const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number = randomInteger(50, 100)) => {
+function generateRandomStatementsFromTemplate(arr: string[], casesAmount: number = randomInteger(50, 100)) {
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
 			template
@@ -114,13 +114,13 @@ const generateRandomStatementsFromTemplate = (arr: string[], casesAmount: number
 				.replaceAll('%list', () => randomArray(randomString).join(','))
 				.replaceAll('%arr', () => '[]')
 				.replaceAll('%f', () => `${randomString()}()`)
-				.replaceAll('%s', () => randomString()),
-		);
+				.replaceAll('%s', () => randomString()));
 	});
-};
+}
 
-const generateFunctionString = (level: number = 0) => {
-	if (level > 8) return ''; // todo check
+function generateFunctionString(level: number = 0) {
+	if (level > 8)
+		return ''; // todo check
 
 	const argsTypes = [randomInteger, randomDecimal];
 
@@ -131,12 +131,15 @@ const generateFunctionString = (level: number = 0) => {
 		const randomIndex = Math.floor(Math.random() * argsTypes.length);
 		if (randomIndex === 3) {
 			const nestedFunction = generateFunctionString(level + 1);
-			if (nestedFunction) args.push(nestedFunction);
-		} else args.push(argsTypes[randomIndex]?.().toString() ?? '');
+			if (nestedFunction)
+				args.push(nestedFunction);
+		} else {
+			args.push(argsTypes[randomIndex]?.().toString() ?? '');
+		}
 	}
 
 	return `${functionName}(${args.join(',')})`;
-};
+}
 
 const templateFunctions: { [key: string]: (...args: any) => any } = {
 	'"%s"': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
@@ -166,14 +169,12 @@ const templateFunctions: { [key: string]: (...args: any) => any } = {
 	'%arr': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
 		return [templateString.replace('%arr', '[]'), func(propertyName, functionName)];
 	},
-	default: (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
+	'default': (templateString: string, propertyName: string, functionName: string, func: (...args: any) => any) => {
 		return [templateString, func(propertyName, functionName)];
 	},
 };
 
-const generateExpressionStringAndExpectedObject = (
-	args: [string, (prop?: string, func?: string, ...values: any) => any],
-) => {
+function generateExpressionStringAndExpectedObject(args: [string, (prop?: string, func?: string, ...values: any) => any]) {
 	const templateString = args[0];
 	const func = args[1];
 
@@ -189,8 +190,8 @@ const generateExpressionStringAndExpectedObject = (
 			return templateFunctions[regex]?.(templateStringWithNames, propertyName, functionName, func);
 		}
 	}
-	return templateFunctions['default']?.(templateStringWithNames, propertyName, functionName, func);
-};
+	return templateFunctions.default?.(templateStringWithNames, propertyName, functionName, func);
+}
 
 // const generateExpressionCases = (templates: any[], casesAmount: number = randomInteger(1, 50)) => {
 // 	return templates.flatMap((template) => {
@@ -198,59 +199,59 @@ const generateExpressionStringAndExpectedObject = (
 // 	});
 // };
 
-const generateExpressionCase = (template: any, casesAmount: number = randomInteger(1, 50)) => {
+function generateExpressionCase(template: any, casesAmount: number = randomInteger(1, 50)) {
 	return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
-};
+}
 
-describe('Function declaration', () => {
+describe('function declaration', () => {
 	const parser = new YantrixParser();
 
-	describe('Function strings with random sets of random arguments', () => {
+	describe('function strings with random sets of random arguments', () => {
 		const cases = Array.from({ length: 1000 }, () => `#{${randomString()} = ${generateFunctionString()}}`);
-		test.each(cases)('%s', (input) => {
+		it.each(cases)('%s', (input) => {
 			assert.isOk(parser.parse(input));
 		});
 	});
 
-	describe('Empty functions syntax', () => {
-		describe('Correct functions', () => {
+	describe('empty functions syntax', () => {
+		describe('correct functions', () => {
 			const cases = generateRandomStatementsFromTemplate(validEmptyFunctionsExamples);
-			test.each(cases)('%s', (input) => {
+			it.each(cases)('%s', (input) => {
 				assert.isOk(parser.parse(input));
 			});
 		});
 
-		describe('Incorrect functions', () => {
+		describe('incorrect functions', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidEmptyFunctionsExamples);
-			test.each(cases)('%s', (input) => {
+			it.each(cases)('%s', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
 			});
 		});
 	});
 
-	describe('Functions with arguments syntax', () => {
-		describe('Correct functions', () => {
+	describe('functions with arguments syntax', () => {
+		describe('correct functions', () => {
 			const cases = generateRandomStatementsFromTemplate(validFunctionsWithArgumentsExamples);
 
-			test.each(cases)('%s', (input) => {
+			it.each(cases)('%s', (input) => {
 				assert.isOk(parser.parse(input));
 			});
 		});
 
-		describe('Incorrect functions', () => {
+		describe('incorrect functions', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidFunctionsWithArgumentsExamples);
-			test.each(cases)('%s', (input) => {
+			it.each(cases)('%s', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
 			});
 		});
 	});
 
 	// @TODO maybe need to add separate describes for each function type, too much unnecessary work for now though
-	describe('Functions are correctly separated into types: string,decimal,integer etc', () => {
+	describe('functions are correctly separated into types: string,decimal,integer etc', () => {
 		functionCasesAndExpectedTypes.forEach((template) => {
-			describe(`Function case - ${template[0]}`, () => {
+			describe(`function case - `, () => {
 				const cases = generateExpressionCase(template);
-				test.each(cases)('%s', (input: string, obj) => {
+				it.each(cases)('%s', (input: string, obj) => {
 					const result = parser.parse(input);
 					assert.deepOwnInclude(result, obj);
 				});
@@ -262,7 +263,7 @@ describe('Function declaration', () => {
 	// need to test limits, should be ~8 levels of nesting, but i think there is actually no limit
 	describe('multi-nested arguments as functions', () => {
 		const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments);
-		test.each(cases)('%s', (input: string) => {
+		it.each(cases)('%s', (input: string) => {
 			assert.isOk(parser.parse(input));
 		});
 	});

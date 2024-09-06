@@ -11,16 +11,17 @@ export default function BasicEventContainer<EventType extends TAutomataBaseEvent
 				super(args);
 			}
 
-			public get validateEvent() {
+			public get validateEvent(): TValidator<EventType> {
 				return this.#_eventValidator ?? this.#_defaultEventValidator;
 			}
 
-			setEventValidator(eventValidator: TValidator<EventType> | null = null) {
+			setEventValidator(eventValidator: TValidator<EventType> | null = null): this {
 				if (eventValidator === null) {
 					this.#_eventValidator = undefined;
 					return this;
 				}
-				if (typeof eventValidator !== 'function') throw new Error(`passed Event Validator is not a function`);
+				if (typeof eventValidator !== 'function')
+					throw new Error(`passed Event Validator is not a function`);
 				this.#_eventValidator = eventValidator.bind(this);
 				return this;
 			}

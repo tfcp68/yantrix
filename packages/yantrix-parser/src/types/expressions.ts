@@ -22,7 +22,8 @@ type TExpressionArray = {
 type TExpressionNumber = {
 	NumberDeclaration: number;
 };
-type TFunctionArgument = TKeyItemReducer | TExpression;
+type TFunctionArgument = TKeyItemReducer | TExpressionMap;
+type TDefineFunctionArgument = TExpressionDefineMap;
 
 export type TExpressionFunction = {
 	FunctionDeclaration: {
@@ -43,9 +44,20 @@ export type TMapped = {
 };
 
 type TWithout<T, K> = Pick<T, Exclude<keyof T, K>>;
-export type TDefineMap = TWithout<TMapped, 'context' | 'payload' | 'constant'>;
-export type TDefineMapKeys = keyof TMapped;
-export type TExpressionDefineMapped<T extends keyof TMapped> = TMapped[T];
+export type TDefineIdent = {
+	[ExpressionTypes.Identifier]: TReference;
+	[ExpressionTypes.Function]: {
+		FunctionDeclaration: {
+			FunctionName: string;
+			Arguments: TDefineFunctionArgument[];
+		};
+	};
+};
+
+export type TDefineMap = TWithout<TMapped, 'context' | 'payload' | 'function'> & TDefineIdent;
+
+export type TDefineMapKeys = keyof TDefineMap;
+export type TExpressionDefineMapped<T extends TDefineMapKeys> = TDefineMap[T];
 
 export type TMappedKeys = keyof TMapped;
 export type TExpressionMapped<T extends keyof TMapped> = TMapped[T];
@@ -57,3 +69,11 @@ export type TExpression<T extends TMappedKeys = TMappedKeys> = {
 export type TExpressionDefine<T extends TDefineMapKeys = TDefineMapKeys> = {
 	expressionType: T;
 } & TExpressionDefineMapped<T>;
+
+export type TExpressionMap = {
+	[T in TMappedKeys]: TExpression<T>;
+}[TMappedKeys];
+
+export type TExpressionDefineMap = {
+	[T in TDefineMapKeys]: TExpressionDefine<T>;
+}[TDefineMapKeys];

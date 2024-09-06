@@ -1,12 +1,12 @@
-import { type Options, defineConfig } from 'tsup';
+import { Options, defineConfig } from 'tsup';
 
 export function createTsupConfig({
-	entry = ['src/index.ts', 'src/grammar/jsGrammar.ts'],
+	entry = ['src/index.ts'],
 	external = [],
 	noExternal = [],
 	platform = 'node',
 	format = ['esm', 'cjs'],
-	target = 'esnext',
+	target = 'es2022',
 	skipNodeModulesBundle = true,
 	clean = true,
 	shims = format.includes('cjs'),
