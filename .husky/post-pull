@@ -1,1 +1,1 @@
-pnpm install && pnpm test:affected
+pnpm install --frozen-lockfile && pnpm test:affected
