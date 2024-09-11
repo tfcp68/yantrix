@@ -1,5 +1,7 @@
 import mermaid from 'mermaid';
 import { EndState, StartState } from '../constants/index.js';
+import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
+
 import {
 	TAction,
 	TActionsStructure,
@@ -15,8 +17,6 @@ import {
 	TStatesStructure,
 	TTransitionsArray,
 } from './types/index.js';
-
-import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
 
 /**
  * @brief Function that parses a diagram;

@@ -1,4 +1,3 @@
-import { assert, describe, expect, it } from 'vitest';
 import {
 	randomArray,
 	randomDecimal,
@@ -7,8 +6,9 @@ import {
 	randomValue,
 	randomValueFunction,
 } from '@yantrix/utils';
-import { YantrixParser } from '../src/yantrixParser.js';
+import { assert, describe, expect, it } from 'vitest';
 import { ReservedList, SpecialCharList } from '../src/constants/index.js';
+import { YantrixParser } from '../src/yantrixParser.js';
 import {
 	baseContext,
 	baseContextWithPrevious,

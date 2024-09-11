@@ -10,7 +10,6 @@ import {
 	stateDiagramSimpleTransition,
 	stateDiagramSimpleTransitionCompleted,
 	stateDiagramSimpleTransitionWithComments,
-	stateDiagramWitNormalForks,
 	stateDiagramWithDoubleTransitions,
 	stateDiagramWithEmptyNote,
 	stateDiagramWithLeftSideNote,
@@ -21,6 +20,7 @@ import {
 	stateDiagramWithRightSideNote,
 	stateDiagramWithSimpleChoice,
 	stateDiagramWithSimpleFork,
+	stateDiagramWitNormalForks,
 } from './fixtures/diagramPatterns.js';
 
 describe('state Diagram Parser', () => {
