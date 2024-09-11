@@ -48,23 +48,23 @@ const reducer = {74979334: (prevContext, payload) => {
 			},
 	79183: (prevContext, payload) => {
 
-				return null
+				return prevContext
 			},
 	82033: (prevContext, payload) => {
 
-				return null
+				return prevContext
 			},
 	1051543483: (prevContext, payload) => {
 
-				return null
+				return prevContext
 			},
 	69066467: (prevContext, payload) => {
 
-				return null
+				return prevContext
 			},
 	1650372460: (prevContext, payload) => {
 
-				return null
+				return prevContext
 			}}
 export const functionDictionary = new FunctionDictionary(builtInFunctions);
 			const actionsMap = {

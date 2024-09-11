@@ -3,11 +3,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { resetLight, switchLight, useAppSelector, useTAppDispatch } from '@/redux/store';
+import TLA from '@/generated/TrafficLightAutomata';
+import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux/store';
 
 export function TrafficLight() {
-	const { context } = useAppSelector(state => state);
-	const dispatch = useTAppDispatch();
+	const { context, state } = useAppSelector(state => state);
+	const dispatch = useAppDispatch();
 
 	const onSwitch = () => dispatch(switchLight());
 	const onReset = () => dispatch(resetLight());
@@ -18,15 +19,15 @@ export function TrafficLight() {
 				<Card className="w-24 p-3 space-y-3 bg-black border-zinc-800">
 					<div className="flex flex-col items-center space-y-2">
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							context.isRedOn ? 'bg-red-500' : 'bg-red-950'
+							state && [TLA.getState('Red'), TLA.getState('RedYellow')].includes(state) ? 'bg-red-500' : 'bg-red-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							context.isYellowOn ? 'bg-yellow-500' : 'bg-yellow-950'
+							state && [TLA.getState('Yellow'), TLA.getState('RedYellow')].includes(state) ? 'bg-yellow-500' : 'bg-yellow-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							context.isGreenOn ? 'bg-green-500' : 'bg-green-950'
+							TLA.getState('Green') === state ? 'bg-green-500' : 'bg-green-950'
 						}`}
 						/>
 					</div>

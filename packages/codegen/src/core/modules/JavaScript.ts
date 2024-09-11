@@ -455,7 +455,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			ctxRes.push(...newContext);
 		});
 
-		if (ctxRes.length === 0) return 'null';
+		if (ctxRes.length === 0) return 'prevContext';
 
 		return `{${ctxRes.join(',\n\t')}}`;
 	};
