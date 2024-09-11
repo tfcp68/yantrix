@@ -2,11 +2,26 @@
 	"$schema": "https://json.schemastore.org/tsconfig.json",
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
+		"incremental": true,
+		"jsx": "preserve",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"]
-		}
+			"@/*": ["./src/*"]
+		},
+		"allowJs": true,
+		"noEmit": true,
+		"outDir": "dist",
+		"esModuleInterop": true,
+		"skipLibCheck": true
 	},
-	"include": ["src/**/*.ts", "src/**/*.js", "src/**/*.tsx", "src/**/*.jsx"],
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"src/**/*.js",
+		"src/**/*.jsx",
+		"src/**/*.cjs",
+		"src/**/*.mjs"
+	],
 	"exclude": ["node_modules"]
 }
