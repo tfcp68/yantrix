@@ -1,8 +1,8 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 
-import { fillDictionaries } from '../shared.js';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { fillDictionaries } from '../shared.js';
 import { ModuleNames } from './index';
 
 export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
