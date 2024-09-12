@@ -15,10 +15,19 @@ export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 	const actionsNameList = Object.keys(Fsm.actions);
 	const initialState: TStateFSMSlice = _fsm.getContext();
 
-	const selectorsSlice = selectors || {
+	let selectorsSlice = selectors || {
 		state: (sliceState: TStateFSMSlice): TStateFSMSlice['state'] => sliceState.state,
 		context: (sliceState: TStateFSMSlice): TStateFSMSlice['context'] => sliceState.context,
 	};
+
+	if (contextToRedux) {
+		const selectorsFromContext = Object.entries(contextToRedux(initialState)).reduce((acc, item) => {
+			acc[item[0]] = (sliceState: TStateFSMSlice) => sliceState.context[item[0]];
+
+			return acc;
+		}, {} as any);
+		selectorsSlice = Object.assign(selectorsSlice, selectorsFromContext);
+	}
 
 	const reducers = actionsNameList.reduce((acc, actionName) => {
 		acc[actionName]

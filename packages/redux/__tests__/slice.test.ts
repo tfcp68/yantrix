@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { createFSMSlice } from '../src/slice/slice';
+import { createFSMSlice } from '../src';
 import GamePhaseTest from './fixtures/GamePhaseAutomataTest';
 
 describe('createFSMSlice test', () => {
