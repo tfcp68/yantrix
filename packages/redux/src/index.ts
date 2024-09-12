@@ -5,6 +5,9 @@ import GamePhaseTest from '../__tests__/fixtures/GamePhaseAutomataTest';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata, TStateFSMSlice } from './types.js';
 import { createFSMSlice } from './slice/slice';
 
+export * from './slice/slice.js';
+export * from './types.js';
+
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
 export function getReduxConnectedAutomata(): Readonly<TReduxConnectedAutomata> {
@@ -56,9 +59,15 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	return [automata.basicAutomata, automata.dispatch] as const;
 };
 
-const { actions, name, reducer } = createFSMSlice({
+const { actions, name, reducer, selectors } = createFSMSlice({
 	name: GamePhaseTest.id,
 	Fsm: GamePhaseTest,
+	contextToRedux: (context: any) => ({
+		counter: context.counter,
+		redColorOn: ['Red', 'RedYellow'].includes(context.state),
+		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
+		greenColorOn: ['Green'].includes(context.state),
+	}),
 	selectors: {
 		state: (sliceState): TStateFSMSlice['state'] => sliceState.state,
 		context: (sliceState): TStateFSMSlice['context'] => sliceState.context,
@@ -70,4 +79,5 @@ const store = configureStore({
 		[name]: reducer,
 	}),
 });
+console.log(actions, selectors);
 store.dispatch(actions.RESET({}));
