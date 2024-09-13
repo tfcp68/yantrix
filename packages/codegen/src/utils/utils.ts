@@ -1,5 +1,11 @@
+import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { format } from 'prettier';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function fmt(code: string, cfg: string): Promise<string> {
 	try {
@@ -9,6 +15,18 @@ export async function fmt(code: string, cfg: string): Promise<string> {
 	} catch {
 		return code;
 	}
+}
+
+export function getFileContents(filePath: string): string {
+	return fs.readFileSync(path.resolve(__dirname, filePath)).toString();
+}
+
+export function replaceFileContents(filePath: string, replacementMap: Record<string, string>): string {
+	let contents = getFileContents(filePath);
+	Object.entries(replacementMap).forEach(([template, str]) => {
+		contents = contents.replaceAll(template, str);
+	});
+	return contents;
 }
 
 /**
