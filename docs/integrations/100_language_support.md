@@ -8,8 +8,8 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 
 | Feature                | JavaScript | TypeScript | Python | Java |
 | ---------------------- | ---------- | ---------- | ------ | ---- |
-| FSM from Diagram       | ✅         | ✅         | ✅     | ❌   |
-| Reducers               | ✅         | ✅         | ✅     | ❌   |
+| FSM from Diagram       | ✅         | ✅         | ✅     | ✅   |
+| Reducers               | ✅         | ✅         | ✅     | ✅   |
 | Payloads               | ✅         | ✅         | ❌     | ❌   |
 | Expressions            | ✅         | ✅         | ❌     | ❌   |
 | Built-In Functions     | ❌         | ❌         | ❌     | ❌   |
@@ -30,3 +30,7 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | Python   | ??            | Number       |
 | Python   | ??            | List         |
 | Python   | Dictionary    | Object       |
+| Java     | String        | String       |
+| Java     | Long          | Number       |
+| Java     | List          | List         |
+| Java     | Map           | Object       |
