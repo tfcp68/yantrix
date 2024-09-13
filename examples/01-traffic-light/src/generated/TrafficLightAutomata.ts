@@ -118,25 +118,50 @@ export const functionDictionary = new FunctionDictionary(builtInFunctions);
 				  1805606060: {
 				  	state: 82033,
 				  },
+				
+	
+				  1011118777: {
+				  	state: 79183,
+				  },
 				},
 	82033: {
 				  1805606060: {
 				  	state: 1051543483,
+				  },
+				
+	
+				  1011118777: {
+				  	state: 79183,
 				  },
 				},
 	1051543483: {
 				  1805606060: {
 				  	state: 69066467,
 				  },
+				
+	
+				  1011118777: {
+				  	state: 79183,
+				  },
 				},
 	69066467: {
 				  1805606060: {
 				  	state: 1650372460,
 				  },
+				
+	
+				  1011118777: {
+				  	state: 79183,
+				  },
 				},
 	1650372460: {
 				  1805606060: {
 				  	state: 82033,
+				  },
+				
+	
+				  1011118777: {
+				  	state: 79183,
 				  },
 				},}
 			export class TrafficLightAutomata extends GenericAutomata {
