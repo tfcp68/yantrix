@@ -424,9 +424,33 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	protected getActionToStateFromStateDict() {
+		const actionToStartStateMatrix: Record<string, TDiagramAction> = {};
+
+		Object.entries(this.diagram.transitions).forEach(([state, transitions]) => {
+			if (state === StartState) {
+				const entries = Object.entries(transitions);
+				console.log(entries, 'entries');
+				entries.forEach(([state, action]) => {
+					action.actionsPath.forEach(({ action }) => {
+						actionToStartStateMatrix[state] = {
+							actionsPath: [{ action, note: [] }],
+						};
+					});
+				});
+			}
+		});
+
+		const isExistsStartState = Object.keys(actionToStartStateMatrix).length > 0;
+
 		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
 			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
 			if (!value) throw new Error(`State ${state} not found`);
+			if (isExistsStartState && state !== StartState) {
+				transitions = {
+					...transitions,
+					...actionToStartStateMatrix,
+				};
+			}
 
 			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
 		});
@@ -455,7 +479,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			ctxRes.push(...newContext);
 		});
 
-		if (ctxRes.length === 0) return 'null';
+		if (ctxRes.length === 0) return 'prevContext';
 
 		return `{${ctxRes.join(',\n\t')}}`;
 	};

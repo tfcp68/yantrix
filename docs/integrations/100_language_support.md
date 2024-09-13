@@ -10,13 +10,13 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | ---------------------- | ---------- | ---------- | ------ | ---- |
 | FSM from Diagram       | ✅         | ✅         | ✅     | ✅   |
 | Reducers               | ✅         | ✅         | ✅     | ✅   |
-| Payloads               | ✅         | ✅         | ❌     | ❌   |
-| Expressions            | ✅         | ✅         | ❌     | ❌   |
-| Built-In Functions     | ❌         | ❌         | ❌     | ❌   |
-| User-defined Functions | ❌         | ❌         | ❌     | ❌   |
-| Event Subscription     | ❌         | ❌         | ❌     | ❌   |
-| Event Firing           | ❌         | ❌         | ❌     | ❌   |
-| Side Effects           | ❌         | ❌         | ❌     | ❌   |
+| Payloads               | ✅         | ✅         | ❌      | ❌   |
+| Expressions            | ✅         | ✅         | ❌      | ❌   |
+| Built-In Functions     | ✅         | ✅         | ❌      | ❌   |
+| User-defined Functions | ✅         | ✅         | ❌      | ❌   |
+| Event Subscription     | ❌          | ❌          | ❌      | ❌   |
+| Event Firing           | ❌          | ❌          | ❌      | ❌   |
+| Side Effects           | ❌          | ❌          | ❌      | ❌   |
 
 ## Type Mapping
 
