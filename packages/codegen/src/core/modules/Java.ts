@@ -1,5 +1,6 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
+
 import { fillDictionaries } from '../shared.js';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { ModuleNames } from './index';
@@ -58,7 +59,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 		return this.dictionaries.join('\n');
 	}
 
-	public getActionToStateFromState() {
+	public getActionToStateFromState(): string {
 		return `public final Map<TAutomataBaseState, Map<TAutomataBaseAction, AutomataStateTransitionResult>> stateTransitionMatrix =
 			Map.ofEntries(
 				${this.getStateTransitionMatrix()}
@@ -68,10 +69,12 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 
 	// State transition matrix
 	getStateTransitionMatrix(): string {
-		return Object.entries(this.diagram.transitions)
+		return Object
+			.entries(this.diagram.transitions)
 			.map(([state, transitions]) => {
 				const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-				if (!value) throw new Error(`State ${state} not found`);
+				if (!value)
+					throw new Error(`State ${state} not found`);
 
 				return `
 				Map.entry(
@@ -85,16 +88,19 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 			.join(',\n');
 	}
 
-	getTransitions(transitions: Record<string, TDiagramAction>) {
-		return Object.entries(transitions)
+	getTransitions(transitions: Record<string, TDiagramAction>): string[] {
+		return Object
+			.entries(transitions)
 			.map(([state, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [state] })[0];
 				return transition.actionsPath.map(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
-					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${state} not found`);
+					if (!actionValue)
+						throw new Error(`Action ${action} not found`);
+					if (!newState)
+						throw new Error(`State ${state} not found`);
 
 					// const ctx = this.getSubsyntaxContext(key);
 
@@ -110,7 +116,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 					`;
 				});
 			})
-			.flatMap((el) => `${el.join(',\n\t')}`);
+			.flatMap(el => `${el.join(',\n\t')}`);
 	}
 
 	getDefaultContext(): string {
@@ -140,7 +146,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	// Default constructor for the class
-	private getDefaultConstructor(className: string) {
+	private getDefaultConstructor(className: string): string {
 		return `
             public ${className}() {
                 this.state = TAutomataBaseState.of(${this.getInitialState()}L);
@@ -151,38 +157,40 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	// Transforms codegen dictionaries into language-specific text representations
-	private setupDictionaries() {
+	private setupDictionaries(): void {
 		// states dictionary text representation
 		this.dictionaries.push(`
-            public static final Map<String, TAutomataBaseState> statesDictionary = Map.of(
-                ${Object.entries(this.stateDictionary.getDictionary())
-					.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
-					.join(',\n')}
-            );
-        `);
+		public static final Map<String, TAutomataBaseState> statesDictionary = Map.of(
+		${Object
+		.entries(this.stateDictionary.getDictionary())
+		.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
+		.join(',\n')}
+		);
+		`);
 
 		// actions dictionary text representation
 		this.dictionaries.push(`
-            public static final Map<String, TAutomataBaseAction> actionsDictionary = Map.of(
-                ${Object.entries(this.actionDictionary.getDictionary())
-					.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
-					.join(',\n')}
-            );
-        `);
+		public static final Map<String, TAutomataBaseAction> actionsDictionary = Map.of(
+		${Object
+		.entries(this.actionDictionary.getDictionary())
+		.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
+		.join(',\n')}
+		);
+		`);
 	}
 
 	// Initial context is empty
-	private getInitialContext() {
+	private getInitialContext(): string {
 		return 'new TAutomataBaseContext()';
 	}
 
 	// Fetches first state from list
-	private getInitialState() {
+	private getInitialState(): number | null | undefined {
 		return this.stateDictionary.getStateValues({ keys: [StartState] })[0];
 	}
 
 	// Root reducer function
-	private getRootReducer() {
+	private getRootReducer(): string {
 		return `
             (obj) -> {
                 if(obj.action == null || obj.payload == null) {
@@ -200,7 +208,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	// Checks if state can be found in dictionary for the automata
-	private getRootReducerStateValidation() {
+	private getRootReducerStateValidation(): string {
 		return `
             // state validation
             if(!stateTransitionMatrix.containsKey(obj.state)) {
@@ -210,7 +218,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	// Checks if action can be found in dictionary for the automata & if the action is appropriate for the automata state
-	private getRootReducerActionValidation() {
+	private getRootReducerActionValidation(): string {
 		return `
             // action validation
             if(!stateTransitionMatrix.get(obj.state).containsKey(obj.action)) {
@@ -222,7 +230,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
         `;
 	}
 
-	private setupClassMembers() {
+	private setupClassMembers(): string {
 		return `
             private TAutomataBaseState state;
             private TAutomataBaseContext context;
@@ -230,7 +238,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
         `;
 	}
 
-	private setupClassMembersAccessors() {
+	private setupClassMembersAccessors(): string {
 		return `
             public Map getStateTransitionMatrix() { return this.stateTransitionMatrix; }
             public TAutomataStateContext getContext() { return new TAutomataStateContext(this.state, this.context); }
@@ -243,7 +251,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
         `;
 	}
 
-	private dispatchMethod() {
+	private dispatchMethod(): string {
 		return `
             public TAutomataStateContext dispatch(TAutomataActionPayload action) {
                 TAutomataStateContext reducedValue =
@@ -254,7 +262,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
         `;
 	}
 
-	private toStringMethod() {
+	private toStringMethod(): string {
 		return `
             @Override
             public String toString() {
@@ -268,7 +276,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	// Types necessary for the automata
-	private getTypes() {
+	private getTypes(): string {
 		return `
             public abstract static class TAutomataBaseType {
                 protected Long value;

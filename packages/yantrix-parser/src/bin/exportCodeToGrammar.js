@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const args = process.argv.slice(2);
 const grammarPath = args[0] ?? 'src/grammar/parserGrammar.jison';
@@ -15,14 +15,14 @@ const outputFilePath = path.resolve(outputPath);
  * @param {string} constantsData - The content of the constants file
  * @returns {string} - The updated grammar data with imports replaced
  */
-const replaceImportsInGrammar = (grammarData, constantsData) => {
+function replaceImportsInGrammar(grammarData, constantsData) {
 	const importRegex = /import\s+\{[^}]+\}\s+from\s+['"]\.\/(grammar\/jsGrammar|index)\.js['"];?/g;
 	const exportRegexp = /export/g;
 
 	const withoutExports = constantsData.replace(exportRegexp, '');
 
 	return grammarData.replace(importRegex, withoutExports);
-};
+}
 
 try {
 	const grammarData = fs.readFileSync(grammarFilePath, 'utf8');
@@ -32,7 +32,8 @@ try {
 		encoding: 'utf8',
 		flag: 'w',
 	});
-	console.log('Successfully replaced imports with constants content.');
+
+	console.info('Successfully replaced imports with constants content.');
 } catch (err) {
 	console.error(`Error: ${err.message}`);
 }

@@ -4,7 +4,7 @@
  */
 export type TParsedStringDict = Record<string, string | Record<string, string>>;
 
-//Array type for mermaid parsed diagram elements;
+// Array type for mermaid parsed diagram elements;
 export type TParsedDiagramArray = TParsedStringDict[];
 
 /**
@@ -35,7 +35,7 @@ export type TChoice = {
  */
 export type TChoicesStructure = TChoice[];
 
-//Dict type for transitions action;
+// Dict type for transitions action;
 export type TAction = {
 	id: string; // ""
 	from: string;
@@ -48,14 +48,14 @@ export type TAction = {
  */
 export type TActionsStructure = TAction[];
 
-//Dict type for note;
+// Dict type for note;
 export type TNote = {
 	text: string[];
 	over: string;
 };
 export type TNotesStructure = TNote[];
 
-//Dict type for fork;
+// Dict type for fork;
 export type TFork = {
 	id: string;
 };
@@ -66,7 +66,7 @@ export type TFork = {
  */
 export type TForksStructure = TFork[];
 
-//Dict type for states, actions, notes, choice, forks
+// Dict type for states, actions, notes, choice, forks
 export type TStateDiagramStructure = {
 	states: TStatesStructure;
 	actions: TActionsStructure;

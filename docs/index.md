@@ -12,7 +12,7 @@ Lends itself perfectly to [Architecture-as-Code](https://jondavid-black.github.i
 
 ## Quick Start
 
-Let's suppose you are building a slider component. First, you need a diagram for your State Machine, written in [Yantrix subsyntax](./syntax/) of [Mermaid](https://mermaid.js.org/):
+Let's build a slider component. First, we need a diagram for a State Machine describing its behaviour. The diagram is written in [Yantrix subsyntax](./syntax/) of [Mermaid](https://mermaid.js.org/) and can be visualized directly with that awesome library. Click on `<>` button to see the source code:
 
 ```mermaid
 stateDiagram-v2
@@ -47,13 +47,13 @@ note right of [*]
 end note
 ```
 
-Assume it's saved to a file named `slider.mermaid`. Then, you pass that source to a code generator and choose a language you need
+The details of what's going on here are explained [below](#syntax-breakdown). For now, assume it's saved to a file named `slider.mermaid`. Then, we pass that source to a code generator and choose a language we need
 
 ```shell
 $ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language Javascript --className Slider
 ```
 
-Now, import the generated file into your projects:
+Now, we import the generated file into your projects:
 
 ```javascript
 import Slider from './slider_controller.js';
@@ -70,7 +70,9 @@ SliderController.dispatch(
 	}),
 ); // adjusted to local needs
 
-/* somewhere later on in UI */
+/*
+ * ...somewhere later on at UI ...
+ */
 
 // bind these to buttons and/or keys
 const rightHandler = () => SliderController.dispatch(Slider.createAction('INCREASE', { by: 50 }));
@@ -95,11 +97,11 @@ Or you can use one of the available [Integrations](./integrations/) with a frame
 
 ## Syntax Breakdown
 
-Let's see what's happening in depth. The diagram describes an [`FSM`](concepts/200_FSM.html), &ndash; a finite state machine, a control object that is characterized by a limited set of `States`, and it always resides in one and only one of them.
+Let's see what's happening in depth. The diagram describes an [`FSM`](concepts/200_FSM.html), &mdash; a finite state machine, a control object that is characterized by a limited set of `States`, and it always resides in one and only one of them.
 
 ### States
 
-Every `State` is independent on another and difference between `States` is _qualitative_, i.e. they represent some orthodox scenarios in App:
+Every `State` is independent on another and difference between `States` is _qualitative_, i.e. they represent some scenarios in App that are independent on each other and never happen simultaneously:
 
 -   Slider is usable and idle (enabled)
 -   Slider can't be interacted with (disabled)
@@ -138,7 +140,7 @@ Also note that not every `Action` can be invoked from every `State` by default. 
 
 ### Payload
 
-Every `Action` can carry a `Payload`, which is a plain data object that represents some meta information about the change requested by it. For instance, when resetting (instantiating) a Slider, it's wise to provide it's min and max values. `Payload` is represented with a list of parameters in parentheses, each possible having a default value:
+Every `Action` can carry a `Payload`, which is a plain data object that represents some meta-information about the change requested by it. For instance, when resetting (instantiating) a Slider, it's wise to provide its min and max values. `Payload` is represented with a list of parameters in parentheses, each possible having a default value:
 
 ```mermaid
 stateDiagram-v2
@@ -376,4 +378,4 @@ Now, it's only about dispatching proper `Payloads` to the `FSM`.
 -   Learn Yantrix [Syntax](./syntax) and try making an `FSM` of your own
 -   Try some [Integrations](./integrations) with your favorite frameworks to achieve fast results
 -   Read more on [framework architecture](./concepts) and how to expand beyond one `FSM` into `Slice`s and built a whole `Application` on Yantrix
--   If you like what you get, consider [Contributing](./contributing) or closin some [Issues](https://github.com/tfcp68/yantrix/issues)
+-   If you like what you get, consider [Contributing](./contributing) or resolving some [Issues](https://github.com/tfcp68/yantrix/issues)

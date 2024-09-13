@@ -9,7 +9,7 @@ export class AbstractBaseClass implements IBaseClass {
 		this.correlationId = uniqId();
 	}
 
-	next() {
+	next(): this {
 		return this;
 	}
 }

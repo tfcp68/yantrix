@@ -1,15 +1,16 @@
 import mermaid from 'mermaid';
 import {
-	TMessagesDict,
+	TActivationsDict,
 	TActorsArray,
-	TSequenceMermaidGraphDict,
+	TMessagesDict,
 	TNotesDict,
-	TParsedMessagesArray,
 	TParsedDiagramDict,
+	TParsedMessagesArray,
 	TParsedNotesArray,
 	TParsedOtherElementsArray,
-	TActivationsDict,
 	TSeqTypes,
+
+	TSequenceMermaidGraphDict,
 	arrowTypes,
 } from './types/index.js';
 
@@ -34,7 +35,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
 	const parsedOtherElements: TParsedOtherElementsArray = [];
 
 	for (let i = 0; i < parsedArray.length; i++) {
-		if (arrowTypes.indexOf(parsedArray[i].type) !== -1) {
+		if (arrowTypes.includes(parsedArray[i].type)) {
 			parsedMessages.push(parsedArray[i]);
 		} else if (parsedArray[i].type === TSeqTypes.Note) {
 			parsedNotes.push(parsedArray[i]);
@@ -69,12 +70,14 @@ function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray)
 
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
-		if (!elementI) continue;
+		if (!elementI)
+			continue;
 
 		messages[elementI] = {};
 		for (let j = 0; j < actors.length; j++) {
 			const elementJ = actors[j];
-			if (!elementJ) continue;
+			if (!elementJ)
+				continue;
 
 			messages[elementI][elementJ] = null;
 		}
@@ -82,7 +85,8 @@ function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray)
 
 	for (let i = 0; i < parsedMessages.length; i++) {
 		const parsed = parsedMessages[i];
-		if (!parsed) continue;
+		if (!parsed)
+			continue;
 
 		const arrowMessage = parsed.message;
 		const from = parsed.from;
@@ -108,14 +112,16 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
-		if (!elementI) continue;
+		if (!elementI)
+			continue;
 
 		notes[elementI] = null;
 	}
 
 	for (let i = 0; i < parsedMessages.length; i++) {
 		const parsed = parsedMessages[i];
-		if (!parsed) continue;
+		if (!parsed)
+			continue;
 
 		const recievedMessage = parsed.message;
 		let fromIndex = actors.indexOf(parsed.from);
@@ -123,7 +129,8 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
 
 		while (fromIndex !== toIndex + 1) {
 			const from = actors[fromIndex];
-			if (!from) continue;
+			if (!from)
+				continue;
 
 			if (notes[from] === null) {
 				notes[from] = [recievedMessage];
@@ -146,7 +153,8 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
 	const activate: TActivationsDict = {};
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
-		if (!elementI) continue;
+		if (!elementI)
+			continue;
 
 		activate[elementI] = [];
 	}
@@ -157,7 +165,7 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
 			activate[currentActor]?.push([]);
 			const len = activate[currentActor]!.length - 1;
 			for (let j = i - 1; j < parsedArray.length; j++) {
-				if (arrowTypes.indexOf(parsedArray[j].type) !== -1 && parsedArray[j].from === currentActor) {
+				if (arrowTypes.includes(parsedArray[j].type) && parsedArray[j].from === currentActor) {
 					activate[currentActor]![len]?.push(parsedArray[j].message);
 				} else if (parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
 					parsedArray[j].type = -1;
@@ -175,11 +183,11 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
  * @returns Returns dictionary with information from the diagram.
  */
 function markGraph(parsedDiagram: TParsedDiagramDict): TSequenceMermaidGraphDict {
-	const messagesArray: TParsedMessagesArray = parsedDiagram['messages'];
-	const actorsArray: TActorsArray = parsedDiagram['actors'];
-	const notesArray: TParsedNotesArray = parsedDiagram['notes'];
+	const messagesArray: TParsedMessagesArray = parsedDiagram.messages;
+	const actorsArray: TActorsArray = parsedDiagram.actors;
+	const notesArray: TParsedNotesArray = parsedDiagram.notes;
 	// const othersElementsArray: TParsedOtherElementsArray = parsedDiagram['others'];
-	const activateDict: TActivationsDict = parsedDiagram['activations'];
+	const activateDict: TActivationsDict = parsedDiagram.activations;
 
 	const mermaidGraph: TSequenceMermaidGraphDict = {
 		messages: getMessages(messagesArray, actorsArray),

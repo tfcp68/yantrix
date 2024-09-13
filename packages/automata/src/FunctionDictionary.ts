@@ -39,7 +39,7 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		if (functionKey.length < 1 || functionKey.length > 255) {
 			throw new Error(`Function key length must be between 1-255 symbols!`);
 		}
-		if (!functionKey.match(/^[a-zA-Z][a-zA-Z0-9_]+$/)) {
+		if (!functionKey.match(/^[a-z]\w+$/i)) {
 			throw new Error('Incorrect function key format!');
 		}
 		if (this.functions[functionKey] !== undefined) {
@@ -83,7 +83,8 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 	 */
 	get(functionKey: string): TAutomataFunction {
 		const func = this.functions[functionKey];
-		if (func) return func;
+		if (func)
+			return func;
 		else throw new Error(`Function with the key ${functionKey} not found!`);
 	}
 

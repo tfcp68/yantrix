@@ -7,15 +7,15 @@ export interface IBaseClass {
 	correlationId: string;
 }
 
-export type TAbstractConstructor<T = {}> = new (...args: any[]) => T;
+export type TAbstractConstructor<T = object> = new (...args: any[]) => T;
 export type TAbstractFunction<T = any> = (...args: any[]) => T;
 export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;
 
 export type TMergeClassTrait<TTrait extends TAbstractConstructor, TTarget extends TAbstractConstructor> = (new (
 	...a: ConstructorParameters<TTarget>
 ) => InstanceType<TTrait> & InstanceType<TTarget>) &
-	Pick<TTarget, keyof TTarget> &
-	Pick<TTrait, keyof TTrait>;
+Pick<TTarget, keyof TTarget> &
+Pick<TTrait, keyof TTrait>;
 
 export type TAutomataStateContainer<StateType extends TAutomataBaseStateType> = {
 	state: StateType | null;
