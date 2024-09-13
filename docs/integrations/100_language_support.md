@@ -10,13 +10,13 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | ---------------------- | ---------- | ---------- | ------ | ---- |
 | FSM from Diagram       | ✅         | ✅         | ✅     | ✅   |
 | Reducers               | ✅         | ✅         | ✅     | ✅   |
-| Payloads               | ✅         | ✅         | ❌     | ❌   |
-| Expressions            | ✅         | ✅         | ❌     | ❌   |
-| Built-In Functions     | ❌         | ❌         | ❌     | ❌   |
-| User-defined Functions | ❌         | ❌         | ❌     | ❌   |
-| Event Subscription     | ❌         | ❌         | ❌     | ❌   |
-| Event Firing           | ❌         | ❌         | ❌     | ❌   |
-| Side Effects           | ❌         | ❌         | ❌     | ❌   |
+| Payloads               | ✅         | ✅         | ❌      | ❌   |
+| Expressions            | ✅         | ✅         | ❌      | ❌   |
+| Built-In Functions     | ✅         | ✅         | ❌      | ❌   |
+| User-defined Functions | ✅         | ✅         | ❌      | ❌   |
+| Event Subscription     | ❌          | ❌          | ❌      | ❌   |
+| Event Firing           | ❌          | ❌          | ❌      | ❌   |
+| Side Effects           | ❌          | ❌          | ❌      | ❌   |
 
 ## Type Mapping
 
@@ -27,10 +27,13 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | JS/TS    | Array         | List         |
 | JS/TS    | Object        | Object       |
 | Python   | String        | String       |
-| Python   | ??            | Number       |
-| Python   | ??            | List         |
+| Python   | Integer/Float<sup>*</sup> | Number       |
+| Python   | List          | List         |
 | Python   | Dictionary    | Object       |
 | Java     | String        | String       |
 | Java     | Long          | Number       |
 | Java     | List          | List         |
 | Java     | Map           | Object       |
+
+> [!NOTE]
+> <b>*</b>  Values are typecasted depending on expression context
