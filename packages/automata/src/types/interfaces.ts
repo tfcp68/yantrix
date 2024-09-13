@@ -23,6 +23,7 @@ import {
 	TAutomataEventHandler,
 	TAutomataEventMetaType,
 	TAutomataEventStack,
+	TAutomataFunction,
 	TAutomataParams,
 	TAutomataQueue,
 	TAutomataReducer,
@@ -694,4 +695,58 @@ export interface IAutomataEventBus<
 	 * @returns The processed event stack.
 	 */
 	processEvents: () => TAutomataEventStack<EventType, EventMetaType>;
+}
+
+/**
+ * Interface for any data structure capable of storing and returning automata functions.
+ */
+export interface IAutomataFunctionRegistry {
+	/**
+	 * Register function under a specific name in the registry.
+	 *
+	 * @param f - function to register, either as just a name(string) or a name-function record
+	 * @param callback - function to invoke, required if the first argument is a string
+	 *
+	 * @throw Will throw an error if:
+	 *
+	 * 1). Name is not valid (valid name starts with a letter, has length 1-255 and does not contain any special symbols).
+	 *
+	 * 2). Name is already taken. Function cannot be registered under an already existing name to prevent overwriting of the basic built-in functions.
+	 */
+	register: (f: string | Record<string, TAutomataFunction>, callback?: TAutomataFunction) => Record<string, TAutomataFunction>;
+
+	/**
+	 * Get function from registry.
+	 *
+	 * @param functionKey - name of the function
+	 * @returns function to invoke
+	 *
+	 * @throw Will throw an error if the function is not found by the specified key.
+	 */
+	get: (functionKey: string) => TAutomataFunction;
+
+	/**
+	 * Check if a function exists in the registry.
+	 *
+	 * @param functionKey - name of the function to check
+	 * @returns true if the function exists, false otherwise
+	 */
+	has: (functionKey: string) => boolean;
+
+	/**
+	 * Retrieve function from the registry and immediately call it, returning the result to the consumer.
+	 *
+	 * Should return an error if the arguments for a specific function are incorrect.
+	 *
+	 * @param functionKey - name of the function to call
+	 * @param args - arguments necessary for the function
+	 * @returns result of calling the function
+	 *
+	 * @throw Will throw an error if:
+	 *
+	 * 1). Function is not found by the specified key.
+	 *
+	 * 2). Arguments for the function are incorrect(as specified in their implementation).
+	 */
+	call: (functionKey: string, ...args: any[]) => unknown;
 }

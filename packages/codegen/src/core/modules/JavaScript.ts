@@ -14,6 +14,7 @@ import {
 	maxNestedFuncLevel,
 } from '@yantrix/yantrix-parser';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { replaceFileContents } from '../../utils/utils.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import { TConstants, TExpressionRecord } from './../../types/common';
 import { ModuleNames } from './index';
@@ -100,7 +101,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions);`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
+		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
@@ -141,28 +143,26 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		const initialContext = Object.assign({}, a, b);
 
-		return `export class ${className} extends GenericAutomata {
-  		 constructor() {
-  			super();
-  			this.init({
-  				state: ${stateValue},
-  				context:${JSON.stringify(initialContext)},
-                rootReducer: ${this.getRootReducer()},
-  				stateValidator: ${this.getStateValidator()},
-  				actionValidator: ${this.getActionValidator()},
-				});
-			}
-			isKeyOf = ${this.getIsKeyOf()};
-			static id = '${className}';
-			static actions = actionsMap;
-			static states = statesMap;
-			static getState = ${this.getGetStateFunc()};
-			static hasState = ${this.getHasStateFunc(className)};
-			static getAction = ${this.getGetActionFunc()};
-			static createAction = ${this.getCreateActionFunc(className)};
-		}
-		export default ${className};
-		`;
+		return replaceFileContents(
+			'../templates/js_class_template.txt',
+			{
+				'%CLASSNAME%': className,
+				'%ID%': `'${className}'`,
+				'%ACTIONS_MAP%': 'actionsMap',
+				'%STATES_MAP%': 'statesMap',
+				'%GET_STATE%': this.getGetStateFunc().toString(),
+				'%HAS_STATE%': this.getHasStateFunc(className).toString(),
+				'%GET_ACTION%': this.getGetActionFunc().toString(),
+				'%CREATE_ACTION%': this.getCreateActionFunc(className).toString(),
+				'%STATE%': (stateValue ?? -1).toString(),
+				'%CONTEXT%': JSON.stringify(initialContext),
+				'%REDUCER%': this.getRootReducer().toString(),
+				'%S_VALIDATOR%': this.getStateValidator().toString(),
+				'%A_VALIDATOR%': this.getActionValidator().toString(),
+				'%F_REGISTRY%': 'functionDictionary',
+				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
+			},
+		);
 	}
 
 	protected getHasStateFunc(className: string) {
@@ -228,8 +228,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				throw new Error('Invalid state');
 			}
 
-			return `${stateValue}: (prevContext, payload) => {
-
+			return `${stateValue}: (prevContext, payload, functionDictionary) => {
+	
 				return ${this.getContextTransition(stateValue)}
 			}`;
 		});
@@ -294,7 +294,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload)};
+					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
 	}
 

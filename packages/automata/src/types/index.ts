@@ -1,3 +1,5 @@
+import { IAutomataFunctionRegistry } from './interfaces';
+
 export type TAutomataBaseStateType = number;
 export type TAutomataBaseActionType = number;
 export type TAutomataBaseEventType = number;
@@ -114,6 +116,7 @@ export type TAutomataParams<
 	actionValidator?: TValidator<ActionType>;
 	eventValidator?: TValidator<EventType>;
 	eventMetaValidator?: TValidator<EventMetaType>;
+	functionRegistry?: IAutomataFunctionRegistry;
 	enabled?: boolean;
 	paused?: boolean;
 };
@@ -166,3 +169,5 @@ export type TEventBusHandler<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = (event: TAutomataEventMetaType<EventType, EventMetaType>) => TEventBusTask<EventType, EventMetaType>;
+
+export type TAutomataFunction = ((...args: any) => any) | null;
