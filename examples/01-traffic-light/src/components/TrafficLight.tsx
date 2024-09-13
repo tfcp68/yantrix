@@ -5,9 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import TLA from '@/generated/TrafficLightAutomata';
 import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux/store';
+import { useFSM } from '@yantrix/redux';
 
 export function TrafficLight() {
 	const { context, state } = useAppSelector(state => state);
+	const FSM = useFSM({
+		Automata: TLA,
+		id: TLA.id,
+	});
 	const dispatch = useAppDispatch();
 
 	const onSwitch = () => dispatch(switchLight());
@@ -19,15 +24,15 @@ export function TrafficLight() {
 				<Card className="w-24 p-3 space-y-3 bg-black border-zinc-800">
 					<div className="flex flex-col items-center space-y-2">
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							state && [TLA.getState('Red'), TLA.getState('RedYellow')].includes(state) ? 'bg-red-500' : 'bg-red-950'
+							state && [FSM.getState('Red'), FSM.getState('RedYellow')].includes(state) ? 'bg-red-500' : 'bg-red-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							state && [TLA.getState('Yellow'), TLA.getState('RedYellow')].includes(state) ? 'bg-yellow-500' : 'bg-yellow-950'
+							state && [FSM.getState('Yellow'), FSM.getState('RedYellow')].includes(state) ? 'bg-yellow-500' : 'bg-yellow-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							TLA.getState('Green') === state ? 'bg-green-500' : 'bg-green-950'
+							FSM.getState('Green') === state ? 'bg-green-500' : 'bg-green-950'
 						}`}
 						/>
 					</div>

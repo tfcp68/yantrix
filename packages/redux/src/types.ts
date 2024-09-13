@@ -1,11 +1,11 @@
 import {
 	CaseReducer,
+	createSlice,
 	Dispatch,
 	PayloadAction,
 	SliceSelectors,
 	UnknownAction,
 	ValidateSliceCaseReducers,
-	createSlice,
 } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 
@@ -65,3 +65,8 @@ export type TAutomataTypeStaticMethods = {
 
 export type TAutomataWithStaticMethods = typeof GenericAutomata
 	& TAutomataTypeStaticMethods;
+
+export type TUseFSMProps = {
+	Automata: TAutomataWithStaticMethods;
+	id?: string;
+};

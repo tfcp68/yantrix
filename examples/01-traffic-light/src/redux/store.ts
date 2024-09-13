@@ -1,12 +1,18 @@
+import TLA from '@/generated/TrafficLightAutomata';
 import { configureStore } from '@reduxjs/toolkit';
 import { createFSMSlice } from '@yantrix/redux';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import TLA from '@/generated/TrafficLightAutomata';
 
 const { reducer, actions } = createFSMSlice({
 	Fsm: TLA,
 	name: TLA.id,
-	contextToRedux: context => ({ ...context, counter: 0 }),
+	contextToRedux: context => ({
+		...context,
+		counter: 0,
+		redColorOn: ['Red', 'RedYellow'].includes(context.state),
+		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
+		greenColorOn: ['Green'].includes(context.state),
+	}),
 });
 
 export const store = configureStore({ reducer });

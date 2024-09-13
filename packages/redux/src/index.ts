@@ -1,14 +1,14 @@
-import { Dispatch, combineReducers, configureStore } from '@reduxjs/toolkit';
+import { Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
-import GamePhaseTest from '../__tests__/fixtures/GamePhaseAutomataTest';
-import { createFSMSlice } from './slice/slice';
-import { TActionGenerator, TAutomataId, TReduxConnectedAutomata, TStateFSMSlice } from './types.js';
+import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
+
+export * from './hooks/useFSM.js';
+export * from './slice/slice.js';
 
 export * from './slice/slice.js';
 export * from './types.js';
 
-export * from './slice/slice.js';
 export * from './types.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
@@ -62,25 +62,24 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	return [automata.basicAutomata, automata.dispatch] as const;
 };
 
-const { actions, name, reducer, selectors } = createFSMSlice({
-	name: GamePhaseTest.id,
-	Fsm: GamePhaseTest,
-	contextToRedux: (context: any) => ({
-		counter: context.counter,
-		redColorOn: ['Red', 'RedYellow'].includes(context.state),
-		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
-		greenColorOn: ['Green'].includes(context.state),
-	}),
-	selectors: {
-		state: (sliceState): TStateFSMSlice['state'] => sliceState.state,
-		context: (sliceState): TStateFSMSlice['context'] => sliceState.context,
-	},
-});
-
-const store = configureStore({
-	reducer: combineReducers({
-		[name]: reducer,
-	}),
-});
-console.log(actions, selectors);
-store.dispatch(actions.RESET({}));
+// const { actions, name, reducer } = createFSMSlice({
+// 	name: GamePhaseTest.id,
+// 	Fsm: GamePhaseTest,
+// 	contextToRedux: (context: any) => ({
+// 		counter: context.counter,
+// 		redColorOn: ['Red', 'RedYellow'].includes(context.state),
+// 		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
+// 		greenColorOn: ['Green'].includes(context.state),
+// 	}),
+// 	selectors: {
+// 		state: (sliceState): TStateFSMSlice['state'] => sliceState.state,
+// 		context: (sliceState): TStateFSMSlice['context'] => sliceState.context,
+// 	},
+// });
+//
+// const store = configureStore({
+// 	reducer: combineReducers({
+// 		[name]: reducer,
+// 	}),
+// });
+// store.dispatch(actions.RESET({}));
