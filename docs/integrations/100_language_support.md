@@ -27,8 +27,8 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | JS/TS    | Array         | List         |
 | JS/TS    | Object        | Object       |
 | Python   | String        | String       |
-| Python   | ??            | Number       |
-| Python   | ??            | List         |
+| Python   | int/float     | Number       |
+| Python   | list          | List         |
 | Python   | Dictionary    | Object       |
 | Java     | String        | String       |
 | Java     | Long          | Number       |
