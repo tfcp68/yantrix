@@ -1,4 +1,5 @@
 import mermaid from 'mermaid';
+import { BlankInputError, InvalidInputError } from './errors/sequenceErrors.js';
 import {
 	arrowTypes,
 	TActivationsDict,
@@ -12,7 +13,6 @@ import {
 	TSeqTypes,
 	TSequenceMermaidGraphDict,
 } from './types/index.js';
-import { BlankInputError, InvalidInputError } from './errors/sequenceErrors.js';
 
 /**
  * @brief Function that parses a diagram;
@@ -26,7 +26,9 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
 	try {
 		mermaid.mermaidAPI.setConfig({ ...mermaid.mermaidAPI.defaultConfig });
 		await mermaid.mermaidAPI.initialize();
-		const diagram = await mermaid.mermaidAPI.getDiagramFromText(diagramText);
+		const diagram = await mermaid.mermaidAPI.getDiagramFromText(
+			diagramText,
+		);
 
 		// @ts-expect-error IMPLEMENTATION BUG
 		const parsedArray: any = diagram.db.getMessages();
@@ -39,7 +41,7 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
 		const parsedOtherElements: TParsedOtherElementsArray = [];
 
 		for (let i = 0; i < parsedArray.length; i++) {
-			if (arrowTypes.indexOf(parsedArray[i].type) !== -1) {
+			if (arrowTypes.includes(parsedArray[i].type)) {
 				parsedMessages.push(parsedArray[i]);
 			} else if (parsedArray[i].type === TSeqTypes.Note) {
 				parsedNotes.push(parsedArray[i]);
@@ -48,7 +50,10 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
 			}
 		}
 
-		const parsedActivations: TActivationsDict = getActivations(parsedArray, parsedActors);
+		const parsedActivations: TActivationsDict = getActivations(
+			parsedArray,
+			parsedActors,
+		);
 
 		const parsedDiagram: TParsedDiagramDict = {
 			messages: parsedMessages,
@@ -76,7 +81,10 @@ async function diagramParser(diagramText: string): Promise<TParsedDiagramDict> {
  * @param actors - array of diagram actors and participants;
  * @returns Returns a dictionary of messages links.
  */
-function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray): TMessagesDict {
+function getMessages(
+	parsedMessages: TParsedMessagesArray,
+	actors: TActorsArray,
+): TMessagesDict {
 	const messages: TMessagesDict = {};
 
 	for (let i = 0; i < actors.length; i++) {
@@ -118,7 +126,10 @@ function getMessages(parsedMessages: TParsedMessagesArray, actors: TActorsArray)
  * @param actors - array of diagram actors and participants;
  * @returns Returns a dictionary of notes from the sequence diagram.
  */
-function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): TNotesDict {
+function getNotes(
+	parsedMessages: TParsedMessagesArray,
+	actors: TActorsArray,
+): TNotesDict {
 	const notes: TNotesDict = {};
 
 	for (let i = 0; i < actors.length; i++) {
@@ -160,7 +171,10 @@ function getNotes(parsedMessages: TParsedMessagesArray, actors: TActorsArray): T
  * @param actors - array of diagram actors and participants;
  * @returns Returns a dictionary of activation messages from the sequence diagram.
  */
-function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDict {
+function getActivations(
+	parsedArray: any,
+	actors: TActorsArray,
+): TActivationsDict {
 	const activate: TActivationsDict = {};
 	for (let i = 0; i < actors.length; i++) {
 		const elementI = actors[i];
@@ -176,9 +190,11 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
 			activate[currentActor]?.push([]);
 			const len = activate[currentActor]!.length - 1;
 			for (let j = i - 1; j < parsedArray.length; j++) {
-				if (arrowTypes.includes(parsedArray[j].type) && parsedArray[j].from === currentActor) {
+				if (arrowTypes.includes(parsedArray[j].type)
+					&& parsedArray[j].from === currentActor) {
 					activate[currentActor]![len]?.push(parsedArray[j].message);
-				} else if (parsedArray[j].type === TSeqTypes.Deactivate && parsedArray[j].from === currentActor) {
+				} else if (parsedArray[j].type === TSeqTypes.Deactivate
+					&& parsedArray[j].from === currentActor) {
 					parsedArray[j].type = -1;
 					break;
 				}
@@ -193,7 +209,9 @@ function getActivations(parsedArray: any, actors: TActorsArray): TActivationsDic
  * @param parsedDiagram - a primary diagram dictionary;
  * @returns Returns dictionary with information from the diagram.
  */
-function markGraph(parsedDiagram: TParsedDiagramDict): TSequenceMermaidGraphDict {
+function markGraph(
+	parsedDiagram: TParsedDiagramDict,
+): TSequenceMermaidGraphDict {
 	const messagesArray: TParsedMessagesArray = parsedDiagram.messages;
 	const actorsArray: TActorsArray = parsedDiagram.actors;
 	const notesArray: TParsedNotesArray = parsedDiagram.notes;
@@ -215,9 +233,13 @@ function markGraph(parsedDiagram: TParsedDiagramDict): TSequenceMermaidGraphDict
  * @param diagramText - diagram [string];
  * @returns Returns dictionary with information from the diagram.
  */
-export async function parseSequenceDiagram(diagramText: string): Promise<TSequenceMermaidGraphDict> {
+export async function parseSequenceDiagram(
+	diagramText: string,
+): Promise<TSequenceMermaidGraphDict> {
 	const parsedDiagram: TParsedDiagramDict = await diagramParser(diagramText);
-	const sequenceMermaidGraph: TSequenceMermaidGraphDict = markGraph(parsedDiagram);
+	const sequenceMermaidGraph: TSequenceMermaidGraphDict = markGraph(
+		parsedDiagram,
+	);
 
 	return sequenceMermaidGraph;
 }
