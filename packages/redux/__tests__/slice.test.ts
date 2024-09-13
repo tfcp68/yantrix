@@ -1,5 +1,5 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import { createFSMSlice } from '../src';
 import GamePhaseTest from './fixtures/GamePhaseAutomataTest';
 
@@ -28,5 +28,25 @@ describe('createFSMSlice test', () => {
 		const currState = store.getState()[name]?.state;
 
 		expect(validateState(currState)).toBeTruthy();
+	});
+
+	it('selectors from context', () => {
+		const propertyToContext = {
+			counter: 0,
+			property: false,
+		};
+
+		const { getSelectors } = createFSMSlice({
+			name: GamePhaseTest.id,
+			Fsm: GamePhaseTest,
+			contextToRedux: context => ({
+				...context,
+				...propertyToContext,
+			}),
+		});
+
+		Object.keys(propertyToContext).forEach((property) => {
+			assert.include(Object.keys(getSelectors()), property, 'selectors include properties');
+		});
 	});
 });

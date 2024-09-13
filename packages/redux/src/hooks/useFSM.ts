@@ -1,11 +1,11 @@
 import { TAutomataWithStaticMethods, TUseFSMProps } from '../types';
 
+const automatas: Record<string, TAutomataWithStaticMethods> = {};
+
 export const useFSM = ({
 	Automata,
 	id,
 }: TUseFSMProps) => {
-	const automatas: Record<string, TAutomataWithStaticMethods> = {};
-
 	let _fsm = Automata;
 
 	if (id) {
@@ -16,6 +16,8 @@ export const useFSM = ({
 			_fsm = automatas[id];
 		}
 	}
+
+	const getInstanceAutomata = () => new _fsm();
 
 	const { state, getContext, dispatch } = new _fsm();
 
@@ -29,5 +31,6 @@ export const useFSM = ({
 		states,
 		getAction,
 		getState,
+		getInstanceAutomata,
 	};
 };
