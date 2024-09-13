@@ -13,7 +13,7 @@ import {
 	TAutomataStateContext,
 } from './types/index.js';
 
-import { IAutomata, IAutomataEventAdapter } from './types/interfaces.js';
+import { IAutomata, IAutomataEventAdapter, IAutomataFunctionRegistry } from './types/interfaces.js';
 
 export function createAutomata<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
@@ -40,6 +40,7 @@ export function createAutomata<
 			#enabled = true;
 			#paused = false;
 			#rootReducer: TAutomataReducer<StateType, ActionType, ContextType, PayloadType> | null = null;
+			#functionRegistry: IAutomataFunctionRegistry | null = null;
 
 			constructor(
 				eventAdapter: IAutomataEventAdapter<
@@ -128,6 +129,7 @@ export function createAutomata<
 					stateValidator,
 					eventValidator,
 					actionValidator,
+					functionRegistry,
 				} = params;
 				if (rootReducer == null)
 					this.#rootReducer = null;
@@ -136,6 +138,11 @@ export function createAutomata<
 				else throw new Error(`Invalid Root Reducer supplied: ${rootReducer}`);
 				if (!this.validateState(state))
 					throw new Error(`Invalid initial State: ${state}`);
+				if (functionRegistry == null) {
+					this.#functionRegistry = null;
+				} else {
+					this.#functionRegistry = functionRegistry;
+				}
 				this.#actionQueue = [];
 				this.#enabled = enabled;
 				this.#paused = paused;
@@ -275,6 +282,15 @@ export function createAutomata<
 				if (!Array.isArray(queue))
 					throw new Error(`Invalid Action Queue: ${queue}`);
 				this.#actionQueue = queue;
+				return this;
+			};
+
+			getFunctionRegistry(): IAutomataFunctionRegistry | null {
+				return this.#functionRegistry;
+			}
+
+			setFunctionRegistry: (registry: IAutomataFunctionRegistry | null) => this = (registry = null) => {
+				this.#functionRegistry = registry;
 				return this;
 			};
 		};
