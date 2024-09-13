@@ -5,37 +5,25 @@ import { IAutomataFunctionRegistry } from './types/interfaces';
  * Implementation of {@link IAutomataFunctionRegistry}, where functions are stored in a map.
  *
  * Has strict requirements for registering new functions, overwrites are not possible.
- *
- * One {@link FunctionDictionary} singleton can be created per slice.
  */
 export class FunctionDictionary implements IAutomataFunctionRegistry {
-	static _instance: FunctionDictionary | null;
-
 	private functions: Record<string, TAutomataFunction>;
 
-	private constructor() {
-		this.functions = {};
+	constructor(functions?: Record<string, TAutomataFunction>) {
+		this.functions = functions ?? {};
 	}
 
-	static getInstance(): FunctionDictionary {
-		if (this._instance == null) {
-			this._instance = new FunctionDictionary();
+	register(f: string | Record<string, TAutomataFunction>, callback?: TAutomataFunction): Record<string, TAutomataFunction> {
+		if (typeof f === 'string' && callback != null) {
+			return this.registerSingleFunction(f, callback);
+		} else if (typeof f === 'object') {
+			return this.registerMultipleFunctions(f);
+		} else {
+			throw new TypeError('Incorrect arguments');
 		}
-		return this._instance;
 	}
 
-	static clearInstance() {
-		this._instance = null;
-	}
-
-	/**
-	 * @throw Will throw an error if:
-	 *
-	 * 1). Name is not valid (valid name starts with a letter, has length 1-255 and does not contain any special symbols).
-	 *
-	 * 2). Name is already taken. Function cannot be registered under an already existing name to prevent overwriting of the basic built-in functions.
-	 */
-	register(functionKey: string, callback: TAutomataFunction): TAutomataFunction {
+	private registerSingleFunction(functionKey: string, callback: TAutomataFunction): Record<string, TAutomataFunction> {
 		if (functionKey.length < 1 || functionKey.length > 255) {
 			throw new Error(`Function key length must be between 1-255 symbols!`);
 		}
@@ -47,30 +35,14 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		}
 
 		this.functions[functionKey] = callback;
-		return callback;
+		return { [functionKey]: callback };
 	}
 
-	/**
-	 * Register multiple functions in the dictionary.
-	 *
-	 * @param functionMap - map of functions to register
-	 * @returns map of all registered functions
-	 */
-	registerMultiple(
+	private registerMultipleFunctions(
 		functionMap: Record<string, TAutomataFunction>,
-		overwrite: boolean,
 	): Record<string, TAutomataFunction> {
-		// временный костыль для тестов
-		if (overwrite) {
-			this.functions = Object.assign(this.functions, functionMap);
-		} else {
-			Object.entries(functionMap).forEach(([name, callback]) => this.register(name, callback));
-		}
+		Object.entries(functionMap).forEach(([name, callback]) => this.registerSingleFunction(name, callback));
 		return functionMap;
-	}
-
-	clear() {
-		this.functions = {};
 	}
 
 	has(functionKey: string) {
@@ -78,9 +50,6 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		return func !== undefined;
 	}
 
-	/**
-	 * @throws Will throw an error if the function is not found by the specified key.
-	 */
 	get(functionKey: string): TAutomataFunction {
 		const func = this.functions[functionKey];
 		if (func)
@@ -88,15 +57,12 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		else throw new Error(`Function with the key ${functionKey} not found!`);
 	}
 
-	/**
-	 * @throws Will throw an error if:
-	 *
-	 * 1). Function is not found by the specified key.
-	 *
-	 * 2). Arguments for the function are incorrect(as specified in their implementation).
-	 */
 	call(functionKey: string, ...args: any[]) {
 		const func = this.get(functionKey)!;
 		return func(...args);
+	}
+
+	clear() {
+		this.functions = {};
 	}
 }
