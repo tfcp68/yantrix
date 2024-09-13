@@ -152,8 +152,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			static getAction = ${this.getGetActionFunc()};
 			static createAction = ${this.getCreateActionFunc(className)};
 
-			#functionRegistry = {};
-
 			constructor() {
 				super();
 				this.init({
@@ -162,16 +160,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					rootReducer: ${this.getRootReducer()},
 					stateValidator: ${this.getStateValidator()},
 					actionValidator: ${this.getActionValidator()},
+					functionRegistry: functionDictionary,
 				});
-				this.setFunctionRegistry(functionDictionary);
-			}
-
-			getFunctionRegistry() {
-				return this.functionRegistry;
-			}
-
-			setFunctionRegistry(registry) {
-				this.functionRegistry = registry;
 			}
 
 			isKeyOf = ${this.getIsKeyOf()};
