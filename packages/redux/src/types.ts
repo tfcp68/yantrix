@@ -1,13 +1,13 @@
-import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import {
 	CaseReducer,
+	createSlice,
 	Dispatch,
 	PayloadAction,
 	SliceSelectors,
 	UnknownAction,
 	ValidateSliceCaseReducers,
-	createSlice,
 } from '@reduxjs/toolkit';
+import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 
 export type TActionGenerator = (
 	automataStateContext: TAutomataStateContext<number, Record<number, any>>,

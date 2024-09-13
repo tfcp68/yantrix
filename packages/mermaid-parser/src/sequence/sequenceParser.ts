@@ -1,5 +1,6 @@
 import mermaid from 'mermaid';
 import {
+	arrowTypes,
 	TActivationsDict,
 	TActorsArray,
 	TMessagesDict,
@@ -9,9 +10,7 @@ import {
 	TParsedNotesArray,
 	TParsedOtherElementsArray,
 	TSeqTypes,
-
 	TSequenceMermaidGraphDict,
-	arrowTypes,
 } from './types/index.js';
 
 /**

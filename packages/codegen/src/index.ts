@@ -1,12 +1,12 @@
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
-import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
 import { CodegenCreator } from './core/Codegen.js';
-
-export * from './core/modules/index.js';
-export * from './types/common.js';
+import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
 
 export * from './builtins/index.js';
+export * from './core/modules/index.js';
+
+export * from './types/common.js';
 
 export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<string> {
 	const { states, transitions } = diagram;

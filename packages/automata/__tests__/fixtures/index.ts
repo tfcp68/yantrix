@@ -1,6 +1,6 @@
 import { isPositiveInteger } from '@yantrix/utils';
-import { IAutomata, IAutomataEventAdapter } from '../../src/types/interfaces.js';
 import { TAutomataReducer } from '../../src/types/index.js';
+import { IAutomata, IAutomataEventAdapter } from '../../src/types/interfaces.js';
 
 export type TTestEvent = number;
 export type TTestAction = number;

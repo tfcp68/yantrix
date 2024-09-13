@@ -1,5 +1,5 @@
 {
-	"name": "@yantrix/automata-redux",
+	"name": "@yantrix/redux",
 	"type": "module",
 	"version": "0.0.1",
 	"description": "Redux automata integration for Redux",
@@ -41,13 +41,13 @@
 		"test": "__tests__"
 	},
 	"dependencies": {
+		"@reduxjs/toolkit": "^2.2.7",
+		"@yantrix/automata": "workspace:^",
 		"@yantrix/cli": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
 		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {
-		"@reduxjs/toolkit": "^2.2.7",
-		"@yantrix/automata": "workspace:^",
 		"tsx": "^4.19.0"
 	}
 }

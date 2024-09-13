@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { describe, expect, it } from 'vitest';
 import { createFSMSlice } from '../src/slice/slice';
 import GamePhaseTest from './fixtures/GamePhaseAutomataTest';
 

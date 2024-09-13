@@ -1,7 +1,7 @@
-import { JavaScriptCodegen } from './JavaScript.js';
-import { TypeScriptCodegen } from './TypeScript.js';
-import { PythonCodegen } from './Python.js';
 import { JavaCodegen } from './Java.js';
+import { JavaScriptCodegen } from './JavaScript.js';
+import { PythonCodegen } from './Python.js';
+import { TypeScriptCodegen } from './TypeScript.js';
 
 export const ModuleNames = {
 	JavaScript: 'JavaScript',

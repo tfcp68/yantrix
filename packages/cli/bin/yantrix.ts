@@ -1,10 +1,10 @@
 import path, { dirname } from 'node:path';
+import { generateAutomataFromStateDiagram, Modules } from '@yantrix/codegen';
+import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Command, Option } from 'commander';
 import fs from 'fs-extra';
-import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { Modules, generateAutomataFromStateDiagram } from '@yantrix/codegen';
-import pc from 'picocolors';
 import { isString } from 'lodash-es';
+import pc from 'picocolors';
 
 interface ICodegenOptions {
 	language: keyof typeof Modules;

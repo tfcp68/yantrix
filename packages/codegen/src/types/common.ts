@@ -1,5 +1,5 @@
-import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
+import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { ModuleNames, Modules } from '../core/modules/index.js';
 
 export type TStateDiagramMatrixIncludeNotes = {

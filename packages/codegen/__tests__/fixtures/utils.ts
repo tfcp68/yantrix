@@ -1,9 +1,9 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import fs from 'node:fs';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { ensureDir } from 'fs-extra';
-import { TOutLang, generateAutomataFromStateDiagram } from '../../src';
+import { generateAutomataFromStateDiagram, TOutLang } from '../../src';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
