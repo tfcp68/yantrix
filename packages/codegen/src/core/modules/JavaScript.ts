@@ -39,6 +39,8 @@ function getDefaultPropertyContext(path: string, indetifier: string, expression?
 					}())`;
 }
 
+// const parser = new YantrixParser();
+
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
@@ -216,10 +218,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}`;
 	}
 
-	public getActionToStateFromState() {
-		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
-	}
-
 	getStateToContext() {
 		return this.diagram.states.map((state) => {
 			const stateValue = this.stateDictionary.getStateValues({ keys: [state.id] })[0];
@@ -233,28 +231,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				return ${this.getContextTransition(stateValue)}
 			}`;
 		});
-	}
-
-	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object
-			.entries(transitions)
-			.map(([key, transition]) => {
-				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return transition.actionsPath.map(({ action }) => {
-					const actionValue = this.actionDictionary.getActionValues({
-						keys: action,
-					})[0];
-					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${key} not found`);
-
-					return `
-				  ${actionValue}: {
-				  	state: ${newState},
-				  },
-				`;
-				});
-			})
-			.flatMap(el => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf() {
@@ -285,7 +261,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if (!action || payload === null) return { state, context };
 					${this.getRootReducerStateValidation()}
 					${this.getRootReducerActionValidation()}
-					const {state:newState} = actionToStateFromStateDict[state][action]
+
+					const actionMove = actionToStateFromStateDict[state][action];
+					const newStateObject = { state: actionMove.state[0] }
+					if(actionMove.state.length == 2 && actionMove.predicate != null) {
+						// determine new state from predicate
+					}
+					const newState = newStateObject.state;
 
 					const contextWithInitial = getDefaultContext(context,payload)
 
@@ -423,13 +405,74 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
 
-	protected getActionToStateFromStateDict() {
-		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
-			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-			if (!value) throw new Error(`State ${state} not found`);
+	public getActionToStateFromState() {
+		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
+	}
 
-			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
+	protected getActionToStateFromStateDict() {
+		return Object.entries(this.diagram.transitions).map(([currentState, transitions]) => {
+			const value = this.stateDictionary.getStateValues({ keys: [currentState] })[0];
+			if (!value) throw new Error(`State ${currentState} not found`);
+
+			return `${value}: {${this.getActionToStateDict(value, transitions).concat('\n\t')}},`;
 		});
+	}
+
+	getActionToStateDict(currentState: number, transitions: Record<string, TDiagramAction>) {
+		const { action, states } = Object
+			.entries(transitions)
+			.flatMap(([key, transition]) => {
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+				return transition.actionsPath.map(({ action }) => {
+					const actionValue = this.actionDictionary.getActionValues({
+						keys: action,
+					})[0];
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
+					return {
+						action: actionValue,
+						state: newState,
+					};
+				});
+			})
+			.reduce(
+				(accum, currentValue) => {
+					accum.action = currentValue.action;
+					accum.states.push(currentValue.state);
+					return accum;
+				},
+				{
+					action: 0,
+					states: [] as number[],
+				},
+			);
+		const predicateString = (states.length > 1) ? `predicate: predicates[${currentState}][${action}]` : '';
+		return `
+				${action}: {
+					state: [${states}],
+					${predicateString}
+				}
+		`;
+
+		// const test = Object
+		// 	.entries(transitions)
+		// 	.map(([key, transition]) => {
+		// 		const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+		// 		return transition.actionsPath.map(({ action }) => {
+		// 			const actionValue = this.actionDictionary.getActionValues({
+		// 				keys: action,
+		// 			})[0];
+		// 			if (!actionValue) throw new Error(`Action ${action} not found`);
+		// 			if (!newState) throw new Error(`State ${key} not found`);
+
+		// 				return `
+		// 		${actionValue}: {
+		// 			state: ${newState},
+		// 		},
+		// 				`;
+		// 		});
+		// 	});
+		// return test.flatMap(el => `${el.join('\n\t')}`);
 	}
 
 	protected getContextTransition = (value: number) => {
