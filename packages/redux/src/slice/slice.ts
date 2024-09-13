@@ -1,5 +1,11 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
+import {
+	TAutomataWithStaticMethods,
+	TCreateFSMSliceOptions,
+	TCreateFSMSlicerReturned,
+	TSelectorsFromContext,
+	TStateFSMSlice,
+} from '../types';
 
 /**
  * Функция для создания обертки над redux slice.
@@ -21,11 +27,11 @@ export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
 	};
 
 	if (contextToRedux) {
-		const selectorsFromContext = Object.entries(contextToRedux(initialState)).reduce((acc, item) => {
+		const selectorsFromContext = Object.entries(contextToRedux(initialState)).reduce<TSelectorsFromContext>((acc, item) => {
 			acc[item[0]] = (sliceState: TStateFSMSlice) => sliceState.context[item[0]];
-
 			return acc;
-		}, {} as any);
+		}, {});
+
 		selectorsSlice = Object.assign(selectorsSlice, selectorsFromContext);
 	}
 

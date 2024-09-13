@@ -65,3 +65,5 @@ export type TAutomataTypeStaticMethods = {
 
 export type TAutomataWithStaticMethods = typeof GenericAutomata
 	& TAutomataTypeStaticMethods;
+
+export type TSelectorsFromContext = Record<string, (sliceState: TStateFSMSlice) => TStateFSMSlice['context']>;
