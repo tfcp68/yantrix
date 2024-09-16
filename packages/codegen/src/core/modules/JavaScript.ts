@@ -55,7 +55,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
-		'@yantrix/codegen': ['builtInFunctions'],
+		'@yantrix/functions': ['builtInFunctions'],
 	};
 
 	constructor({ diagram, constants }: TModuleParams) {
@@ -102,8 +102,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
-		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 
+		this.dictionaries.push();
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
 	}
@@ -144,7 +144,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		const initialContext = Object.assign({}, a, b);
 
 		return replaceFileContents(
-			'../templates/js_class_template.txt',
+
 			{
 				'%CLASSNAME%': className,
 				'%ID%': `'${className}'`,
@@ -323,6 +323,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
 			const { FunctionName, Arguments } = expression.FunctionDeclaration;
+
+			this.imports['@yantrix/functions'].push(FunctionName);
 
 			if (!this.dependencyGraph.has(currentFunc)) {
 				this.dependencyGraph.set(currentFunc, new Set());
