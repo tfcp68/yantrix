@@ -13,6 +13,7 @@ import {
 	SliceSelectors,
 	UnknownAction,
 	ValidateSliceCaseReducers,
+	createSlice,
 } from '@reduxjs/toolkit';
 
 export type TActionGenerator = (
@@ -35,7 +36,7 @@ export type TCreateFSMSliceOptions<Automata extends TAutomata, StateType, Contex
 	= {
 		name: string;
 		Fsm: TClassConstructor<Automata>;
-		contextToRedux?: (context?: ContextType) => StateType;
+		contextToRedux?: (context: ContextType) => StateType;
 		reducerPath?: string;
 		selectors?: SliceSelectors<TStateFSMSlice<StateType>>;
 	};
@@ -50,6 +51,14 @@ export type TStateFSMSlice<StateType> = {
 	state: number | null;
 	context: StateType;
 };
+
+export type TCreateFSMSlicerReturned<
+	Actions extends string | number | symbol,
+	State,
+	Name extends string = string,
+	ReducerPath extends string = Name,
+	Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+> = ReturnType<typeof createSlice<State, TReducersFSMSlice<Actions, State>, Name, Selectors, ReducerPath>>;
 
 export type TClassConstructor<C extends TAutomata> = {
 	id: string;

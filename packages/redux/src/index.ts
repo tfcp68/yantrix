@@ -60,7 +60,7 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	return [automata.basicAutomata, automata.dispatch] as const;
 }
 
-// const {  name, reducer } = createFSMSlice({
+// const { actions, name, reducer } = createFSMSlice({
 // 	name: GamePhaseTest.id,
 // 	Fsm: GamePhaseTest,
 // 	contextToRedux: context => ({
@@ -71,7 +71,7 @@ export function useReduxAutomata(automataId: TAutomataId) {
 // 		counter: sliceState => sliceState.context.counter,
 // 	},
 // });
-
+//
 // const store = configureStore({
 // 	reducer: combineReducers({
 // 		[name]: reducer,
