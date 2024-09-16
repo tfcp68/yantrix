@@ -1,4 +1,11 @@
-import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
+import {
+	GenericAutomata,
+	IAutomata,
+	TAutomataBaseActionType,
+	TAutomataBaseEventType,
+	TAutomataBaseStateType,
+	TAutomataStateContext,
+} from '@yantrix/automata';
 import {
 	CaseReducer,
 	Dispatch,
@@ -6,7 +13,6 @@ import {
 	SliceSelectors,
 	UnknownAction,
 	ValidateSliceCaseReducers,
-	createSlice,
 } from '@reduxjs/toolkit';
 
 export type TActionGenerator = (
@@ -25,22 +31,14 @@ export type TConnectedAutomataOptions = {
 export type TReduxConnectedAutomata =
 	Record<TAutomataId, TConnectedAutomataOptions>;
 
-export type TCreateFSMSliceOptions<Automata, StateType, ContextType = object>
+export type TCreateFSMSliceOptions<Automata extends TAutomata, StateType, ContextType = object>
 	= {
 		name: string;
-		Fsm: Automata;
-		contextToRedux?: (context?: ContextType) => any;
+		Fsm: TClassConstructor<Automata>;
+		contextToRedux?: (context?: ContextType) => StateType;
 		reducerPath?: string;
-		selectors?: SliceSelectors<StateType>;
+		selectors?: SliceSelectors<TStateFSMSlice<StateType>>;
 	};
-
-export type TCreateFSMSlicerReturned<
-	Actions extends string | number | symbol,
-	State,
-	Name extends string = string,
-	ReducerPath extends string = Name,
-	Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> = ReturnType<typeof createSlice<State, TReducersFSMSlice<Actions, State>, Name, Selectors, ReducerPath>>;
 
 export type TReducersFSMSlice<Actions extends string | number | symbol, State>
 	= ValidateSliceCaseReducers<
@@ -48,12 +46,12 @@ export type TReducersFSMSlice<Actions extends string | number | symbol, State>
 		Record<Actions, CaseReducer<State, PayloadAction<Partial<State>>>>
 	>;
 
-export type TStateFSMSlice = {
+export type TStateFSMSlice<ContextType> = {
 	state: number | null;
-	context: any;
+	context: ContextType;
 };
 
-export type TAutomataTypeStaticMethods = {
+export interface IAutomataTypeStaticMethods {
 	id: string;
 	actions: Record<string, string>;
 	states: Record<string, string>;
@@ -63,7 +61,25 @@ export type TAutomataTypeStaticMethods = {
 	createAction: (action: any, payload: any) => any;
 };
 
-export type TAutomataWithStaticMethods = typeof GenericAutomata
-	& TAutomataTypeStaticMethods;
+export type TAutomataWithStaticMethods = TAutomata
+	& IAutomataTypeStaticMethods;
 
-export type TSelectorsFromContext = Record<string, (sliceState: TStateFSMSlice) => TStateFSMSlice['context']>;
+export type TClassConstructor<C extends TAutomata> = {
+	id: string;
+	actions: Record<string, string>;
+	states: Record<string, string>;
+	getState: (state: any) => any;
+	hasState: (instance: any, state: any) => boolean;
+	getAction: (action: any) => any;
+	createAction: (action: any, payload: any) => any;
+	new (...args: any[]): C;
+};
+
+export type TAutomata = IAutomata<
+	TAutomataBaseStateType,
+	TAutomataBaseActionType,
+	TAutomataBaseEventType,
+	Record<TAutomataBaseStateType, any>,
+	Record<TAutomataBaseActionType, any>,
+	Record<TAutomataBaseEventType, any>
+>;
