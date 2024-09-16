@@ -46,32 +46,22 @@ export type TReducersFSMSlice<Actions extends string | number | symbol, State>
 		Record<Actions, CaseReducer<State, PayloadAction<Partial<State>>>>
 	>;
 
-export type TStateFSMSlice<ContextType> = {
+export type TStateFSMSlice<StateType> = {
 	state: number | null;
-	context: ContextType;
+	context: StateType;
 };
-
-export interface IAutomataTypeStaticMethods {
-	id: string;
-	actions: Record<string, string>;
-	states: Record<string, string>;
-	getState: (state: any) => any;
-	hasState: (instance: any, state: any) => boolean;
-	getAction: (action: any) => any;
-	createAction: (action: any, payload: any) => any;
-};
-
-export type TAutomataWithStaticMethods = TAutomata
-	& IAutomataTypeStaticMethods;
 
 export type TClassConstructor<C extends TAutomata> = {
 	id: string;
 	actions: Record<string, string>;
 	states: Record<string, string>;
-	getState: (state: any) => any;
+	getState: (state: any) => number;
 	hasState: (instance: any, state: any) => boolean;
-	getAction: (action: any) => any;
-	createAction: (action: any, payload: any) => any;
+	getAction: (action: any) => number;
+	createAction: (action: any, payload: any) => {
+		action: number;
+		payload: any;
+	};
 	new (...args: any[]): C;
 };
 
