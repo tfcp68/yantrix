@@ -3,7 +3,7 @@
 
 
 			import { GenericAutomata, FunctionDictionary, TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/automata';
-import { builtInFunctions } from '@yantrix/codegen';
+import { builtInFunctions } from '@yantrix/functions';
 
 			export const statesDictionary = {
   "~~~START~~~": 74979334,
@@ -17,8 +17,8 @@ export const actionsDictionary = {
   "Reset (initialCounter=0)": 1011118777,
   "Switch": 1805606060
 }
-const reducer = {74979334: (prevContext, payload) => {
-
+const reducer = {74979334: (prevContext, payload, functionDictionary) => {
+	
 				return {counter: (function(){
 						const boundValue = (function(){
 						return functionDictionary.get('coalesce')((function(){
@@ -46,27 +46,28 @@ const reducer = {74979334: (prevContext, payload) => {
 
 					}())}
 			},
-	79183: (prevContext, payload) => {
-
+	79183: (prevContext, payload, functionDictionary) => {
+	
 				return prevContext
 			},
-	82033: (prevContext, payload) => {
-
+	82033: (prevContext, payload, functionDictionary) => {
+	
 				return prevContext
 			},
-	1051543483: (prevContext, payload) => {
-
+	1051543483: (prevContext, payload, functionDictionary) => {
+	
 				return prevContext
 			},
-	69066467: (prevContext, payload) => {
-
+	69066467: (prevContext, payload, functionDictionary) => {
+	
 				return prevContext
 			},
-	1650372460: (prevContext, payload) => {
-
+	1650372460: (prevContext, payload, functionDictionary) => {
+	
 				return prevContext
 			}}
-export const functionDictionary = new FunctionDictionary(builtInFunctions);
+export const functionDictionary = new FunctionDictionary();
+functionDictionary.register(builtInFunctions);
 			const actionsMap = {
   "Reset (initialCounter=0)": "Reset (initialCounter=0)",
   "Switch": "Switch"
@@ -80,6 +81,7 @@ export const functionDictionary = new FunctionDictionary(builtInFunctions);
   "Yellow": "Yellow"
 } as const
 			const getDefaultContext = (prevContext, payload) => {
+
 				const ctx = {counter: (function(){
 						const boundValue = (function(){
 						return functionDictionary.get('coalesce')((function(){
@@ -164,13 +166,30 @@ export const functionDictionary = new FunctionDictionary(builtInFunctions);
 				  	state: 79183,
 				  },
 				},}
-			export class TrafficLightAutomata extends GenericAutomata {
-  		 constructor() {
-  			super();
-  			this.init({
-  				state: 79183,
-  				context:{"counter":null},
-                rootReducer: ({ action, context, payload, state }) => {
+			
+export class TrafficLightAutomata extends GenericAutomata {
+
+    static id = 'TrafficLightAutomata';
+    static actions = actionsMap;
+    static states = statesMap;
+    static getState = (state: keyof typeof statesMap) => statesDictionary[state];
+    static hasState = (instance: TrafficLightAutomata, state: keyof typeof TrafficLightAutomata.states) => instance.state === TrafficLightAutomata.getState(state);
+    static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
+    static createAction = (action: keyof typeof actionsMap, payload:any) => {
+			const actionId = TrafficLightAutomata.getAction(action);
+			return {
+				action: actionId,
+				payload,
+			}
+		};
+
+    constructor() {
+        super();
+        this.init({
+            state: 79183,
+            context:{"counter":null},
+            rootReducer: ({ action, context, payload, state }) => {
+				debugger
 					if (!action || payload === null) return { state, context };
 					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")
 					if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
@@ -183,27 +202,16 @@ export const functionDictionary = new FunctionDictionary(builtInFunctions);
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload)};
+					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				},
-  				stateValidator: ((s) => Object.values(statesDictionary).includes(s)) as TValidator<TAutomataBaseStateType>,
-  				actionValidator: ((a) => Object.values(actionsDictionary).includes(a)) as TValidator<TAutomataBaseActionType>,
-				});
-			}
-			isKeyOf = ((key, obj) => key in obj) as (key: any, obj: object) => key is keyof typeof obj;
-			static id = 'TrafficLightAutomata';
-			static actions = actionsMap;
-			static states = statesMap;
-			static getState = (state: keyof typeof statesMap) => statesDictionary[state];
-			static hasState = (instance: TrafficLightAutomata, state: keyof typeof TrafficLightAutomata.states) => instance.state === TrafficLightAutomata.getState(state);
-			static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
-			static createAction = (action: keyof typeof actionsMap, payload:any) => {
-			const actionId = TrafficLightAutomata.getAction(action);
-			return {
-				action: actionId,
-				payload,
-			}
-		};
-		}
-		export default TrafficLightAutomata;
-		
+            stateValidator: ((s) => Object.values(statesDictionary).includes(s)) as TValidator<TAutomataBaseStateType>,
+            actionValidator: ((a) => Object.values(actionsDictionary).includes(a)) as TValidator<TAutomataBaseActionType>,
+            functionRegistry: functionDictionary,
+        });
+    }
+
+    isKeyOf = ((key, obj) => key in obj) as (key: any, obj: object) => key is keyof typeof obj;
+}
+
+export default TrafficLightAutomata;
 		
