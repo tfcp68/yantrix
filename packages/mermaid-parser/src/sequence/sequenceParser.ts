@@ -9,7 +9,6 @@ import {
 	TParsedNotesArray,
 	TParsedOtherElementsArray,
 	TSeqTypes,
-
 	TSequenceMermaidGraphDict,
 	arrowTypes,
 } from './types/index.js';
