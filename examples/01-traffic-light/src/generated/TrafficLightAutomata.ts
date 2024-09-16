@@ -67,7 +67,6 @@ const reducer = {74979334: (prevContext, payload, functionDictionary) => {
 				return prevContext
 			}}
 export const functionDictionary = new FunctionDictionary();
-functionDictionary.register(builtInFunctions);
 			const actionsMap = {
   "Reset (initialCounter=0)": "Reset (initialCounter=0)",
   "Switch": "Switch"
@@ -81,7 +80,6 @@ functionDictionary.register(builtInFunctions);
   "Yellow": "Yellow"
 } as const
 			const getDefaultContext = (prevContext, payload) => {
-
 				const ctx = {counter: (function(){
 						const boundValue = (function(){
 						return functionDictionary.get('coalesce')((function(){
@@ -189,7 +187,6 @@ export class TrafficLightAutomata extends GenericAutomata {
             state: 79183,
             context:{"counter":null},
             rootReducer: ({ action, context, payload, state }) => {
-				debugger
 					if (!action || payload === null) return { state, context };
 					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")
 					if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };

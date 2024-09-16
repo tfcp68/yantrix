@@ -431,7 +431,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		Object.entries(this.diagram.transitions).forEach(([state, transitions]) => {
 			if (state === StartState) {
 				const entries = Object.entries(transitions);
-				console.log(entries, 'entries');
 				entries.forEach(([state, action]) => {
 					action.actionsPath.forEach(({ action }) => {
 						actionToStartStateMatrix[state] = {
