@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { useFSM } from '../src';
+import { useFSM } from '../src/hooks/useFSM';
 import GamePhaseAutomataTest from './fixtures/GamePhaseAutomataTest';
 import TrafficLightAutomata from './fixtures/TrafficLightAutomata';
 

@@ -17,6 +17,7 @@
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/cli": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
+		"@yantrix/react": "workspace:^",
 		"@yantrix/redux": "workspace:^",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",

@@ -1,11 +1,11 @@
-import { TAutomataWithStaticMethods, TUseFSMProps } from '../types';
+import { TAutomata, TUseFSMProps } from '../types';
 
-const automatas: Record<string, TAutomataWithStaticMethods> = {};
+const automatas: Record<string, TUseFSMProps<TAutomata>['Automata']> = {};
 
 export const useFSM = ({
 	Automata,
 	id,
-}: TUseFSMProps) => {
+}: TUseFSMProps<TAutomata>) => {
 	let _fsm = Automata;
 
 	if (id) {

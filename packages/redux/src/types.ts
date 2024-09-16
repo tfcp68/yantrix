@@ -65,8 +65,3 @@ export type TAutomataTypeStaticMethods = {
 
 export type TAutomataWithStaticMethods = typeof GenericAutomata
 	& TAutomataTypeStaticMethods;
-
-export type TUseFSMProps = {
-	Automata: TAutomataWithStaticMethods;
-	id?: string;
-};

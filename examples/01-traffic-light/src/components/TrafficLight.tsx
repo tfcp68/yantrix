@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import TLA from '@/generated/TrafficLightAutomata';
 import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux/store';
-import { useFSM } from '@yantrix/redux';
+import { useFSM } from '@yantrix/react';
 
 export function TrafficLight() {
 	const { context, state } = useAppSelector(state => state);
