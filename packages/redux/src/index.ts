@@ -4,9 +4,9 @@ import { uniqId } from '@yantrix/utils';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
 export * from './slice/slice.js';
-export * from './types.js';
-
 export * from './slice/slice.js';
+
+export * from './types.js';
 export * from './types.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
@@ -77,6 +77,7 @@ export function useReduxAutomata(automataId: TAutomataId) {
 // 		[name]: reducer,
 // 	}),
 // });
+
 // store.dispatch(actions.RESET({
 // 	context: {
 // 		counter: 1,

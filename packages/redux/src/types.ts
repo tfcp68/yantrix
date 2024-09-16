@@ -1,4 +1,13 @@
 import {
+	CaseReducer,
+	createSlice,
+	Dispatch,
+	PayloadAction,
+	SliceSelectors,
+	UnknownAction,
+	ValidateSliceCaseReducers,
+} from '@reduxjs/toolkit';
+import {
 	GenericAutomata,
 	IAutomata,
 	TAutomataBaseActionType,
@@ -6,15 +15,6 @@ import {
 	TAutomataBaseStateType,
 	TAutomataStateContext,
 } from '@yantrix/automata';
-import {
-	CaseReducer,
-	Dispatch,
-	PayloadAction,
-	SliceSelectors,
-	UnknownAction,
-	ValidateSliceCaseReducers,
-	createSlice,
-} from '@reduxjs/toolkit';
 
 export type TActionGenerator = (
 	automataStateContext: TAutomataStateContext<number, Record<number, any>>,

@@ -1,4 +1,4 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TAutomata, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
 
 /**
@@ -13,7 +13,9 @@ export function createFSMSlice<Automata extends TAutomata, ContextReduxType exte
 	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new Fsm();
 	const actionsNameList = Object.keys(Fsm.actions);
-	const initialState: TStateFSMSlice<ContextReduxType> = _fsm.getContext();
+	const stateAutomata: TStateFSMSlice<ContextReduxType> = _fsm.getContext();
+
+	const contextRedux = Object.assign({}, stateAutomata);
 
 	const selectorsSlice = Object.assign(selectors ?? {});
 
@@ -28,7 +30,8 @@ export function createFSMSlice<Automata extends TAutomata, ContextReduxType exte
 					? rootReducer({
 						action: Fsm.getAction(actionName),
 						payload: action.payload,
-						...state,
+						context: stateAutomata.context,
+						state: state.state,
 					})
 					: { ...state };
 			};
@@ -36,12 +39,12 @@ export function createFSMSlice<Automata extends TAutomata, ContextReduxType exte
 	}, {} as any);
 
 	if (contextToRedux)
-		initialState.context = contextToRedux(initialState.context);
+		contextRedux.context = contextToRedux(contextRedux.context);
 
 	return createSlice({
 		name,
 		reducerPath: reducerPath ?? '',
-		initialState,
+		initialState: contextRedux,
 		reducers,
 		selectors: selectorsSlice,
 	});
