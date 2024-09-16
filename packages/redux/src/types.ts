@@ -15,6 +15,7 @@ import {
 	TAutomataBaseStateType,
 	TAutomataStateContext,
 } from '@yantrix/automata';
+import { GamePhaseTest } from '../__tests__/fixtures/GamePhaseAutomataTest';
 
 export type TActionGenerator = (
 	automataStateContext: TAutomataStateContext<number, Record<number, any>>,
@@ -32,10 +33,10 @@ export type TConnectedAutomataOptions = {
 export type TReduxConnectedAutomata =
 	Record<TAutomataId, TConnectedAutomataOptions>;
 
-export type TCreateFSMSliceOptions<Automata extends TAutomata, StateType, ContextType = object>
+export type TCreateFSMSliceOptions<Automata extends TClassConstructor<TAutomata>, StateType, ContextType = object>
 	= {
 		name: string;
-		Fsm: TClassConstructor<Automata>;
+		Fsm: Automata;
 		contextToRedux?: (context: ContextType) => StateType;
 		reducerPath?: string;
 		selectors?: SliceSelectors<TStateFSMSlice<StateType>>;
@@ -72,6 +73,19 @@ export type TClassConstructor<C extends TAutomata> = {
 		payload: any;
 	};
 	new (...args: any[]): C;
+};
+
+export type TStaticMethods = {
+	id: string;
+	actions: Record<keyof typeof GamePhaseTest.actions, string>;
+	states: Record<string, string>;
+	getState: (state: any) => number;
+	hasState: (instance: any, state: any) => boolean;
+	getAction: (action: any) => number;
+	createAction: (action: any, payload: any) => {
+		action: number;
+		payload: any;
+	};
 };
 
 export type TAutomata = IAutomata<

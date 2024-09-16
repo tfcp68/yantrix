@@ -1,5 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TAutomata, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
+import {
+	TAutomata,
+	TClassConstructor,
+	TCreateFSMSliceOptions,
+	TCreateFSMSlicerReturned,
+	TStateFSMSlice,
+} from '../types';
 
 /**
  * Функция для создания обертки над redux slice.
@@ -7,9 +13,9 @@ import { TAutomata, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMS
  * каждый из которых вызывается как action автомата
  * @param options
  */
-export function createFSMSlice<Automata extends TAutomata, ContextReduxType extends object>(
+export function createFSMSlice<Automata extends TClassConstructor<TAutomata>, ContextReduxType extends object>(
 	options: TCreateFSMSliceOptions<Automata, ContextReduxType>,
-): TCreateFSMSlicerReturned<keyof typeof options.Fsm.actions, TStateFSMSlice<ContextReduxType>> {
+): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice<ContextReduxType>> {
 	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new Fsm();
 	const actionsNameList = Object.keys(Fsm.actions);
@@ -23,7 +29,7 @@ export function createFSMSlice<Automata extends TAutomata, ContextReduxType exte
 		acc[actionName]
 			= (
 				state: TStateFSMSlice<ContextReduxType>,
-				action: PayloadAction<TStateFSMSlice<ContextReduxType>>,
+				action: PayloadAction,
 			) => {
 				const rootReducer = _fsm.getReducer();
 				return rootReducer

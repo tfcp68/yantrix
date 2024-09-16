@@ -1,6 +1,8 @@
-import { Dispatch } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
+import TrafficLightAutomata from '../__tests__/fixtures/TrafficLightAutomata';
+import { createFSMSlice } from './slice/slice';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
 export * from './slice/slice.js';
@@ -60,26 +62,21 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	return [automata.basicAutomata, automata.dispatch] as const;
 }
 
-// const { actions, name, reducer } = createFSMSlice({
-// 	name: GamePhaseTest.id,
-// 	Fsm: GamePhaseTest,
-// 	contextToRedux: context => ({
-// 		...context,
-// 		counter: 0,
-// 	}),
-// 	selectors: {
-// 		counter: sliceState => sliceState.context.counter,
-// 	},
-// });
-//
-// const store = configureStore({
-// 	reducer: combineReducers({
-// 		[name]: reducer,
-// 	}),
-// });
+const { actions, name, reducer } = createFSMSlice({
+	name: TrafficLightAutomata.id,
+	Fsm: TrafficLightAutomata,
+	contextToRedux: context => ({
+		...context,
 
-// store.dispatch(actions.RESET({
-// 	context: {
-// 		counter: 1,
-// 	},
-// }));
+	}),
+	selectors: {
+	},
+});
+
+const store = configureStore({
+	reducer: combineReducers({
+		[name]: reducer,
+	}),
+});
+
+store.dispatch(actions.Switch({}));
