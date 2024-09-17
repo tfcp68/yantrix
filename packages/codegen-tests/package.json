@@ -1,0 +1,77 @@
+{
+	"$schema": "https://json.schemastore.org/package.json",
+	"name": "@yantrix/codegen-tests",
+	"type": "module",
+	"version": "0.1.0",
+	"description": "",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"funding": "https://github.com/tfcp68/yantrix?sponsor",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/codegen-tests"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [],
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+
+		"test": "vitest run --coverage  --outputFile=../../test_reports/codegen.md",
+		"lint": "eslint --format=pretty .",
+		"format": "eslint --fix --format=pretty .",
+		"prepack": "pnpm run build && pnpm run lint"
+	},
+	"directories": {
+		"lib": "src"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/functions": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/utils": "workspace:^",
+		"@yantrix/yantrix-parser": "workspace:^",
+		"fs-extra": "^11.2.0",
+		"tsup": "^1.0.0"
+	},
+	"devDependencies": {
+		"@types/fs-extra": "^11.0.4"
+	}
+}
