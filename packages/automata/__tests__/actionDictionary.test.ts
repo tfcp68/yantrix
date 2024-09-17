@@ -69,7 +69,7 @@ describe('actionDictionary', () => {
 				.match(/^[A-Z0-9]+$/);
 		});
 		it('is empty by default', () => {
-			expect(true).toBe(false);
+			expect(sampleInstance.getDictionary()).toEqual({});
 		});
 	});
 
