@@ -1,3 +1,4 @@
+export const JavaScriptTemplate = `
 export class %CLASSNAME% extends GenericAutomata {
 
     static id = %ID%;
@@ -23,4 +24,4 @@ export class %CLASSNAME% extends GenericAutomata {
     isKeyOf = %IS_KEY_OF%;
 }
 
-export default %CLASSNAME%;
+export default %CLASSNAME%;`;
