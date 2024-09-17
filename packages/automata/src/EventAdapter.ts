@@ -55,12 +55,7 @@ export function createEventAdapter<
 					[on]: (this.#eventEmitters[on] ?? []).concat(emitter),
 				});
 				return () => {
-					if (this.#eventEmitters?.[on]) {
-						const newEmitters = (this.#eventEmitters[on] || []).filter(v => v !== emitter);
-						if (!newEmitters.length)
-							delete this.#eventEmitters[on];
-						else this.#eventEmitters[on] = newEmitters;
-					}
+
 				};
 			}
 
