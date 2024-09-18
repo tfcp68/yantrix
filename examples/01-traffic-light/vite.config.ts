@@ -7,8 +7,10 @@ export default defineConfig({
 	plugins: [
 		react(),
 		nodePolyfills({
-			protocolImports: true,
 			include: ['process', 'path', 'url'],
+			overrides: { fs: 'memfs' },
+			globals: { process: true },
+			protocolImports: true,
 		}),
 	],
 	build: {
