@@ -1,9 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/codegen",
+	"name": "@yantrix/functions",
 	"type": "module",
 	"version": "0.1.0",
-	"description": "Generates automata from given mermaid state diagram",
+	"description": "",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -14,19 +14,18 @@
 		"Саша <https://github.com/22sasha>"
 	],
 	"license": "MIT",
+	"funding": "https://github.com/tfcp68/yantrix?sponsor",
 	"homepage": "https://tfcp68.github.io/yantrix",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/codegen"
+		"directory": "packages/functions"
 	},
 	"bugs": {
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
-	"keywords": [
-		"FSM",
-		"Miely Machine"
-	],
+	"keywords": [],
+	"sideEffects": false,
 	"exports": {
 		".": {
 			"import": {
@@ -42,10 +41,6 @@
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"directories": {
-		"lib": "src",
-		"test": "__tests__"
-	},
 	"files": [
 		"dist"
 	],
@@ -54,25 +49,14 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "eslint --fix --format=pretty .",
+		"test": "vitest run",
 		"lint": "eslint --format=pretty .",
-		"prepack": "pnpm lint && pnpm test && pnpm build",
-		"test": "vitest run --outputFile=../../test_reports/codegen.md"
+		"format": "eslint --fix --format=pretty .",
+		"prepack": "pnpm run build && pnpm run lint"
 	},
-	"dependencies": {
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/functions": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/utils": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
-		"commander": "^12.1.0",
-		"fs-extra": "^11.2.0",
-		"picocolors": "^1.1.0"
-	},
-	"devDependencies": {
-		"@types/fs-extra": "^11.0.4",
-		"@yantrix/utils": "workspace:^",
-		"tsx": "^4.19.0"
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
 	},
 	"publishConfig": {
 		"access": "public",

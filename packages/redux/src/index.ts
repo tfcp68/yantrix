@@ -6,9 +6,6 @@ import { createFSMSlice } from './slice/slice';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
 export * from './slice/slice.js';
-export * from './slice/slice.js';
-
-export * from './types.js';
 export * from './types.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
