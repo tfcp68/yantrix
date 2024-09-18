@@ -1,14 +1,14 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it } from 'vitest';
 import { createFSMSlice, TKeys } from '../src';
-import GamePhaseTest from './fixtures/GamePhaseAutomataTest';
+import TrafficLightAutomata from './fixtures/TrafficLightAutomata';
 
 describe('createFSMSlice test', () => {
-	const { name, reducer, actions } = createFSMSlice<TKeys<typeof GamePhaseTest.actions>, object>({
-		name: GamePhaseTest.id,
-		Fsm: GamePhaseTest,
+	const { name, reducer, actions } = createFSMSlice<TKeys<typeof TrafficLightAutomata.actions>, object>({
+		name: TrafficLightAutomata.id,
+		Fsm: TrafficLightAutomata,
 	});
-	const { states, getState } = GamePhaseTest;
+	const { states, getState } = TrafficLightAutomata;
 
 	const store = configureStore({
 		reducer: combineReducers({
@@ -17,14 +17,14 @@ describe('createFSMSlice test', () => {
 	});
 
 	it('equal state', () => {
-		store.dispatch(actions.RESET({}));
+		store.dispatch(actions.Switch({}));
 		const currState = store.getState()[name];
 
-		expect(currState?.state).equal(getState(states.INIT));
+		expect(currState?.state).equal(getState(states.Red));
 	});
 
 	it('validate state', () => {
-		const { validateState } = new GamePhaseTest();
+		const { validateState } = new TrafficLightAutomata();
 		const currState = store.getState()[name]?.state;
 
 		expect(validateState(currState)).toBeTruthy();
