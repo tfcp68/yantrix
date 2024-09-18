@@ -86,6 +86,7 @@ functionDictionary.register(builtInFunctions);
   "Green": "Green",
   "Yellow": "Yellow"
 } as const
+			export type TActionsTrafficLightAutomata = keyof typeof actionsMap;
 			const getDefaultContext = (prevContext, payload) => {
 				const ctx = {counter: (function(){
 						const boundValue = (function(){
