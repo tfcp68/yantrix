@@ -1,6 +1,5 @@
 import {
 	CaseReducer,
-	createSlice,
 	Dispatch,
 	PayloadAction,
 	SliceSelectors,
@@ -32,13 +31,13 @@ export type TConnectedAutomataOptions = {
 export type TReduxConnectedAutomata =
 	Record<TAutomataId, TConnectedAutomataOptions>;
 
-export type TCreateFSMSliceOptions<Automata extends TClassConstructor<TAutomata>, StateType, ContextType = object>
+export type TCreateFSMSliceOptions<Automata extends TAutomata, StateType, ContextType = object>
 	= {
 		name: string;
-		Fsm: Automata;
+		Fsm: TClassConstructor<Automata>;
 		contextToRedux?: (context: ContextType) => StateType;
 		reducerPath?: string;
-		selectors?: SliceSelectors<TStateFSMSlice<StateType>>;
+		selectors?: SliceSelectors<TAutomataContext<StateType>>;
 	};
 
 export type TReducersFSMSlice<Actions extends string | number | symbol, State>
@@ -47,20 +46,16 @@ export type TReducersFSMSlice<Actions extends string | number | symbol, State>
 		Record<Actions, CaseReducer<State, PayloadAction<Partial<State>>>>
 	>;
 
-export type TStateFSMSlice<StateType> = {
+export type TAutomataContext<ContextType> = {
 	state: number | null;
-	context: StateType;
+	context: ContextType;
 };
 
-export type TCreateFSMSlicerReturned<
-	Actions extends string | number | symbol,
-	State,
-	Name extends string = string,
-	ReducerPath extends string = Name,
-	Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> = ReturnType<typeof createSlice<State, TReducersFSMSlice<Actions, State>, Name, Selectors, ReducerPath>>;
-
 export type TClassConstructor<C extends TAutomata> = {
+	new (...args: any[]): C;
+};
+
+export type TStaticMethods = {
 	id: string;
 	actions: Record<string, string>;
 	states: Record<string, string>;
@@ -71,7 +66,6 @@ export type TClassConstructor<C extends TAutomata> = {
 		action: number;
 		payload: any;
 	};
-	new (...args: any[]): C;
 };
 
 export type TAutomata = IAutomata<
@@ -82,3 +76,5 @@ export type TAutomata = IAutomata<
 	Record<TAutomataBaseActionType, any>,
 	Record<TAutomataBaseEventType, any>
 >;
+
+export type TKeys<T> = keyof T;

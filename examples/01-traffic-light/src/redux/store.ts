@@ -1,11 +1,14 @@
+import TLA from '@/generated/TrafficLightAutomata';
 import { configureStore } from '@reduxjs/toolkit';
 import { createFSMSlice } from '@yantrix/redux';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import TLA from '@/generated/TrafficLightAutomata';
 
-const { reducer, actions } = createFSMSlice({
+const { reducer, actions } = createFSMSlice<keyof typeof TLA.actions, any>({
 	Fsm: TLA,
 	name: TLA.id,
+	contextToRedux: context => ({
+		...context,
+	}),
 });
 
 export const store = configureStore({ reducer });
@@ -17,4 +20,8 @@ export const useAppDispatch = () => useDispatch<TAppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<TRootState> = useSelector;
 
 export const switchLight = () => actions.Switch({});
-export const resetLight = () => actions['Reset (initialCounter=0)']({ context: 0 });
+export const resetLight = () => actions['Reset (initialCounter=0)']({
+	context: {
+		context: 0,
+	},
+});

@@ -62,14 +62,22 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	return [automata.basicAutomata, automata.dispatch] as const;
 }
 
-const { actions, name, reducer } = createFSMSlice({
+const contextToReduxParams = {
+	counter: 0,
+};
+
+const { actions, name, reducer } = createFSMSlice<
+	keyof typeof TrafficLightAutomata.actions,
+	typeof contextToReduxParams
+>({
 	name: TrafficLightAutomata.id,
 	Fsm: TrafficLightAutomata,
 	contextToRedux: context => ({
 		...context,
-
+		...contextToReduxParams,
 	}),
 	selectors: {
+		counter: sliceState => sliceState.context.counter,
 	},
 });
 
@@ -79,4 +87,9 @@ const store = configureStore({
 	}),
 });
 
-store.dispatch(actions.Switch({}));
+store.dispatch(actions.Switch({
+	context: {
+		counter: 1,
+	},
+}));
+store.dispatch(actions['Reset (initialCounter=0)']({}));
