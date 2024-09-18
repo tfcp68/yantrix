@@ -1,5 +1,5 @@
 import path, { dirname } from 'node:path';
-import { Modules, generateAutomataFromStateDiagram } from '@yantrix/codegen';
+import { generateAutomataFromStateDiagram, Modules } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Command, Option } from 'commander';
 import fs from 'fs-extra';

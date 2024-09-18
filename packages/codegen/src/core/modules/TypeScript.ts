@@ -1,6 +1,6 @@
 import { ICodegen, TGetCodeOptionsMap, TModuleParams } from '../../types/common.js';
-import { JavaScriptCodegen } from './JavaScript.js';
 import { ModuleNames } from './index';
+import { JavaScriptCodegen } from './JavaScript.js';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typeof ModuleNames.TypeScript> {
 	constructor(params: TModuleParams) {
