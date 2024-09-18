@@ -3,12 +3,22 @@ import { configureStore } from '@reduxjs/toolkit';
 import { createFSMSlice } from '@yantrix/redux';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
-const { reducer, actions } = createFSMSlice<keyof typeof TLA.actions, any>({
-	Fsm: TLA,
+const contextToReduxParams = {
+	initialCounter: 0,
+	counter: 0,
+};
+
+const { actions, reducer } = createFSMSlice<
+	keyof typeof TLA.actions,
+	typeof contextToReduxParams
+>({
 	name: TLA.id,
+	Fsm: TLA,
 	contextToRedux: context => ({
 		...context,
+		...contextToReduxParams,
 	}),
+
 });
 
 export const store = configureStore({ reducer });
@@ -21,7 +31,5 @@ export const useAppSelector: TypedUseSelectorHook<TRootState> = useSelector;
 
 export const switchLight = () => actions.Switch({});
 export const resetLight = () => actions['Reset (initialCounter=0)']({
-	context: {
-		context: 0,
-	},
+	initialCounter: 0,
 });

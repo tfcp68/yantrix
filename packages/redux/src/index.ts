@@ -1,8 +1,6 @@
-import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
+import { Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
-import TrafficLightAutomata from '../__tests__/fixtures/TrafficLightAutomata';
-import { createFSMSlice } from './slice/slice';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
 export * from './slice/slice.js';
@@ -58,35 +56,3 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	}
 	return [automata.basicAutomata, automata.dispatch] as const;
 }
-
-const contextToReduxParams = {
-	counter: 0,
-};
-
-const { actions, name, reducer } = createFSMSlice<
-	keyof typeof TrafficLightAutomata.actions,
-	typeof contextToReduxParams
->({
-	name: TrafficLightAutomata.id,
-	Fsm: TrafficLightAutomata,
-	contextToRedux: context => ({
-		...context,
-		...contextToReduxParams,
-	}),
-	selectors: {
-		counter: sliceState => sliceState.context.counter,
-	},
-});
-
-const store = configureStore({
-	reducer: combineReducers({
-		[name]: reducer,
-	}),
-});
-
-store.dispatch(actions.Switch({
-	context: {
-		counter: 1,
-	},
-}));
-store.dispatch(actions['Reset (initialCounter=0)']({}));

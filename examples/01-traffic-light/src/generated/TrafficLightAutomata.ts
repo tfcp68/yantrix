@@ -2,10 +2,16 @@
 // @ts-nocheck
 
 
-			import { GenericAutomata, FunctionDictionary, TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/automata';
+import {
+	FunctionDictionary,
+	GenericAutomata,
+	TAutomataBaseActionType,
+	TAutomataBaseStateType,
+	TValidator
+} from '@yantrix/automata';
 import { builtInFunctions } from '@yantrix/functions';
 
-			export const statesDictionary = {
+export const statesDictionary = {
   "~~~START~~~": 74979334,
   "Off": 79183,
   "Red": 82033,
@@ -18,7 +24,7 @@ export const actionsDictionary = {
   "Switch": 1805606060
 }
 const reducer = {74979334: (prevContext, payload, functionDictionary) => {
-	
+
 				return {counter: (function(){
 						const boundValue = (function(){
 						return functionDictionary.get('coalesce')((function(){
@@ -47,26 +53,27 @@ const reducer = {74979334: (prevContext, payload, functionDictionary) => {
 					}())}
 			},
 	79183: (prevContext, payload, functionDictionary) => {
-	
+
 				return prevContext
 			},
 	82033: (prevContext, payload, functionDictionary) => {
-	
+
 				return prevContext
 			},
 	1051543483: (prevContext, payload, functionDictionary) => {
-	
+
 				return prevContext
 			},
 	69066467: (prevContext, payload, functionDictionary) => {
-	
+
 				return prevContext
 			},
 	1650372460: (prevContext, payload, functionDictionary) => {
-	
+
 				return prevContext
 			}}
 export const functionDictionary = new FunctionDictionary();
+functionDictionary.register(builtInFunctions);
 			const actionsMap = {
   "Reset (initialCounter=0)": "Reset (initialCounter=0)",
   "Switch": "Switch"
@@ -108,7 +115,7 @@ export const functionDictionary = new FunctionDictionary();
 					}())}
 				return  Object.assign({}, prevContext, ctx);
 			}
-			
+
 			const actionToStateFromStateDict = {74979334: {
 				  1011118777: {
 				  	state: 79183,
@@ -118,8 +125,8 @@ export const functionDictionary = new FunctionDictionary();
 				  1805606060: {
 				  	state: 82033,
 				  },
-				
-	
+
+
 				  1011118777: {
 				  	state: 79183,
 				  },
@@ -128,8 +135,8 @@ export const functionDictionary = new FunctionDictionary();
 				  1805606060: {
 				  	state: 1051543483,
 				  },
-				
-	
+
+
 				  1011118777: {
 				  	state: 79183,
 				  },
@@ -138,8 +145,8 @@ export const functionDictionary = new FunctionDictionary();
 				  1805606060: {
 				  	state: 69066467,
 				  },
-				
-	
+
+
 				  1011118777: {
 				  	state: 79183,
 				  },
@@ -148,8 +155,8 @@ export const functionDictionary = new FunctionDictionary();
 				  1805606060: {
 				  	state: 1650372460,
 				  },
-				
-	
+
+
 				  1011118777: {
 				  	state: 79183,
 				  },
@@ -158,13 +165,13 @@ export const functionDictionary = new FunctionDictionary();
 				  1805606060: {
 				  	state: 82033,
 				  },
-				
-	
+
+
 				  1011118777: {
 				  	state: 79183,
 				  },
 				},}
-			
+
 export class TrafficLightAutomata extends GenericAutomata {
 
     static id = 'TrafficLightAutomata';
@@ -185,7 +192,7 @@ export class TrafficLightAutomata extends GenericAutomata {
         super();
         this.init({
             state: 79183,
-            context:{"counter":null},
+            context:{"counter":0},
             rootReducer: ({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
 					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")
@@ -211,4 +218,3 @@ export class TrafficLightAutomata extends GenericAutomata {
 }
 
 export default TrafficLightAutomata;
-		

@@ -262,6 +262,9 @@ importers:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
@@ -269,9 +272,6 @@ importers:
       '@yantrix/cli':
         specifier: workspace:^
         version: link:../cli
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../codegen
       tsx:
         specifier: ^4.19.0
         version: 4.19.0
