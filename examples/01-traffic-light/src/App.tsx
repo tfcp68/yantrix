@@ -1,8 +1,8 @@
-import { Provider } from 'react-redux';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TrafficLight } from '@/components/TrafficLight';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { store } from '@/redux/store';
+import { Provider } from 'react-redux';
 
 function App() {
 	return (
