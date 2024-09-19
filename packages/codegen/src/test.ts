@@ -52,25 +52,53 @@ async function saveFile(fileName: string, content: string, ext: string) {
 	fs.writeFileSync(path.resolve(pathSave, `generated/${fileName}_generated.${ext}`), content);
 }
 
+// const input = `stateDiagram-v2
+// direction TB
+// [*] --> INIT: START (counter)
+// INIT --> WORKING: [-]
+// state isFinished <<choice>>
+// WORKING --> isFinished: REDUCE (value)
+// isFinished --> END: isGreater($value, #counter)
+// isFinished --> ERROR: isZero($value)
+// isFinished --> WORKING
+// ERROR --> WORKING: [-]
+// note right of INIT
+// 	+ByPass
+// 	+Init
+// 	#{counter} <= $counter = 10
+// end note
+// note left of WORKING
+// 	#{counter} <= add(#counter, neg($value = 1))
+// end note
+// note right of ERROR
+// +ByPass
+// end note
+// note right of END
+// 	#{counter} <= 0
+// end note`;
+
 const input = `stateDiagram-v2
-	direction TB
-	[*] --> INIT: START (counter)
-	INIT --> WORKING: [-]
-	state isFinished <<choice>>
-	WORKING --> isFinished: REDUCE (value)
-	isFinished --> END: isGreater($value, #counter)
-    isFinished --> NEW: test()
-	isFinished --> WORKING
-	note right of INIT
-		+ByPass
-		+Init
-		#{counter} <= $counter = 10
-	end note
-	note left of WORKING
-		#{counter} <= add(#counter, neg($value = 1))
-	end note
-	note right of END
-		#{counter} <= 0
-	end note`;
+direction TB
+[*] --> INIT: START (counter)
+INIT --> WORKING: [-]
+state firstCheck <<choice>>
+state secondCheck <<choice>>
+WORKING --> firstCheck: REDUCE (value)
+firstCheck --> END: isGreater($value, #counter)
+firstCheck --> STOP: isZero($value)
+firstCheck --> secondCheck
+secondCheck --> WORKING: isPositive($value)
+secondCheck --> ERROR
+note right of INIT
+	+ByPass
+	+Init
+	#{counter} <= $counter = 10
+end note
+note left of WORKING
+	#{counter} <= add(#counter, neg($value = 1))
+end note
+note right of END
+	#{counter} <= 0
+end note`;
 
 await saveAndGenerate({ input, automataName: 'ChoiceTest', lang: 'JavaScript' }, 'choice_node');
