@@ -1,4 +1,7 @@
-import { BlankInputError, InvalidInputError } from '../../src/sequence/errors/sequenceErrors';
+import {
+	BlankInputError,
+	InvalidInputError,
+} from '../../src/sequence/errors/sequenceErrors';
 
 export type TTestCase = {
 	testBehaviour: string;
