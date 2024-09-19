@@ -35,6 +35,7 @@
 '='                                  return 'ASSIGN'
 ')'                                  return 'RIGHT_BRACKET'
 '/'                                  return 'FORWARD_SLASH'
+'?'                                  return 'QUESTION_MARK'
 \'[^']+\'                            yytext = yytext.slice(1,-1); return 'STRING'
 \"[^"]+\"                            yytext = yytext.slice(1,-1); return 'STRING'
 '-'?[0-9]+'.'[0-9]+                  return 'DECIMAL'
@@ -71,6 +72,7 @@ document
               if($2.hasOwnProperty('emit')) $1['emit'].push($2['emit'])
               if($2.hasOwnProperty('subscribe')) $1['subscribe'].push($2['subscribe'])
               if($2.hasOwnProperty('define')) $1['defines'].push($2['define'])
+              if($2.hasOwnProperty('expression')) { $$ = $2 }
            }
         };
 
@@ -84,7 +86,8 @@ statements
         |  CONTEXT_STATEMENT
         |  EMIT_STATEMENT
         |  SUBSCRIBE_STATEMENT
-        |  DEFINE_STATEMENT {$$ = {define:$1}};
+        |  DEFINE_STATEMENT {$$ = {define:$1}}
+        |  EXPRESSION_STATEMENT {$$ = {expression: $1}};
 
 CONTEXT_STATEMENT
         : CONTEXT_SYMBOL LEFT_BRACE RAW_KEYLIST RIGHT_BRACE {$$ = {context:$3} }
@@ -144,6 +147,9 @@ DEFINE_ARGUMENTS
 DEFINE_ARGUMENTS_TYPES
                : IDENT  {$$ = $1}
                | DEFINE_ARGUMENTS_TYPES COMMA IDENT {$$ = [$1].concat($3)}; 
+
+EXPRESSION_STATEMENT
+        : ASSIGN EXPRESSION QUESTION_MARK {$$ = $2};
 
 KEY_LIST_STATEMENT
         : LEFT_BRACKET KEY_LIST RIGHT_BRACKET { $$ = $2};
