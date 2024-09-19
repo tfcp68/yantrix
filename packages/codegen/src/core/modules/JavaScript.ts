@@ -709,29 +709,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		} as const;
 	}
 
-	/*
-		example
-		--
-		state 'WORKING', actionsPath:
-		['REDUCE(value)', 'isGreater($value, #counter)'],
-		['REDUCE(value)', 'isZero($value)'],
-		['REDUCE(value)', 'firstCheck, secondCheck, 5', isPositive($value)'],
-		['NewAction(value)', 'test()']
-
-		resulting action chains:
-		{
-			'WORKING': {
-				'REDUCE(value)': [
-					['isGreater(...)'],
-					['isZero(...)'],
-					['firstCheck, secondCheck, 5', 'isPositive(...)']
-				],
-				'NewAction(value)': [
-					['test()']
-				]
-			}
-		}
-	*/
 	private createActionChains() {
 		for (const state in this.diagram.transitions) {
 			const stateTransitions = this.diagram.transitions[state]!;
@@ -747,7 +724,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					chain[actionName].push({
 						chain: action.slice(1),
 						state: transition,
-						// state: this.stateDictionary.getStateValues({keys: [transition]})[0]
 					});
 				}
 			}
@@ -756,28 +732,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}
 	}
 
-	/*
-		example:
-		--
-		const predicates = {
-			1110259849: (prevContext, payload) => { return true },
-			88939: (prevContext, payload) => { return true },
-			304717382: (prevContext, payload) => {
-				const st1 = (function () {
-					const cond1 = functionDictionary.get('isGreater')(payload.value, prevContext.counter);
-					const cond2 = true;
-					if (cond1 === true && cond2 === true) {
-						return 68795;
-					}
-					else return undefined;
-				})();
-				if (st1) return st1;
-				const st2 = (function () { })();
-				if (st2) return st2;
-			}
-		}
-
-	*/
 	private createPredicatesFromActionChains() {
 		const predicates: string[] = [];
 		for (const state in this.actionChains) {
