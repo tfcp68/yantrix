@@ -86,6 +86,7 @@ functionDictionary.register(builtInFunctions);
   "Green": "Green",
   "Yellow": "Yellow"
 } as const
+			export type TActionsTrafficLightAutomata = keyof typeof actionsMap;
 			const getDefaultContext = (prevContext, payload) => {
 				const ctx = {counter: (function(){
 						const boundValue = (function(){
@@ -192,7 +193,7 @@ export class TrafficLightAutomata extends GenericAutomata {
         super();
         this.init({
             state: 79183,
-            context:{"counter":0},
+            context:{"counter":null},
             rootReducer: ({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
 					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")

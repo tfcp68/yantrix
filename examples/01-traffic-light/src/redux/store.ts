@@ -1,24 +1,24 @@
-import TLA from '@/generated/TrafficLightAutomata';
+import TLA, { TActionsTrafficLightAutomata } from '@/generated/TrafficLightAutomata';
 import { configureStore } from '@reduxjs/toolkit';
 import { createFSMSlice } from '@yantrix/redux';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
-const contextToReduxParams = {
-	initialCounter: 0,
-	counter: 0,
+const contextToReduxParams = (context: any) => {
+	return {
+		redColorOn: [TLA.getState('Red'), TLA.getState('RedYellow')].includes(context.state),
+		yellowColorOn: [TLA.getState('Yellow'), TLA.getState('RedYellow')].includes(context.state),
+		greenColorOn: TLA.getState('Green') === context.state,
+		...context,
+	};
 };
 
 const { actions, reducer } = createFSMSlice<
-	keyof typeof TLA.actions,
-	typeof contextToReduxParams
+	TActionsTrafficLightAutomata,
+	ReturnType<typeof contextToReduxParams>
 >({
 	name: TLA.id,
 	Fsm: TLA,
-	contextToRedux: context => ({
-		...context,
-		...contextToReduxParams,
-	}),
-
+	contextToRedux: contextToReduxParams,
 });
 
 export const store = configureStore({ reducer });
