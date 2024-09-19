@@ -1,14 +1,11 @@
-import { readFile } from 'node:fs/promises';
-import { format } from 'prettier';
+import { JavaScriptTemplate } from '../core/templates/JavaScript';
 
-export async function fmt(code: string, cfg: string): Promise<string> {
-	try {
-		const prettierCfgRaw = await readFile(cfg, 'utf-8');
-		const prettierCfg = JSON.parse(prettierCfgRaw);
-		return format(code, { ...prettierCfg, parser: 'babel-ts' });
-	} catch {
-		return code;
-	}
+export function replaceFileContents(replacementMap: Record<string, string>): string {
+	let res = JavaScriptTemplate;
+	Object.entries(replacementMap).forEach(([template, str]) => {
+		res = res.replaceAll(template, str);
+	});
+	return res;
 }
 
 /**

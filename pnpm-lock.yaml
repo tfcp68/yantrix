@@ -90,15 +90,9 @@ importers:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../../packages/automata
-      '@yantrix/cli':
+      '@yantrix/functions':
         specifier: workspace:^
-        version: link:../../packages/cli
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../../packages/codegen
-      '@yantrix/react':
-        specifier: workspace:^
-        version: link:../../packages/react
+        version: link:../../packages/functions
       '@yantrix/redux':
         specifier: workspace:^
         version: link:../../packages/redux
@@ -139,6 +133,12 @@ importers:
       '@vitejs/plugin-react-swc':
         specifier: ^3.7.0
         version: 3.7.0(vite@5.4.4(@types/node@22.5.4))
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../../packages/cli
+      '@yantrix/codegen':
+        specifier: workspace:^
+        version: link:../../packages/codegen
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.45)
@@ -207,6 +207,9 @@ importers:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
       '@yantrix/mermaid-parser':
         specifier: workspace:^
         version: link:../mermaid-parser
@@ -232,6 +235,8 @@ importers:
       tsx:
         specifier: ^4.19.0
         version: 4.19.0
+
+  packages/functions: {}
 
   packages/mermaid-parser:
     dependencies:
@@ -266,16 +271,16 @@ importers:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
-      '@yantrix/cli':
+      '@yantrix/functions':
         specifier: workspace:^
-        version: link:../cli
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../codegen
+        version: link:../functions
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
     devDependencies:
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../cli
       tsx:
         specifier: ^4.19.0
         version: 4.19.0
@@ -882,6 +887,8 @@ packages:
   '@eslint/js@9.10.0':
     resolution: {integrity: sha512-fuXtbiP5GWIn8Fz+LWoOMVf/Jxm+aajZYkhi6CuEm4SxymFM+eUWzbO9qXT+L0iCkL5+KGYMCSGxo686H19S1g==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: '>=9'
 
   '@eslint/markdown@6.1.0':
     resolution: {integrity: sha512-cX1tyD+aIbhzKrCKe/9M5s2jZhldWGOR+cy7cIVpxG9RkoaN4XU+gG3dy6oEKtBFXjDx06GtP0OGO7jgbqa2DA==}
@@ -891,6 +898,10 @@ packages:
 
   '@eslint/object-schema@2.1.4':
     resolution: {integrity: sha512-BsWiH1yFGjXXS2yvrf5LyuoSIIbPrGUWob917o+BTKuZ7qJdxX8aJLRxs1fS9n6r7vESrq1OUqb68dANcFXuQQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/plugin-kit@0.1.0':
+    resolution: {integrity: sha512-autAXT203ixhqei9xt+qkYOvY8l6LAFIdT2UXc/RPNeUVfqRF1BV94GTJyVPFKT8nFM6MyVJhjLj9E8JWvf5zQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/plugin-kit@0.1.0':

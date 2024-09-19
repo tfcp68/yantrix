@@ -5,8 +5,7 @@ import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.
 
 export * from './slice/slice.js';
 export * from './types.js';
-
-export * from './types.js';
+export * from './utility/typeGuards.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
@@ -57,26 +56,32 @@ export function useReduxAutomata(automataId: TAutomataId) {
 		throw new Error(`Automata ${automataId} not found`);
 	}
 	return [automata.basicAutomata, automata.dispatch] as const;
-};
+}
 
-// const { actions, name, reducer } = createFSMSlice({
-// 	name: GamePhaseTest.id,
-// 	Fsm: GamePhaseTest,
-// 	contextToRedux: (context: any) => ({
-// 		counter: context.counter,
-// 		redColorOn: ['Red', 'RedYellow'].includes(context.state),
-// 		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
-// 		greenColorOn: ['Green'].includes(context.state),
+// const contextToReduxParams = {
+// 	initialCounter: 0,
+// 	counter: 0,
+// };
+//
+// const { actions, reducer } = createFSMSlice<
+// 	TActionsTrafficLightAutomata,
+// 	typeof contextToReduxParams
+// >({
+// 	name: TrafficLightAutomata.id,
+// 	Fsm: TrafficLightAutomata,
+// 	contextToRedux: context => ({
+// 		...context,
+// 		...contextToReduxParams,
 // 	}),
-// 	selectors: {
-// 		state: (sliceState): TStateFSMSlice['state'] => sliceState.state,
-// 		context: (sliceState): TStateFSMSlice['context'] => sliceState.context,
-// 	},
+//
 // });
 //
 // const store = configureStore({
 // 	reducer: combineReducers({
-// 		[name]: reducer,
+// 		[TrafficLightAutomata.id]: reducer,
 // 	}),
 // });
-// store.dispatch(actions.RESET({}));
+//
+// store.dispatch(actions.Switch({}));
+//
+// store.getState();

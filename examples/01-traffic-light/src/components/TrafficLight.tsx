@@ -18,21 +18,22 @@ export function TrafficLight() {
 	const onSwitch = () => dispatch(switchLight());
 	const onReset = () => dispatch(resetLight());
 
+	console.log(state, context);
 	return (
 		<div className="flex flex-col items-center space-y-4">
 			<div className="relative">
 				<Card className="w-24 p-3 space-y-3 bg-black border-zinc-800">
 					<div className="flex flex-col items-center space-y-2">
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							state && [FSM.getState('Red'), FSM.getState('RedYellow')].includes(state) ? 'bg-red-500' : 'bg-red-950'
+							state && context.redColorOn ? 'bg-red-500' : 'bg-red-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							state && [FSM.getState('Yellow'), FSM.getState('RedYellow')].includes(state) ? 'bg-yellow-500' : 'bg-yellow-950'
+							state && context.yellowColorOn ? 'bg-yellow-500' : 'bg-yellow-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							FSM.getState('Green') === state ? 'bg-green-500' : 'bg-green-950'
+							context.greenColorOn ? 'bg-green-500' : 'bg-green-950'
 						}`}
 						/>
 					</div>
