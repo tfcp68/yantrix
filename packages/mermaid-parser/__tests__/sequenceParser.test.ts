@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { parseSequenceDiagram } from '../src/index.js';
-import { BlankInputError, InvalidInputError } from '../src/sequence/errors/sequenceErrors.js';
+import {
+	BlankInputError,
+	InvalidInputError,
+} from '../src/sequence/errors/sequenceErrors.js';
 import { testCases, TTestCase } from './fixtures/sequencePatterns.js';
 
-function groupTestCases(testCases: TTestCase[]): Record<string, TTestCase[]> {
+function groupTestCases(
+	testCases: TTestCase[],
+): Record<string, TTestCase[]> {
 	const groups: Record<string, TTestCase[]> = {};
 
 	for (const testCase of testCases) {
@@ -15,9 +20,17 @@ function groupTestCases(testCases: TTestCase[]): Record<string, TTestCase[]> {
 	return groups;
 }
 
-const runTestGroup = (testBehaviour: string, testCases: TTestCase[]) => {
+const runTestGroup = (
+	testBehaviour: string,
+	testCases: TTestCase[],
+) => {
 	describe(testBehaviour, () => {
-		testCases.forEach(({ testCase, inputDiagram, expectedResult }) => {
+		testCases.forEach(({
+			testCase,
+			inputDiagram,
+			expectedResult,
+
+		}) => {
 			it(testCase, async () => {
 				if (expectedResult instanceof InvalidInputError) {
 					await expect(
