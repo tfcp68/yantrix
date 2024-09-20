@@ -1,4 +1,6 @@
+import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
 import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
+
 import {
 	TActionPathArray,
 	TChoicesId,
@@ -10,8 +12,6 @@ import {
 	TNotesId,
 	TStateDiagramMatrix,
 } from './types/stateDiagramTypes.js';
-
-import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
 
 /**
  * @brief A function collect notes from state;

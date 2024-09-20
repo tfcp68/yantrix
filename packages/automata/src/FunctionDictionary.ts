@@ -1,21 +1,29 @@
-export type TAutomataFunction = ((...args: any) => any) | null; // ?
+import { TAutomataFunction } from './types';
+import { IAutomataFunctionRegistry } from './types/interfaces';
 
-export class FunctionDictionary {
-	private readonly functions: Record<string, TAutomataFunction>;
+/**
+ * Implementation of {@link IAutomataFunctionRegistry}, where functions are stored in a map.
+ *
+ * Has strict requirements for registering new functions, overwrites are not possible.
+ */
+export class FunctionDictionary implements IAutomataFunctionRegistry {
+	private functions: Record<string, TAutomataFunction>;
 
-	constructor(functions: Record<string, TAutomataFunction>) {
-		this.functions = functions;
+	constructor(functions?: Record<string, TAutomataFunction>) {
+		this.functions = functions ?? {};
 	}
 
-	/**
-	 * Register function under a specific name in the dictionary. Name must be valid (i.e starts with a letter, has length 1-255 and does not contain any special symbols)
-	 *
-	 * Function cannot be registered under an already existing name to prevent overwriting of the basic built-in functions.
-	 *
-	 * @param functionKey - name of function
-	 * @param callback - function to invoke
-	 */
-	register(functionKey: string, callback: TAutomataFunction): TAutomataFunction {
+	register(f: string | Record<string, TAutomataFunction>, callback?: TAutomataFunction): Record<string, TAutomataFunction> {
+		if (typeof f === 'string' && callback != null) {
+			return this.registerSingleFunction(f, callback);
+		} else if (typeof f === 'object') {
+			return this.registerMultipleFunctions(f);
+		} else {
+			throw new TypeError('Incorrect arguments');
+		}
+	}
+
+	private registerSingleFunction(functionKey: string, callback: TAutomataFunction): Record<string, TAutomataFunction> {
 		if (functionKey.length < 1 || functionKey.length > 255) {
 			throw new Error(`Function key length must be between 1-255 symbols!`);
 		}
@@ -27,32 +35,34 @@ export class FunctionDictionary {
 		}
 
 		this.functions[functionKey] = callback;
-		return callback;
+		return { [functionKey]: callback };
 	}
 
-	/**
-	 * Check if a function exists in the dictionary.
-	 *
-	 * @param functionKey - name of the function to check
-	 * @returns true if the function exists, false otherwise
-	 */
+	private registerMultipleFunctions(
+		functionMap: Record<string, TAutomataFunction>,
+	): Record<string, TAutomataFunction> {
+		Object.entries(functionMap).forEach(([name, callback]) => this.registerSingleFunction(name, callback));
+		return functionMap;
+	}
+
 	has(functionKey: string) {
 		const func = this.functions[functionKey];
 		return func !== undefined;
 	}
 
-	/**
-	 * Get function from dictionary;
-	 *
-	 * If the function is not found - throw an error.
-	 *
-	 * @param functionKey - name of the function
-	 * @returns function to invoke
-	 */
 	get(functionKey: string): TAutomataFunction {
 		const func = this.functions[functionKey];
 		if (func)
 			return func;
 		else throw new Error(`Function with the key ${functionKey} not found!`);
+	}
+
+	call(functionKey: string, ...args: any[]) {
+		const func = this.get(functionKey)!;
+		return func(...args);
+	}
+
+	clear() {
+		this.functions = {};
 	}
 }

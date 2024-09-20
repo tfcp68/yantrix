@@ -1,0 +1,42 @@
+{
+	"name": "01-traffic-light",
+	"type": "module",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"lint": "eslint .",
+		"preview": "vite preview",
+		"gen-automata": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
+	},
+	"dependencies": {
+		"@radix-ui/react-slot": "^1.1.0",
+		"@reduxjs/toolkit": "^2.2.7",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/redux": "workspace:^",
+		"class-variance-authority": "^0.7.0",
+		"clsx": "^2.1.1",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-redux": "^9.1.2",
+		"tailwind-merge": "^2.5.2",
+		"tailwindcss-animate": "^1.0.7"
+	},
+	"devDependencies": {
+		"@antfu/eslint-config": "^3.5.1",
+		"@types/node": "^22.5.4",
+		"@types/react": "^18.3.5",
+		"@types/react-dom": "^18.3.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
+		"autoprefixer": "^10.4.20",
+		"eslint": "^9.10.0",
+		"globals": "^15.9.0",
+		"postcss": "^8.4.45",
+		"tailwindcss": "^3.4.10",
+		"typescript": "^5.6.2",
+		"vite": "^5.4.4"
+	}
+}

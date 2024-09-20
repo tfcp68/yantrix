@@ -2,6 +2,10 @@ import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ExpressionTypes,
+	isContextWithReducer,
+	isKeyItemReference,
+	isKeyItemWithExpression,
+	maxNestedFuncLevel,
 	TContextItem,
 	TExpression,
 	TExpressionDefine,
@@ -9,12 +13,9 @@ import {
 	TExpressionFunction,
 	TMappedKeys,
 	YantrixParser,
-	isContextWithReducer,
-	isKeyItemReference,
-	isKeyItemWithExpression,
-	maxNestedFuncLevel,
 } from '@yantrix/yantrix-parser';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { replaceFileContents } from '../../utils/utils.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import { TConstants, TExpressionRecord } from './../../types/common';
 import { ModuleNames } from './index';
@@ -109,7 +110,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
 		this.dictionaries.push(`const predicates = {${this.createPredicatesFromActionChains()}}`);
-		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary(builtInFunctions);`);
+		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
+		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
@@ -150,28 +152,26 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		const initialContext = Object.assign({}, a, b);
 
-		return `export class ${className} extends GenericAutomata {
-  		 constructor() {
-  			super();
-  			this.init({
-  				state: ${stateValue},
-  				context:${JSON.stringify(initialContext)},
-                rootReducer: ${this.getRootReducer()},
-  				stateValidator: ${this.getStateValidator()},
-  				actionValidator: ${this.getActionValidator()},
-				});
-			}
-			isKeyOf = ${this.getIsKeyOf()};
-			static id = '${className}';
-			static actions = actionsMap;
-			static states = statesMap;
-			static getState = ${this.getGetStateFunc()};
-			static hasState = ${this.getHasStateFunc(className)};
-			static getAction = ${this.getGetActionFunc()};
-			static createAction = ${this.getCreateActionFunc(className)};
-		}
-		export default ${className};
-		`;
+		return replaceFileContents(
+			'../templates/js_class_template.txt',
+			{
+				'%CLASSNAME%': className,
+				'%ID%': `'${className}'`,
+				'%ACTIONS_MAP%': 'actionsMap',
+				'%STATES_MAP%': 'statesMap',
+				'%GET_STATE%': this.getGetStateFunc().toString(),
+				'%HAS_STATE%': this.getHasStateFunc(className).toString(),
+				'%GET_ACTION%': this.getGetActionFunc().toString(),
+				'%CREATE_ACTION%': this.getCreateActionFunc(className).toString(),
+				'%STATE%': (stateValue ?? -1).toString(),
+				'%CONTEXT%': JSON.stringify(initialContext),
+				'%REDUCER%': this.getRootReducer().toString(),
+				'%S_VALIDATOR%': this.getStateValidator().toString(),
+				'%A_VALIDATOR%': this.getActionValidator().toString(),
+				'%F_REGISTRY%': 'functionDictionary',
+				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
+			},
+		);
 	}
 
 	protected getHasStateFunc(className: string) {
@@ -283,7 +283,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload, functionDictionary)};
+					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
 	}
 
@@ -417,49 +417,93 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	protected getActionToStateFromStateDict() {
+		const actionToStartStateMatrix: Record<string, TDiagramAction> = {};
+
+		Object.entries(this.diagram.transitions).forEach(([state, transitions]) => {
+			if (state === StartState) {
+				const entries = Object.entries(transitions);
+				console.log(entries, 'entries');
+				entries.forEach(([state, action]) => {
+					action.actionsPath.forEach(({ action }) => {
+						actionToStartStateMatrix[state] = {
+							actionsPath: [{ action, note: [] }],
+						};
+					});
+				});
+			}
+		});
+
+		// const isExistsStartState = Object.keys(actionToStartStateMatrix).length > 0;
+
 		return Object.entries(this.diagram.transitions).map(([currentState, transitions]) => {
+			const transitionsWithStartState = {
+				...transitions,
+				...actionToStartStateMatrix,
+			};
+
+			// if the state has +bypass flag - skip
+			// const stateInDiagram = this.diagram.states.find(st => st.id === currentState);
+			// if (stateInDiagram && stateInDiagram.notes && stateInDiagram.notes.byPass === true) {
+			// 	return;
+			// }
+
 			const value = this.stateDictionary.getStateValues({ keys: [currentState] })[0];
 			if (!value) throw new Error(`State ${currentState} not found`);
+			// if (isExistsStartState && currentState !== StartState) {
+			// 	transitions = {
+			// 		...transitions,
+			// 		...actionToStartStateMatrix,
+			// 	};
+			// }
 
-			return `${value}: {${this.getActionToStateDict(value, transitions).concat('\n\t')}},`;
+			return `${value}: {${this.getActionToStateDict(value, transitionsWithStartState).concat('\n\t')}},`;
 		});
 	}
 
 	getActionToStateDict(currentState: number, transitions: Record<string, TDiagramAction>) {
-		const { action, states } = Object
+		const dict: Record<number, any> = {};
+
+		// group all possible states for an action in the dict object
+		Object
 			.entries(transitions)
-			.flatMap(([key, transition]) => {
+			.forEach(([key, transition]) => {
 				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return transition.actionsPath.map(({ action }) => {
+
+				transition.actionsPath.forEach(({ action }) => {
 					const actionValue = this.actionDictionary.getActionValues({
 						keys: action,
 					})[0];
 					if (!actionValue) throw new Error(`Action ${action} not found`);
 					if (!newState) throw new Error(`State ${key} not found`);
-					return {
-						action: actionValue,
-						state: newState,
-					};
+
+					if (!dict[actionValue]) {
+						dict[actionValue] = {
+							state: [],
+						};
+					}
+					if (!dict[actionValue].state.includes(newState)) {
+						dict[actionValue].state.push(newState);
+					}
 				});
-			})
-			.reduce(
-				(accum, currentValue) => {
-					accum.action = currentValue.action;
-					accum.states.push(currentValue.state);
-					return accum;
-				},
-				{
-					action: 0,
-					states: [] as number[],
-				},
-			);
-		const predicateString = (states.length > 1) ? `predicate: predicates[${currentState}][${action}]` : '';
-		return `
-				${action}: {
-					state: [${states}],
-					${predicateString}
+			});
+
+		// if there is more than 1 possible state => insert predicate function using currentState and currentAction IDs
+		const res = Object.entries(dict).map(([actionId, possibleStates]) => {
+			const predicateString = (possibleStates.state.length > 1) ? `,\npredicate: predicates[${currentState}][${actionId}]` : '';
+			return `
+				${actionId}: {
+					state: [${possibleStates.state}]${predicateString}
 				}
-		`;
+			`;
+		}).join(',\n');
+
+		return res;
+	}
+
+	stateIsByPass(stateId: number) {
+		const stateFromDict = this.stateDictionary.getStateKeys({ states: [stateId] })[0];
+		const stateInDiagram = this.diagram.states.find(st => st.id === stateFromDict);
+		return stateInDiagram && stateInDiagram.notes && stateInDiagram.notes.byPass === true;
 	}
 
 	protected getContextTransition = (value: number) => {
@@ -485,7 +529,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			ctxRes.push(...newContext);
 		});
 
-		if (ctxRes.length === 0) return 'null';
+		if (ctxRes.length === 0) return 'prevContext';
 
 		return `{${ctxRes.join(',\n\t')}}`;
 	};
@@ -789,13 +833,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					statePredicates.push(
 						`${actionId}: (prevContext, payload, functionDictionary) => { 
 							${
-	processedStateChecks.map((st, index) => `
+								processedStateChecks.map((st, index) => `
 										const st${index + 1} = (function(){
 											${st}
 										})();
 										if(st${index + 1}) return st${index + 1};
 								`).join('')
-}
+							}
 							return ${originalStateId}; // staying at the original state as fallback , in case the predicate can't resolve the transition state
 						 }`,
 					);

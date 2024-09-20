@@ -1,9 +1,12 @@
-import { Dispatch, combineReducers, configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
 import GamePhaseTest from '../__tests__/fixtures/GamePhaseAutomataTest';
-import { TActionGenerator, TAutomataId, TReduxConnectedAutomata, TStateFSMSlice } from './types.js';
 import { createFSMSlice } from './slice/slice';
+import { TActionGenerator, TAutomataId, TReduxConnectedAutomata, TStateFSMSlice } from './types.js';
+
+export * from './slice/slice.js';
+export * from './types.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
