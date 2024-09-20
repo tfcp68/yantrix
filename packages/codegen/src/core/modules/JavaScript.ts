@@ -273,7 +273,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 					const actionMove = actionToStateFromStateDict[state][action];
 					const newStateObject = { state: actionMove.state[0] }
-					if(actionMove.state.length == 2 && actionMove.predicate != null) {
+					if(actionMove.state.length > 1 && actionMove.predicate != null) {
 						// determine new state from predicate
 						newStateObject.state = actionMove.predicate(contextWithInitial, payload, functionDictionary)
 					}
