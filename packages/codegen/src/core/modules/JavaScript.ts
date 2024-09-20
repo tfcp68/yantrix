@@ -767,8 +767,11 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 								conditions.push(expressionValue);
 							} catch (error) {
 								console.error(error); // lint
+								conditions.push(true);
 								continue;
 							}
+						} else {
+							conditions.push(true);
 						}
 					}
 					if (conditions.length > 0) {
@@ -793,7 +796,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 										if(st${index + 1}) return st${index + 1};
 								`).join('')
 }
-							return 0;
+							return ${originalStateId}; // staying at the original state as fallback , in case the predicate can't resolve the transition state
 						 }`,
 					);
 				}
