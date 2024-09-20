@@ -250,14 +250,14 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		if (state) {
 			const ctx = this.getContextTransition(state);
 
-			return `const getDefaultContext = (prevContext, payload, functionDictionary) => {
+			return `const getDefaultContext = (prevContext, payload) => {
 				const ctx = ${ctx}
 				return  Object.assign({}, prevContext, ctx, payload);
 			}
 			`;
 		}
 
-		return `const getDefaultContext = (prevContext, payload, functionDictionary) => {
+		return `const getDefaultContext = (prevContext, payload) => {
 
 				return prevContext
 		}`;
@@ -433,35 +433,21 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			}
 		});
 
-		// const isExistsStartState = Object.keys(actionToStartStateMatrix).length > 0;
-
 		return Object.entries(this.diagram.transitions).map(([currentState, transitions]) => {
 			const transitionsWithStartState = {
 				...transitions,
 				...actionToStartStateMatrix,
 			};
 
-			// if the state has +bypass flag - skip
-			// const stateInDiagram = this.diagram.states.find(st => st.id === currentState);
-			// if (stateInDiagram && stateInDiagram.notes && stateInDiagram.notes.byPass === true) {
-			// 	return;
-			// }
-
 			const value = this.stateDictionary.getStateValues({ keys: [currentState] })[0];
 			if (!value) throw new Error(`State ${currentState} not found`);
-			// if (isExistsStartState && currentState !== StartState) {
-			// 	transitions = {
-			// 		...transitions,
-			// 		...actionToStartStateMatrix,
-			// 	};
-			// }
 
 			return `${value}: {${this.getActionToStateDict(value, transitionsWithStartState).concat('\n\t')}},`;
 		});
 	}
 
 	getActionToStateDict(currentState: number, transitions: Record<string, TDiagramAction>) {
-		const dict: Record<number, any> = {};
+		const dict: Record<number, number[]> = {};
 
 		// group all possible states for an action in the dict object
 		Object
@@ -477,22 +463,20 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if (!newState) throw new Error(`State ${key} not found`);
 
 					if (!dict[actionValue]) {
-						dict[actionValue] = {
-							state: [],
-						};
+						dict[actionValue] = [];
 					}
-					if (!dict[actionValue].state.includes(newState)) {
-						dict[actionValue].state.push(newState);
+					if (!dict[actionValue].includes(newState)) {
+						dict[actionValue].push(newState);
 					}
 				});
 			});
 
 		// if there is more than 1 possible state => insert predicate function using currentState and currentAction IDs
 		const res = Object.entries(dict).map(([actionId, possibleStates]) => {
-			const predicateString = (possibleStates.state.length > 1) ? `,\npredicate: predicates[${currentState}][${actionId}]` : '';
+			const predicateString = (possibleStates.length > 1) ? `,\npredicate: predicates[${currentState}][${actionId}]` : '';
 			return `
 				${actionId}: {
-					state: [${possibleStates.state}]${predicateString}
+					state: [${possibleStates}]${predicateString}
 				}
 			`;
 		}).join(',\n');
@@ -753,6 +737,11 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		} as const;
 	}
 
+	/*
+		action chains are sequences of actions to be iterated on and processed when encountering forks.
+		this structure binds action paths with the exact state that the automata should transition to,
+		when every single segment in the chain resolves to TRUE
+	*/
 	private createActionChains() {
 		for (const state in this.diagram.transitions) {
 			const stateTransitions = this.diagram.transitions[state]!;
@@ -776,6 +765,12 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}
 	}
 
+	/*
+		Predicates object is necessary for resolving the correct state to transition to, when using forks;
+		Function, obtained w/ IDs of currentState and dispatchedAction , is later loaded with values
+		from context/payload during root reducer operations.
+		Resulting value is the new state of the automata, exact state value depends on which conditions resolve to TRUE inside
+	*/
 	private createPredicatesFromActionChains() {
 		const predicates: string[] = [];
 		for (const state in this.actionChains) {
