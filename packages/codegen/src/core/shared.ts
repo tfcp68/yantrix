@@ -16,12 +16,6 @@ export function fillDictionaries(diagram: TStateDiagramMatrixIncludeNotes, state
 				}
 				actionDictionary.addActions({ keys: [action] });
 			}
-			// const actionPathValues = actionDictionary.getActionValues({ keys: [...path] })
-			// const isUniqueAction = actionDictionary.getActionValues({ keys: [...path] })[0] === null;
-			// if (!isUniqueAction) {
-			// 	continue;
-			// }
-			// actionDictionary.addActions({ keys: [...path] });
 		}
 	}
 }

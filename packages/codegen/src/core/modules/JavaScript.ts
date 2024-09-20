@@ -252,7 +252,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 			return `const getDefaultContext = (prevContext, payload, functionDictionary) => {
 				const ctx = ${ctx}
-				return  Object.assign({}, prevContext, ctx);
+				return  Object.assign({}, prevContext, ctx, payload);
 			}
 			`;
 		}
@@ -760,7 +760,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 								const wrappedSegment = `=${segment}?`;
 								const processedExpression = parser.parse(wrappedSegment);
 								// check the expression property at the top-level of the parsed object
-								if (!processedExpression.hasOwn('expression')) {
+								if (!processedExpression.expression) {
 									throw new Error('Incorrect expression');
 								}
 								const expressionValue = this.getExpressionValue(processedExpression.expression);
