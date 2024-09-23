@@ -55,7 +55,9 @@
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
-		"@yantrix/codegen": "workspace:^"
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/utils": "workspace:^",
+		"react": "^18.3.1"
 	},
 	"directories": {
 		"lib": "src",
@@ -64,5 +66,10 @@
 	"publishConfig": {
 		"access": "public",
 		"provenance": true
+	},
+	"devDependencies": {
+		"@testing-library/react-hooks": "^8.0.1",
+		"@types/react": "^18.3.5",
+		"jsdom": "^25.0.1"
 	}
 }

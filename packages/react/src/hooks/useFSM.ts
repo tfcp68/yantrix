@@ -1,36 +1,59 @@
+import { TAutomataActionPayload } from '@yantrix/automata';
+import { isStaticMethodsAutomata, TStaticMethods } from '@yantrix/utils';
+import React, { useState } from 'react';
 import { TAutomata, TUseFSMProps } from '../types';
 
-const automatas: Record<string, TUseFSMProps<TAutomata>['Automata']> = {};
+const automatas: Record<string, TAutomata> = {};
 
 export const useFSM = ({
 	Automata,
 	id,
 }: TUseFSMProps<TAutomata>) => {
-	let _fsm = Automata;
+	const [previousContext, setPreviousContext] = useState<any>();
+	const [staticMethods, setStaticMethods] = useState<TStaticMethods>();
+	const [lastPayload, setLastPayload] = useState<any>();
+
+	let _fsm = new Automata();
 
 	if (id) {
 		if (!automatas[id]) {
-			automatas[id] = Automata;
-			_fsm = automatas[id];
+			automatas[id] = _fsm;
 		} else {
 			_fsm = automatas[id];
 		}
 	}
 
-	const getInstanceAutomata = () => new _fsm();
+	React.useEffect(() => {
+		if (isStaticMethodsAutomata(Automata)) {
+			setStaticMethods({
+				...Automata,
+			});
+		}
+	}, []);
 
-	const { state, getContext, dispatch } = new _fsm();
+	const getInstanceAutomata = () => _fsm;
 
-	const { actions, states, getAction, getState } = _fsm;
+	const payloadFromDispatch = <ActionType extends number, PayloadType extends { [K in ActionType]: any } >
+	(action: TAutomataActionPayload<ActionType, PayloadType>) => {
+		setLastPayload(action.payload);
+		setPreviousContext(_fsm.getContext());
+
+		return _fsm.dispatch(action);
+	};
+
+	const trace = React.useCallback(() => {
+		return {
+			lastPayload,
+			previousContext,
+		};
+	}, [lastPayload, previousContext]);
 
 	return {
-		state,
-		getContext,
-		dispatch,
-		actions,
-		states,
-		getAction,
-		getState,
+		state: _fsm.state,
+		getContext: _fsm.getContext.bind(_fsm),
+		dispatch: payloadFromDispatch,
+		trace,
 		getInstanceAutomata,
+		...staticMethods,
 	};
 };

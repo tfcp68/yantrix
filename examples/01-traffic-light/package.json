@@ -16,6 +16,7 @@
 		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/functions": "workspace:^",
+		"@yantrix/react": "workspace:^",
 		"@yantrix/redux": "workspace:^",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",

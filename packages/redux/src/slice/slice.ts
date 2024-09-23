@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, SliceSelectors } from '@reduxjs/toolkit';
+import { isStaticMethodsAutomata } from '@yantrix/utils';
 import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice } from '../types';
-import { isStaticMethodsAutomata } from '../utility/typeGuards';
 
 /**
  * Функция для создания обертки над redux slice.

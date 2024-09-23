@@ -1,24 +1,32 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import TLA from '@/generated/TrafficLightAutomata';
 import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux/store';
 import { useFSM } from '@yantrix/react';
+import TLA from '../generated/TrafficLightAutomata';
 
 export function TrafficLight() {
 	const { context, state } = useAppSelector(state => state);
-	const FSM = useFSM({
+	const { trace, dispatch: dispatchAutomata, actions } = useFSM({
 		Automata: TLA,
 		id: TLA.id,
 	});
+
+	console.log(trace(), actions);
 	const dispatch = useAppDispatch();
 
 	const onSwitch = () => dispatch(switchLight());
 	const onReset = () => dispatch(resetLight());
 
-	console.log(state, context);
+	const clickHandler = () =>
+		dispatchAutomata({
+			action: TLA.getAction('Switch'),
+			payload: {
+				kek: 1,
+			},
+		});
+
 	return (
 		<div className="flex flex-col items-center space-y-4">
 			<div className="relative">
@@ -42,7 +50,10 @@ export function TrafficLight() {
 			</div>
 			<div className="flex flex-col w-24 space-y-2">
 				<Button
-					onClick={onSwitch}
+					onClick={() => {
+						onSwitch();
+						clickHandler();
+					}}
 					variant="outline"
 					className="w-full bg-zinc-950 text-zinc-200 hover:bg-zinc-800 hover:text-white border-zinc-800 text-sm py-1"
 				>
