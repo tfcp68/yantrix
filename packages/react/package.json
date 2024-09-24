@@ -56,6 +56,7 @@
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
+		"@yantrix/functions": "workspace:^",
 		"@yantrix/utils": "workspace:^",
 		"react": "^18.3.1"
 	},
