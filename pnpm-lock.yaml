@@ -86,7 +86,7 @@ importers:
         version: 1.1.0(@types/react@18.3.5)(react@18.3.1)
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../../packages/automata
@@ -265,6 +265,9 @@ importers:
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
@@ -286,7 +289,7 @@ importers:
     dependencies:
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
@@ -6954,7 +6957,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.5
 
-  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
+  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       immer: 10.1.1
       redux: 5.0.1
