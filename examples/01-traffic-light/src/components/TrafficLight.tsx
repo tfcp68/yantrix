@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux/store';
 
-export function TrafficLightRedux() {
+export function TrafficLight() {
 	const { context, state } = useAppSelector(state => state);
 
 	const dispatch = useAppDispatch();

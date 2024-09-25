@@ -5,14 +5,13 @@ import { Card } from '@/components/ui/card';
 import { useFSM } from '@yantrix/react';
 import TLA from '../generated/TrafficLightAutomata';
 
-export function TrafficLightReact() {
-	// const { context, state } = useAppSelector(state => state);
+export function TrafficLight() {
 	const { trace, dispatch: dispatchAutomata, getContext, state, getState } = useFSM({
 		Automata: TLA,
 		id: TLA.id,
 	});
 
-	console.log(trace(), state);
+	console.log(trace());
 
 	const onSwitch = () => dispatchAutomata({
 		action: TLA.getAction('Switch'),

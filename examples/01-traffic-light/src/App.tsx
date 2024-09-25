@@ -1,6 +1,5 @@
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { TrafficLightReact } from '@/components/TrafficLight_react';
-import { TrafficLightRedux } from '@/components/TrafficLight_redux';
+import { TrafficLight } from '@/components/TrafficLight';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { store } from '@/redux/store';
 import { Provider } from 'react-redux';
@@ -15,15 +14,7 @@ function App() {
 							<CardTitle>Traffic light (Redux)</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<TrafficLightRedux />
-						</CardContent>
-					</Card>
-					<Card className="min-w-96">
-						<CardHeader className="flex items-center justify-center">
-							<CardTitle>Traffic light (React)</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<TrafficLightReact />
+							<TrafficLight />
 						</CardContent>
 					</Card>
 				</div>

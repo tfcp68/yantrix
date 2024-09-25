@@ -1,5 +1,5 @@
 {
-	"name": "01-traffic-light",
+	"name": "02-traffic-light-react",
 	"type": "module",
 	"version": "0.0.0",
 	"private": true,
@@ -8,20 +8,17 @@
 		"build": "tsc -b && vite build",
 		"lint": "eslint .",
 		"format": "eslint --fix --format=pretty .",
-		"preview": "vite preview",
-		"gen-automata": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
+		"preview": "vite preview"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.1.0",
-		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/functions": "workspace:^",
-		"@yantrix/redux": "workspace:^",
+		"@yantrix/react": "workspace:^",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
-		"react-redux": "^9.1.2",
 		"tailwind-merge": "^2.5.2",
 		"tailwindcss-animate": "^1.0.7"
 	},
