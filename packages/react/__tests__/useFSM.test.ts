@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { uniqId } from '@yantrix/utils';
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import { useFSM } from '../src';
 import GamePhaseAutomataTest from './fixtures/GamePhaseAutomataTest';
 import { TrafficLightAutomata as TLA } from './fixtures/TrafficLightAutomata';
@@ -57,5 +57,15 @@ describe('useFSM tests', () => {
 		});
 
 		expect(result.current.trace().previousContext.state).equal(result.current.getState?.('Red'));
+	});
+
+	it('check singleton', () => {
+		const { result: FSM1 } = renderHook(() => useFSM(TLA));
+
+		const { result: FSM2 } = renderHook(() => useFSM(GamePhaseAutomataTest));
+
+		assert.notDeepEqual(FSM1.current.getInstanceAutomata(), FSM2.current.getInstanceAutomata());
+		expect(FSM1.current.getInstanceAutomata()).toBeInstanceOf(TLA);
+		expect(FSM2.current.getInstanceAutomata()).toBeInstanceOf(GamePhaseAutomataTest);
 	});
 });

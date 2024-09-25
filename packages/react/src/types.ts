@@ -10,7 +10,7 @@ import { TClassConstructor } from '@yantrix/utils';
 
 export type TUseFSMProps<Automata extends TAutomata> = {
 	Automata: TClassConstructor<Automata>;
-	id?: string;
+	id: string;
 };
 
 export type TAutomata = IAutomata<

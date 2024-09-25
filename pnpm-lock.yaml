@@ -172,6 +172,9 @@ importers:
       '@yantrix/react':
         specifier: workspace:^
         version: link:../../packages/react
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
