@@ -2,7 +2,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vitepress dev",
-		"build": "vitepress build",
+		"build": "vitepress build && sh ./after_build.sh",
 		"preview": "vitepress preview",
 		"docs": "typedoc"
 	},
