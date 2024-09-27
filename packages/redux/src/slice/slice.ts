@@ -8,7 +8,9 @@ import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice 
  * каждый из которых вызывается как action автомата
  * @param options
  */
-export function createFSMSlice<Actions extends string | number | symbol, ContextReduxType extends object, Automata extends TAutomata = TAutomata>(
+export function createFSMSlice<Actions extends string
+	| number
+	| symbol, ContextReduxType extends object, Automata extends TAutomata = TAutomata>(
 	options: TCreateFSMSliceOptions<Automata, ContextReduxType>,
 ) {
 	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
