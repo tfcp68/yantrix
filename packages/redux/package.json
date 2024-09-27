@@ -43,11 +43,11 @@
 	"dependencies": {
 		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
-		"@yantrix/cli": "workspace:^",
-		"@yantrix/codegen": "workspace:^",
 		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
 		"tsx": "^4.19.0"
 	}
 }
