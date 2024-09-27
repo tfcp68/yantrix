@@ -5,6 +5,7 @@ import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.
 
 export * from './slice/slice.js';
 export * from './types.js';
+export * from './utility/typeGuards.js';
 
 const reduxConnectedAutomata: TReduxConnectedAutomata = {};
 
