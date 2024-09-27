@@ -86,7 +86,7 @@ importers:
         version: 1.1.0(@types/react@18.3.5)(react@18.3.1)
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../../packages/automata
@@ -242,7 +242,6 @@ importers:
         specifier: ^4.19.0
         version: 4.19.0
 
-<<<<<<< HEAD
   packages/codegen-tests:
     dependencies:
       '@yantrix/automata':
@@ -277,8 +276,6 @@ importers:
         specifier: ^11.0.4
         version: 11.0.4
 
-=======
->>>>>>> origin/HEAD
   packages/functions: {}
 
   packages/mermaid-parser:
@@ -301,7 +298,7 @@ importers:
     dependencies:
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
@@ -894,13 +891,13 @@ packages:
     resolution: {integrity: sha512-yljsWl5Qv3IkIRmJ38h3NrHXFCm4EUl55M8doGTF6hvzvFF8kRpextgSrg2dwHev9lzBZyafCr9RelGIyQm6fw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
 
   '@eslint-community/eslint-utils@4.4.0':
     resolution: {integrity: sha512-1/sA4dwrzBAyeUoQ6oxahHKmrZvsnLCg4RfxW3ZFGGmQkSNQPFNLV9CUEFQP1x9EYXHTo5p6xdhZM1Ne9p/AfA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: ^6.0.0 || ^7.0.0 || >=8.0.0
 
   '@eslint-community/regexpp@4.11.0':
     resolution: {integrity: sha512-G/M/tIiMrTAxEWRfLfQJMmGNX28IxBg4PBz8XqQhqUHLFI6TL2htpIB1iQCj144V5ee/JaKyT9/WZ0MGZWfA7A==}
@@ -926,7 +923,7 @@ packages:
     resolution: {integrity: sha512-cX1tyD+aIbhzKrCKe/9M5s2jZhldWGOR+cy7cIVpxG9RkoaN4XU+gG3dy6oEKtBFXjDx06GtP0OGO7jgbqa2DA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: '>=9'
 
   '@eslint/object-schema@2.1.4':
     resolution: {integrity: sha512-BsWiH1yFGjXXS2yvrf5LyuoSIIbPrGUWob917o+BTKuZ7qJdxX8aJLRxs1fS9n6r7vESrq1OUqb68dANcFXuQQ==}
@@ -1255,11 +1252,6 @@ packages:
       react-redux:
         optional: true
 
-<<<<<<< HEAD
-  '@rollup/pluginutils@4.2.1':
-    resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
-    engines: {node: '>= 8.0.0'}
-=======
   '@rollup/plugin-inject@5.0.5':
     resolution: {integrity: sha512-2+DEJbNBoPROPkgTDNe8/1YXWcqxbN5DTjASVIOx8HS+pITXushyNiBV56RB08zuptzz8gT3YfkqriTBVycepg==}
     engines: {node: '>=14.0.0'}
@@ -1269,6 +1261,10 @@ packages:
       rollup:
         optional: true
 
+  '@rollup/pluginutils@4.2.1':
+    resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
+    engines: {node: '>= 8.0.0'}
+
   '@rollup/pluginutils@5.1.0':
     resolution: {integrity: sha512-XTIWOPPcpvyKI6L1NHo0lFlCyznUEyPmPY1mc3KpPVDYulHSTvyeLNVW00QTLIAFNhR3kYnJTQHeGqU4M3n09g==}
     engines: {node: '>=14.0.0'}
@@ -1277,7 +1273,6 @@ packages:
     peerDependenciesMeta:
       rollup:
         optional: true
->>>>>>> origin/HEAD
 
   '@rollup/rollup-android-arm-eabi@4.20.0':
     resolution: {integrity: sha512-TSpWzflCc4VGAUJZlPpgAJE1+V60MePDQnBd7PPkpuEmOy8i87aL6tinFGKBFKuEDikYpig72QzdT3QPYIi+oA==}
@@ -1390,7 +1385,7 @@ packages:
     resolution: {integrity: sha512-Ufvk7hP+bf+pD35R/QfunF793XlSRIC7USr3/EdgduK9j13i2JjmsM0LUz3/foS+jDYp2fzyWZA9N44CPur0Ow==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: '>=8.40.0'
 
   '@swc/core-darwin-arm64@1.7.26':
     resolution: {integrity: sha512-FF3CRYTg6a7ZVW4yT9mesxoVVZTrcSWtmZhxKCYJX9brH4CS/7PRPjAKNk6kzWgWuRoglP7hkjQcd6EpMcZEAw==}
@@ -1724,7 +1719,7 @@ packages:
     resolution: {integrity: sha512-gF77eNv0Xz2UJg/NbpWJ0kqAm35UMsvZf1GHj8D9MRFTj/V3tAciIWXfmPLsAAF/vUlpWPvUDyH1jjsr0cMVWw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: ^8.57.0 || ^9.0.0
       typescript: '*'
     peerDependenciesMeta:
       typescript:
@@ -1760,7 +1755,7 @@ packages:
     resolution: {integrity: sha512-6yyGYVL0e+VzGYp60wvkBHiqDWOpT63pdMV2CVG4LVDd5uR6q1qQN/7LafBZtAtNIn/mqXjsSeS5ggv/P0iECw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: ^8.57.0 || ^9.0.0
 
   '@typescript-eslint/visitor-keys@8.5.0':
     resolution: {integrity: sha512-yTPqMnbAZJNy2Xq2XU8AdtOW9tJIr+UQb64aXB9f3B1498Zx9JorVgFJcZpEc9UBuCCrdzKID2RGAMkYcDtZOw==}
@@ -2934,12 +2929,12 @@ packages:
     resolution: {integrity: sha512-3z3vFexKIEnjHE3zCMRo6fn/e44U7T1khUjg+Hp0ZQMCigh28rALD0nPFBcGZuiLC5rLZa2ubQHDRln09JfU2Q==}
     engines: {node: '>=12'}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: '>=6.0.0'
 
   eslint-config-flat-gitignore@0.3.0:
     resolution: {integrity: sha512-0Ndxo4qGhcewjTzw52TK06Mc00aDtHNTdeeW2JfONgDcLkRO/n/BteMRzNVpLQYxdCC/dFEilfM9fjjpGIJ9Og==}
     peerDependencies:
-      eslint: ^9.10.0
+      eslint: ^9.5.0
 
   eslint-flat-config-utils@0.4.0:
     resolution: {integrity: sha512-kfd5kQZC+BMO0YwTol6zxjKX1zAsk8JfSAopbKjKqmENTJcew+yBejuvccAg37cvOrN0Mh+DVbeyznuNWEjt4A==}
@@ -7244,7 +7239,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.5
 
-  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)':
+  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
     dependencies:
       immer: 10.1.1
       redux: 5.0.1
@@ -7254,12 +7249,6 @@ snapshots:
       react: 18.3.1
       react-redux: 9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1)
 
-<<<<<<< HEAD
-  '@rollup/pluginutils@4.2.1':
-    dependencies:
-      estree-walker: 2.0.2
-      picomatch: 2.3.1
-=======
   '@rollup/plugin-inject@5.0.5(rollup@4.20.0)':
     dependencies:
       '@rollup/pluginutils': 5.1.0(rollup@4.20.0)
@@ -7268,6 +7257,11 @@ snapshots:
     optionalDependencies:
       rollup: 4.20.0
 
+  '@rollup/pluginutils@4.2.1':
+    dependencies:
+      estree-walker: 2.0.2
+      picomatch: 2.3.1
+
   '@rollup/pluginutils@5.1.0(rollup@4.20.0)':
     dependencies:
       '@types/estree': 1.0.5
@@ -7275,7 +7269,6 @@ snapshots:
       picomatch: 2.3.1
     optionalDependencies:
       rollup: 4.20.0
->>>>>>> origin/HEAD
 
   '@rollup/rollup-android-arm-eabi@4.20.0':
     optional: true

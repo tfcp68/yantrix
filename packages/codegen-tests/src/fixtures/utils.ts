@@ -1,4 +1,3 @@
-import { exec } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,7 +24,6 @@ type TGenerateAutomataParams = {
 };
 
 export function saveFile(fileName: string, content: string, ext: string) {
-	exec('yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata');
 	ensureDir(path.resolve(pathSave, `generated`));
 	fs.writeFileSync(path.resolve(pathSave, `generated/${fileName}_generated.${ext}`), content);
 }
