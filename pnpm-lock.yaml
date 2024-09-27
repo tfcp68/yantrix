@@ -86,7 +86,7 @@ importers:
         version: 1.1.0(@types/react@18.3.9)(react@18.3.1)
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../../packages/automata
@@ -264,10 +264,13 @@ importers:
     dependencies:
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
@@ -7240,7 +7243,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.9
 
-  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
+  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       immer: 10.1.1
       redux: 5.0.1
@@ -7927,7 +7930,7 @@ snapshots:
       '@vue/shared': 3.5.1
       entities: 4.5.0
       estree-walker: 2.0.2
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   '@vue/compiler-dom@3.5.1':
     dependencies:
@@ -7944,7 +7947,7 @@ snapshots:
       estree-walker: 2.0.2
       magic-string: 0.30.11
       postcss: 8.4.47
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.1':
     dependencies:
