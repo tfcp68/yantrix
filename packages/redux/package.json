@@ -48,6 +48,7 @@
 	},
 	"devDependencies": {
 		"@yantrix/cli": "workspace:^",
-		"tsx": "^4.19.0"
+		"@yantrix/codegen": "workspace:^",
+		"tsx": "^4.19.1"
 	}
 }
