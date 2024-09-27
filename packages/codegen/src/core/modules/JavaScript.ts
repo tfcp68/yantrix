@@ -55,7 +55,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	dictionaries: string[];
 	protected imports = {
 		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
-		'@yantrix/codegen': ['builtInFunctions'],
+		'@yantrix/functions': ['builtInFunctions'],
 	};
 
 	constructor({ diagram, constants }: TModuleParams) {
@@ -144,7 +144,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		const initialContext = Object.assign({}, a, b);
 
 		return replaceFileContents(
-			'../templates/js_class_template.txt',
+
 			{
 				'%CLASSNAME%': className,
 				'%ID%': `'${className}'`,
@@ -324,6 +324,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
 			const { FunctionName, Arguments } = expression.FunctionDeclaration;
 
+			this.imports['@yantrix/functions'].push(FunctionName);
+
 			if (!this.dependencyGraph.has(currentFunc)) {
 				this.dependencyGraph.set(currentFunc, new Set());
 			}
@@ -429,7 +431,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		Object.entries(this.diagram.transitions).forEach(([state, transitions]) => {
 			if (state === StartState) {
 				const entries = Object.entries(transitions);
-				console.log(entries, 'entries');
 				entries.forEach(([state, action]) => {
 					action.actionsPath.forEach(({ action }) => {
 						actionToStartStateMatrix[state] = {

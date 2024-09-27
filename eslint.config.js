@@ -98,7 +98,7 @@ export default config(
 				allow: consoleAllowedMethods,
 			}],
 			'style/max-len': ['warn', {
-				code: 80,
+				code: 120,
 				ignoreTrailingComments: true,
 				ignoreTemplateLiterals: true,
 				ignoreRegExpLiterals: true,
