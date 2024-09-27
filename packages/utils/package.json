@@ -58,7 +58,7 @@
 		"prepack": "pnpm lint && pnpm build --coverage"
 	},
 	"devDependencies": {
-		"@types/node": "^22.5.4"
+		"@types/node": "^22.7.3"
 	},
 	"publishConfig": {
 		"access": "public",
