@@ -1,134 +1,91 @@
 import { randomDecimal, randomInteger, randomString } from './../../../utils/src/fixtures';
 
-const assignTypes = ['string', 'decimal', 'integer', 'list', 'payload', 'context', 'constant', 'payload'];
+const assignTypes = ['string', 'decimal', 'integer', 'list', 'payload', 'context', 'constant', 'payload'] as const;
 
 export const constant = {
 	pi: 3.14,
 };
 
+const payloadList = [randomInteger, randomString, randomDecimal, () => []];
+
 export function getRandomPayload() {
-	const rnd = randomInteger(0, 120);
+	const randomIndex = Math.floor(Math.random() * payloadList.length);
 
-	if (rnd < 30) {
-		return randomInteger;
-	}
-	if (rnd >= 30 && rnd < 60) {
-		return randomString;
-	}
-	if (rnd >= 60 && rnd < 90) {
-		return randomDecimal;
-	}
-	if (rnd >= 90 && rnd < 120) {
-		return () => [];
-	}
-
+	if (payloadList[randomIndex]) return payloadList[randomIndex];
 	return randomString;
 }
 
+type TDefaultCase = {
+	input: string;
+	ident: string;
+	value: any;
+	referenceType: string | null;
+	payloadIdent: string | null;
+};
+
+const defaultCase = (ident: string, value: string) => {
+	return {
+
+		input: `${ident} = '${value}'`,
+		ident,
+		value,
+		referenceType: null,
+		payloadIdent: null,
+	};
+};
+
+const asssignMap: Record<typeof assignTypes[number], (ident: string) => TDefaultCase> = {
+	string: (ident: string) => {
+		return defaultCase(ident, randomString());
+	},
+	decimal: (ident: string) => {
+		return defaultCase(ident, `${randomDecimal()}`);
+	},
+	integer: (ident: string) => {
+		return defaultCase(ident, `${randomInteger()}`);
+	},
+	list: (ident: string) => {
+		return defaultCase(ident, `[]`);
+	},
+	payload: (ident: string) => {
+		const payload = getRandomPayload()();
+		const payloadIdent = randomString();
+
+		return {
+			input: `${ident} = $${payloadIdent}`,
+			ident,
+			payloadIdent,
+			value: payload,
+
+			referenceType: 'payload',
+		};
+	},
+	context: (ident: string) => {
+		return {
+			input: `${ident} = #${randomString()}`,
+			ident,
+			value: null,
+			payloadIdent: null,
+			referenceType: 'context',
+		};
+	},
+	constant: (ident: string) => {
+		const constantReference = randomString();
+
+		return {
+			input: `${ident} = %%pi`,
+			ident,
+			constantReference,
+			value: constant.pi,
+			referenceType: 'constant',
+			payloadIdent: null,
+		};
+	},
+};
+
 export function generateAssign(type: typeof assignTypes[number]) {
-	switch (type) {
-		case 'string':
-			return (() => {
-				const value = randomString();
-				const ident = randomString();
-
-				return {
-					input: `${ident} = '${value}'`,
-					ident,
-					value,
-					referenceType: null,
-					payloadIdent: null,
-				};
-			})();
-		case 'payload':
-			return (() => {
-				const ident = randomString();
-				const payload = getRandomPayload()();
-				const payloadIdent = randomString();
-
-				return {
-					input: `${ident} = $${payloadIdent}`,
-					ident,
-					payloadIdent,
-					value: payload,
-
-					referenceType: 'payload',
-				};
-			})();
-
-		case 'constant':
-			return (() => {
-				const ident = randomString();
-				const constantReference = randomString();
-
-				return {
-					input: `${ident} = %%pi`,
-					ident,
-					constantReference,
-					value: constant.pi,
-					referenceType: 'constant',
-					payloadIdent: null,
-				};
-			})();
-
-		case 'context':
-			return (() => {
-				const ident = randomString();
-
-				return {
-					input: `${ident} = #${randomString()}`,
-					ident,
-					value: null,
-					payloadIdent: null,
-					referenceType: 'context',
-
-				};
-			})();
-
-		case 'decimal':
-			return (() => {
-				const ident = randomString();
-				const value = randomDecimal();
-
-				return {
-					input: `${ident} = ${value}`,
-					ident,
-					value,
-					referenceType: null,
-					payloadIdent: null,
-				};
-			})();
-
-		case 'integer':
-			return (() => {
-				const ident = randomString();
-				const value = randomInteger();
-
-				return {
-					input: `${ident} = ${value}`,
-					ident,
-					value,
-					referenceType: null,
-					payloadIdent: null,
-				};
-			})();
-
-		case 'list':
-			return (() => {
-				const ident = randomString();
-
-				return {
-					input: `${ident} = []`,
-					ident,
-					value: [],
-					payloadIdent: null,
-					referenceType: null,
-				};
-			})();
-
-		default:
-			throw new Error('Unknown assign type');
-	}
+	const ident = randomString();
+	return asssignMap[type](ident);
 }
 
 export function getReferenceAssign(startIdentSymbol?: string) {
