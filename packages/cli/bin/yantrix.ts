@@ -2,14 +2,16 @@ import path, { dirname } from 'node:path';
 import { generateAutomataFromStateDiagram, Modules } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { Command, Option } from 'commander';
-import fs from 'fs-extra';
+import fe from 'fs-extra';
 import { isString } from 'lodash-es';
 import pc from 'picocolors';
+import { isJSON } from '../src/utils';
 
 interface ICodegenOptions {
 	language: keyof typeof Modules;
 	className: string;
 	outfile: string;
+	constants?: string;
 	verbose?: boolean;
 	eval?: string;
 }
@@ -36,6 +38,7 @@ program
 	.option('-o, --outfile <path>', 'Output file path')
 	.option('-c, --className <className>', 'Generating Automata class name')
 	.option('-e, --eval <diagramText>', 'Evaluate the given state diagram')
+	.option('-C, --constants <constants>', 'Constants to be used in generated Automata')
 	.option('--verbose', 'Enable verbose mode')
 	.allowExcessArguments(true)
 	.allowUnknownOption(true)
@@ -57,7 +60,7 @@ program
 			if (options.verbose)
 				wait(`Reading diagram from ${filePath}...`);
 			try {
-				diagramText = fs.readFileSync(filePath, 'utf-8');
+				diagramText = fe.readFileSync(filePath, 'utf-8');
 			} catch (err) {
 				if (err instanceof Error)
 					error(err.message);
@@ -93,6 +96,23 @@ program
 			process.exit(1);
 		}
 
+		let constants = '{}';
+		if (options.constants) {
+			if (isJSON(options.constants)) {
+				constants = options.constants;
+			} else if (fe.existsSync(options.constants)) {
+				if (!options.constants.endsWith('.json')) {
+					error('Constants file must be a JSON file.');
+					process.exit(1);
+				} else {
+					constants = fe.readFileSync(options.constants, 'utf-8');
+				}
+			} else {
+				error('"constants" flag should be a path to a JSON file or a valid JSON string.');
+				process.exit(1);
+			}
+		}
+
 		if (options.verbose) {
 			wait('Parsing given state diagram: ');
 			for (const line of diagramText.split('\n')) wait(line);
@@ -113,6 +133,7 @@ program
 		const automata = await generateAutomataFromStateDiagram(matrix, {
 			outLang: options.language,
 			className,
+			constants,
 		}).catch((err) => {
 			error('An error occurred while generating Automata');
 			if (err instanceof Error) error(err.message);
@@ -120,7 +141,7 @@ program
 		});
 
 		const disableFlagLines = checkDisableFlags.join('\n');
-		const textToWrite = `${disableFlagLines}\n\n${automata}`;
+		const writeable = `${disableFlagLines}\n\n${automata}`;
 		const outputFilePath = path.resolve(options.outfile);
 
 		try {
@@ -128,8 +149,8 @@ program
 				wait(`Saving generated Automata to ${outputFilePath}`);
 			}
 
-			fs.ensureDirSync(dirname(outputFilePath));
-			fs.writeFileSync(outputFilePath, textToWrite, { encoding: 'utf-8' });
+			fe.ensureDirSync(dirname(outputFilePath));
+			fe.writeFileSync(outputFilePath, writeable, { encoding: 'utf-8' });
 
 			if (options.verbose) {
 				success(`Generated Automata saved to ${outputFilePath}`);

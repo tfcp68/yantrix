@@ -41,6 +41,6 @@
 		"format": "eslint --fix --format=pretty ."
 	},
 	"dependencies": {
-		"@turbo/gen": "^2.1.1"
+		"@turbo/gen": "^2.1.2"
 	}
 }
