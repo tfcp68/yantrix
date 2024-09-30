@@ -12,6 +12,7 @@ export function TrafficLight() {
 	const onSwitch = () => dispatch(switchLight());
 	const onReset = () => dispatch(resetLight());
 
+	console.log(state, context);
 	return (
 		<div className="flex flex-col items-center space-y-4">
 			<div className="relative">
