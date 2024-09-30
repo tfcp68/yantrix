@@ -12,6 +12,8 @@ export function TrafficLight() {
 	const onSwitch = () => dispatch(switchLight());
 	const onReset = () => dispatch(resetLight());
 
+	console.log(context);
+
 	return (
 		<div className="flex flex-col items-center space-y-4">
 			<div className="relative">
@@ -31,7 +33,7 @@ export function TrafficLight() {
 						/>
 					</div>
 				</Card>
-				<Badge className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-200 text-xs">{context.counter ?? 0}</Badge>
+				<Badge className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-200 text-xs">{context.counter}</Badge>
 			</div>
 			<div className="flex flex-col w-24 space-y-2">
 				<Button
