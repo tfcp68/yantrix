@@ -86,7 +86,7 @@ importers:
         version: 1.1.0(@types/react@18.3.9)(react@18.3.1)
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../../packages/automata
@@ -242,6 +242,40 @@ importers:
         specifier: ^4.19.1
         version: 4.19.1
 
+  packages/codegen-tests:
+    dependencies:
+      '@yantrix/automata':
+        specifier: workspace:^
+        version: link:../automata
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../cli
+      '@yantrix/codegen':
+        specifier: workspace:^
+        version: link:../codegen
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
+      '@yantrix/mermaid-parser':
+        specifier: workspace:^
+        version: link:../mermaid-parser
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@yantrix/yantrix-parser':
+        specifier: workspace:^
+        version: link:../yantrix-parser
+      fs-extra:
+        specifier: ^11.2.0
+        version: 11.2.0
+      tsup:
+        specifier: ^1.0.0
+        version: 1.5.1(esbuild@0.23.0)(typescript@5.6.2)
+    devDependencies:
+      '@types/fs-extra':
+        specifier: ^11.0.4
+        version: 11.0.4
+
   packages/functions: {}
 
   packages/mermaid-parser:
@@ -264,7 +298,7 @@ importers:
     dependencies:
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-        version: 2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)
+        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
@@ -1233,6 +1267,10 @@ packages:
     peerDependenciesMeta:
       rollup:
         optional: true
+
+  '@rollup/pluginutils@4.2.1':
+    resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
+    engines: {node: '>= 8.0.0'}
 
   '@rollup/pluginutils@5.1.0':
     resolution: {integrity: sha512-XTIWOPPcpvyKI6L1NHo0lFlCyznUEyPmPY1mc3KpPVDYulHSTvyeLNVW00QTLIAFNhR3kYnJTQHeGqU4M3n09g==}
@@ -3871,6 +3909,10 @@ packages:
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
 
+  joycon@2.2.5:
+    resolution: {integrity: sha512-YqvUxoOcVPnCp0VU1/56f+iKSdvIRJYPznH22BdXV3xMk75SFXhWeJkZ8C9XxUWt1b5x2X1SxuFygW1U0FmkEQ==}
+    engines: {node: '>=6'}
+
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
     engines: {node: '>=10'}
@@ -5292,6 +5334,23 @@ packages:
   robust-predicates@3.0.2:
     resolution: {integrity: sha512-IXgzBWvWQwE6PrDI05OvmXUIruQTcoMDzRsOd5CDvHCVLcLHMTSYvOK5Cm46kWqlV3yAbuSpBZdJ5oP5OUoStg==}
 
+  rollup-plugin-dts@1.4.14:
+    resolution: {integrity: sha512-H33aGCUbp/Lm+tbkG5gZePnuWvvaafkwh7Uh4RYJs0/ChOfWlENCby1wOn+xBVsCzpV/g/+OVYqgzVjT80dNJg==}
+    peerDependencies:
+      rollup: ^2.33.1
+      typescript: ^4.0.5
+
+  rollup-plugin-esbuild@2.6.1:
+    resolution: {integrity: sha512-hskMEQQ4Vxlyoeg1OWlFTwWHIhpNaw6q+diOT7p9pdkk34m9Mbk3aymS/JbTqLXy/AbJi22iuXrucknKpeczfg==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      esbuild: '>=0.7.0'
+
+  rollup@2.79.1:
+    resolution: {integrity: sha512-uKxbd0IhMZOhjAiD5oAFp7BqvkA4Dv47qpOCtaNvng4HBwdbWtdOh8f5nZNuk2rp51PMGk3bzfWu5oayNEuYnw==}
+    engines: {node: '>=10.0.0'}
+    hasBin: true
+
   rollup@4.20.0:
     resolution: {integrity: sha512-6rbWBChcnSGzIlXeIdNIZTopKYad8ZG8ajhl78lGRLsI2rX8IkaotQhVas2Ma+GPxJav19wrSzvRvuiv0YKzWw==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -5782,6 +5841,10 @@ packages:
 
   tslib@2.6.3:
     resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
+
+  tsup@1.5.1:
+    resolution: {integrity: sha512-H4CpUz5GAiS36HhJSrCTbNPOl1V0FT1WkMb1mnygmU67l7f4fpG9MsxeH7dHzT7Q3pyCZapBscnG5h7DuUnU7g==}
+    hasBin: true
 
   tsup@8.3.0:
     resolution: {integrity: sha512-ALscEeyS03IomcuNdFdc0YWGVIkwH1Ws7nfTbAPuoILvEV2hpGQAY72LIOjglGo4ShWpZfpBqP/jpQVCzqYQag==}
@@ -7243,7 +7306,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.9
 
-  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(react@18.3.1))(react@18.3.1)':
+  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
     dependencies:
       immer: 10.1.1
       redux: 5.0.1
@@ -7260,6 +7323,11 @@ snapshots:
       magic-string: 0.30.11
     optionalDependencies:
       rollup: 4.20.0
+
+  '@rollup/pluginutils@4.2.1':
+    dependencies:
+      estree-walker: 2.0.2
+      picomatch: 2.3.1
 
   '@rollup/pluginutils@5.1.0(rollup@4.20.0)':
     dependencies:
@@ -10215,6 +10283,8 @@ snapshots:
 
   jju@1.4.0: {}
 
+  joycon@2.2.5: {}
+
   joycon@3.1.1: {}
 
   js-tokens@4.0.0: {}
@@ -12015,6 +12085,24 @@ snapshots:
 
   robust-predicates@3.0.2: {}
 
+  rollup-plugin-dts@1.4.14(rollup@2.79.1)(typescript@5.6.2):
+    dependencies:
+      rollup: 2.79.1
+      typescript: 5.6.2
+    optionalDependencies:
+      '@babel/code-frame': 7.24.7
+
+  rollup-plugin-esbuild@2.6.1(esbuild@0.23.0):
+    dependencies:
+      '@rollup/pluginutils': 4.2.1
+      esbuild: 0.23.0
+      joycon: 2.2.5
+      strip-json-comments: 3.1.1
+
+  rollup@2.79.1:
+    optionalDependencies:
+      fsevents: 2.3.3
+
   rollup@4.20.0:
     dependencies:
       '@types/estree': 1.0.5
@@ -12540,6 +12628,16 @@ snapshots:
   tslib@1.14.1: {}
 
   tslib@2.6.3: {}
+
+  tsup@1.5.1(esbuild@0.23.0)(typescript@5.6.2):
+    dependencies:
+      joycon: 2.2.5
+      rollup: 2.79.1
+      rollup-plugin-dts: 1.4.14(rollup@2.79.1)(typescript@5.6.2)
+      rollup-plugin-esbuild: 2.6.1(esbuild@0.23.0)
+    transitivePeerDependencies:
+      - esbuild
+      - typescript
 
   tsup@8.3.0(@swc/core@1.7.26)(jiti@1.21.6)(postcss@8.4.47)(tsx@4.19.1)(typescript@5.6.2)(yaml@2.5.0):
     dependencies:
