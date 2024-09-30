@@ -34,7 +34,7 @@
 		"lint": "eslint --format=pretty .",
 		"prepack": "pnpm lint && pnpm test && pnpm build",
 		"test": "vitest run --outputFile=../../test_reports/redux.md",
-		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/game_phase.mermaid --outfile __tests__/fixtures/GamePhaseAutomataTest.ts --language TypeScript --className GamePhaseTest"
+		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
 	},
 	"directories": {
 		"lib": "src",
@@ -43,6 +43,7 @@
 	"dependencies": {
 		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
+		"@yantrix/functions": "workspace:^",
 		"@yantrix/utils": "workspace:^"
 	},
 	"devDependencies": {

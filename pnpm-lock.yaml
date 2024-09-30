@@ -86,11 +86,7 @@ importers:
         version: 1.1.0(@types/react@18.3.9)(react@18.3.1)
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-<<<<<<< HEAD
-        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
-=======
         version: 2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
->>>>>>> origin/HEAD
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../../packages/automata
@@ -302,14 +298,13 @@ importers:
     dependencies:
       '@reduxjs/toolkit':
         specifier: ^2.2.7
-<<<<<<< HEAD
-        version: 2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
-=======
         version: 2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
->>>>>>> origin/HEAD
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
@@ -1788,15 +1783,12 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
-<<<<<<< HEAD
-=======
 
   '@typescript-eslint/utils@8.7.0':
     resolution: {integrity: sha512-ZbdUdwsl2X/s3CiyAu3gOlfQzpbuG3nTWKPoIvAu1pu5r8viiJvv2NPN2AqArL35NCYtw/lrPPfM4gxrMLNLPw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
->>>>>>> origin/HEAD
 
   '@typescript-eslint/visitor-keys@8.5.0':
     resolution: {integrity: sha512-yTPqMnbAZJNy2Xq2XU8AdtOW9tJIr+UQb64aXB9f3B1498Zx9JorVgFJcZpEc9UBuCCrdzKID2RGAMkYcDtZOw==}
@@ -5850,17 +5842,12 @@ packages:
   tslib@2.6.3:
     resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
 
-<<<<<<< HEAD
   tsup@1.5.1:
     resolution: {integrity: sha512-H4CpUz5GAiS36HhJSrCTbNPOl1V0FT1WkMb1mnygmU67l7f4fpG9MsxeH7dHzT7Q3pyCZapBscnG5h7DuUnU7g==}
     hasBin: true
 
-  tsup@8.2.4:
-    resolution: {integrity: sha512-akpCPePnBnC/CXgRrcy72ZSntgIEUa1jN0oJbbvpALWKNOz1B7aM+UVDWGRGIO/T/PZugAESWDJUAb5FD48o8Q==}
-=======
   tsup@8.3.0:
     resolution: {integrity: sha512-ALscEeyS03IomcuNdFdc0YWGVIkwH1Ws7nfTbAPuoILvEV2hpGQAY72LIOjglGo4ShWpZfpBqP/jpQVCzqYQag==}
->>>>>>> origin/HEAD
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -7319,11 +7306,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.9
 
-<<<<<<< HEAD
-  '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(@types/react@18.3.5)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
-=======
   '@reduxjs/toolkit@2.2.7(react-redux@9.1.2(@types/react@18.3.9)(react@18.3.1)(redux@5.0.1))(react@18.3.1)':
->>>>>>> origin/HEAD
     dependencies:
       immer: 10.1.1
       redux: 5.0.1
@@ -8015,7 +7998,7 @@ snapshots:
       '@vue/shared': 3.5.1
       entities: 4.5.0
       estree-walker: 2.0.2
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   '@vue/compiler-dom@3.5.1':
     dependencies:
@@ -8032,7 +8015,7 @@ snapshots:
       estree-walker: 2.0.2
       magic-string: 0.30.11
       postcss: 8.4.47
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.1':
     dependencies:
@@ -12646,7 +12629,6 @@ snapshots:
 
   tslib@2.6.3: {}
 
-<<<<<<< HEAD
   tsup@1.5.1(esbuild@0.23.0)(typescript@5.6.2):
     dependencies:
       joycon: 2.2.5
@@ -12657,10 +12639,7 @@ snapshots:
       - esbuild
       - typescript
 
-  tsup@8.2.4(@swc/core@1.7.26)(jiti@1.21.6)(postcss@8.4.45)(tsx@4.19.0)(typescript@5.6.2)(yaml@2.5.0):
-=======
   tsup@8.3.0(@swc/core@1.7.26)(jiti@1.21.6)(postcss@8.4.47)(tsx@4.19.1)(typescript@5.6.2)(yaml@2.5.0):
->>>>>>> origin/HEAD
     dependencies:
       bundle-require: 5.0.0(esbuild@0.23.0)
       cac: 6.7.14

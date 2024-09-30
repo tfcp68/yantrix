@@ -103,7 +103,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
-
+		this.dictionaries.push();
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
 	}
