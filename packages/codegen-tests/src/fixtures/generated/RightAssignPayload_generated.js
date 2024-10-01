@@ -1,0 +1,190 @@
+
+			import { GenericAutomata, FunctionDictionary } from '@yantrix/automata';
+import { builtInFunctions } from '@yantrix/functions';
+
+			export const statesDictionary = {
+  "~~~START~~~": 74979334,
+  "A": 65
+}
+export const actionsDictionary = {
+  "toA": 114982
+}
+const reducer = {74979334: (prevContext, payload, functionDictionary) => {
+	
+				return prevContext
+			},
+	65: (prevContext, payload, functionDictionary) => {
+	
+				return {UiWNmOldus: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['UiWNmOldus'] !== undefined && payload['UiWNmOldus'] !== null) {
+							return payload['UiWNmOldus']
+						}
+							else {
+								return 'PoTVofXIwg'
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	nwzkyvKpnv: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['nwzkyvKpnv'] !== undefined && payload['nwzkyvKpnv'] !== null) {
+							return payload['nwzkyvKpnv']
+						}
+							else {
+								return '7917.5825176918115'
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	SIBELVGEzV: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['SIBELVGEzV'] !== undefined && payload['SIBELVGEzV'] !== null) {
+							return payload['SIBELVGEzV']
+						}
+							else {
+								return '56'
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	PiauynzXDu: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['PiauynzXDu'] !== undefined && payload['PiauynzXDu'] !== null) {
+							return payload['PiauynzXDu']
+						}
+							else {
+								return '[]'
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	dquMVMUpst: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['dquMVMUpst'] !== undefined && payload['dquMVMUpst'] !== null) {
+							return payload['dquMVMUpst']
+						}
+							else {
+								return payload === null || (payload === undefined  || payload['AphAPMvPmT'] === undefined) ? null : payload['AphAPMvPmT']
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	jPLxrxwFsb: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['jPLxrxwFsb'] !== undefined && payload['jPLxrxwFsb'] !== null) {
+							return payload['jPLxrxwFsb']
+						}
+							else {
+								return prevContext === null ||  (prevContext === undefined || prevContext['LksxdYkjDW'] === undefined) ? null : prevContext['LksxdYkjDW']
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	egvFHdqbVE: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['egvFHdqbVE'] !== undefined && payload['egvFHdqbVE'] !== null) {
+							return payload['egvFHdqbVE']
+						}
+							else {
+								return 3.14
+							}
+					}())
+
+						return boundValue
+
+					}()),
+	luisZhwJps: (function(){
+						const boundValue = (function(){
+						if(payload !== null && payload['luisZhwJps'] !== undefined && payload['luisZhwJps'] !== null) {
+							return payload['luisZhwJps']
+						}
+							else {
+								return payload === null || (payload === undefined  || payload['XhiBbTFsBQ'] === undefined) ? null : payload['XhiBbTFsBQ']
+							}
+					}())
+
+						return boundValue
+
+					}())}
+			}}
+export const functionDictionary = new FunctionDictionary();
+functionDictionary.register(builtInFunctions);
+			const actionsMap = {
+  "toA": "toA"
+}
+			const statesMap = {
+  "~~~START~~~": "~~~START~~~",
+  "A": "A"
+}
+			const getDefaultContext = (prevContext, payload) => {
+				const ctx = prevContext
+				return  Object.assign({}, prevContext, ctx);
+			}
+			
+			const actionToStateFromStateDict = {74979334: {
+				  114982: {
+				  	state: 65,
+				  },
+				},}
+			
+export class Test extends GenericAutomata {
+
+    static id = 'Test';
+    static actions = actionsMap;
+    static states = statesMap;
+    static getState = (state) => statesDictionary[state];
+    static hasState = (instance, state) => instance.state === Test.getState(state);
+    static getAction = (action) => actionsDictionary[action];;
+    static createAction = 
+		(action, payload) => {
+			const actionId = Test.getAction(action);
+			return {
+				action: actionId,
+				payload,
+			}
+		};
+
+    constructor() {
+        super();
+        this.init({
+            state: 74979334,
+            context:{},
+            rootReducer: ({ action, context, payload, state }) => {
+					if (!action || payload === null) return { state, context };
+					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")
+					if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
+					const {state:newState} = actionToStateFromStateDict[state][action]
+
+					const contextWithInitial = getDefaultContext(context,payload)
+
+					const newContextFunc = reducer[newState]
+
+					if(typeof newContextFunc !== 'function') {
+						throw new Error('Invalid newContextFunc')
+					}
+					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+  				},
+            stateValidator: (s) => Object.values(statesDictionary).includes(s),
+            actionValidator: (a) => Object.values(actionsDictionary).includes(a),
+            functionRegistry: functionDictionary,
+        });
+    }
+
+    isKeyOf = (key, obj) => key in obj;
+}
+
+export default Test;
+		
