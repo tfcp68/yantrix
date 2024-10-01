@@ -18,7 +18,7 @@ const setInstance = (id: string, Automata: TClassConstructor<TAutomata>) => {
 export const useFSM = (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => {
 	const setInitialAutomata = () => {
 		if (isAutomata(Automata) && isStaticMethodsAutomata(Automata)) {
-			const id = Automata.id as string;
+			const id = Automata.id;
 
 			return setInstance(id, Automata);
 		} else if (isPropsUseFSM(Automata)) {
