@@ -37,8 +37,8 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"lint": "eslint --format=pretty .",
-		"format": "eslint --fix --format=pretty ."
+		"lint": "eslint .",
+		"format": "eslint --fix ."
 	},
 	"dependencies": {
 		"@turbo/gen": "^2.1.2"

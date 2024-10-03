@@ -49,9 +49,8 @@
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
 		"test": "vitest run",
-		"lint": "eslint --format=pretty .",
-		"format": "eslint --fix --format=pretty .",
-		"prepack": "pnpm run build && pnpm run lint"
+		"lint": "eslint .",
+		"format": "eslint --fix ."
 	},
 	"directories": {
 		"lib": "src",
