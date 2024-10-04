@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerReturned, TStateFSMSlice } from '../types';
+import { createSlice, PayloadAction, SliceSelectors } from '@reduxjs/toolkit';
+import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice } from '../types';
+import { isStaticMethodsAutomata } from '../utility/typeGuards';
 
 /**
  * Функция для создания обертки над redux slice.
@@ -7,51 +8,51 @@ import { TAutomataWithStaticMethods, TCreateFSMSliceOptions, TCreateFSMSlicerRet
  * каждый из которых вызывается как action автомата
  * @param options
  */
-export function createFSMSlice<Automata extends TAutomataWithStaticMethods>(
-	options: TCreateFSMSliceOptions<Automata, TStateFSMSlice, TStateFSMSlice['context']>,
-): TCreateFSMSlicerReturned<keyof Automata['actions'], TStateFSMSlice> {
+export function createFSMSlice<Actions extends string | number | symbol, ContextReduxType extends object, Automata extends TAutomata = TAutomata>(
+	options: TCreateFSMSliceOptions<Automata, ContextReduxType>,
+) {
 	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new Fsm();
-	const actionsNameList = Object.keys(Fsm.actions);
-	const initialState: TStateFSMSlice = _fsm.getContext();
+	let reducers;
+	let actionsNameList;
+	const selectorsSlice = Object.assign(selectors ?? {});
 
-	const selectorsSlice = selectors || {
-		state: (sliceState: TStateFSMSlice): TStateFSMSlice['state'] => sliceState.state,
-		context: (sliceState: TStateFSMSlice): TStateFSMSlice['context'] => sliceState.context,
-	};
+	const contextAutomata: TAutomataContext<ContextReduxType> = _fsm.getContext();
+	const contextRedux = Object.assign({}, contextAutomata);
 
-	const reducers = actionsNameList.reduce((acc, actionName) => {
-		acc[actionName]
-			= (
-				state: TStateFSMSlice,
-				action: PayloadAction<TStateFSMSlice>,
-			) => {
-				const rootReducer = _fsm.getReducer();
-				const newState = rootReducer
-					? rootReducer({
+	if (isStaticMethodsAutomata(Fsm)) {
+		actionsNameList = Object.keys(Fsm.actions);
+		reducers = actionsNameList.reduce((acc, actionName) => {
+			acc[actionName]
+				= (
+					_state: TAutomataContext<ContextReduxType>,
+					action: PayloadAction<(typeof contextAutomata)['context']>,
+				) => {
+					const { state, context } = _fsm.dispatch({
 						action: Fsm.getAction(actionName),
 						payload: action.payload,
-						...state,
-					})
-					: initialState;
+					});
 
-				state = {
-					state: newState.state,
-					context: newState.context,
+					// Прокидываем в маппер контекст из автомата, если contextToRedux неопределен,
+					// то прокидываем просто контекст из автомата
+					const newSliceContext = contextToRedux?.({
+						state,
+						...context,
+					}) ?? { ...contextAutomata.context };
+
+					_state.context = {
+						...newSliceContext,
+					};
+					_state.state = state;
 				};
+			return acc;
+		}, {} as any);
+	}
 
-				return state;
-			};
-		return acc;
-	}, {} as any);
-
-	if (contextToRedux)
-		initialState.context = contextToRedux(initialState.context);
-
-	return createSlice({
+	return createSlice<TAutomataContext<ContextReduxType>, TReducersFSMSlice<Actions, TAutomataContext<ContextReduxType>['context']>, string, SliceSelectors<TAutomataContext<ContextReduxType>>, string>({
 		name,
 		reducerPath: reducerPath ?? '',
-		initialState,
+		initialState: contextRedux as TAutomataContext<ContextReduxType>,
 		reducers,
 		selectors: selectorsSlice,
 	});
