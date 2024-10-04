@@ -86,6 +86,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		this.actionChains = {};
 		this.createActionChains();
+		this.checkActionChainsDefaultPaths();
 
 		this.setupDictionaries();
 	}
@@ -274,10 +275,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 					const actionMove = actionToStateFromStateDict[state][action];
 					const newStateObject = { state: actionMove.state[0] }
-					if(actionMove.state.length > 1 && actionMove.predicate != null) {
-						// determine new state from predicate
-						newStateObject.state = actionMove.predicate(contextWithInitial, payload, functionDictionary)
-					}
+					${this.getRootReducerNewStatePredicateResolution()}
 					const newState = newStateObject.state;
 					const newContextFunc = reducer[newState]
 
@@ -302,6 +300,17 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 	protected getRootReducerActionValidation() {
 		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
+	}
+
+	protected getRootReducerNewStatePredicateResolution() {
+		return `
+			if(actionMove.state.length > 1 && actionMove.predicate != null) {
+				// determine new state from predicate
+				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
+				if(resolvedPredicateValue == null) return { state, context };
+				newStateObject.state = resolvedPredicateValue;
+			}
+		`;
 	}
 
 	protected getStateValidator() {
@@ -768,6 +777,43 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	/*
+		checking default path for every level of action chain / segment of action path
+		each level must have not more than 1 default path (i.e its name will be the internal ID instead of action/predicate/etc)
+	*/
+	private checkActionChainsDefaultPaths() {
+		for (const state in this.actionChains) {
+			const possibleActions = this.actionChains[state]!;
+			for (const action in possibleActions) {
+				const defaultPaths = [];
+				const chains = possibleActions[action]!;
+				for (const { chain } of chains) {
+					for (let i = 0; i < chain.length; i++) {
+						const path = chain[i];
+						if (this.isInternalID(path)) {
+							const id = path.split(', ')[2];
+							if (defaultPaths[i] !== undefined && defaultPaths[i] !== id) {
+								throw new Error('More than 1 default node encountered');
+							} else {
+								defaultPaths[i] = id;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/*
+		some string is internal ID of an action path , when:
+		1). it cannot be processed by the parser
+		2). it has a format like 'firstNode, secondNode, ID'
+	*/
+
+	isInternalID(str: string): boolean {
+		return str.match(/^(\w+), (\w+), (\d+)$/) != null;
+	}
+
+	/*
 		Predicates object is necessary for resolving the correct state to transition to, when using forks;
 		Function, obtained w/ IDs of currentState and dispatchedAction , is later loaded with values
 		from context/payload during root reducer operations.
@@ -831,7 +877,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 										if(st${index + 1}) return st${index + 1};
 								`).join('')
 							}
-							return ${originalStateId}; // staying at the original state as fallback , in case the predicate can't resolve the transition state
+							return null; // in case the predicate can't resolve the transition state
 						 }`,
 					);
 				}
