@@ -229,7 +229,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			}
 
 			return `${stateValue}: (prevContext, payload, functionDictionary) => {
-	
+
 				return ${this.getContextTransition(stateValue)}
 			}`;
 		});
