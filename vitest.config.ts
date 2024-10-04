@@ -7,6 +7,7 @@ export default defineConfig({
 			'default',
 			new VitestMarkdownReporter({ title: 'Test Cases' }),
 		],
+		environment: 'jsdom',
 		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
 		passWithNoTests: true,
 		coverage: {

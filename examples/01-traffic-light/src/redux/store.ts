@@ -5,14 +5,8 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
 const contextToReduxParams = (context: any) => {
 	return {
-		redColorOn: [
-			TLA.getState('Red'),
-			TLA.getState('RedYellow'),
-		].includes(context.state),
-		yellowColorOn: [
-			TLA.getState('Yellow'),
-			TLA.getState('RedYellow'),
-		].includes(context.state),
+		redColorOn: [TLA.getState('Red'), TLA.getState('RedYellow')].includes(context.state),
+		yellowColorOn: [TLA.getState('Yellow'), TLA.getState('RedYellow')].includes(context.state),
 		greenColorOn: TLA.getState('Green') === context.state,
 		...context,
 	};
