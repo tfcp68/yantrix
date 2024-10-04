@@ -3,6 +3,7 @@ import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ExpressionTypes,
 	isContextWithReducer,
+	isFunctionExpression,
 	isKeyItemReference,
 	isKeyItemWithExpression,
 	maxNestedFuncLevel,
@@ -793,25 +794,19 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 						if they cant be processed (i.e they are internal ids or unrelated names),
 						assume the segment resolves to TRUE and move on
 					*/
-					const isFunction = (str: string) => str.match(/^[a-z]+\([\w\s$#,()]+\)$/i);
 					for (const segment of chain) {
-						if (isFunction(segment)) {
-							try {
-								const wrappedSegment = `=${segment}?`;
-								const processedExpression = parser.parse(wrappedSegment);
-								// check the expression property at the top-level of the parsed object
-								if (!processedExpression.expression) {
-									throw new Error('Incorrect expression');
-								}
-								const expressionValue = this.getExpressionValue(processedExpression.expression);
-								conditions.push(expressionValue);
-							} catch (error) {
-								console.error(error); // lint
-								conditions.push(true);
-								continue;
+						try {
+							const wrappedSegment = `=${segment}?`;
+							const processedExpression = parser.parse(wrappedSegment);
+							// check the expression property at the top-level of the parsed object
+							if (!processedExpression.expression || !isFunctionExpression(processedExpression.expression)) {
+								throw new Error('Incorrect expression');
 							}
-						} else {
+							const expressionValue = this.getExpressionValue(processedExpression.expression);
+							conditions.push(expressionValue);
+						} catch {
 							conditions.push(true);
+							continue;
 						}
 					}
 					if (conditions.length > 0) {
