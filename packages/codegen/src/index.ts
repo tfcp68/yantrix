@@ -3,9 +3,7 @@ import { YantrixParser } from '@yantrix/yantrix-parser';
 import { CodegenCreator } from './core/Codegen.js';
 import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
 
-export * from './builtins/index.js';
 export * from './core/modules/index.js';
-
 export * from './types/common.js';
 
 export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<string> {
