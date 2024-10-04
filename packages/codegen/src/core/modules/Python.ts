@@ -14,8 +14,9 @@ import {
 	TMappedKeys,
 } from '@yantrix/yantrix-parser';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { replaceFileContents } from '../../utils/utils.js';
+// import { replaceFileContents } from '../../utils/utils.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
+import { PythonTemplate } from '../templates/Python.js';
 import { TConstants, TExpressionRecord } from './../../types/common';
 import { ModuleNames } from './index';
 
@@ -125,9 +126,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	getClassTemplate(className: string) {
 		const initialState = this.getInitialState();
 
-		const stateValue = this.stateDictionary.getStateValues({
-			keys: [initialState],
-		})[0];
+		const stateValue = this.stateDictionary.getStateValues({ keys: [initialState] })[0];
 
 		if (stateValue === null) {
 			throw new Error('GetClassTemplate: Invalid state');
@@ -138,8 +137,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 
 		const initialContext = Object.assign({}, a, b);
 
-		return replaceFileContents(
-			'../templates/python_class_template.txt',
+		return this.replaceFileContents(
 			{
 				'%CLASSNAME%': className,
 				'%ID%': `'${className}'`,
@@ -158,6 +156,14 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
 			},
 		);
+	}
+
+	replaceFileContents(replacementMap: Record<string, string>): string {
+		let res = PythonTemplate;
+		Object.entries(replacementMap).forEach(([template, str]) => {
+			res = res.replaceAll(template, str);
+		});
+		return res;
 	}
 
 	protected getHasStateFunc() {

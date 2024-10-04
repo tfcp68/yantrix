@@ -1,3 +1,4 @@
+export const PythonTemplate = `
 class %CLASSNAME%: # (GenericAutomata)
 
     id = %ID%
@@ -25,3 +26,4 @@ class %CLASSNAME%: # (GenericAutomata)
     %A_VALIDATOR%
 
     %IS_KEY_OF%
+`;
