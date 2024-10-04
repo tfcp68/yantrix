@@ -1,7 +1,7 @@
 {
 	"name": "@yantrix/scripts",
 	"type": "commonjs",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"private": true,
 	"description": "Utility scripts for Yantrix",
 	"contributors": [
@@ -37,8 +37,8 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"lint": "eslint --format=pretty .",
-		"format": "eslint --fix --format=pretty ."
+		"lint": "eslint .",
+		"format": "eslint --fix ."
 	},
 	"dependencies": {
 		"@turbo/gen": "^2.1.2"

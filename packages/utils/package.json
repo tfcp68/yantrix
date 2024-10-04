@@ -53,9 +53,8 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"format": "eslint --fix --format=pretty .",
-		"lint": "eslint --format=pretty .",
-		"prepack": "pnpm lint && pnpm build --coverage"
+		"format": "eslint --fix .",
+		"lint": "eslint ."
 	},
 	"devDependencies": {
 		"@types/node": "^22.7.3"
