@@ -27,7 +27,7 @@ If you agree to most of these takes, you'd probably like Yantrix. If not, still 
 
 To achieve those goals, Yantrix offers a visual language to describe data operations and bind them to discriminate well-defined processes, organized into the aforementioned State Machines. That approach is not the most traditional but is extremely reliable and manageable when you get the hang of it. To crown it all, being _visual_ means the code can be immediately visualized to produce a representation of applied logic that is easy to conceive and is very efficient at storing knowledge about the produced software in documentation hubs.
 
-If you're not familiar with automata-based programming, please refer to [🧠Core Concepts](https://tfcp68.github.io/yantrixconcepts/)
+If you're not familiar with automata-based programming, please refer to [🧠Core Concepts](https://tfcp68.github.io/yantrix/concepts/)
 
 ## Installation
 

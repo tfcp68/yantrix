@@ -1,13 +1,13 @@
 {
 	"name": "01-traffic-light",
 	"type": "module",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"private": true,
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
 		"lint": "eslint .",
-		"format": "eslint --fix --format=pretty .",
+		"format": "eslint --fix .",
 		"preview": "vite preview",
 		"gen-automata": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
 	},

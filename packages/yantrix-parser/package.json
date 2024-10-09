@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/yantrix-parser",
 	"type": "module",
-	"version": "0.1.0",
+	"version": "0.0.1",
 	"description": "Execute jison parser",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -56,9 +56,8 @@
 		"build": "pnpm create-parser && tsc --noEmit && tsup",
 		"create-parser": "ts-jison -t typescript -n Yantrix -o src/yantrixParser.ts src/grammar/parserGrammar.jison && node scripts/disableTypeCheck.js",
 		"export-grammar": "node src/bin/exportCodeToGrammar.js ",
-		"format": "eslint --fix --format=pretty .",
-		"lint": "eslint --format=pretty .",
-		"prepack": "pnpm lint && pnpm test && pnpm build",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
 		"test": "vitest run --outputFile=../../test_reports/yantrix-parser.md"
 	},
 	"dependencies": {
