@@ -1,87 +1,87 @@
 import { execSync } from 'node:child_process';
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyDirectorySync } from './utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Константы для путей
 const ROOT_DIR = path.resolve(__dirname, '../../');
+
 const SOURCE_DIR = path.resolve(ROOT_DIR, 'docs');
 const TARGET_DIR = path.resolve(__dirname, '../src');
+
 const TEST_REPORTS_DIR = path.resolve(ROOT_DIR, 'test_reports');
 const API_REFERENCE_DIR = path.resolve(__dirname, '../src/API-Reference');
 
-async function copyDirectory(src, dest) {
-	await fs.mkdir(dest, { recursive: true });
-	await fs.cp(src, dest, { recursive: true });
+function preBuild() {
+	copyDirectorySync(SOURCE_DIR, TARGET_DIR);
 }
 
-async function processFiles(directory, fileFilter, processFunction) {
-	const files = await fs.readdir(directory, { recursive: true, withFileTypes: true });
+function processFilesSync(directory, fileFilter, processFunction) {
+	const files = fs.readdirSync(directory, { withFileTypes: true });
 	const filteredFiles = files.filter(fileFilter);
 
 	for (const file of filteredFiles) {
-		await processFunction(file);
+		if (file.isDirectory()) {
+			processFilesSync(path.join(directory, file.name), fileFilter, processFunction);
+		} else {
+			processFunction(file, directory);
+		}
 	}
 }
 
-async function preBuild() {
-	await copyDirectory(SOURCE_DIR, TARGET_DIR);
-}
-
-async function typedocBuild() {
+function typedocBuild() {
 	execSync('npm run docs', { stdio: 'inherit' });
-
-	await processFiles(
+	processFilesSync(
 		TARGET_DIR,
 		file => file.isFile() && file.name.toLowerCase() === 'readme.md',
-		async (file) => {
-			const oldPath = path.join(file.path, file.name);
-			const newPath = path.join(file.path, 'index.md');
-			await fs.rename(oldPath, newPath);
+		(file, dir) => {
+			const oldPath = path.join(dir, file.name);
+			const newPath = path.join(dir, 'index.md');
+			fs.renameSync(oldPath, newPath);
 		},
 	);
 
-	await processFiles(
+	processFilesSync(
 		TARGET_DIR,
 		file => file.isFile() && path.extname(file.name) === '.md',
-		async (file) => {
-			const filePath = path.join(file.path, file.name);
-			let content = await fs.readFile(filePath, 'utf-8');
+		(file, dir) => {
+			const filePath = path.join(dir, file.name);
+			let content = fs.readFileSync(filePath, 'utf-8');
 			content = content.replace(/\]\(\.\/README\.md\)/g, '](/)');
 			content = content.replace(/\]\((.*?)\/README\.md\)/g, ']($1)');
-			await fs.writeFile(filePath, content);
+			fs.writeFileSync(filePath, content);
 		},
 	);
 }
 
-async function testsBuild() {
-	const files = await fs.readdir(TEST_REPORTS_DIR);
+function testsBuild() {
+	const files = fs.readdirSync(TEST_REPORTS_DIR);
 
 	for (const file of files) {
 		const sourcePath = path.join(TEST_REPORTS_DIR, file);
 		const packageName = path.basename(file, '.md');
 		const destDir = path.join(API_REFERENCE_DIR, packageName, 'test_cases');
 
-		await fs.mkdir(destDir, { recursive: true });
-		await fs.copyFile(sourcePath, path.join(destDir, file));
+		fs.mkdirSync(destDir, { recursive: true });
+		fs.copyFileSync(sourcePath, path.join(destDir, file));
 	}
 }
 
-async function main() {
+function main() {
 	try {
 		console.log('Starting pre-build...');
-		await preBuild();
+		preBuild();
 		console.log('Pre-build completed.');
 
 		console.log('Starting typedoc build...');
-		await typedocBuild();
+		typedocBuild();
 		console.log('Typedoc build completed.');
 
 		console.log('Starting tests build...');
-		await testsBuild();
+		testsBuild();
 		console.log('Tests build completed.');
 
 		console.log('All build steps completed successfully.');
