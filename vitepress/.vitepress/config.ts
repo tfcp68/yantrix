@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DefaultTheme } from 'vitepress';
 import matter from 'gray-matter';
+import { DefaultTheme } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
 const menuOrder = ['', 'architecture', 'syntax', 'integrations', 'contributing', 'api' + ' reference'];
