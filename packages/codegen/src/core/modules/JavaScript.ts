@@ -50,8 +50,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
-	actionChains: Record<string, Record<string, any[]>>;
-
 	// initialContext: string;
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
@@ -84,10 +82,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 
-		this.actionChains = {};
-		this.createActionChains();
-		this.checkActionChainsDefaultPaths();
-
 		this.setupDictionaries();
 	}
 
@@ -111,7 +105,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
-		this.dictionaries.push(`const predicates = {${this.createPredicatesFromActionChains()}}`);
+		this.dictionaries.push(`const predicates = {${this.createPredicates()}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 		this.dictionaries.push();
@@ -749,82 +743,17 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	/*
-		action chains are sequences of actions to be iterated on and processed when encountering forks.
-		this structure binds action paths with the exact state that the automata should transition to,
-		when every single segment in the chain resolves to TRUE
-	*/
-	private createActionChains() {
-		for (const state in this.diagram.transitions) {
-			const stateTransitions = this.diagram.transitions[state]!;
-			const chain: Record<string, any> = {};
-
-			for (const transition in stateTransitions) {
-				const action = stateTransitions[transition]?.actionsPath[0]?.action;
-				if (action) {
-					const actionName = action[0]!;
-					if (!chain[actionName]) {
-						chain[actionName] = [];
-					}
-					chain[actionName].push({
-						chain: action.slice(1),
-						state: transition,
-					});
-				}
-			}
-
-			this.actionChains[state] = chain;
-		}
-	}
-
-	/*
-		checking default path for every level of action chain / segment of action path
-		each level must have not more than 1 default path (i.e its name will be the internal ID instead of action/predicate/etc)
-	*/
-	private checkActionChainsDefaultPaths() {
-		for (const state in this.actionChains) {
-			const possibleActions = this.actionChains[state]!;
-			for (const action in possibleActions) {
-				const defaultPaths = [];
-				const chains = possibleActions[action]!;
-				for (const { chain } of chains) {
-					for (let i = 0; i < chain.length; i++) {
-						const path = chain[i];
-						if (this.isInternalID(path)) {
-							const id = path.split(', ')[2];
-							if (defaultPaths[i] !== undefined && defaultPaths[i] !== id) {
-								throw new Error('More than 1 default node encountered');
-							} else {
-								defaultPaths[i] = id;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/*
-		some string is internal ID of an action path , when:
-		1). it cannot be processed by the parser
-		2). it has a format like 'firstNode, secondNode, ID'
-	*/
-
-	isInternalID(str: string): boolean {
-		return str.match(/^(\w+), (\w+), (\d+)$/) != null;
-	}
-
-	/*
 		Predicates object is necessary for resolving the correct state to transition to, when using forks;
 		Function, obtained w/ IDs of currentState and dispatchedAction , is later loaded with values
 		from context/payload during root reducer operations.
 		Resulting value is the new state of the automata, exact state value depends on which conditions resolve to TRUE inside
 	*/
-	private createPredicatesFromActionChains() {
+	private createPredicates() {
 		const predicates: string[] = [];
-		for (const state in this.actionChains) {
+		for (const state in this.diagram.actionChains) {
 			const originalStateId = this.stateDictionary.getDictionary()[state];
 			const statePredicates = [];
-			const possibleActions = this.actionChains[state]!;
+			const possibleActions = this.diagram.actionChains[state]!;
 			for (const action in possibleActions) {
 				const actionId = this.actionDictionary.getDictionary()[action];
 				const chains = possibleActions[action]!;

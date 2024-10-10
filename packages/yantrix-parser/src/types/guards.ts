@@ -24,9 +24,9 @@ export function isKeyItemWithExpression(obj: any): obj is TKeyItemWithExpression
 }
 
 export function isFunctionExpression(obj: any): obj is TExpression<'function'> {
-	return obj.expression != null
-		&& Object.keys(obj.expression).includes('expressionType')
-		&& obj.expression.expressionType === ExpressionTypes.Function
-		&& obj.expression.FunctionDeclaration != null
-		&& typeof obj.expression.FunctionDeclaration === 'object';
+	return obj != null
+		&& Object.keys(obj).includes('expressionType')
+		&& obj.expressionType === ExpressionTypes.Function
+		&& obj.FunctionDeclaration != null
+		&& typeof obj.FunctionDeclaration === 'object';
 }
