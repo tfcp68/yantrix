@@ -25,8 +25,15 @@ stateDiagram-v2
 	B: RenamedNode (identified as "B")
 	A --> B
 ```
-
 Therefore, this diagram will create a `FSM` with two `States` **A** and **B**, regardless of node **B** title.
+
+State Naming Rules and Conventions:
+- Name **must** start with a letter.
+- Name **must** contain only letters, digits or underscore characters.
+- Name **must** not be longer than 255 characters.
+- Name of the state should *unambigiously* convey the current status of the machine, to avoid confusion.
+- Names should be kept as clear and concise as possible.
+- Name of the state is best represented by a noun or an adjective.
 
 ## Declaring Actions
 
