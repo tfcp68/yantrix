@@ -43,18 +43,6 @@ jobs:
         run: npm install
         working-directory: vitepress
 
-      - name: Pre build script
-        run: sh pre_build.sh
-        working-directory: vitepress
-
-      - name: Generate typedoc
-        run: sh typedoc_build.sh
-        working-directory: vitepress
-
-      - name: Generate test cases
-        run: sh tests_build.sh
-        working-directory: vitepress
-
       - name: Build
         run: npm run build
         working-directory: vitepress
