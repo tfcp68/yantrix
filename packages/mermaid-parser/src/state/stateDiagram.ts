@@ -1,4 +1,4 @@
-import { isValidInternalId, isValidStateId } from '../utils/index.js';
+import { compareActionChains, isValidInternalId, isValidStateId } from '../utils/index.js';
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
 import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
 
@@ -464,7 +464,7 @@ function createActionChainsFromTransitions(transitions: TDiagramTransitions): TD
 	checking default path for every level of action chain / segment of action path
 	each level must have not more than 1 default path (i.e its name will be the internal ID instead of action/predicate/etc)
 */
-function checkActionChainsDefaultPaths(actionChains: TDiagramActionChains) {
+function checkActionChainsDefaultPathsAndSort(actionChains: TDiagramActionChains) {
 	for (const state in actionChains) {
 		const possibleActions = actionChains[state]!;
 		for (const action in possibleActions) {
@@ -483,8 +483,14 @@ function checkActionChainsDefaultPaths(actionChains: TDiagramActionChains) {
 					}
 				}
 			}
+			const sortedChains = sortActionChains(chains);
+			actionChains[state]![action] = sortedChains;
 		}
 	}
+}
+
+function sortActionChains(actionChains: TActionChain[]) {
+	return actionChains.sort((a, b) => compareActionChains(a.chain, b.chain));
 }
 
 /**
@@ -497,7 +503,7 @@ export async function createStateDiagram(stateDiagramStructure: TStateDiagramStr
 	const states = getStates(stateDiagramStructure, transitions);
 	const actionChains = createActionChainsFromTransitions(transitions);
 	checkValidStates(states);
-	checkActionChainsDefaultPaths(actionChains);
+	checkActionChainsDefaultPathsAndSort(actionChains);
 	return {
 		transitions,
 		states,

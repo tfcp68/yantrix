@@ -1259,50 +1259,5 @@ export const stateDiagramDoublePathExpectedResult = {
 			notes: [],
 		},
 	],
-	actionChains: {
-		'~~~START~~~': {
-			'~~~START~~~, A, 0': [
-				{
-					chain: [
-					],
-					state: 'A',
-				},
-			],
-		},
-		'A': {
-			'A, ChoiceState1, 1': [
-				{
-					chain: [
-						'ChoiceState1, B, 3',
-					],
-					state: 'B',
-				},
-				{
-					chain: [
-						'predicate1($value)',
-						'predicate2($value)',
-					],
-					state: 'D',
-				},
-			],
-		},
-		'B': {
-			'B, ~~~END~~~, 6': [
-				{
-					chain: [
-					],
-					state: '~~~END~~~',
-				},
-			],
-		},
-		'D': {
-			'D, ~~~END~~~, 7': [
-				{
-					chain: [
-					],
-					state: '~~~END~~~',
-				},
-			],
-		},
-	},
+	actionChains: { '~~~START~~~': { '~~~START~~~, A, 0': [{ chain: [], state: 'A' }] }, 'A': { 'A, ChoiceState1, 1': [{ chain: ['predicate1($value)', 'predicate2($value)'], state: 'D' }, { chain: ['ChoiceState1, B, 3'], state: 'B' }] }, 'B': { 'B, ~~~END~~~, 6': [{ chain: [], state: '~~~END~~~' }] }, 'D': { 'D, ~~~END~~~, 7': [{ chain: [], state: '~~~END~~~' }] } },
 };

@@ -207,14 +207,14 @@ describe('forks', () => {
 			expect(automata.state).toBe(statesDictionary.State1);
 		});
 
-		// test('Transition into State2 state if isGreater is FALSE, and isPositive is TRUE', () => {
-		//     const value = randomInteger(1, defaultCounterValue - 1);
-		//     automata.dispatch({
-		//         action: actionsDictionary['REDUCE (value)'],
-		//         payload: { value }
-		//     });
-		//     expect(automata.state).toBe(statesDictionary.State2);
-		// });
+		it('transition into State2 state if isGreater is FALSE, and isPositive is TRUE', () => {
+			const value = randomInteger(1, defaultCounterValue - 1);
+			automata.dispatch({
+				action: actionsDictionary['REDUCE (value)'],
+				payload: { value },
+			});
+			expect(automata.state).toBe(statesDictionary.State2);
+		});
 
 		it('transition back into WORKING state as a default path for the second fork, if isGreater and isPositive are FALSE', () => {
 			const value = randomInteger(-100, -1);
