@@ -174,6 +174,9 @@ stateDiagram-v2
 ```
 **Notice:** There can be only one default path for any given `Fork`, which means that only one path can be created without an attached [`Predicate`](150_predicates.html).
 
+Conditions for every fork are processed *in order of their **creation in the diagram syntax**, going from top to bottom*.
+Default path for every fork is processed *after processing all other conditions for this fork, **regardless of its location in the diagram syntax***.
+
 A `Fork` can even lead to another `Fork` node, as illustrated by the diagram below:
 
 ```mermaid
