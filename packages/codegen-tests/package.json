@@ -2,8 +2,9 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/codegen-tests",
 	"type": "module",
-	"version": "0.1.0",
-	"description": "",
+	"version": "0.0.1",
+	"private": true,
+	"description": "Tests for codegen",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -49,16 +50,11 @@
 	"scripts": {
 
 		"test": "vitest run --coverage  --outputFile=../../test_reports/codegen.md",
-		"lint": "eslint --format=pretty .",
-		"format": "eslint --fix --format=pretty .",
-		"prepack": "pnpm run build && pnpm run lint"
+		"lint": "eslint .",
+		"format": "eslint --fix ."
 	},
 	"directories": {
 		"lib": "src"
-	},
-	"publishConfig": {
-		"access": "public",
-		"provenance": true
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
