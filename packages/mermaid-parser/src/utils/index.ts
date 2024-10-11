@@ -1,6 +1,6 @@
 import { EndState, StartState } from '../constants';
 
-const validStateRegex = /^[a-z][\w-]*$/i;
+const validStateRegex = /^[a-z][\w-]{0,254}$/i;
 export function isValidStateId(state: string): boolean {
 	return state === StartState || state === EndState || validStateRegex.test(state);
 }

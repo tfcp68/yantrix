@@ -13,16 +13,16 @@
 
 <<EOF>>                              return 'EOF';
 [\r\n]+                              return 'NewLine';
-'%%'                             return 'CONSTANT_SYMBOL';
+'%%'                                 return 'CONSTANT_SYMBOL';
 [\s]+                                /* skip all whitespace */
 [A-Za-z]{1,}[A-Za-z0-9\.]*(?=[(])    return 'FUNCTION_NAME';
-'subscribe/'                          return 'SUBSCRIBE'
-'emit/'                               return 'EMIT'
+'subscribe/'                         return 'SUBSCRIBE'
+'emit/'                              return 'EMIT'
 'define/'                            return 'DEFINE'
 'Init'                               return 'INITIAL_STATE'
 'ByPass'                             return 'BY_PASS'
 
-[a-zA-Z]\w*                          return 'IDENT'
+[a-zA-Z]\w{0,254}                     return 'IDENT'
 '+'                                  return 'PLUS'
 '{'                                  return 'LEFT_BRACE'
 '}'                                  return 'RIGHT_BRACE'
