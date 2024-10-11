@@ -468,17 +468,17 @@ function checkActionChainsDefaultPaths(actionChains: TDiagramActionChains) {
 	for (const state in actionChains) {
 		const possibleActions = actionChains[state]!;
 		for (const action in possibleActions) {
-			const defaultPaths: string[] = [];
+			const defaultPaths: any = {};
 			const chains = possibleActions[action]!;
 			for (const { chain } of chains) {
 				for (let i = 0; i < chain.length; i++) {
 					const path = chain[i]!;
 					if (isValidInternalId(path)) {
-						const id = path.split(', ')[2];
-						if (defaultPaths[i] !== undefined && defaultPaths[i] !== id) {
+						const nodeId = path.split(', ')[0]!;
+						if (defaultPaths[nodeId] !== undefined && defaultPaths[nodeId] !== path) {
 							throw new Error(`Duplicate default path encountered: ${path}`);
 						} else {
-							defaultPaths[i] = id!;
+							defaultPaths[nodeId] = path;
 						}
 					}
 				}
