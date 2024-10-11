@@ -443,14 +443,14 @@ function createActionChainsFromTransitions(transitions: TDiagramTransitions): TD
 		const chain: Record<string, TActionChain[]> = {};
 
 		for (const transition in stateTransitions) {
-			const action = stateTransitions[transition]?.actionsPath[0]?.action;
-			if (action) {
-				const actionName = action[0]!;
+			const actions: string[] | undefined = stateTransitions[transition]?.actionsPath[0]?.action;
+			if (actions) {
+				const actionName = actions[0]!;
 				if (!chain[actionName]) {
 					chain[actionName] = [];
 				}
 				chain[actionName].push({
-					chain: action.slice(1),
+					chain: actions.slice(1),
 					state: transition,
 				});
 			}
