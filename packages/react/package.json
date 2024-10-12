@@ -71,6 +71,8 @@
 	"devDependencies": {
 		"@testing-library/react-hooks": "^8.0.1",
 		"@types/react": "^18.3.5",
-		"jsdom": "^25.0.1"
+		"@types/use-sync-external-store": "^0.0.6",
+		"jsdom": "^25.0.1",
+		"use-sync-external-store": "^1.2.2"
 	}
 }

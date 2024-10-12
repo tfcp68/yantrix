@@ -352,6 +352,8 @@ importers:
         specifier: ^11.0.4
         version: 11.0.4
 
+  packages/functions: {}
+
   packages/mermaid-parser:
     dependencies:
       '@yantrix/utils':
@@ -392,9 +394,15 @@ importers:
       '@types/react':
         specifier: ^18.3.5
         version: 18.3.9
+      '@types/use-sync-external-store':
+        specifier: ^0.0.6
+        version: 0.0.6
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
+      use-sync-external-store:
+        specifier: ^1.2.2
+        version: 1.2.2(react@18.3.1)
 
   packages/redux:
     dependencies:
@@ -1835,6 +1843,9 @@ packages:
 
   '@types/use-sync-external-store@0.0.3':
     resolution: {integrity: sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==}
+
+  '@types/use-sync-external-store@0.0.6':
+    resolution: {integrity: sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==}
 
   '@typescript-eslint/eslint-plugin@8.7.0':
     resolution: {integrity: sha512-RIHOoznhA3CCfSTFiB6kBGLQtB/sox+pJ6jeFu6FxJvqL8qRxq/FfGO/UhsGgQM9oGdXkV4xUgli+dt26biB6A==}
@@ -8025,6 +8036,8 @@ snapshots:
   '@types/unist@3.0.3': {}
 
   '@types/use-sync-external-store@0.0.3': {}
+
+  '@types/use-sync-external-store@0.0.6': {}
 
   '@typescript-eslint/eslint-plugin@8.7.0(@typescript-eslint/parser@8.7.0(eslint@9.11.1(jiti@1.21.6))(typescript@5.6.2))(eslint@9.11.1(jiti@1.21.6))(typescript@5.6.2)':
     dependencies:

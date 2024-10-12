@@ -20,7 +20,7 @@ export function createFSMSlice<Actions extends string
 	const selectorsSlice = Object.assign(selectors ?? {});
 
 	const contextAutomata: TAutomataContext<ContextReduxType> = _fsm.getContext();
-	const contextRedux = Object.assign({}, contextAutomata);
+	const contextRedux = Object.assign({}, contextToRedux?.(contextAutomata) ?? {});
 
 	if (isStaticMethodsAutomata(Fsm)) {
 		actionsNameList = Object.keys(Fsm.actions);

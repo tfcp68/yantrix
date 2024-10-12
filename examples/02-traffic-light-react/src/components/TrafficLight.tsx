@@ -6,9 +6,7 @@ import { useFSM } from '@yantrix/react';
 import TLA from '../generated/TrafficLightAutomata';
 
 export function TrafficLight() {
-	const { trace, dispatch: dispatchAutomata, getContext, state, getState } = useFSM(TLA);
-
-	console.log(trace());
+	const { dispatch: dispatchAutomata, getContext, state, getState } = useFSM(TLA);
 
 	const onSwitch = () => dispatchAutomata({
 		action: TLA.getAction('Switch'),

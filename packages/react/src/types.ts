@@ -6,7 +6,7 @@ import {
 	TAutomataBaseStateType,
 	TAutomataStateContext,
 } from '@yantrix/automata';
-import { TClassConstructor } from '@yantrix/utils';
+import { TClassConstructor, TStaticMethods } from '@yantrix/utils';
 
 export type TUseFSMProps<Automata extends TAutomata> = {
 	Automata: TClassConstructor<Automata>;
@@ -33,4 +33,53 @@ export type TTraceTransaction<
 	timestamp: Date;
 	id: string;
 	stack?: Error['stack'];
+};
+
+export interface IUnsubscribe {
+	(): void;
+}
+
+export type TListenerCallback = () => void;
+
+export type TStoreState = {
+	automatas: Record<string, TAutomata>;
+};
+
+export interface IContextFSM {
+	callbacksIdCounter: number;
+	callbacks: Map<any, TListenerCallback>;
+	subscribe: (listener: TListenerCallback) => IUnsubscribe;
+	getSnapshot: () => TStoreState;
+	changeState: (newState: TStoreState) => void;
+	state: TStoreState;
+
+	/**
+	 * @description Инициализируцет автомат в зависимости от типа, переданного в хук и возвращает id автомата
+	 * @param Automata
+	 * @return string
+	 */
+	initializeFSM: (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => string;
+
+	/**
+	 * Добавляет новый автомат, если автомата с данным id еще не существует
+	 * @param id
+	 * @param Automata
+	 */
+	changeAutomatas: (id: string, Automata: TClassConstructor<TAutomata>) => void;
+};
+
+export type TUseFsmReturn = {
+	state: TAutomataBaseStateType;
+	getContext: () => any;
+	dispatch: <ActionType extends number, PayloadType extends { [K in ActionType]: any }>
+	(action: TAutomataActionPayload<ActionType, PayloadType>
+	) => void;
+	trace: () => TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType>;
+	getInstanceAutomata: () => TAutomata | undefined;
+	getAutomatasList: () => Record<string, TAutomata>;
+} & TStaticMethods;
+
+export type TPreviousContext = {
+	state: number | null;
+	context: Record<string, any>;
 };
