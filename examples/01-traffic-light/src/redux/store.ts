@@ -9,6 +9,9 @@ const contextToReduxParams = (context: any) => {
 		yellowColorOn: [TLA.getState('Yellow'), TLA.getState('RedYellow')].includes(context.state),
 		greenColorOn: TLA.getState('Green') === context.state,
 		...context,
+		context: {
+			counter: 0,
+		},
 	};
 };
 
