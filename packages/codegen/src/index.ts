@@ -7,7 +7,7 @@ export * from './core/modules/index.js';
 export * from './types/common.js';
 
 export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<string> {
-	const { states, transitions } = diagram;
+	const { states, transitions, actionChains } = diagram;
 	const parserInstance = new YantrixParser();
 
 	const statesIncludingNotes = states.map((state) => {
@@ -35,6 +35,7 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 		{
 			states: statesIncludingNotes,
 			transitions,
+			actionChains,
 		},
 		constants,
 	);

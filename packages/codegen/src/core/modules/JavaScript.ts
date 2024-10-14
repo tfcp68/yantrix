@@ -3,6 +3,7 @@ import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ExpressionTypes,
 	isContextWithReducer,
+	isFunctionExpression,
 	isKeyItemReference,
 	isKeyItemWithExpression,
 	maxNestedFuncLevel,
@@ -12,6 +13,7 @@ import {
 	TExpressionDefineMap,
 	TExpressionFunction,
 	TMappedKeys,
+	YantrixParser,
 } from '@yantrix/yantrix-parser';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { replaceFileContents } from '../../utils/utils.js';
@@ -39,6 +41,8 @@ function getDefaultPropertyContext(path: string, indetifier: string, expression?
 							}
 					}())`;
 }
+
+const parser = new YantrixParser();
 
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
@@ -101,6 +105,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
+		this.dictionaries.push(`const predicates = {${this.createPredicates()}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 		this.dictionaries.push();
@@ -216,10 +221,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}`;
 	}
 
-	public getActionToStateFromState() {
-		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
-	}
-
 	getStateToContext() {
 		return this.diagram.states.map((state) => {
 			const stateValue = this.stateDictionary.getStateValues({ keys: [state.id] })[0];
@@ -229,32 +230,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			}
 
 			return `${stateValue}: (prevContext, payload, functionDictionary) => {
-	
+
 				return ${this.getContextTransition(stateValue)}
 			}`;
 		});
-	}
-
-	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object
-			.entries(transitions)
-			.map(([key, transition]) => {
-				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
-				return transition.actionsPath.map(({ action }) => {
-					const actionValue = this.actionDictionary.getActionValues({
-						keys: action,
-					})[0];
-					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${key} not found`);
-
-					return `
-				  ${actionValue}: {
-				  	state: ${newState},
-				  },
-				`;
-				});
-			})
-			.flatMap(el => `${el.join('\n\t')}`);
 	}
 
 	protected getIsKeyOf() {
@@ -269,7 +248,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 			return `const getDefaultContext = (prevContext, payload) => {
 				const ctx = ${ctx}
-				return  Object.assign({}, prevContext, ctx);
+				return  Object.assign({}, prevContext, ctx, payload);
 			}
 			`;
 		}
@@ -285,10 +264,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if (!action || payload === null) return { state, context };
 					${this.getRootReducerStateValidation()}
 					${this.getRootReducerActionValidation()}
-					const {state:newState} = actionToStateFromStateDict[state][action]
 
 					const contextWithInitial = getDefaultContext(context,payload)
 
+					const actionMove = actionToStateFromStateDict[state][action];
+					const newStateObject = { state: actionMove.state[0] }
+					${this.getRootReducerNewStatePredicateResolution()}
+					const newState = newStateObject.state;
 					const newContextFunc = reducer[newState]
 
 					if(typeof newContextFunc !== 'function') {
@@ -312,6 +294,17 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 	protected getRootReducerActionValidation() {
 		return `if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };`;
+	}
+
+	protected getRootReducerNewStatePredicateResolution() {
+		return `
+			if(actionMove.state.length > 1 && actionMove.predicate != null) {
+				// determine new state from predicate
+				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
+				if(resolvedPredicateValue == null) return { state, context };
+				newStateObject.state = resolvedPredicateValue;
+			}
+		`;
 	}
 
 	protected getStateValidator() {
@@ -425,6 +418,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return `(a) => Object.values(actionsDictionary).includes(a)`;
 	}
 
+	public getActionToStateFromState() {
+		return `const actionToStateFromStateDict = {${this.getActionToStateFromStateDict().join('\n\t')}}`;
+	}
+
 	protected getActionToStateFromStateDict() {
 		const actionToStartStateMatrix: Record<string, TDiagramAction> = {};
 
@@ -441,20 +438,61 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			}
 		});
 
-		const isExistsStartState = Object.keys(actionToStartStateMatrix).length > 0;
+		return Object.entries(this.diagram.transitions).map(([currentState, transitions]) => {
+			const transitionsWithStartState = {
+				...transitions,
+				...actionToStartStateMatrix,
+			};
 
-		return Object.entries(this.diagram.transitions).map(([state, transitions]) => {
-			const value = this.stateDictionary.getStateValues({ keys: [state] })[0];
-			if (!value) throw new Error(`State ${state} not found`);
-			if (isExistsStartState && state !== StartState) {
-				transitions = {
-					...transitions,
-					...actionToStartStateMatrix,
-				};
-			}
+			const value = this.stateDictionary.getStateValues({ keys: [currentState] })[0];
+			if (!value) throw new Error(`State ${currentState} not found`);
 
-			return `${value}: {${this.getActionToStateDict(transitions).join('\n\t')}},`;
+			return `${value}: {${this.getActionToStateDict(value, transitionsWithStartState).concat('\n\t')}},`;
 		});
+	}
+
+	getActionToStateDict(currentState: number, transitions: Record<string, TDiagramAction>) {
+		const dict: Record<number, number[]> = {};
+
+		// group all possible states for an action in the dict object
+		Object
+			.entries(transitions)
+			.forEach(([key, transition]) => {
+				const newState = this.stateDictionary.getStateValues({ keys: [key] })[0];
+
+				transition.actionsPath.forEach(({ action }) => {
+					const actionValue = this.actionDictionary.getActionValues({
+						keys: action,
+					})[0];
+					if (!actionValue) throw new Error(`Action ${action} not found`);
+					if (!newState) throw new Error(`State ${key} not found`);
+
+					if (!dict[actionValue]) {
+						dict[actionValue] = [];
+					}
+					if (!dict[actionValue].includes(newState)) {
+						dict[actionValue].push(newState);
+					}
+				});
+			});
+
+		// if there is more than 1 possible state => insert predicate function using currentState and currentAction IDs
+		const res = Object.entries(dict).map(([actionId, possibleStates]) => {
+			const predicateString = (possibleStates.length > 1) ? `,\npredicate: predicates[${currentState}][${actionId}]` : '';
+			return `
+				${actionId}: {
+					state: [${possibleStates}]${predicateString}
+				}
+			`;
+		}).join(',\n');
+
+		return res;
+	}
+
+	stateIsByPass(stateId: number) {
+		const stateFromDict = this.stateDictionary.getStateKeys({ states: [stateId] })[0];
+		const stateInDiagram = this.diagram.states.find(st => st.id === stateFromDict);
+		return stateInDiagram && stateInDiagram.notes && stateInDiagram.notes.byPass === true;
 	}
 
 	protected getContextTransition = (value: number) => {
@@ -702,5 +740,85 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				return `payload === null || (payload === undefined  || payload['${identifier}'] === undefined) ? null : payload['${identifier}']`;
 			},
 		} as const;
+	}
+
+	/*
+		Predicates object is necessary for resolving the correct state to transition to, when using forks;
+		Function, obtained w/ IDs of currentState and dispatchedAction , is later loaded with values
+		from context/payload during root reducer operations.
+		Resulting value is the new state of the automata, exact state value depends on which conditions resolve to TRUE inside
+	*/
+	private createPredicates() {
+		const predicates: string[] = [];
+		for (const state in this.diagram.actionChains) {
+			const originalStateId = this.stateDictionary.getDictionary()[state];
+			const statePredicates = [];
+			const possibleActions = this.diagram.actionChains[state]!;
+			for (const action in possibleActions) {
+				const actionId = this.actionDictionary.getDictionary()[action];
+				const chains = possibleActions[action]!;
+				const processedStateChecks = [];
+				for (const { chain, state: transitionState } of chains) {
+					const transitionStateId = this.stateDictionary.getDictionary()[transitionState];
+					const conditions = [];
+
+					/*
+						need to check if parts of the chain can be processed by the parser,
+						turned into expressions and used later in the generated predicates.
+
+						if they cant be processed (i.e they are internal ids or unrelated names),
+						assume the segment resolves to TRUE and move on
+					*/
+					for (const segment of chain) {
+						try {
+							const wrappedSegment = `=${segment}?`;
+							const processedExpression = parser.parse(wrappedSegment);
+							// check the expression property at the top-level of the parsed object
+							if (!processedExpression.expression || !isFunctionExpression(processedExpression.expression)) {
+								throw new Error('Incorrect expression');
+							}
+							const expressionValue = this.getExpressionValue(processedExpression.expression);
+							conditions.push(expressionValue);
+						} catch {
+							conditions.push(true);
+							continue;
+						}
+					}
+					if (conditions.length > 0) {
+						const mappedConditions = conditions.map((cond, index) => `const cond${index + 1} = ${cond};`);
+						mappedConditions.push(`
+							if(${conditions.map((_, index) => `cond${index + 1} === true`).join(' && ')}) {
+								return ${transitionStateId};
+							}
+							else return undefined;
+						`);
+						processedStateChecks.push(mappedConditions.join('\n'));
+					}
+				}
+				if (processedStateChecks.length > 0) {
+					statePredicates.push(
+						`${actionId}: (prevContext, payload, functionDictionary) => { 
+							${
+								processedStateChecks.map((st, index) => `
+										const st${index + 1} = (function(){
+											${st}
+										})();
+										if(st${index + 1}) return st${index + 1};
+								`).join('')
+							}
+							return null; // in case the predicate can't resolve the transition state
+						 }`,
+					);
+				}
+			}
+			if (statePredicates.length > 0) {
+				predicates.push(
+					`${originalStateId}: {
+						${statePredicates.join(',\n')}
+					}`,
+				);
+			}
+		}
+		return predicates.join(',\n');
 	}
 }

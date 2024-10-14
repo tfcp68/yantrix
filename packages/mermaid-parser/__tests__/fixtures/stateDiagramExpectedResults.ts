@@ -4,6 +4,7 @@ export const stateDiagramWithLoopConditionExpectedResultString
 export const emptyStateDiagramExpectedResult = {
 	transitions: {},
 	states: [],
+	actionChains: {},
 };
 
 export const simpleTransitionExpectedResult = {
@@ -38,6 +39,16 @@ export const simpleTransitionExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		A: {
+			'A, B, 0': [
+				{
+					chain: [],
+					state: 'B',
+				},
+			],
+		},
+	},
 };
 
 export const simpleTransitionCompletedExpectedResult = {
@@ -114,6 +125,35 @@ export const simpleTransitionCompletedExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			'~~~START~~~, A, 0': [
+				{
+					chain: [
+					],
+					state: 'A',
+				},
+			],
+		},
+		'A': {
+			'A, B, 1': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+		},
+		'B': {
+			'B, ~~~END~~~, 2': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const simpleTransitionWithCommentsExpectedResult = {
@@ -190,6 +230,35 @@ export const simpleTransitionWithCommentsExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			Start: [
+				{
+					chain: [
+					],
+					state: 'A',
+				},
+			],
+		},
+		'A': {
+			'Transition 1': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+		},
+		'B': {
+			End: [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithChoiceExpectedResult = {
@@ -257,6 +326,33 @@ export const stateDiagramWithChoiceExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			Start: [
+				{
+					chain: [
+						'Condition 1',
+					],
+					state: 'A',
+				},
+				{
+					chain: [
+						'Condition 2',
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+		'A': {
+			'A, ~~~END~~~, 3': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithForkExpectedResult = {
@@ -387,6 +483,60 @@ export const stateDiagramWithForkExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			Start: [
+				{
+					chain: [
+					],
+					state: 'Fork',
+				},
+			],
+		},
+		'Fork': {
+			'Fork 1': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+			'Fork 2': [
+				{
+					chain: [
+					],
+					state: 'C',
+				},
+			],
+		},
+		'B': {
+			'B, Join, 3': [
+				{
+					chain: [
+					],
+					state: 'Join',
+				},
+			],
+		},
+		'C': {
+			'C, Join, 4': [
+				{
+					chain: [
+					],
+					state: 'Join',
+				},
+			],
+		},
+		'Join': {
+			End: [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithLeftSideNoteExpectedResult = {
@@ -463,6 +613,35 @@ export const stateDiagramWithLeftSideNoteExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			'~~~START~~~, A, 0': [
+				{
+					chain: [
+					],
+					state: 'A',
+				},
+			],
+		},
+		'A': {
+			'A, B, 1': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+		},
+		'B': {
+			'B, ~~~END~~~, 2': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithRightSideNoteExpectedResult = {
@@ -539,6 +718,35 @@ export const stateDiagramWithRightSideNoteExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			'~~~START~~~, A, 0': [
+				{
+					chain: [
+					],
+					state: 'A',
+				},
+			],
+		},
+		'A': {
+			'A, B, 1': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+		},
+		'B': {
+			'B, ~~~END~~~, 2': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithChoiceAndNoteExpectedResult = {
@@ -627,6 +835,42 @@ export const stateDiagramWithChoiceAndNoteExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			'~~~START~~~, A, 0': [
+				{
+					chain: [
+						'A, B, 1',
+					],
+					state: 'B',
+				},
+				{
+					chain: [
+						'A, C, 2',
+					],
+					state: 'C',
+				},
+			],
+		},
+		'C': {
+			'C, ~~~END~~~, 3': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+		'B': {
+			'B, ~~~END~~~, 4': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithSameActionExpectedResult = {
@@ -736,6 +980,51 @@ export const stateDiagramWithSameActionExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			Transition: [
+				{
+					chain: [
+					],
+					state: 'A',
+				},
+			],
+		},
+		'A': {
+			'Transition': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+			'A, C, 2': [
+				{
+					chain: [
+					],
+					state: 'C',
+				},
+			],
+		},
+		'C': {
+			'C, ~~~END~~~, 3': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+		'B': {
+			'B, ~~~END~~~, 4': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramWithNamedStatesExpectedResult = {
@@ -812,6 +1101,35 @@ export const stateDiagramWithNamedStatesExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: {
+		'~~~START~~~': {
+			'~~~START~~~, A, 0': [
+				{
+					chain: [
+					],
+					state: 'A',
+				},
+			],
+		},
+		'A': {
+			'A, B, 1': [
+				{
+					chain: [
+					],
+					state: 'B',
+				},
+			],
+		},
+		'B': {
+			'B, ~~~END~~~, 2': [
+				{
+					chain: [
+					],
+					state: '~~~END~~~',
+				},
+			],
+		},
+	},
 };
 
 export const stateDiagramDoublePathExpectedResult = {
@@ -834,7 +1152,7 @@ export const stateDiagramDoublePathExpectedResult = {
 						note: [['this is multiline', 'comment left of', 'first choice']],
 					},
 					{
-						action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, B, 4'],
+						action: ['A, ChoiceState1, 1', 'predicate1($value)', 'ChoiceState2, B, 5'],
 						note: [
 							['this is multiline', 'comment left of', 'first choice'],
 							['this is another', 'multiline comment', 'right of second choice'],
@@ -845,7 +1163,7 @@ export const stateDiagramDoublePathExpectedResult = {
 			D: {
 				actionsPath: [
 					{
-						action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, D, 5'],
+						action: ['A, ChoiceState1, 1', 'predicate1($value)', 'predicate2($value)'],
 						note: [
 							['this is multiline', 'comment left of', 'first choice'],
 							['this is another', 'multiline comment', 'right of second choice'],
@@ -896,14 +1214,14 @@ export const stateDiagramDoublePathExpectedResult = {
 					note: [['this is multiline', 'comment left of', 'first choice']],
 				},
 				{
-					action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, B, 4'],
+					action: ['A, ChoiceState1, 1', 'predicate1($value)', 'ChoiceState2, B, 5'],
 					note: [
 						['this is multiline', 'comment left of', 'first choice'],
 						['this is another', 'multiline comment', 'right of second choice'],
 					],
 				},
 				{
-					action: ['A, ChoiceState1, 1', 'ChoiceState1, ChoiceState2, 2', 'ChoiceState2, D, 5'],
+					action: ['A, ChoiceState1, 1', 'predicate1($value)', 'predicate2($value)'],
 					note: [
 						['this is multiline', 'comment left of', 'first choice'],
 						['this is another', 'multiline comment', 'right of second choice'],
@@ -941,4 +1259,5 @@ export const stateDiagramDoublePathExpectedResult = {
 			notes: [],
 		},
 	],
+	actionChains: { '~~~START~~~': { '~~~START~~~, A, 0': [{ chain: [], state: 'A' }] }, 'A': { 'A, ChoiceState1, 1': [{ chain: ['predicate1($value)', 'predicate2($value)'], state: 'D' }, { chain: ['ChoiceState1, B, 3'], state: 'B' }] }, 'B': { 'B, ~~~END~~~, 6': [{ chain: [], state: '~~~END~~~' }] }, 'D': { 'D, ~~~END~~~, 7': [{ chain: [], state: '~~~END~~~' }] } },
 };

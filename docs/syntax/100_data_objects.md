@@ -25,8 +25,15 @@ stateDiagram-v2
 	B: RenamedNode (identified as "B")
 	A --> B
 ```
-
 Therefore, this diagram will create a `FSM` with two `States` **A** and **B**, regardless of node **B** title.
+
+State Naming Rules and Conventions:
+- Name **must** start with a letter.
+- Name **must** contain only letters, digits or underscore characters.
+- Name **must** not be longer than 255 characters.
+- Name of the state should *unambigiously* convey the current status of the machine, to avoid confusion.
+- Names should be kept as clear and concise as possible.
+- Name of the state is best represented by a noun or an adjective.
 
 ## Declaring Actions
 
@@ -149,7 +156,43 @@ In the last diagram there is a `Fork` following **WORKING** `State`. Dispatching
 will transition to one of two `States` depending on the [`Predicate`](150_predicates.html) execution result.
 If `isGreater(#value,#counter)` resolves to a truthy **Binary**,
 this `Action` will transition the `FSM` into **END** `State`.
-If not, the same `Payload` will be invoked upon **WORKING** `State` again
+If not, the same `Payload` will be invoked upon **WORKING** `State` again.
+
+`Fork` is a special node that allows to transition to different states, depending on whether a certain condition(or a set of conditions) is met.
+Condition that checks if it's possible to traverse a certain path is represented by a [`Predicate`](150_predicates.html) that resolves to a **Binary** value.
+
+Any `Fork` can have multiple branching paths attached to it, and one default path that will be accepted if all other conditions aren't met.
+
+```mermaid
+stateDiagram-v2
+
+   state Fork <<choice>>
+
+   Fork --> State1: isGreater($value, #counter)
+   Fork --> State2: isZero($value)
+   Fork --> State3
+```
+**Notice:** There can be only one default path for any given `Fork`, which means that only one path can be created without an attached [`Predicate`](150_predicates.html).
+
+Conditions for every fork are processed *in order of their **creation in the diagram syntax**, going from top to bottom*.
+Default path for every fork is processed *after processing all other conditions for this fork, **regardless of its location in the diagram syntax***.
+
+A `Fork` can even lead to another `Fork` node, as illustrated by the diagram below:
+
+```mermaid
+stateDiagram-v2
+
+   state Fork <<choice>>
+   state Fork2 <<choice>>
+   
+   Fork --> State1: isGreater($value, #counter)
+   Fork --> State2: isZero($value)
+   Fork --> Fork2
+   Fork2 --> State3: isNegative(#counter)
+   Fork2 --> State4: isPositive(#counter)
+   Fork2 --> State5
+```
+If no condition on any branching path of the `Fork` is met, and the default path is not specified - the `FSM` will not transition into the next `State`, until the dispatching of the next `Action`.
 
 ## State Flags
 
