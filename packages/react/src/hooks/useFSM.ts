@@ -1,15 +1,11 @@
-import {
-	GenericAutomata,
-	TAutomataActionPayload,
-	TAutomataBaseActionType,
-	TAutomataBaseStateType,
-} from '@yantrix/automata';
-import { isStaticMethodsAutomata, TClassConstructor, TStaticMethods, uniqId } from '@yantrix/utils';
+import { GenericAutomata, TAutomataActionPayload } from '@yantrix/automata';
+import { isStaticMethodsAutomata, TClassConstructor, TStaticMethods } from '@yantrix/utils';
 import { createContext, useContext, useRef, useState } from 'react';
 import useSyncExternalStoreExports from 'use-sync-external-store/shim';
+import { trace } from '../debug';
 import { fsm_context } from '../store/store';
 import { isAutomata, isPropsUseFSM } from '../typeGuards';
-import { IContextFSM, TAutomata, TPreviousContext, TTraceTransaction, TUseFSMProps, TUseFsmReturn } from '../types';
+import { IContextFSM, TAutomata, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
 
 const { useSyncExternalStore } = useSyncExternalStoreExports;
 
@@ -31,37 +27,35 @@ const setInitialStaticMethods = (Automata: TUseFSMProps<TAutomata> | TClassConst
 	}
 };
 /**
- * Хук `useFSM` используется для инициализации и управления FSM в контексте React.
+ * The `useFSM` hook is used for initializing and managing an FSM (Finite State Machine) in the context of React.
  *
- * @template TAutomata Тип автомата, который будет использоваться.
+ * @template TAutomata The type of automaton (FSM) to be used.
  *
- * @param {TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>} Automata - Класс автомата или его пропсы.
+ * @param {TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>} Automata - The automaton class or its props.
  *
- * @throws {Error} Если автомат не был найден или его состояние не определено.
+ * @throws {Error} If the automaton is not found or its state is undefined.
  *
  * @description
- * Хук выполняет следующие действия:
- * - Инициализирует автомат с использованием переданного класса или пропсов c автоматом и уникальным ID автомата.
- * - Предоставляет методы для управления состоянием автомата, вызова экшенов и отслеживания действий.
- * - Использует `useSyncExternalStore` для синхронизации с контекстом состояния автомата и подписки на его изменения.
+ * The hook performs the following actions:
+ * - Initializes the automaton using the provided class or props with a unique automaton ID.
+ * - Provides methods to manage the automaton's state, dispatch actions, and trace its behavior.
+ * - Uses `useSyncExternalStore` to synchronize with the automaton state context and subscribe to its changes.
  *
  * @example
- * // Пример использования хука useFSM
+ * // Example of using the useFSM hook
  * const { state, dispatch, getContext } = useFSM(MyAutomataClass);
  *
- * console.log(state);  // Текущее состояние автомата
- * dispatch({ type: MyActionType, payload: {} });  // Вызов действия
- * const context = getContext();  // Получение текущего контекста автомата
+ * console.log(state);  // Current state of the automaton
+ * dispatch({ type: MyActionType, payload: {} });  // Dispatch an action
+ * const context = getContext();  // Retrieve the current context of the automaton
  */
 export const useFSM = (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>): TUseFsmReturn => {
 	const automataStore = useContext<IContextFSM>(storeFsm);
-	const isInitializedRef = useRef(false); // Флаг для отслеживания инициализации
 	const idFSM = useRef('');
 
-	if (!isInitializedRef.current) {
+	if (!idFSM.current) {
 		// Инициализируем автомат в store'е
 		idFSM.current = automataStore.initializeFSM(Automata);
-		isInitializedRef.current = true;
 	}
 	const externalStore = useSyncExternalStore(automataStore.subscribe, automataStore.getSnapshot);
 
@@ -92,20 +86,11 @@ export const useFSM = (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAu
 		return fsmStore.dispatch(action);
 	};
 
-	const trace = (): TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType> => {
-		return {
-			lastPayload,
-			previousContext,
-			timestamp: new Date(),
-			id: uniqId(10),
-		};
-	};
-
 	return {
 		state: fsmStore.state,
 		getContext: fsmStore.getContext.bind(fsmStore),
 		dispatch: payloadFromDispatch,
-		trace,
+		trace: () => trace(lastPayload, previousContext),
 		getInstanceAutomata,
 		getAutomatasList,
 		...staticMethods,

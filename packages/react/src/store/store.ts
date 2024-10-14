@@ -28,7 +28,7 @@ export const fsm_context: IContextFSM = {
 			fsm_context.changeAutomatas(id, Automata.Automata);
 			return id;
 		}
-		return '';
+		throw new Error('Is not fsm or props');
 	},
 
 	changeAutomatas: (id: string, Automata: TClassConstructor<TAutomata>) => {
