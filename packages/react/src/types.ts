@@ -83,3 +83,8 @@ export type TPreviousContext = {
 	state: number | null;
 	context: Record<string, any>;
 };
+
+export type TUseFSMOptions<Snapshot = object, Selection = object> = {
+	selector: (snapshot: Snapshot) => Selection;
+	isEqual?: (a: Selection, b: Selection) => boolean;
+};
