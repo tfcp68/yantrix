@@ -596,23 +596,24 @@ describe('functions', () => {
 
 describe('user defined functions', () => {
 	it.skip('simple function returning a constant value, define/f () => 3', async () => {
-		const input = `stateDiagram-v2
-    [*] --> A: toA
-    note left of [*]
-      define/f () => 3
-    end note
-    note left of A
-      #{result} <= f()
-    end note
-    `;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'constantValueFunction');
-		const res = await import(`./fixtures/generated/constantValueFunction_generated.js`);
+	//	-- skipped test
+	// 	const input = `stateDiagram-v2
+		// [*] --> A: toA
+		// note left of [*]
+		//   define/f () => 3
+		// end note
+		// note left of A
+		//   #{result} <= f()
+		// end note
+		// `;
+	// 	await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'constantValueFunction');
+	// 	const res = await import(`./fixtures/generated/constantValueFunction_generated.js`);
 
-		const automata = new res.Test();
+		// 	const automata = new res.Test();
 
-		automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
+		// 	automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
 
-		expect(automata.context).toStrictEqual({ result: 3 });
+	// 	expect(automata.context).toStrictEqual({ result: 3 });
 	});
 	it(`codegen should catch cyclic dependencies and throw an error
 			define/lol1 () => kek1()
