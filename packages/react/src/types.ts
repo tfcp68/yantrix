@@ -41,17 +41,13 @@ export interface IUnsubscribe {
 
 export type TListenerCallback = () => void;
 
-export type TStoreState = {
-	automatas: Record<string, TAutomata>;
-};
-
-export interface IContextFSM {
+export interface IContextFSM<Snapshot = TAutomata> {
 	callbacksIdCounter: number;
 	callbacks: Map<any, TListenerCallback>;
 	subscribe: (listener: TListenerCallback) => IUnsubscribe;
-	getSnapshot: () => TStoreState;
-	changeState: (newState: TStoreState) => void;
-	state: TStoreState;
+	getSnapshot: () => Snapshot;
+	changeState: (newState: Snapshot) => void;
+	state: Snapshot;
 
 	/**
 	 * @description Инициализируцет автомат в зависимости от типа, переданного в хук и возвращает id автомата
@@ -84,7 +80,7 @@ export type TPreviousContext = {
 	context: Record<string, any>;
 };
 
-export type TUseFSMOptions<Snapshot = object, Selection = object> = {
+export type TUseFSMOptions<Snapshot, Selection> = {
 	selector: (snapshot: Snapshot) => Selection;
 	isEqual?: (a: Selection, b: Selection) => boolean;
 };

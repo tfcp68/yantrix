@@ -1,6 +1,9 @@
+import { GenericAutomata } from '@yantrix/automata';
 import { isStaticMethodsAutomata, TClassConstructor } from '@yantrix/utils';
 import { isAutomata, isPropsUseFSM } from '../typeGuards';
 import { IContextFSM, TAutomata, TUseFSMProps } from '../types';
+
+export const automatasList: Record<string, any> = {};
 
 export const fsm_context: IContextFSM = {
 	callbacksIdCounter: 0,
@@ -11,9 +14,7 @@ export const fsm_context: IContextFSM = {
 		return () => fsm_context.callbacks.delete(id);
 	},
 	getSnapshot: () => fsm_context.state,
-	state: {
-		automatas: {},
-	},
+	state: new GenericAutomata(),
 	changeState: (newState) => {
 		fsm_context.state = newState;
 		fsm_context.callbacks.forEach(cb => cb());
@@ -28,18 +29,16 @@ export const fsm_context: IContextFSM = {
 			fsm_context.changeAutomatas(id, Automata.Automata);
 			return id;
 		}
+
 		throw new Error('Is not fsm or props');
 	},
 
 	changeAutomatas: (id: string, Automata: TClassConstructor<TAutomata>) => {
-		if (!fsm_context.state.automatas[id]) {
-			fsm_context.changeState({
-				...fsm_context.state,
-				automatas: {
-					...fsm_context.state.automatas,
-					[id]: new Automata(),
-				},
-			});
+		if (!automatasList[id]) {
+			automatasList[id] = new Automata();
+			fsm_context.changeState(automatasList[id]);
+		} else {
+			fsm_context.changeState(automatasList[id]);
 		}
 		fsm_context.callbacks.forEach((cb: any) => {
 			cb();

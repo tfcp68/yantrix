@@ -68,4 +68,16 @@ describe('useFSM tests', () => {
 		expect(FSM1.current.getInstanceAutomata()).toBeInstanceOf(TLA);
 		expect(FSM2.current.getInstanceAutomata()).toBeInstanceOf(GamePhaseAutomataTest);
 	});
+
+	it('selector in useFSM', () => {
+		const { result } = renderHook(() => useFSM(TLA, {
+			selector: (state) => {
+				return state.context;
+			},
+		}));
+
+		console.log(result.current);
+
+		expect(result).toBeDefined();
+	});
 });

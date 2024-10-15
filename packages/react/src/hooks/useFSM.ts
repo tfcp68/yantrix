@@ -1,11 +1,12 @@
 import { GenericAutomata, TAutomataActionPayload } from '@yantrix/automata';
 import { isStaticMethodsAutomata, TClassConstructor, TStaticMethods } from '@yantrix/utils';
 import { useRef, useState } from 'react';
+import { useSyncExternalStore } from 'use-sync-external-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { trace } from '../debug';
-import { fsm_context } from '../store/store';
-import { isAutomata, isPropsUseFSM } from '../typeGuards';
-import { TAutomata, TPreviousContext, TStoreState, TUseFSMOptions, TUseFSMProps, TUseFsmReturn } from '../types';
+import { automatasList, fsm_context } from '../store/store';
+import { isAutomata, isFSM, isPropsUseFSM } from '../typeGuards';
+import { TAutomata, TPreviousContext, TUseFSMOptions, TUseFSMProps, TUseFsmReturn } from '../types';
 
 const setInitialStaticMethods = (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => {
 	if (isAutomata(Automata) && isStaticMethodsAutomata(Automata)) {
@@ -46,9 +47,9 @@ const setInitialStaticMethods = (Automata: TUseFSMProps<TAutomata> | TClassConst
  * dispatch({ type: MyActionType, payload: {} });  // Dispatch an action
  * const context = getContext();  // Retrieve the current context of the automaton
  */
-export const useFSM = (
+export const useFSM = <Selection>(
 	Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>,
-	options?: TUseFSMOptions<TStoreState, TStoreState>,
+	options?: TUseFSMOptions<TAutomata, Selection>,
 ): TUseFsmReturn => {
 	const idFSM = useRef('');
 
@@ -56,21 +57,22 @@ export const useFSM = (
 		// Инициализируем автомат в store'е
 		idFSM.current = fsm_context.initializeFSM(Automata);
 	}
-	const externalStore = useSyncExternalStoreWithSelector<TStoreState, TStoreState>(
-		fsm_context.subscribe,
-		fsm_context.getSnapshot,
-		fsm_context.getSnapshot,
-		options?.selector ?? fsm_context.getSnapshot,
-		options?.isEqual,
-	);
+	const fsmStore = (options?.selector)
+		? useSyncExternalStoreWithSelector<TAutomata, Selection>(
+			fsm_context.subscribe,
+			fsm_context.getSnapshot,
+			null,
+			options?.selector,
+			options?.isEqual,
+		)
+		: useSyncExternalStore<TAutomata>(fsm_context.subscribe, fsm_context.getSnapshot);
 
-	const fsmStore = externalStore.automatas[idFSM.current] as TAutomata;
-
-	if (!fsmStore || !fsmStore.state) {
-		throw new Error('Automata not found or state is undefined');
-	}
 	if (!fsmStore) {
-		throw new Error('Automata not found');
+		if (isFSM(fsmStore)) {
+			throw new Error('Automata not found');
+		} else {
+			throw new Error('Undefined or null selection value');
+		}
 	}
 
 	const [previousContext, setPreviousContext] = useState<TPreviousContext>({
@@ -80,20 +82,20 @@ export const useFSM = (
 	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(Automata) as TStaticMethods);
 	const [lastPayload, setLastPayload] = useState<any>();
 
-	const getInstanceAutomata = () => fsm_context.state.automatas[idFSM.current];
-	const getAutomatasList = () => fsm_context.state.automatas;
+	const getInstanceAutomata = () => automatasList[idFSM.current];
+	const getAutomatasList = () => automatasList;
 
 	const payloadFromDispatch = <ActionType extends number, PayloadType extends { [K in ActionType]: any } >
 	(action: TAutomataActionPayload<ActionType, PayloadType>) => {
 		setLastPayload(action.payload);
-		setPreviousContext(fsmStore.getContext());
+		setPreviousContext(automatasList[idFSM.current].getContext());
 
-		return fsmStore.dispatch(action);
+		return automatasList[idFSM.current].dispatch(action);
 	};
 
 	return {
-		state: fsmStore.state,
-		getContext: fsmStore.getContext.bind(fsmStore),
+		state: automatasList[idFSM.current].state,
+		getContext: automatasList[idFSM.current].getContext.bind(fsmStore),
 		dispatch: payloadFromDispatch,
 		trace: () => trace(lastPayload, previousContext),
 		getInstanceAutomata,
