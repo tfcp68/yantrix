@@ -76,8 +76,6 @@ describe('useFSM tests', () => {
 			},
 		}));
 
-		console.log(result.current);
-
 		expect(result).toBeDefined();
 	});
 });
