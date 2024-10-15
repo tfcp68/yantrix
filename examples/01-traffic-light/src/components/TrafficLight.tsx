@@ -1,5 +1,4 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux
 
 export function TrafficLight() {
 	const { context, state } = useAppSelector(state => state);
+
 	const dispatch = useAppDispatch();
 
 	const onSwitch = () => dispatch(switchLight());
@@ -35,7 +35,9 @@ export function TrafficLight() {
 			</div>
 			<div className="flex flex-col w-24 space-y-2">
 				<Button
-					onClick={onSwitch}
+					onClick={() => {
+						onSwitch();
+					}}
 					variant="outline"
 					className="w-full bg-zinc-950 text-zinc-200 hover:bg-zinc-800 hover:text-white border-zinc-800 text-sm py-1"
 				>
