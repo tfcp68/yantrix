@@ -1,17 +1,22 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ExpressionTypes,
 	isContextWithReducer,
+	isEmitFull,
+	isEmitWithMeta,
 	isFunctionExpression,
 	isKeyItemReference,
 	isKeyItemWithExpression,
+	isSubscribeWithMeta,
+	isSubscribeWithPayload,
 	maxNestedFuncLevel,
 	TContextItem,
 	TExpression,
 	TExpressionDefine,
 	TExpressionDefineMap,
 	TExpressionFunction,
+	TKeyItems,
 	TMappedKeys,
 	YantrixParser,
 } from '@yantrix/yantrix-parser';
@@ -47,6 +52,7 @@ const parser = new YantrixParser();
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
@@ -63,8 +69,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	};
 
 	constructor({ diagram, constants }: TModuleParams) {
-		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
+		this.actionDictionary = new BasicActionDictionary();
+		this.eventDictionary = new BasicEventDictionary();
 
 		this.diagram = diagram;
 
@@ -80,7 +87,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries = [];
 		this.initialContextKeys = [];
 
-		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
+		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary, this.eventDictionary);
 
 		this.setupDictionaries();
 	}
@@ -104,6 +111,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries.push(
 			`export const actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
 		);
+		this.dictionaries.push(
+			`export const eventDictionary = ${JSON.stringify(this.eventDictionary.getDictionary(), null, 2)}`,
+		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
 		this.dictionaries.push(`const predicates = {${this.createPredicates()}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
@@ -113,8 +123,110 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.registerCustomFunctions();
 	}
 
-	private getEventAdapterCode() {
+	private getEventAdapter() {
 		return `const eventAdapter = new AutomataEventAdapter();`;
+	}
+
+	// parse diagram to get states that emit events
+	private getEmittedEvents() {
+		const lines: string[] = [];
+		lines.push('// add event emitters');
+		for (const state of this.diagram.states) {
+			const stateId = this.stateDictionary.getStateValues({ keys: [state.id] })[0];
+			const emittedEvents = state.notes?.emit;
+			if (emittedEvents && emittedEvents.length > 0) {
+				lines.push(`
+					this.eventAdapter.addEventEmitter(${stateId}, ({ state, context }) => {
+						const eventsToEmit = [
+							${emittedEvents
+									.map((e) => {
+										if (isEmitFull(e)) {
+											e.context = e.context.map(c => ({
+												keyItem: {
+													...c.keyItem,
+													expressionType: ExpressionTypes.Context,
+												},
+											}));
+										}
+										return `
+									{
+										event: ${this.eventDictionary.getEventValues({ keys: [e.identifier] })[0]},
+										meta: {
+											${
+												isEmitFull(e)
+													? this.getBoundValues(this.mapReducerItems(e.context, 'context'), e.meta)
+													: (
+															isEmitWithMeta(e)
+																? this.getBoundValues(this.mapReducerItems(e.meta, 'context'), e.meta)
+																: ''
+														)
+											}
+										}
+									}
+								`;
+									})
+									.join(',\n')}
+						];
+						
+						EventBus.dispatch([...eventsToEmit]);
+
+						return eventsToEmit[0];
+					});
+				`);
+			}
+		}
+		return lines.join('\n');
+	}
+
+	// parse diagram to get states that subscribe to events
+	private getSubscribedEvents() {
+		const eventSubscribes: string[] = [];
+		const eventBusSubscribes: string[] = [];
+		eventSubscribes.push('// add event listeners');
+		for (const state of this.diagram.states) {
+			const eventsToSubscribe = state.notes?.subscribe;
+			if (eventsToSubscribe && eventsToSubscribe.length > 0) {
+				eventsToSubscribe.forEach((e) => {
+					const eventId = this.eventDictionary.getEventValues({ keys: [e.identifier] })[0];
+					const actionId = this.actionDictionary.getActionValues({ keys: [e.actionName] })[0];
+
+					eventSubscribes.push(`
+						this.eventAdapter.addEventListener(${eventId}, ({ event, meta }) => {
+
+							return {
+								action: ${actionId},
+								payload: {
+									// todo
+									${
+										isSubscribeWithMeta(e)
+											? this.getBoundValues(this.mapReducerItems(e.meta, 'meta'), e.payload)
+											: (
+													isSubscribeWithPayload(e)
+														? this.getBoundValues(this.mapReducerItems(e.payload, 'meta'), e.payload)
+														: ''
+												)
+									}
+								}
+							}
+						})
+					`);
+
+					eventBusSubscribes.push(`
+						EventBus.subscribe(${eventId}, ({ event, meta }) => {
+							const newAction = this.eventAdapter.handleEvent({ event, meta });
+							this.dispatch(newAction);
+							return {
+								event,
+								meta,
+								task_id: 'event_id${eventId}',
+								result: EventBus.getEventStack()
+							}
+						})
+					`);
+				});
+			}
+		}
+		return eventSubscribes.concat(eventBusSubscribes).join('\n');
 	}
 
 	private getFunctionBody(expression: TExpressionDefineMap): string {
@@ -169,6 +281,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				'%S_VALIDATOR%': this.getStateValidator().toString(),
 				'%A_VALIDATOR%': this.getActionValidator().toString(),
 				'%F_REGISTRY%': 'functionDictionary',
+				'%EVENTS_EMIT%': this.getEmittedEvents(),
+				'%EVENTS_SUBSCRIBE%': this.getSubscribedEvents(),
 				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
 			},
 		);
@@ -186,7 +300,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}
-			${this.getEventAdapterCode()}
+			${this.getEventAdapter()}
 			const actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)}
 			const statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)}
 			${this.getDefaultContext()}
@@ -281,7 +395,12 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+
+					const transitionedState = {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+
+					this.eventAdapter.handleTransition(transitionedState);
+
+					return transitionedState;
   				}`;
 	}
 
@@ -550,69 +669,71 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		if (isContextWithReducer(ctx)) {
 			const { context, reducer } = ctx;
 
-			return reducer
-				.map(({ keyItem }) => {
-					if (isKeyItemReference(keyItem)) {
-						const { expressionType, identifier: boundIdentifier } = keyItem;
-						const path = pathRecord[expressionType];
+			return this.getBoundValues(this.mapReducerItems(reducer), context);
 
-						if (keyItem.expressionType === ExpressionTypes.Constant) {
-							const expressionValueRight = this.getExpressionValue(keyItem);
-							return `(function(){
-								return ${expressionValueRight}
-								}())`;
-						}
+			// return reducer
+			// 	.map(({ keyItem }) => {
+			// 		if (isKeyItemReference(keyItem)) {
+			// 			const { expressionType, identifier: boundIdentifier } = keyItem;
+			// 			const path = pathRecord[expressionType];
 
-						if (isKeyItemWithExpression(keyItem)) {
-							const { expression } = keyItem;
+			// 			if (keyItem.expressionType === ExpressionTypes.Constant) {
+			// 				const expressionValueRight = this.getExpressionValue(keyItem);
+			// 				return `(function(){
+			// 					return ${expressionValueRight}
+			// 					}())`;
+			// 			}
 
-							const expressionValueRight = this.getExpressionValue(expression);
+			// 			if (isKeyItemWithExpression(keyItem)) {
+			// 				const { expression } = keyItem;
 
-							return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
-						} else {
-							return getDefaultPropertyContext(path, boundIdentifier);
-						}
-					} else {
-						const { expression } = keyItem;
+			// 				const expressionValueRight = this.getExpressionValue(expression);
 
-						const expressionValueRight = this.getExpressionValue(expression);
-						return `(function(){
-						return ${expressionValueRight}
-					}())`;
-					}
-				})
-				.map((el, index) => {
-					const item = context[index];
-					if (!item) {
-						throw new Error('Unexcpeted index bound property');
-					}
-					const { keyItem } = item;
-					const { identifier: targetProperty } = keyItem;
+			// 				return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
+			// 			} else {
+			// 				return getDefaultPropertyContext(path, boundIdentifier);
+			// 			}
+			// 		} else {
+			// 			const { expression } = keyItem;
 
-					if (isKeyItemWithExpression(keyItem)) {
-						const { expression } = keyItem;
+			// 			const expressionValueRight = this.getExpressionValue(expression);
+			// 			return `(function(){
+			// 			return ${expressionValueRight}
+			// 		}())`;
+			// 		}
+			// 	})
+			// 	.map((el, index) => {
+			// 		const item = context[index];
+			// 		if (!item) {
+			// 			throw new Error('Unexcpeted index bound property');
+			// 		}
+			// 		const { keyItem } = item;
+			// 		const { identifier: targetProperty } = keyItem;
 
-						const expressionValueRight = this.getExpressionValue(expression);
+			// 		if (isKeyItemWithExpression(keyItem)) {
+			// 			const { expression } = keyItem;
 
-						return `${targetProperty}: (function(){
-						const boundValue = ${el}
-						if(boundValue !== null){
-							return boundValue
-						}
-						else {
-							return ${expressionValueRight}
-						}
+			// 			const expressionValueRight = this.getExpressionValue(expression);
 
-					}())`;
-					} else {
-						return `${targetProperty}: (function(){
-						const boundValue = ${el}
+			// 			return `${targetProperty}: (function(){
+			// 			const boundValue = ${el}
+			// 			if(boundValue !== null){
+			// 				return boundValue
+			// 			}
+			// 			else {
+			// 				return ${expressionValueRight}
+			// 			}
 
-						return boundValue
+			// 		}())`;
+			// 		} else {
+			// 			return `${targetProperty}: (function(){
+			// 			const boundValue = ${el}
 
-					}())`;
-					}
-				});
+			// 			return boundValue
+
+			// 		}())`;
+			// 		}
+			// 	});
 		} else {
 			const { context } = ctx;
 			return context.map(({ keyItem }) => {
@@ -627,6 +748,76 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			});
 		}
 	};
+
+	private mapReducerItems(reducer: TKeyItems<'reducer'>, sourcePath?: string) {
+		return reducer
+			.map(({ keyItem }) => {
+				if (isKeyItemReference(keyItem)) {
+					const { expressionType, identifier: boundIdentifier } = keyItem;
+					const path = sourcePath ?? pathRecord[expressionType];
+
+					if (keyItem.expressionType === ExpressionTypes.Constant) {
+						const expressionValueRight = this.getExpressionValue(keyItem);
+						return `(function(){
+								return ${expressionValueRight}
+								}())`;
+					}
+
+					if (isKeyItemWithExpression(keyItem)) {
+						const { expression } = keyItem;
+
+						const expressionValueRight = this.getExpressionValue(expression);
+
+						return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
+					}
+
+					return getDefaultPropertyContext(path, boundIdentifier);
+				} else {
+					const { expression } = keyItem;
+
+					const expressionValueRight = this.getExpressionValue(expression);
+					return `(function(){
+							return ${expressionValueRight}
+						}())`;
+				}
+			});
+	}
+
+	private getBoundValues(arr: string[], context: any) {
+		return arr
+			.map((el, index) => {
+				const item = context[index];
+				if (!item) {
+					throw new Error('Unexpected index bound property');
+				}
+				const { keyItem } = item;
+				const { identifier: targetProperty } = keyItem;
+
+				if (isKeyItemWithExpression(keyItem)) {
+					const { expression } = keyItem;
+
+					const expressionValueRight = this.getExpressionValue(expression);
+
+					return `${targetProperty}: (function(){
+				const boundValue = ${el}
+				if(boundValue !== null){
+					return boundValue
+				}
+				else {
+					return ${expressionValueRight}
+				}
+
+			}())`;
+				} else {
+					return `${targetProperty}: (function(){
+				const boundValue = ${el}
+
+				return boundValue
+
+			}())`;
+				}
+			});
+	}
 
 	private getInitialContextShape = (stateName: string) => {
 		const states = this.diagram.states.filter(state => state.id === stateName);
@@ -738,13 +929,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
 				return `'${StringDeclaration}'`;
 			},
-			[ExpressionTypes.Context]: ({ identifier }) => {
-				return `prevContext === null ||  (prevContext === undefined || prevContext['${identifier}'] === undefined) ? null : prevContext['${identifier}']`;
-			},
-			[ExpressionTypes.Payload]: ({ identifier }) => {
-				return `payload === null || (payload === undefined  || payload['${identifier}'] === undefined) ? null : payload['${identifier}']`;
-			},
+			[ExpressionTypes.Context]: ({ identifier }) => this.getValueFromVariable('prevContext', identifier),
+			[ExpressionTypes.Payload]: ({ identifier }) => this.getValueFromVariable('payload', identifier),
 		} as const;
+	}
+
+	private getValueFromVariable(name: string, identifier: string) {
+		return `${name} === null || (${name} === undefined  || ${name}['${identifier}'] === undefined) ? null : ${name}['${identifier}']`;
 	}
 
 	/*

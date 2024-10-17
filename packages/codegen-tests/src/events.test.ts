@@ -8,6 +8,21 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
 
 describe('automata Events', () => {
+	describe('event dictionary', () => {
+		it('automata has an Event Dictionary', async () => {
+			await generateAndSave({ input: templates.basicEvents, automataName: 'BasicEventsAutomata', lang: 'JavaScript' }, `event_basicEvents`);
+			const { BasicEventsAutomata, eventDictionary } = await import(
+				getGeneratedFixturePath('event_basicEvents_generated.js')
+			);
+
+			const automata = new BasicEventsAutomata();
+
+			expect(automata).toBeDefined();
+			expect(eventDictionary).toBeDefined();
+			expect(Object.keys(eventDictionary).length).toBe(2);
+		});
+	});
+
 	describe('event Adapter', () => {
 		it('automata has an Event Adapter', async () => {
 			await generateAndSave({ input: templates.defaultTemplate, automataName: 'EventAdapterAutomata', lang: 'JavaScript' }, `event_adapter`);
@@ -17,6 +32,7 @@ describe('automata Events', () => {
 
 			const automata = new EventAdapterAutomata();
 
+			expect(automata).toBeDefined();
 			expect(automata.eventAdapter).toBeDefined();
 		});
 	});

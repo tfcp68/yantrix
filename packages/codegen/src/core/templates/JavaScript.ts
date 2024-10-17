@@ -19,6 +19,9 @@ export class %CLASSNAME% extends GenericAutomata {
             actionValidator: %A_VALIDATOR%,
             functionRegistry: %F_REGISTRY%,
         });
+
+        %EVENTS_EMIT%;
+        %EVENTS_SUBSCRIBE%;
     }
 
     isKeyOf = %IS_KEY_OF%;
