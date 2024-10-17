@@ -10,7 +10,7 @@ export class %CLASSNAME% extends GenericAutomata {
     static createAction = %CREATE_ACTION%;
 
     constructor() {
-        super();
+        super(eventAdapter);
         this.init({
             state: %STATE%,
             context:%CONTEXT%,

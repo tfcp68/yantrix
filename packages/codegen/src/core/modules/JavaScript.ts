@@ -58,7 +58,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	expressions: TExpressionRecord;
 	dictionaries: string[];
 	protected imports = {
-		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
+		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary', 'AutomataEventAdapter', 'EventBus'],
 		'@yantrix/functions': ['builtInFunctions'],
 	};
 
@@ -111,6 +111,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries.push();
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
+	}
+
+	private getEventAdapterCode() {
+		return `const eventAdapter = new AutomataEventAdapter();`;
 	}
 
 	private getFunctionBody(expression: TExpressionDefineMap): string {
@@ -182,6 +186,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return `
 			${this.getImports()}
 			${this.getDictionaries()}
+			${this.getEventAdapterCode()}
 			const actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)}
 			const statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)}
 			${this.getDefaultContext()}
