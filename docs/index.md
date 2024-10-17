@@ -8,7 +8,7 @@ Yantrix is a TypeScript framework that provides a set of tools to create robust 
 The business logic is represented by declarative, event-driven [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine), while the application state is an [Anemic Domain Model](https://en.wikipedia.org/wiki/Anemic_domain_model), making it great a counterpart to any traditional state manager like [Redux](https://redux.js.org/), while allowing devs to focus on describing contracts and workflows, rather than writing and debugging the
 actual code.
 
-Lends itself perfectly to [Architecture-as-Code](https://jondavid-black.github.io/AaC/) paradigm and no-code/less-code tools for developers, like [n8n](https://github.com/n8n-io/n8n).
+Lends itself perfectly to Architecture-as-Code paradigm and no-code/less-code tools for developers, like [n8n](https://github.com/n8n-io/n8n).
 
 ## Quick Start
 
@@ -374,7 +374,7 @@ Now, it's only about dispatching proper `Payloads` to the `FSM`.
 
 ## What's next?
 
--   See [Sample FSM Designs](./concepts/999_design_examples.html) and [generate some code](./API-Reference/codegen/)
+-   See [Sample FSM Designs](./concepts/999_design_examples.html) and [generate some code](./API-Reference/codegen/README.html)
 -   Learn Yantrix [Syntax](./syntax) and try making an `FSM` of your own
 -   Try some [Integrations](./integrations) with your favorite frameworks to achieve fast results
 -   Read more on [framework architecture](./concepts) and how to expand beyond one `FSM` into `Slice`s and built a whole `Application` on Yantrix
