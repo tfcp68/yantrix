@@ -27,12 +27,13 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 					stateDictionary: this.stateDictionary,
 				})}
 			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState({
-					serializer: TypeScriptCompiler.dictionaries.serializer,
+					dictionariesSerializer: TypeScriptCompiler.dictionaries.serializer,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
 					actionDictionary: this.actionDictionary,
 				})}
 			${TypeScriptCompiler.class.serializer.getClassTemplate({
+					classSerializer: TypeScriptCompiler.class.serializer,
 					className: options.className,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,

@@ -92,9 +92,9 @@ export function getActionToStateFromState(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	serializer: typeof dictionariesSerializer;
+	dictionariesSerializer: typeof dictionariesSerializer;
 }) {
-	return `const actionToStateFromStateDict = {${props.serializer.getActionToStateFromStateDict({
+	return `const actionToStateFromStateDict = {${props.dictionariesSerializer.getActionToStateFromStateDict({
 		diagram: props.diagram,
 		stateDictionary: props.stateDictionary,
 		actionDictionary: props.actionDictionary,

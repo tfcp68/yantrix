@@ -84,12 +84,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					stateDictionary: this.stateDictionary,
 				})}
 			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState({
-					serializer: JavaScriptCompiler.dictionaries.serializer,
+					dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
 					actionDictionary: this.actionDictionary,
 				})}
 			${JavaScriptCompiler.class.serializer.getClassTemplate({
+					classSerializer: JavaScriptCompiler.class.serializer,
 					className: options.className,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,

@@ -9,6 +9,7 @@ export function getClassTemplate(props: {
 	className: string;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
+	classSerializer: typeof classSerializer;
 }) {
 	const initialState = state.functions.getInitialState({
 		diagram: props.diagram,
@@ -38,17 +39,17 @@ export function getClassTemplate(props: {
 			'%ID%': `'${props.className}'`,
 			'%ACTIONS_MAP%': 'actionsMap',
 			'%STATES_MAP%': 'statesMap',
-			'%GET_STATE%': getGetStateFunc().toString(),
-			'%HAS_STATE%': getHasStateFunc({ className: props.className }).toString(),
-			'%GET_ACTION%': getGetActionFunc().toString(),
-			'%CREATE_ACTION%': getCreateActionFunc({ className: props.className }).toString(),
+			'%GET_STATE%': props.classSerializer.getGetStateFunc().toString(),
+			'%HAS_STATE%': props.classSerializer.getHasStateFunc({ className: props.className }).toString(),
+			'%GET_ACTION%': props.classSerializer.getGetActionFunc().toString(),
+			'%CREATE_ACTION%': props.classSerializer.getCreateActionFunc({ className: props.className }).toString(),
 			'%STATE%': (stateValue ?? -1).toString(),
 			'%CONTEXT%': JSON.stringify(initialContext),
-			'%REDUCER%': getRootReducer().toString(),
-			'%S_VALIDATOR%': getStateValidator().toString(),
-			'%A_VALIDATOR%': getActionValidator().toString(),
+			'%REDUCER%': props.classSerializer.getRootReducer().toString(),
+			'%S_VALIDATOR%': props.classSerializer.getStateValidator().toString(),
+			'%A_VALIDATOR%': props.classSerializer.getActionValidator().toString(),
 			'%F_REGISTRY%': 'functionDictionary',
-			'%IS_KEY_OF%': getIsKeyOf().toString(),
+			'%IS_KEY_OF%': props.classSerializer.getIsKeyOf().toString(),
 		},
 	);
 }

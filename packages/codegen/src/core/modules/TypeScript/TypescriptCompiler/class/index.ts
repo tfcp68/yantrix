@@ -1,5 +1,5 @@
-import { JavaScriptCompiler } from '../../../JavaScript';
+import { classSerializer } from './serializer';
 
 export const classModule = {
-	serializer: JavaScriptCompiler.class.serializer,
+	serializer: classSerializer,
 };
