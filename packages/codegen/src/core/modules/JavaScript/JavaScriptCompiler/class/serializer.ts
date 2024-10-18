@@ -86,10 +86,13 @@ export function getRootReducer() {
 					if (!action || payload === null) return { state, context };
 					${getRootReducerStateValidation()}
 					${getRootReducerActionValidation()}
-					const {state:newState} = actionToStateFromStateDict[state][action]
 
 					const contextWithInitial = getDefaultContext(context,payload)
 
+					const actionMove = actionToStateFromStateDict[state][action];
+					const newStateObject = { state: actionMove.state[0] }
+					${getRootReducerNewStatePredicateResolution()}
+					const newState = newStateObject.state;
 					const newContextFunc = reducer[newState]
 
 					if(typeof newContextFunc !== 'function') {
@@ -97,6 +100,17 @@ export function getRootReducer() {
 					}
 					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
+}
+
+export function getRootReducerNewStatePredicateResolution() {
+	return `
+			if(actionMove.state.length > 1 && actionMove.predicate != null) {
+				// determine new state from predicate
+				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
+				if(resolvedPredicateValue == null) return { state, context };
+				newStateObject.state = resolvedPredicateValue;
+			}
+		`;
 }
 
 export function getRootReducerStateValidation() {

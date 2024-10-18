@@ -4,30 +4,47 @@ import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { getObjectKeysMap } from './core';
 import { TDictionaries } from './types';
 
-export function getActionToStateDictCode(props: {
+export function getActionToStateDict(props: {
 	transitions: Record<string, TDiagramAction>;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	currentState: number;
 }) {
-	return Object
+	const dict: Record<number, number[]> = {};
+
+	// group all possible states for an action in the dict object
+	Object
 		.entries(props.transitions)
-		.map(([key, transition]) => {
+		.forEach(([key, transition]) => {
 			const newState = props.stateDictionary.getStateValues({ keys: [key] })[0];
-			return transition.actionsPath.map(({ action }) => {
+
+			transition.actionsPath.forEach(({ action }) => {
 				const actionValue = props.actionDictionary.getActionValues({
 					keys: action,
 				})[0];
 				if (!actionValue) throw new Error(`Action ${action} not found`);
 				if (!newState) throw new Error(`State ${key} not found`);
 
-				return `
-				  ${actionValue}: {
-				  	state: ${newState},
-				  },
-				`;
+				if (!dict[actionValue]) {
+					dict[actionValue] = [];
+				}
+				if (!dict[actionValue].includes(newState)) {
+					dict[actionValue].push(newState);
+				}
 			});
-		})
-		.flatMap(el => `${el.join('\n\t')}`);
+		});
+
+	// if there is more than 1 possible state => insert predicate function using currentState and currentAction IDs
+	const res = Object.entries(dict).map(([actionId, possibleStates]) => {
+		const predicateString = (possibleStates.length > 1) ? `,\npredicate: predicates[${props.currentState}][${actionId}]` : '';
+		return `
+				${actionId}: {
+					state: [${possibleStates}]${predicateString}
+				}
+			`;
+	}).join(',\n');
+
+	return res;
 }
 
 export function getActionToStateFromStateDict(props: {
@@ -50,23 +67,21 @@ export function getActionToStateFromStateDict(props: {
 		}
 	});
 
-	const isExistsStartState = Object.keys(actionToStartStateMatrix).length > 0;
+	return Object.entries(props.diagram.transitions).map(([currentState, transitions]) => {
+		const transitionsWithStartState = {
+			...transitions,
+			...actionToStartStateMatrix,
+		};
 
-	return Object.entries(props.diagram.transitions).map(([state, transitions]) => {
-		const value = props.stateDictionary.getStateValues({ keys: [state] })[0];
-		if (!value) throw new Error(`State ${state} not found`);
-		if (isExistsStartState && state !== StartState) {
-			transitions = {
-				...transitions,
-				...actionToStartStateMatrix,
-			};
-		}
+		const value = props.stateDictionary.getStateValues({ keys: [currentState] })[0];
+		if (!value) throw new Error(`State ${currentState} not found`);
 
-		return `${value}: {${getActionToStateDictCode({
+		return `${value}: {${getActionToStateDict({
+			currentState: value,
+			transitions: transitionsWithStartState,
 			stateDictionary: props.stateDictionary,
 			actionDictionary: props.actionDictionary,
-			transitions,
-		}).join('\n\t')}},`;
+		}).concat('\n\t')}},`;
 	});
 }
 
@@ -102,7 +117,7 @@ export function getActionToStateFromState(props: {
 }
 
 export const dictionariesSerializer = {
-	getActionToStateDictCode,
+	getActionToStateDictCode: getActionToStateDict,
 	getActionToStateFromStateDict,
 	getActionToStateFromState,
 	getDictionariesCode,

@@ -1,10 +1,13 @@
+import { compareActionChains, isValidInternalId, isValidStateId } from '../utils/index.js';
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
 import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
 
 import {
+	TActionChain,
 	TActionPathArray,
 	TChoicesId,
 	TDiagramAction,
+	TDiagramActionChains,
 	TDiagramStatesArray,
 	TDiagramTransitions,
 	TFromChoice,
@@ -415,6 +418,82 @@ function getStates(
 }
 
 /**
+ * @brief Checks if any states in a created structure are not valid;
+ * @param states - list of states to check
+ * @throw Throws an error if a state has an incorrect format
+ */
+function checkValidStates(states: TDiagramStatesArray) {
+	states.forEach((state) => {
+		const { id } = state;
+		if (!isValidStateId(id)) {
+			throw new Error(`Incorrect ID: ${id}`);
+		}
+	});
+}
+
+/*
+	action chains are sequences of actions to be iterated on and processed when encountering forks.
+	this structure binds action paths with the exact state that the automata should transition to,
+	when every single segment in the chain resolves to TRUE
+*/
+function createActionChainsFromTransitions(transitions: TDiagramTransitions): TDiagramActionChains {
+	const chains: TDiagramActionChains = {};
+	for (const state in transitions) {
+		const stateTransitions = transitions[state]!;
+		const chain: Record<string, TActionChain[]> = {};
+
+		for (const transition in stateTransitions) {
+			const actions: string[] | undefined = stateTransitions[transition]?.actionsPath[0]?.action;
+			if (actions) {
+				const actionName = actions[0]!;
+				if (!chain[actionName]) {
+					chain[actionName] = [];
+				}
+				chain[actionName].push({
+					chain: actions.slice(1),
+					state: transition,
+				});
+			}
+		}
+		chains[state] = chain;
+	}
+	return chains;
+}
+
+/*
+	checking default path for every level of action chain / segment of action path
+	each level must have not more than 1 default path (i.e its name will be the internal ID instead of action/predicate/etc)
+*/
+function checkActionChainsDefaultPathsAndSort(actionChains: TDiagramActionChains) {
+	for (const state in actionChains) {
+		const possibleActions = actionChains[state]!;
+		for (const action in possibleActions) {
+			const defaultPaths: any = {};
+			const chains = possibleActions[action]!;
+			for (const { chain } of chains) {
+				for (let i = 0; i < chain.length; i++) {
+					const path = chain[i]!;
+					if (isValidInternalId(path)) {
+						const nodeId = path.split(', ')[0]!;
+						if (defaultPaths[nodeId] !== undefined && defaultPaths[nodeId] !== path) {
+							throw new Error(`Duplicate default path encountered: ${path}`);
+						} else {
+							defaultPaths[nodeId] = path;
+						}
+					}
+				}
+			}
+			const sortedChains = sortActionChains(chains);
+			actionChains[state]![action] = sortedChains;
+		}
+	}
+}
+
+function sortActionChains(actionChains: TActionChain[]) {
+	return actionChains.sort((a, b) => compareActionChains(a.chain, b.chain));
+}
+
+/**
  * @brief This function creates a state diagram;
  * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
@@ -422,8 +501,12 @@ function getStates(
 export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagramMatrix> {
 	const transitions = getTransitions(stateDiagramStructure);
 	const states = getStates(stateDiagramStructure, transitions);
+	const actionChains = createActionChainsFromTransitions(transitions);
+	checkValidStates(states);
+	checkActionChainsDefaultPathsAndSort(actionChains);
 	return {
 		transitions,
 		states,
+		actionChains,
 	};
 }

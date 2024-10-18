@@ -60,7 +60,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries = JavaScriptCompiler.dictionaries.functions.setupDictionaries({
 			dependencyGraph: this.dependencyGraph,
 			diagram: this.diagram,
-			expressions: this.expressions,
+			expressionRecord: this.expressions,
 			actionDictionary: this.actionDictionary,
 			stateDictionary: this.stateDictionary,
 		});

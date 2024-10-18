@@ -1,3 +1,4 @@
+import { BasicStateDictionary } from '@yantrix/automata';
 import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 
 export function getInitialState(props: {
@@ -18,4 +19,14 @@ export function getInitialState(props: {
 	}
 
 	return firstState;
+}
+
+export function stateIsByPass(props: {
+	stateDictionary: BasicStateDictionary;
+	diagram: TStateDiagramMatrixIncludeNotes;
+	stateId: number;
+}) {
+	const stateFromDict = props.stateDictionary.getStateKeys({ states: [props.stateId] })[0];
+	const stateInDiagram = props.diagram.states.find(st => st.id === stateFromDict);
+	return stateInDiagram && stateInDiagram.notes && stateInDiagram.notes.byPass === true;
 }
