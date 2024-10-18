@@ -1,5 +1,5 @@
-import { TConstants } from '../../../types/common';
-
-export type TJavaScriptThis = {
-	constants: TConstants | null;
-};
+// import { TConstants } from '../../../types/common';
+//
+// export type TJavaScriptThis = {
+// 	constants: TConstants | null;
+// };

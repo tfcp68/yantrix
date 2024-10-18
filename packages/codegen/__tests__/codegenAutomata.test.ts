@@ -2,7 +2,7 @@
 // import { fileURLToPath } from 'node:url';
 // import { describe, expect, it } from 'vitest';
 // import { saveAndGenerate } from './fixtures/utils.js';
-
+//
 // const input = `stateDiagram-v2
 //             [*] --> INIT: RESET
 //             INIT --> INTRO: RUN
@@ -20,19 +20,19 @@
 //             IN_GAME --> MAIN_MENU: TO_MENU
 //             SCORE_SCREEN --> MAIN_MENU: TO_MENU
 //             SCORE_SCREEN --> [*]: EXIT`;
-
+//
 // const dirname = path.dirname(fileURLToPath(import.meta.url));
 // const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
-
+//
 // describe('codegen output', () => {
 // 	describe('gamePhaseAutomata', async () => {
 // 		await saveAndGenerate({ input, automataName: 'GamePhaseAutomata', lang: 'JavaScript' }, 'GamePhaseAutomata');
 // 		const { GamePhaseAutomata, actionsDictionary, statesDictionary } = await import(
 // 			getGeneratedFixturePath('GamePhaseAutomata_generated.js')
 // 		);
-
+//
 // 		const automata = new GamePhaseAutomata();
-
+//
 // 		const payload = {};
 // 		const toInit = [{ action: actionsDictionary.RESET, payload }];
 // 		const toIntro = [...toInit, { action: actionsDictionary.RUN, payload }];
@@ -53,7 +53,7 @@
 // 			[toScoreScreen, statesDictionary.SCORE_SCREEN],
 // 			[toScoreScreen, statesDictionary.SCORE_SCREEN],
 // 		];
-
+//
 // 		it('initial state', () => {
 // 			expect(automata.state).toBe(statesDictionary['~~~START~~~']);
 // 		});
@@ -63,7 +63,7 @@
 // 				action: actionsDictionary.MENU_HOVER,
 // 				payload: { players: 3 },
 // 			});
-
+//
 // 			expect(automata.state).toBe(prevState);
 // 			expect(automata.context).toStrictEqual({});
 // 		});
@@ -82,7 +82,7 @@
 // 		it.each(cases)('%j -- > %j', (a: any, b) => {
 // 			automata.setActionQueue([...a]);
 // 			automata.consumeAction(a.length);
-
+//
 // 			expect(automata.state).toBe(b);
 // 		});
 // 	});
