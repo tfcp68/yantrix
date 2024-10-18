@@ -77,8 +77,8 @@ describe('default assign', async () => {
 	Empty payload and previous context
 	constant = pi = 3.14
 	*/
-	const defautlAssignLeft = generateAssignCase(input, 'LeftAssign', defaultSuite);
-	const defautlAssignRightContext = generateAssignCase(inputContext, 'RightAssignPreviousContext', defaultSuite);
+	const defaultAssignLeft = generateAssignCase(input, 'LeftAssign', defaultSuite);
+	const defaultAssignRightContext = generateAssignCase(inputContext, 'RightAssignPreviousContext', defaultSuite);
 	const defaultAssignRightPayload = generateAssignCase(inputPayload, 'RightAssignPayload', defaultSuite);
 
 	/*
@@ -88,7 +88,7 @@ describe('default assign', async () => {
 
 	const defaultAssignLeftPrevious = getTemplateWithPreviousContext();
 
-	const res = [defautlAssignLeft, defautlAssignRightContext, defaultAssignRightPayload];
+	const res = [defaultAssignLeft, defaultAssignRightContext, defaultAssignRightPayload];
 
 	const notesWithTemplate = res.map((el) => {
 		return { ...el, input: getTemplateInput(el.input) };
@@ -107,7 +107,7 @@ describe('default assign', async () => {
 	});
 
 	it('left assign #{a=string | constant | number | list  | emptyPayload = {} | emptypreviousContext = {} }', async () => {
-		const { output, dispatchObject } = defautlAssignLeft;
+		const { output, dispatchObject } = defaultAssignLeft;
 
 		const res = await import(`./fixtures/generated/LeftAssign_generated.js`);
 
@@ -128,7 +128,7 @@ describe('default assign', async () => {
 		expect(automata.context).toStrictEqual(output);
 	});
 	it('right assign with #a,#b = (list, constant, integer, string, payload = {}, prevContext = {})', async () => {
-		const { output, dispatchObject } = defautlAssignRightContext;
+		const { output, dispatchObject } = defaultAssignRightContext;
 
 		const res = await import(`./fixtures/generated/RightAssignPreviousContext_generated.js`);
 

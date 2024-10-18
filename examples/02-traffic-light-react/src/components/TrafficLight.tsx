@@ -2,15 +2,22 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { resetLight, switchLight, useAppDispatch, useAppSelector } from '@/redux/store';
+import { useFSM } from '@yantrix/react';
+import TLA from '../generated/TrafficLightAutomata';
 
 export function TrafficLight() {
-	const { context, state } = useAppSelector(state => state);
+	const { dispatch: dispatchAutomata, getContext, state, getState } = useFSM(TLA);
 
-	const dispatch = useAppDispatch();
-
-	const onSwitch = () => dispatch(switchLight());
-	const onReset = () => dispatch(resetLight());
+	const onSwitch = () => dispatchAutomata({
+		action: TLA.getAction('Switch'),
+		payload: {},
+	});
+	const onReset = () => dispatchAutomata({
+		action: TLA.getAction('Reset (initialCounter=0)'),
+		payload: {
+			initialCounter: 0,
+		},
+	});
 
 	return (
 		<div className="flex flex-col items-center space-y-4">
@@ -18,20 +25,20 @@ export function TrafficLight() {
 				<Card className="w-24 p-3 space-y-3 bg-black border-zinc-800">
 					<div className="flex flex-col items-center space-y-2">
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							state && context.redColorOn ? 'bg-red-500' : 'bg-red-950'
+							state && [getState('Red'), getState('RedYellow')].includes(state) ? 'bg-red-500' : 'bg-red-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							state && context.yellowColorOn ? 'bg-yellow-500' : 'bg-yellow-950'
+							state && [getState('Yellow'), getState('RedYellow')].includes(state) ? 'bg-yellow-500' : 'bg-yellow-950'
 						}`}
 						/>
 						<div className={`w-10 h-10 rounded-full transition-colors duration-200 ease-in-out ${
-							context.greenColorOn ? 'bg-green-500' : 'bg-green-950'
+							getState('Green') === state ? 'bg-green-500' : 'bg-green-950'
 						}`}
 						/>
 					</div>
 				</Card>
-				<Badge className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-200 text-xs">{context.counter}</Badge>
+				<Badge className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-200 text-xs">{getContext().context.counter}</Badge>
 			</div>
 			<div className="flex flex-col w-24 space-y-2">
 				<Button

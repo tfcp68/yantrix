@@ -14,6 +14,7 @@ import {
 	TAutomataBaseStateType,
 	TAutomataStateContext,
 } from '@yantrix/automata';
+import { TClassConstructor } from '@yantrix/utils';
 
 export type TActionGenerator = (
 	automataStateContext: TAutomataStateContext<number, Record<number, any>>,
@@ -51,23 +52,6 @@ export type TAutomataContext<ContextType> = {
 	context: ContextType;
 };
 
-export type TClassConstructor<C extends TAutomata> = {
-	new (...args: any[]): C;
-};
-
-export type TStaticMethods = {
-	id: string;
-	actions: Record<string, string>;
-	states: Record<string, string>;
-	getState: (state: any) => number;
-	hasState: (instance: any, state: any) => boolean;
-	getAction: (action: any) => number;
-	createAction: (action: any, payload: any) => {
-		action: number;
-		payload: any;
-	};
-};
-
 export type TAutomata = IAutomata<
 	TAutomataBaseStateType,
 	TAutomataBaseActionType,
@@ -76,5 +60,3 @@ export type TAutomata = IAutomata<
 	Record<TAutomataBaseActionType, any>,
 	Record<TAutomataBaseEventType, any>
 >;
-
-export type TKeys<T> = keyof T;
