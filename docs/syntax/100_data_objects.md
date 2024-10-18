@@ -184,7 +184,7 @@ stateDiagram-v2
 
    state Fork <<choice>>
    state Fork2 <<choice>>
-   
+
    Fork --> State1: isGreater($value, #counter)
    Fork --> State2: isZero($value)
    Fork --> Fork2

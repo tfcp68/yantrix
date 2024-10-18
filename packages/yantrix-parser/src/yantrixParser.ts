@@ -206,7 +206,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
         /^(?:define\/)/i,
         /^(?:Init\b)/i,
         /^(?:ByPass\b)/i,
-        /^(?:[a-zA-Z]\w*)/i,
+        /^(?:[a-zA-Z]\w{0,254})/i,
         /^(?:\+)/i,
         /^(?:\{)/i,
         /^(?:\})/i,
