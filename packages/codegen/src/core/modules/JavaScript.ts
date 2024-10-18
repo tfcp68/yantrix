@@ -184,14 +184,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		);
 	}
 
-	/** ***********  ✨ Codeium Command ⭐  */
-	/**
-	 * @param className - the name of the class for which to generate the hasState function
-	 * @returns a string representing the hasState function for the given class
-	 *
-	 * The hasState function takes an instance of the class and a state, and returns true if the instance is in that state
-/******  a342a596-9a90-494e-988d-b67e407d3fa0  ******
-	 */
 	protected getHasStateFunc(className: string) {
 		return `(instance, state) => instance.state === ${className}.getState(state)`;
 	}
@@ -295,11 +287,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const newState = newStateObject.state;
 					const newContextFunc = reducer[newState]
 					
-
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-
 								
 					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
