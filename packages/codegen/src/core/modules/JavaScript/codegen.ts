@@ -1,21 +1,16 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { fillDictionaries } from '../shared.js';
-import { TConstants, TExpressionRecord } from './../../types/common';
-import { ModuleNames } from './index';
 import {
-	buildDependencyGraph,
-	getActionsMap,
-	getActionToStateFromState,
-	getClassTemplate,
-	getDefaultContext,
-	getDictionariesCode,
-	getImportsCode,
-	getStatesMap,
-	setupDictionaries,
-	setupExpressions,
-	TImports,
-} from './JavaScript/cleared';
+	ICodegen,
+	TConstants,
+	TExpressionRecord,
+	TGetCodeOptionsMap,
+	TModuleParams,
+	TStateDiagramMatrixIncludeNotes,
+} from '../../../types/common';
+import { fillDictionaries } from '../../shared';
+import { ModuleNames } from '../index';
+import { JavaScriptCompiler } from './JavaScriptCompiler';
+import { TImports } from './JavaScriptCompiler/imports';
 
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
@@ -43,11 +38,11 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		this.constants = constants;
 
-		this.expressions = setupExpressions({
+		this.expressions = JavaScriptCompiler.expressions.functions.setupExpressions({
 			constants: this.constants,
 		});
 
-		const buildDependencyGraphResult = buildDependencyGraph({
+		const buildDependencyGraphResult = JavaScriptCompiler.imports.functions.buildDependencyGraph({
 			dependencyGraph: new Map(),
 			diagram: this.diagram,
 			imports: this.imports,
@@ -62,7 +57,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
 
-		this.dictionaries = setupDictionaries({
+		this.dictionaries = JavaScriptCompiler.dictionaries.functions.setupDictionaries({
 			dependencyGraph: this.dependencyGraph,
 			diagram: this.diagram,
 			expressions: this.expressions,
@@ -73,27 +68,28 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
 		return `
-			${getImportsCode({ imports: this.imports })}
-			${getDictionariesCode({
+			${JavaScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
+			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode({
 					dictionaries: this.dictionaries,
 				})}
-			const actionsMap = ${JSON.stringify(getActionsMap({
-		actionDictionary: this.actionDictionary,
-	}), null, 2)}
-			const statesMap = ${JSON.stringify(getStatesMap({
-		stateDictionary: this.stateDictionary,
-	}), null, 2)}
-			${getDefaultContext({
+			${JavaScriptCompiler.dictionaries.serializer.getActionsMap({
+					actionDictionary: this.actionDictionary,
+				})}
+			${JavaScriptCompiler.dictionaries.serializer.getStatesMap({
+					stateDictionary: this.stateDictionary,
+				})}
+			${JavaScriptCompiler.context.contextSerializer.getDefaultContext({
 					expressions: this.expressions,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
 				})}
-			${getActionToStateFromState({
+			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState({
+					serializer: JavaScriptCompiler.dictionaries.serializer,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
 					actionDictionary: this.actionDictionary,
 				})}
-			${getClassTemplate({
+			${JavaScriptCompiler.class.serializer.getClassTemplate({
 					className: options.className,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,

@@ -1,0 +1,42 @@
+import { ICodegen, TGetCodeOptionsMap, TModuleParams } from '../../../types/common';
+import { ModuleNames } from '../index';
+import { JavaScriptCodegen } from '../JavaScript';
+import { TypeScriptCompiler } from './TypescriptCompiler';
+
+export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typeof ModuleNames.TypeScript> {
+	constructor(params: TModuleParams) {
+		super(params);
+		this.imports['@yantrix/automata']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
+	}
+
+	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
+		return `
+			${TypeScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
+			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode({
+					dictionaries: this.dictionaries,
+				})}
+			${TypeScriptCompiler.dictionaries.serializer.getActionsMap({
+					actionDictionary: this.actionDictionary,
+				})}
+			${TypeScriptCompiler.dictionaries.serializer.getStatesMap({
+					stateDictionary: this.stateDictionary,
+				})}
+			${TypeScriptCompiler.context.contextSerializer.getDefaultContext({
+					expressions: this.expressions,
+					diagram: this.diagram,
+					stateDictionary: this.stateDictionary,
+				})}
+			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState({
+					serializer: TypeScriptCompiler.dictionaries.serializer,
+					diagram: this.diagram,
+					stateDictionary: this.stateDictionary,
+					actionDictionary: this.actionDictionary,
+				})}
+			${TypeScriptCompiler.class.serializer.getClassTemplate({
+					className: options.className,
+					diagram: this.diagram,
+					stateDictionary: this.stateDictionary,
+				})}
+		`;
+	}
+}
