@@ -290,7 +290,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
-								
+
 					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
 	}
@@ -443,7 +443,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		Object.entries(this.diagram.transitions).forEach(([state, transitions]) => {
 			if (state === StartState) {
 				const entries = Object.entries(transitions);
-
 				entries.forEach(([state, action]) => {
 					action.actionsPath.forEach(({ action }) => {
 						actionToStartStateMatrix[state] = {
@@ -510,18 +509,20 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		this.diagram.states.forEach((state) => {
 			if (state.notes?.byPass) {
-				if (state.actionsPath.length > 1) {
-					throw new Error(`ByPass state ${state.id} should not have more than one transition`);
-				}
-
 				const actionChains = this.diagram.actionChains[state.id];
 
 				if (!actionChains) throw new Error(`ByPassed state ${state.id} doesn\'t have transition`);
-				const isExistsByPassAction = actionChains[ByPassAction];
+				const byPassAction = actionChains[ByPassAction];
 
-				if (!isExistsByPassAction) {
+				if (!byPassAction) {
 					throw new Error(`ByPass action ${ByPassAction} not found for state ${state.id}`);
 				}
+
+				byPassAction.forEach(({ chain }) => {
+					if (byPassAction.length > 1 && chain.length === 0) {
+						throw new Error(`ByPass action ${ByPassAction} should have more than one transition`);
+					}
+				});
 
 				const value = this.stateDictionary.getStateValues({ keys: [state.id] })[0];
 				if (!value) throw new Error(`State ${state.id} not found`);
