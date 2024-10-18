@@ -26,5 +26,4 @@ docs/**/*
 .tmp
 coverage
 
-# Generated files
-*_generated.ts
+
