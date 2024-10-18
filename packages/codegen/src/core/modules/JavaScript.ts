@@ -17,7 +17,7 @@ import {
 } from '@yantrix/yantrix-parser';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { replaceFileContents } from '../../utils/utils.js';
-import { fillDictionaries, pathRecord } from '../shared.js';
+import { ByPassAction, fillDictionaries, pathRecord } from '../shared.js';
 import { TConstants, TExpressionRecord } from './../../types/common';
 import { ModuleNames } from './index';
 
@@ -108,7 +108,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries.push(`const predicates = {${this.createPredicates()}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 		this.dictionaries.push(`functionDictionary.register(builtInFunctions);`);
-		this.dictionaries.push();
+		this.dictionaries.push(`const byPassedStates = new Set(${this.getByPassedStates()});`);
+
 		this.checkForCyclicDependencies();
 		this.registerCustomFunctions();
 	}
@@ -134,12 +135,24 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}
 	}
 
+	getDispatchFunc() {
+		return `
+		const originalDispatch = this.dispatch.bind(this)
+		this.dispatch = ({action, payload}) => {
+			const newContext = originalDispatch({action,payload})
+			if(byPassedStates.has(newContext.state)) {
+				return originalDispatch({action: actionsDictionary["${ByPassAction}"], payload: {}})
+			}
+			return newContext
+		}`;
+	}
+
 	getClassTemplate(className: string) {
 		const initialState = this.getInitialState();
 
 		const stateValue = this.stateDictionary.getStateValues({ keys: [initialState] })[0];
 
-		if (stateValue === null) {
+		if (!stateValue) {
 			throw new Error('GetClassTemplate: Invalid state');
 		}
 
@@ -159,9 +172,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				'%HAS_STATE%': this.getHasStateFunc(className).toString(),
 				'%GET_ACTION%': this.getGetActionFunc().toString(),
 				'%CREATE_ACTION%': this.getCreateActionFunc(className).toString(),
-				'%STATE%': (stateValue ?? -1).toString(),
+				'%STATE%': stateValue.toString(),
 				'%CONTEXT%': JSON.stringify(initialContext),
 				'%REDUCER%': this.getRootReducer().toString(),
+				'%DISPATCH%': this.getDispatchFunc().toString(),
 				'%S_VALIDATOR%': this.getStateValidator().toString(),
 				'%A_VALIDATOR%': this.getActionValidator().toString(),
 				'%F_REGISTRY%': 'functionDictionary',
@@ -170,6 +184,14 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		);
 	}
 
+	/** ***********  ✨ Codeium Command ⭐  */
+	/**
+	 * @param className - the name of the class for which to generate the hasState function
+	 * @returns a string representing the hasState function for the given class
+	 *
+	 * The hasState function takes an instance of the class and a state, and returns true if the instance is in that state
+/******  a342a596-9a90-494e-988d-b67e407d3fa0  ******
+	 */
 	protected getHasStateFunc(className: string) {
 		return `(instance, state) => instance.state === ${className}.getState(state)`;
 	}
@@ -272,10 +294,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					${this.getRootReducerNewStatePredicateResolution()}
 					const newState = newStateObject.state;
 					const newContextFunc = reducer[newState]
+					
 
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
+
+								
 					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
 	}
@@ -428,6 +453,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		Object.entries(this.diagram.transitions).forEach(([state, transitions]) => {
 			if (state === StartState) {
 				const entries = Object.entries(transitions);
+
 				entries.forEach(([state, action]) => {
 					action.actionsPath.forEach(({ action }) => {
 						actionToStartStateMatrix[state] = {
@@ -489,10 +515,32 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return res;
 	}
 
-	stateIsByPass(stateId: number) {
-		const stateFromDict = this.stateDictionary.getStateKeys({ states: [stateId] })[0];
-		const stateInDiagram = this.diagram.states.find(st => st.id === stateFromDict);
-		return stateInDiagram && stateInDiagram.notes && stateInDiagram.notes.byPass === true;
+	getByPassedStates() {
+		const byPassed: number[] = [];
+
+		this.diagram.states.forEach((state) => {
+			if (state.notes?.byPass) {
+				if (state.actionsPath.length > 1) {
+					throw new Error(`ByPass state ${state.id} should not have more than one transition`);
+				}
+
+				const actionChains = this.diagram.actionChains[state.id];
+
+				if (!actionChains) throw new Error(`ByPassed state ${state.id} doesn\'t have transition`);
+				const isExistsByPassAction = actionChains[ByPassAction];
+
+				if (!isExistsByPassAction) {
+					throw new Error(`ByPass action ${ByPassAction} not found for state ${state.id}`);
+				}
+
+				const value = this.stateDictionary.getStateValues({ keys: [state.id] })[0];
+				if (!value) throw new Error(`State ${state.id} not found`);
+
+				byPassed.push(value);
+			}
+		});
+
+		return `[${byPassed.join(',')}]`;
 	}
 
 	protected getContextTransition = (value: number) => {

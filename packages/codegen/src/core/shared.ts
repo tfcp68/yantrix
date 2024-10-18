@@ -31,3 +31,5 @@ export const pathRecord: Record<TRefereneceType, string> = {
 	[ExpressionTypes.Context]: 'prevContext',
 	[ExpressionTypes.Payload]: 'payload',
 };
+
+export const ByPassAction = '[-]';
