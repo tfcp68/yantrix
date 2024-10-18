@@ -1,10 +1,11 @@
 import mermaid from 'mermaid';
 import { EndState, StartState } from '../constants/index.js';
-import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
+import { extractActionId, extractActionParams, hasExpressionValues } from '../utils/index.js';
 
+import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
 import {
-	TAction,
 	TActionsStructure,
+	TActionWithParams,
 	TChoice,
 	TChoicesStructure,
 	TFork,
@@ -256,16 +257,27 @@ function generateIdForAnonymousAction(from: string, to: string, num: number) {
 function getActions(transitions: TTransitionsArray): TActionsStructure {
 	const actions: TActionsStructure = [];
 	for (let i = 0; i < transitions.length; i++) {
+		let actionIsInternal = false;
+		let actionIsPredicate = false;
+
 		const from = transitions[i]?.[0] as string;
 		const to = transitions[i]?.[1] as string;
-		let id = transitions[i]?.[2] as string;
+		let id = extractActionId(transitions[i]?.[2]) as string;
 		if (id === '') {
 			id = generateIdForAnonymousAction(from, to, i);
+			actionIsInternal = true;
 		}
-		const action: TAction = {
+		const params = extractActionParams(transitions[i]?.[2]);
+		if (params && hasExpressionValues(params)) {
+			actionIsPredicate = true;
+		}
+		const action: TActionWithParams = {
 			from,
 			to,
 			id,
+			params,
+			internal: actionIsInternal,
+			predicate: actionIsPredicate,
 		};
 		actions.push(action);
 	}

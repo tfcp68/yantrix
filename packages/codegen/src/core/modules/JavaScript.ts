@@ -952,7 +952,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			const possibleActions = this.diagram.actionChains[state]!;
 			for (const action in possibleActions) {
 				const actionId = this.actionDictionary.getDictionary()[action];
-				const chains = possibleActions[action]!;
+				const { chains } = possibleActions[action]!;
 				const processedStateChecks = [];
 				for (const { chain, state: transitionState } of chains) {
 					const transitionStateId = this.stateDictionary.getDictionary()[transitionState];
