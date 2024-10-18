@@ -34,7 +34,7 @@ export function setupDictionaries(props: {
 		actionDictionary: props.actionDictionary,
 		expressions: props.expressionRecord,
 	}).join(',\n\t')}}`);
-	dictionaries.push(`const predicates = {${forks.functions.createPredicates({
+	dictionaries.push(`const predicates = {${forks.serializer.createPredicates({
 		expressionRecord: props.expressionRecord,
 		actionDictionary: props.actionDictionary,
 		stateDictionary: props.stateDictionary,
