@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, SliceSelectors } from '@reduxjs/toolkit';
+import { isStaticMethodsAutomata } from '@yantrix/utils';
 import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice } from '../types';
-import { isStaticMethodsAutomata } from '../utility/typeGuards';
 
 /**
  * Функция для создания обертки над redux slice.
@@ -8,7 +8,9 @@ import { isStaticMethodsAutomata } from '../utility/typeGuards';
  * каждый из которых вызывается как action автомата
  * @param options
  */
-export function createFSMSlice<Actions extends string | number | symbol, ContextReduxType extends object, Automata extends TAutomata = TAutomata>(
+export function createFSMSlice<Actions extends string
+	| number
+	| symbol, ContextReduxType extends object, Automata extends TAutomata = TAutomata>(
 	options: TCreateFSMSliceOptions<Automata, ContextReduxType>,
 ) {
 	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
@@ -18,7 +20,7 @@ export function createFSMSlice<Actions extends string | number | symbol, Context
 	const selectorsSlice = Object.assign(selectors ?? {});
 
 	const contextAutomata: TAutomataContext<ContextReduxType> = _fsm.getContext();
-	const contextRedux = Object.assign({}, contextAutomata);
+	const contextRedux = Object.assign({}, contextToRedux?.(contextAutomata) ?? {});
 
 	if (isStaticMethodsAutomata(Fsm)) {
 		actionsNameList = Object.keys(Fsm.actions);

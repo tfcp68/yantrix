@@ -861,3 +861,4 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return predicates.join(',\n');
 	}
 }
+

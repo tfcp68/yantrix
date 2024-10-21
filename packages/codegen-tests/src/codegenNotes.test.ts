@@ -154,8 +154,8 @@ describe('default assign', async () => {
 	Empty payload and previous context
 	constant = pi = 3.14
 	*/
-	const defautlAssignLeft = generateAssignCase(input, 'LeftAssign', defaultSuite);
-	const defautlAssignRightContext = generateAssignCase(inputContext, 'RightAssignPreviousContext', defaultSuite);
+	const defaultAssignLeft = generateAssignCase(input, 'LeftAssign', defaultSuite);
+	const defaultAssignRightContext = generateAssignCase(inputContext, 'RightAssignPreviousContext', defaultSuite);
 	const defaultAssignRightPayload = generateAssignCase(inputPayload, 'RightAssignPayload', defaultSuite);
 
 	/*
@@ -165,7 +165,7 @@ describe('default assign', async () => {
 
 	const defaultAssignLeftPrevious = getTemplateWithPreviousContext();
 
-	const res = [defautlAssignLeft, defautlAssignRightContext, defaultAssignRightPayload];
+	const res = [defaultAssignLeft, defaultAssignRightContext, defaultAssignRightPayload];
 
 	const notesWithTemplate = res.map((el) => {
 		return { ...el, input: getTemplateInput(el.input) };
@@ -184,7 +184,7 @@ describe('default assign', async () => {
 	});
 
 	it('left assign #{a=string | constant | number | list  | emptyPayload = {} | emptypreviousContext = {} }', async () => {
-		const { output, dispatchObject } = defautlAssignLeft;
+		const { output, dispatchObject } = defaultAssignLeft;
 
 		const res = await import(`./fixtures/generated/LeftAssign_generated.js`);
 
@@ -205,7 +205,7 @@ describe('default assign', async () => {
 		expect(automata.context).toStrictEqual(output);
 	});
 	it('right assign with #a,#b = (list, constant, integer, string, payload = {}, prevContext = {})', async () => {
-		const { output, dispatchObject } = defautlAssignRightContext;
+		const { output, dispatchObject } = defaultAssignRightContext;
 
 		const res = await import(`./fixtures/generated/RightAssignPreviousContext_generated.js`);
 
@@ -673,23 +673,24 @@ describe('functions', () => {
 
 describe('user defined functions', () => {
 	it.skip('simple function returning a constant value, define/f () => 3', async () => {
-		const input = `stateDiagram-v2
-    [*] --> A: toA
-    note left of [*]
-      define/f () => 3
-    end note
-    note left of A
-      #{result} <= f()
-    end note
-    `;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'constantValueFunction');
-		const res = await import(`./fixtures/generated/constantValueFunction_generated.js`);
+	//	-- skipped test
+	// 	const input = `stateDiagram-v2
+		// [*] --> A: toA
+		// note left of [*]
+		//   define/f () => 3
+		// end note
+		// note left of A
+		//   #{result} <= f()
+		// end note
+		// `;
+	// 	await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'constantValueFunction');
+	// 	const res = await import(`./fixtures/generated/constantValueFunction_generated.js`);
 
-		const automata = new res.Test();
+		// 	const automata = new res.Test();
 
-		automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
+		// 	automata.dispatch({ action: res.actionsDictionary.toA, payload: {} });
 
-		expect(automata.context).toStrictEqual({ result: 3 });
+	// 	expect(automata.context).toStrictEqual({ result: 3 });
 	});
 	it(`codegen should catch cyclic dependencies and throw an error
 			define/lol1 () => kek1()
