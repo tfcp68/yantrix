@@ -39,10 +39,137 @@ note right of INIT
 end note
 note left of WORKING
     #{counter} <= add(#counter, neg($value = 1))
+    subscribe/someEvent ACTION
 end note
 note right of END
     #{counter} <= 0
 end note
 `;
 
-export default { defaultTemplate, basicEvents };
+const basicSubscribe = `
+stateDiagram-v2
+direction TB
+[*] --> INIT
+INIT --> EVENT_RECEIVED: MOVE
+EVENT_RECEIVED --> END: END_ACTION
+note right of INIT
++Init
+subscribe/specialEvent MOVE
+end note
+`;
+
+const basicEmit = `
+stateDiagram-v2
+direction TB
+[*] --> INIT
+INIT --> EMIT_TRIGGER: MOVE
+EMIT_TRIGGER --> END: END_ACTION
+note right of INIT
++Init
+end note
+note right of EMIT_TRIGGER
+emit/specialEvent
+end note
+`;
+
+const emitWithMeta = `
+stateDiagram-v2
+direction TB
+[*] --> INIT: RESET
+INIT --> EMIT_TRIGGER: MOVE
+EMIT_TRIGGER --> END: END_ACTION
+note right of INIT
++Init
+end note
+note right of EMIT_TRIGGER
+emit/specialEvent ($meta1=10, $meta2='string')
+end note
+`;
+
+const subscribeWithMeta = `
+stateDiagram-v2
+direction TB
+[*] --> INIT
+INIT --> EVENT_RECEIVED: MOVE
+EVENT_RECEIVED --> END: END_ACTION
+note right of INIT
++Init
+subscribe/specialEvent MOVE ($payloadValue1, $payloadValue2) <= ($meta1, $meta2)
+end note
+note right of EVENT_RECEIVED
+#{contextValue1, contextValue2} <= $payloadValue1, $payloadValue2
+end note
+`;
+
+const emitWithMetaFromContext = `
+stateDiagram-v2
+direction TB
+[*] --> INIT: RESET
+INIT --> EMIT_TRIGGER: MOVE
+EMIT_TRIGGER --> END: END_ACTION
+note right of INIT
++Init
+#{contextValue1=10, contextValue2='string'}
+end note
+note right of EMIT_TRIGGER
+emit/specialEvent ($meta1, $meta2) <= #{contextValue1, contextValue2}
+end note
+`;
+
+const emitWithMetaFromContextWithDefaultValue = `
+stateDiagram-v2
+direction TB
+[*] --> INIT: RESET
+INIT --> EMIT_TRIGGER: MOVE
+EMIT_TRIGGER --> END: END_ACTION
+note right of INIT
++Init
+#{contextValue1=10, contextValue2='string'}
+end note
+note right of EMIT_TRIGGER
+emit/specialEvent ($meta1, $meta2, $meta3='defaultValue') <= #{contextValue1, contextValue2}
+end note
+`;
+
+const wrongEventEmit = `
+stateDiagram-v2
+direction TB
+[*] --> INIT
+INIT --> EMIT_TRIGGER: MOVE
+EMIT_TRIGGER --> END: END_ACTION
+note right of INIT
++Init
+end note
+note right of EMIT_TRIGGER
+emit/newEvent
+end note
+`;
+
+const selfSubscribeAndEmit = `
+stateDiagram-v2
+direction TB
+[*] --> INIT
+INIT --> EMIT_TRIGGER: MOVE
+EMIT_TRIGGER --> EVENT_RECEIVED: RESPOND_TO_EVENT
+EVENT_RECEIVED --> END: END_ACTION
+note right of INIT
++Init
+subscribe/specialEvent RESPOND_TO_EVENT
+end note
+note right of EMIT_TRIGGER
+emit/specialEvent ($meta1=10, $meta2='string')
+end note
+`;
+
+export default {
+	defaultTemplate,
+	basicEvents,
+	basicSubscribe,
+	basicEmit,
+	selfSubscribeAndEmit,
+	wrongEventEmit,
+	emitWithMeta,
+	emitWithMetaFromContext,
+	emitWithMetaFromContextWithDefaultValue,
+	subscribeWithMeta,
+};
