@@ -1,36 +1,32 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AutomataEventAdapter, BasicEventBus } from '@yantrix/automata';
+import { randomArray, randomInteger } from '@yantrix/utils';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
+import { randomString } from '../../utils/src/fixtures';
 import templates from './fixtures/eventsTemplates';
 import { generateAndSave } from './fixtures/utils';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
 
+const createCustomEventsAutomata = async (
+	automataName: string,
+	eventCount: number = randomInteger(1, 10),
+	eventNames: string[] = randomArray(() => randomString(), eventCount),
+) => {
+	const customTemplate = templates.generateDiagramWithCustomEventNames(eventNames);
+
+	await generateAndSave({ input: customTemplate, automataName, lang: 'JavaScript' }, `event_customEvents_${automataName}`);
+
+	const imports = await import(
+		getGeneratedFixturePath(`event_customEvents_${automataName}_generated.js`)
+	);
+
+	return imports;
+};
+
 describe('automata Events', () => {
-	describe('event dictionary', async () => {
-		await generateAndSave({ input: templates.basicEvents, automataName: 'BasicEventsAutomata', lang: 'JavaScript' }, `event_basicEvents`);
-		const { BasicEventsAutomata, eventDictionary } = await import(
-			getGeneratedFixturePath('event_basicEvents_generated.js')
-		);
-
-		const automata = new BasicEventsAutomata();
-
-		it('automata has an Event Dictionary', () => {
-			expect(automata).toBeTruthy();
-			expect(eventDictionary).toBeTruthy();
-		});
-
-		it('automata\'s Event Dictionary contains events from the diagram', () => {
-			expect(Object.keys(eventDictionary).length).toBe(3);
-		});
-
-		it('automatas share one Event Dictionary', async () => {
-
-		});
-	});
-
 	describe('event Adapter', async () => {
 		await generateAndSave({ input: templates.defaultTemplate, automataName: 'EventAdapterAutomata', lang: 'JavaScript' }, `event_adapter`);
 		const { EventAdapterAutomata } = await import(
@@ -153,6 +149,61 @@ describe('automata Events', () => {
 			assert.notEqual(automata.eventBus, bus);
 			automata.setEventBus(bus);
 			assert.equal(automata.eventBus, bus);
+		});
+	});
+
+	describe('event dictionary', async () => {
+		it('automata has own Event Dictionary', async () => {
+			const { Automata, eventDictionary } = await createCustomEventsAutomata('Automata');
+			const automata = new Automata();
+			expect(automata).toBeTruthy();
+			expect(eventDictionary).toBeTruthy();
+			expect(automata.getEventDictionary()).toBeTruthy();
+		});
+
+		it('automata\'s own Event Dictionary contains events from the diagram', async () => {
+			const eventCount = randomInteger(1, 10);
+			const eventNames = randomArray(() => randomString(), eventCount);
+			const { CustomEventAutomata, eventDictionary } = await createCustomEventsAutomata('CustomEventAutomata', eventCount, eventNames);
+			const automata = new CustomEventAutomata();
+			expect(automata).toBeTruthy();
+			expect(Object.keys(eventDictionary).length).toEqual(eventCount);
+			expect(Object.keys(eventDictionary).sort()).toStrictEqual(eventNames.sort());
+		});
+
+		// ??
+		it('automatas share one Global Event Dictionary', async () => {
+			const { GlobalEventDictionaryAutomata1, eventDictionary: automataDictionary1 } = await createCustomEventsAutomata('GlobalEventDictionaryAutomata1');
+			const { GlobalEventDictionaryAutomata2, eventDictionary: automataDictionary2 } = await createCustomEventsAutomata('GlobalEventDictionaryAutomata2');
+
+			const automata1 = new GlobalEventDictionaryAutomata1();
+			const automata2 = new GlobalEventDictionaryAutomata2();
+
+			expect(automata1.getEventDictionary()).toBe(automata2.getEventDictionary());
+			expect(automataDictionary1).not.toBe(automataDictionary2);
+		});
+
+		it('global Event Dictionary contains events from all generated automatas', async () => {
+			const { GlobalEventDictionaryAutomata1, eventDictionary: automataDictionary1 } = await createCustomEventsAutomata('GlobalEventDictionaryAutomata1');
+			const { GlobalEventDictionaryAutomata2, eventDictionary: automataDictionary2 } = await createCustomEventsAutomata('GlobalEventDictionaryAutomata2');
+
+			const automata1 = new GlobalEventDictionaryAutomata1();
+			const automata2 = new GlobalEventDictionaryAutomata2();
+
+			expect(automata1).toBeTruthy();
+			expect(automata2).toBeTruthy();
+
+			const combinedLocalDictionaries = {
+				...automataDictionary1,
+				...automataDictionary2,
+			};
+
+			const globalDict = automata1.getEventDictionary();
+
+			globalDict.clearEvents();
+			globalDict.addEvents({ keys: Object.keys(combinedLocalDictionaries) });
+
+			expect(globalDict.getDictionary()).toStrictEqual(combinedLocalDictionaries);
 		});
 	});
 
@@ -334,14 +385,14 @@ describe('automata Events', () => {
 			expect(automataSubscriber.state).toBe(subscribeStates.INIT);
 			expect(automataEmitter.state).toBe(emitStates.INIT);
 
-			let emitterContext = automataEmitter.getContext();
-			let subscriberContext = automataSubscriber.getContext();
+			let emitterContext = automataEmitter.getContext().context;
+			let subscriberContext = automataSubscriber.getContext().context;
 
-			expect(emitterContext.context.contextValue1).toBe(10);
-			expect(emitterContext.context.contextValue2).toBe('string');
+			expect(emitterContext.contextValue1).toBe(10);
+			expect(emitterContext.contextValue2).toBe('string');
 
-			expect(subscriberContext.context.contextValue1).toBeUndefined();
-			expect(subscriberContext.context.contextValue2).toBeUndefined();
+			expect(subscriberContext.contextValue1).toBeUndefined();
+			expect(subscriberContext.contextValue2).toBeUndefined();
 
 			automataEmitter.dispatch({
 				action: emitActions.MOVE,
@@ -353,11 +404,11 @@ describe('automata Events', () => {
 
 			expect(spy).toHaveBeenCalled();
 
-			emitterContext = automataEmitter.getContext();
-			subscriberContext = automataSubscriber.getContext();
+			emitterContext = automataEmitter.getContext().context;
+			subscriberContext = automataSubscriber.getContext().context;
 
-			expect(subscriberContext.context.contextValue1).toBe(10);
-			expect(subscriberContext.context.contextValue2).toBe('string');
+			expect(subscriberContext.contextValue1).toBe(10);
+			expect(subscriberContext.contextValue2).toBe('string');
 		});
 	});
 });

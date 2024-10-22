@@ -161,6 +161,25 @@ emit/specialEvent ($meta1=10, $meta2='string')
 end note
 `;
 
+const generateDiagramWithCustomEventNames = (names: string[]) => {
+	const eventStrings = [];
+	for (let i = 0; i < names.length; i++) {
+		const eventName = names[i];
+		eventStrings.push(Math.random() > 0.5 ? `emit/${eventName}` : `subscribe/${eventName} ACTION`);
+	}
+	return `
+    stateDiagram-v2
+    direction TB
+    [*] --> INIT
+    INIT --> EVENT_RECEIVED: ACTION
+    EVENT_RECEIVED --> END: END_ACTION
+    note right of INIT
+    +Init
+    ${eventStrings.join('\n')}
+    end note
+    `;
+};
+
 export default {
 	defaultTemplate,
 	basicEvents,
@@ -172,4 +191,5 @@ export default {
 	emitWithMetaFromContext,
 	emitWithMetaFromContextWithDefaultValue,
 	subscribeWithMeta,
+	generateDiagramWithCustomEventNames,
 };

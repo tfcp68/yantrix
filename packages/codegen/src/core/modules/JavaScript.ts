@@ -64,7 +64,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	expressions: TExpressionRecord;
 	dictionaries: string[];
 	protected imports = {
-		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary', 'AutomataEventAdapter', 'EventBus'],
+		'@yantrix/automata': [
+			'GenericAutomata',
+			'FunctionDictionary',
+			'EventDictionary as GlobalEventDictionary',
+			'AutomataEventAdapter',
+			'EventBus',
+		],
 		'@yantrix/functions': ['builtInFunctions'],
 	};
 
@@ -114,6 +120,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries.push(
 			`export const eventDictionary = ${JSON.stringify(this.eventDictionary.getDictionary(), null, 2)}`,
 		);
+		this.dictionaries.push(
+			`export const globalEventDictionary = GlobalEventDictionary`,
+		);
 		this.dictionaries.push(`const reducer = {${this.getStateToContext().join(',\n\t')}}`);
 		this.dictionaries.push(`const predicates = {${this.createPredicates()}}`);
 		this.dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
@@ -127,10 +136,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		return `const eventAdapter = new AutomataEventAdapter();`;
 	}
 
+	private getRegisterGlobalEventsCode() {
+		return `GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) })`;
+	}
+
 	// parse diagram to get states that emit events
 	private getEmittedEvents() {
 		const lines: string[] = [];
-		lines.push('// add event emitters');
 		for (const state of this.diagram.states) {
 			const stateId = this.stateDictionary.getStateValues({ keys: [state.id] })[0];
 			const emittedEvents = state.notes?.emit;
@@ -152,8 +164,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 									{
 										event: ${this.eventDictionary.getEventValues({ keys: [e.identifier] })[0]},
 										meta: {
-											${
-												isEmitFull(e)
+											${isEmitFull(e)
 													? this.getBoundValues(this.mapReducerItems(e.context, 'context'), e.meta)
 													: (
 															isEmitWithMeta(e)
@@ -175,6 +186,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				`);
 			}
 		}
+		if (lines.length > 0) lines.unshift('// add event emitters');
 		return lines.join('\n');
 	}
 
@@ -182,7 +194,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	private getSubscribedEvents() {
 		const eventSubscribes: string[] = [];
 		const eventBusSubscribes: string[] = [];
-		eventSubscribes.push('// add event listeners');
 		for (const state of this.diagram.states) {
 			const eventsToSubscribe = state.notes?.subscribe;
 			if (eventsToSubscribe && eventsToSubscribe.length > 0) {
@@ -197,8 +208,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 								action: ${actionId},
 								payload: {
 									// todo
-									${
-										isSubscribeWithMeta(e)
+									${isSubscribeWithMeta(e)
 											? this.getBoundValues(this.mapReducerItems(e.meta, 'meta'), e.payload)
 											: (
 													isSubscribeWithPayload(e)
@@ -230,7 +240,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				});
 			}
 		}
-		return eventSubscribes.concat(eventBusSubscribes).join('\n');
+		const result = eventSubscribes.concat(eventBusSubscribes);
+		if (result.length > 0) result.unshift('// add event listeners');
+		return result.join('\n');
 	}
 
 	private getFunctionBody(expression: TExpressionDefineMap): string {
@@ -282,10 +294,12 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				'%STATE%': (stateValue ?? -1).toString(),
 				'%CONTEXT%': JSON.stringify(initialContext),
 				'%REDUCER%': this.getRootReducer().toString(),
-				'%S_VALIDATOR%': this.getStateValidator().toString(),
-				'%A_VALIDATOR%': this.getActionValidator().toString(),
-				'%F_REGISTRY%': 'functionDictionary',
-				'%EVENT_BUS%': 'EventBus',
+				'%STATE_VALIDATOR%': this.getStateValidator().toString(),
+				'%ACTION_VALIDATOR%': this.getActionValidator().toString(),
+				'%FUNCTION_REGISTRY%': 'functionDictionary',
+				'%EVENT_DICTIONARY%': 'GlobalEventDictionary',
+				'%E_BUS%': 'EventBus',
+				'%EVENTS_GLOBAL_REGISTER%': this.getRegisterGlobalEventsCode(),
 				'%EVENTS_EMIT%': this.getEmittedEvents(),
 				'%EVENTS_SUBSCRIBE%': this.getSubscribedEvents(),
 				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
@@ -994,8 +1008,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				if (processedStateChecks.length > 0) {
 					statePredicates.push(
 						`${actionId}: (prevContext, payload, functionDictionary) => { 
-							${
-								processedStateChecks.map((st, index) => `
+							${processedStateChecks.map((st, index) => `
 										const st${index + 1} = (function(){
 											${st}
 										})();

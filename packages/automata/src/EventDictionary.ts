@@ -97,4 +97,4 @@ export class BasicEventDictionary
 	}
 }
 
-export default BasicEventDictionary;
+export const EventDictionary = new BasicEventDictionary();

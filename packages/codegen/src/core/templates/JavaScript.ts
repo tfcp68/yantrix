@@ -15,12 +15,14 @@ export class %CLASSNAME% extends GenericAutomata {
             state: %STATE%,
             context:%CONTEXT%,
             rootReducer: %REDUCER%,
-            stateValidator: %S_VALIDATOR%,
-            actionValidator: %A_VALIDATOR%,
-            functionRegistry: %F_REGISTRY%,
-            eventBus: %EVENT_BUS%
+            stateValidator: %STATE_VALIDATOR%,
+            actionValidator: %ACTION_VALIDATOR%,
+            eventBus: %E_BUS%,
+            eventDictionary: %EVENT_DICTIONARY%,
+            functionRegistry: %FUNCTION_REGISTRY%
         });
 
+        %EVENTS_GLOBAL_REGISTER%;
         %EVENTS_EMIT%;
         %EVENTS_SUBSCRIBE%;
     }
