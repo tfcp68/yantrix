@@ -18,6 +18,7 @@ export class %CLASSNAME% extends GenericAutomata {
             stateValidator: %S_VALIDATOR%,
             actionValidator: %A_VALIDATOR%,
             functionRegistry: %F_REGISTRY%,
+            eventBus: %EVENT_BUS%
         });
 
         %EVENTS_EMIT%;

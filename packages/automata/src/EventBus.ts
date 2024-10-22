@@ -106,6 +106,4 @@ export class BasicEventBus
 	}
 }
 
-const EventBus = new BasicEventBus();
-
-export default EventBus;
+export const EventBus = new BasicEventBus();

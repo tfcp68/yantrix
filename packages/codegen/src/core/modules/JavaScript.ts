@@ -168,7 +168,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 									.join(',\n')}
 						];
 						
-						EventBus.dispatch([...eventsToEmit]);
+						this.eventBus.dispatch(...eventsToEmit);
 
 						return eventsToEmit[0];
 					});
@@ -212,14 +212,18 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					`);
 
 					eventBusSubscribes.push(`
-						EventBus.subscribe(${eventId}, ({ event, meta }) => {
-							const newAction = this.eventAdapter.handleEvent({ event, meta });
-							this.dispatch(newAction);
+						this.eventBus.subscribe(${eventId}, ({ event, meta }) => {
+
+							// note: these seem to be all actions from all automatas subscribed to this event
+							const newActions = this.eventAdapter.handleEvent({ event, meta });
+							for(const action of newActions) {
+								this.dispatch(action);
+							}
 							return {
 								event,
 								meta,
 								task_id: 'event_id${eventId}',
-								result: EventBus.getEventStack()
+								result: this.eventBus.getEventStack()
 							}
 						})
 					`);
@@ -281,6 +285,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				'%S_VALIDATOR%': this.getStateValidator().toString(),
 				'%A_VALIDATOR%': this.getActionValidator().toString(),
 				'%F_REGISTRY%': 'functionDictionary',
+				'%EVENT_BUS%': 'EventBus',
 				'%EVENTS_EMIT%': this.getEmittedEvents(),
 				'%EVENTS_SUBSCRIBE%': this.getSubscribedEvents(),
 				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
@@ -387,20 +392,15 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					const contextWithInitial = getDefaultContext(context,payload)
 
 					const actionMove = actionToStateFromStateDict[state][action];
-					const newStateObject = { state: actionMove.state[0] }
+					let newState = actionMove.state[0];
 					${this.getRootReducerNewStatePredicateResolution()}
-					const newState = newStateObject.state;
 					const newContextFunc = reducer[newState]
 
 					if(typeof newContextFunc !== 'function') {
 						throw new Error('Invalid newContextFunc')
 					}
 
-					const transitionedState = {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
-
-					this.eventAdapter.handleTransition(transitionedState);
-
-					return transitionedState;
+					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
   				}`;
 	}
 
@@ -426,7 +426,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				// determine new state from predicate
 				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
 				if(resolvedPredicateValue == null) return { state, context };
-				newStateObject.state = resolvedPredicateValue;
+				newState = resolvedPredicateValue;
 			}
 		`;
 	}

@@ -34,7 +34,14 @@ export function fillDictionaries(
 		for (const state of diagram.states) {
 			const emittedEventsKeys = state.notes?.emit.map(event => event.identifier);
 			if (emittedEventsKeys && emittedEventsKeys.length > 0) {
-				eventDictionary.addEvents({ keys: emittedEventsKeys });
+				const uniqueKeys = emittedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				eventDictionary.addEvents({ keys: uniqueKeys });
+			}
+
+			const subscribedEventsKeys = state.notes?.subscribe.map(event => event.identifier);
+			if (subscribedEventsKeys && subscribedEventsKeys.length > 0) {
+				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 		}
 	}

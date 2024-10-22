@@ -13,7 +13,7 @@ import {
 	TAutomataStateContext,
 } from './types/index.js';
 
-import { IAutomata, IAutomataEventAdapter, IAutomataFunctionRegistry } from './types/interfaces.js';
+import { IAutomata, IAutomataEventAdapter, IAutomataEventBus, IAutomataFunctionRegistry } from './types/interfaces.js';
 
 export function createAutomata<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
@@ -32,6 +32,11 @@ export function createAutomata<
 				ContextType,
 				PayloadType,
 				EventMetaType
+			> | null = null;
+
+			public eventBus: IAutomataEventBus<
+				EventType,
+				Record<EventType, any>
 			> | null = null;
 
 			#state: StateType | null = null;
@@ -130,6 +135,7 @@ export function createAutomata<
 					eventValidator,
 					actionValidator,
 					functionRegistry,
+					eventBus,
 				} = params;
 				if (rootReducer == null)
 					this.#rootReducer = null;
@@ -142,6 +148,11 @@ export function createAutomata<
 					this.#functionRegistry = null;
 				} else {
 					this.#functionRegistry = functionRegistry;
+				}
+				if (eventBus == null) {
+					this.eventBus = null;
+				} else {
+					this.eventBus = eventBus;
 				}
 				this.#actionQueue = [];
 				this.#enabled = enabled;
@@ -179,6 +190,11 @@ export function createAutomata<
 				} else if (this.isEnabled()) {
 					this.clearActionQueue();
 					this.setContext(reducedValue);
+
+					// trigger event emitters after automata context has been updated
+					if (this.eventAdapter) {
+						this.eventAdapter.handleTransition(this.getContext());
+					}
 				}
 				return reducedValue;
 			}
@@ -291,6 +307,24 @@ export function createAutomata<
 
 			setFunctionRegistry: (registry: IAutomataFunctionRegistry | null) => this = (registry = null) => {
 				this.#functionRegistry = registry;
+				return this;
+			};
+
+			getEventBus(): IAutomataEventBus<EventType, Record<EventType, any>> | null {
+				return this.eventBus;
+			}
+
+			setEventBus: (bus: IAutomataEventBus<EventType, Record<EventType, any>> | null) => this = (bus = null) => {
+				this.eventBus = bus;
+				return this;
+			};
+
+			getEventAdapter(): IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null {
+				return this.eventAdapter;
+			}
+
+			setEventAdapter: (adapter: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null) => this = (adapter = null) => {
+				this.eventAdapter = adapter;
 				return this;
 			};
 		};
