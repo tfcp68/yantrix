@@ -148,7 +148,7 @@ case 49:
 this.$ = {keyItem:{identifier:$$[$0]}}
 break;
 case 50:
-this.$ = {keyItem:{identifier: $$[$0-2], expression: $$[$0]}}
+this.$ = {keyItem:{identifier: $$[$0-2],  expression: $$[$0]}}
 break;
 case 55:
  this.$ = {...$$[$0-2], expression:$$[$0]}
@@ -206,7 +206,7 @@ export class YantrixLexer extends JisonLexer implements JisonLexerApi {
         /^(?:define\/)/i,
         /^(?:Init\b)/i,
         /^(?:ByPass\b)/i,
-        /^(?:[a-zA-Z]\w*)/i,
+        /^(?:[a-zA-Z]\w{0,254})/i,
         /^(?:\+)/i,
         /^(?:\{)/i,
         /^(?:\})/i,
