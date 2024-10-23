@@ -504,12 +504,29 @@ function sortActionChains(actionChains: TActionChain[]) {
 	return actionChains.sort((a, b) => compareActionChains(a.chain, b.chain));
 }
 
+function validateActions(stateDiagramStructure: TStateDiagramStructure) {
+	const actions = stateDiagramStructure.actions;
+	const map: Record<string, Set<string>> = {};
+	for (const action of actions) {
+		if (!map[action.from]) {
+			map[action.from] = new Set();
+		}
+
+		if (map[action.from]?.has(action.id)) {
+			throw new Error(`Duplicate action ${action.id} identified in state ${action.from}`);
+		} else {
+			map[action.from]?.add(action.id);
+		}
+	}
+}
+
 /**
  * @brief This function creates a state diagram;
  * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
  */
 export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagramMatrix> {
+	validateActions(stateDiagramStructure);
 	const transitions = getTransitions(stateDiagramStructure);
 	const states = getStates(stateDiagramStructure, transitions);
 	const actionChains = createActionChainsFromTransitions(stateDiagramStructure, transitions);

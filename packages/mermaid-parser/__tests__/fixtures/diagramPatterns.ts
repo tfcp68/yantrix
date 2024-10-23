@@ -252,3 +252,27 @@ export const stateDiagramDoublePath = `
 		right of second choice
    end note
 `;
+
+export const stateDiagramDuplicateActions = `
+stateDiagram-v2
+	direction TB
+	[*] --> INIT: START (counter)
+	INIT --> WORKING: [-]
+	WORKING --> END: REDUCE (value)
+    WORKING --> ANOTHER_STATE: REDUCE(value=10, count=2)
+    ANOTHER_STATE --> END: [-]
+	note right of INIT
+		+ByPass
+		+Init
+		#{counter} <= $counter = 10
+	end note
+	note left of WORKING
+		#{counter} <= add(#counter, neg($value = 1))
+	end note
+    note right of ANOTHER_STATE
+        +ByPass
+    end note
+	note right of END
+		#{counter} <= 0
+	end note
+`;
