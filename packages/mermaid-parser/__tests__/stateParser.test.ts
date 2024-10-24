@@ -106,7 +106,7 @@ describe('state Diagram Parser', () => {
 				{ id: 'A', caption: 'A' },
 				{ id: 'B', caption: 'B' },
 			]);
-			expect(parsedDiagram.actions).toEqual([{ from: 'A', to: 'B', id: 'A, B, 0' }]);
+			expect(parsedDiagram.actions).toEqual([{ from: 'A', to: 'B', id: 'A, B, 0', internal: true, params: null, predicate: false }]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
 			expect(parsedDiagram.forks).toEqual([]);
@@ -122,9 +122,9 @@ describe('state Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			]);
 			expect(parsedDiagram.actions).toEqual([
-				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0' },
-				{ from: 'A', to: 'B', id: 'A, B, 1' },
-				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2' },
+				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0', internal: true, params: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2', internal: true, params: null, predicate: false },
 			]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
@@ -141,9 +141,9 @@ describe('state Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			]);
 			expect(parsedDiagram.actions).toEqual([
-				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0' },
-				{ from: 'A', to: 'B', id: 'A, B, 1' },
-				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2' },
+				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0', internal: true, params: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2', internal: true, params: null, predicate: false },
 			]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
@@ -160,9 +160,9 @@ describe('state Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			]);
 			expect(parsedDiagram.actions).toEqual([
-				{ from: '~~~START~~~', to: 'A', id: 'Start' },
-				{ from: 'A', to: 'B', id: 'Transition 1' },
-				{ from: 'B', to: '~~~END~~~', id: 'End' },
+				{ from: '~~~START~~~', to: 'A', id: 'Start', internal: false, params: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'Transition 1', internal: false, params: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'End', internal: false, params: null, predicate: false },
 			]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
@@ -184,14 +184,20 @@ describe('state Diagram Parser', () => {
 					from: '~~~START~~~',
 					to: 'A',
 					id: '~~~START~~~, A, 0',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
-				{ from: 'A', to: 'B', id: 'A, B, 1' },
-				{ from: 'A', to: '~~~END~~~', id: 'A, ~~~END~~~, 2' },
-				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 3' },
+				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, predicate: false },
+				{ from: 'A', to: '~~~END~~~', id: 'A, ~~~END~~~, 2', internal: true, params: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 3', internal: true, params: null, predicate: false },
 				{
 					from: '~~~START~~~',
 					to: '~~~END~~~',
 					id: '~~~START~~~',
+					internal: false,
+					params: null,
+					predicate: false,
 				},
 			]);
 		});
@@ -204,31 +210,49 @@ describe('state Diagram Parser', () => {
 					from: '~~~START~~~',
 					id: '~~~START~~~, A, 0',
 					to: 'A',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
 				{
 					from: '~~~START~~~',
 					id: '~~~START~~~, A, 1',
 					to: 'A',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
 				{
 					from: 'A',
 					id: 'A, B, 2',
 					to: 'B',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
 				{
 					from: 'A',
 					id: 'A, B, 3',
 					to: 'B',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
 				{
 					from: 'B',
 					id: 'B, ~~~END~~~, 4',
 					to: '~~~END~~~',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
 				{
 					from: 'B',
 					id: 'B, ~~~END~~~, 5',
 					to: '~~~END~~~',
+					internal: true,
+					params: null,
+					predicate: false,
 				},
 			]);
 		});

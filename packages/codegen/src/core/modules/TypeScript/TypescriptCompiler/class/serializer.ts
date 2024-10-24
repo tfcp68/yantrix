@@ -1,4 +1,4 @@
-import { JavaScriptCompiler } from '../../../JavaScript';
+import { JavaScriptCompiler } from '../../../JavaScript/JavaScriptCompiler';
 
 function getStateValidator() {
 	return `(${JavaScriptCompiler.class.serializer.getStateValidator()}) as TValidator<TAutomataBaseStateType>`;

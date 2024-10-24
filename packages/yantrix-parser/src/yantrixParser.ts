@@ -148,7 +148,7 @@ case 49:
 this.$ = {keyItem:{identifier:$$[$0]}}
 break;
 case 50:
-this.$ = {keyItem:{identifier: $$[$0-2], expression: $$[$0]}}
+this.$ = {keyItem:{identifier: $$[$0-2],  expression: $$[$0]}}
 break;
 case 55:
  this.$ = {...$$[$0-2], expression:$$[$0]}

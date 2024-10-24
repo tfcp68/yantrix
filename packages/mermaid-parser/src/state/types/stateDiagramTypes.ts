@@ -6,6 +6,9 @@ export type TActionPath = {
 export type TStateDiagramMatrix = {
 	states: TDiagramStatesArray;
 	transitions: TDiagramTransitions;
+} & TStateDiagramActionChains;
+
+export type TStateDiagramActionChains = {
 	actionChains: TDiagramActionChains;
 };
 
@@ -31,7 +34,13 @@ export type TActionChain = {
 	chain: string[];
 	state: string;
 };
-export type TDiagramActionChains = Record<string, Record<string, TActionChain[]>>;
+
+export type TActionChainParams = {
+	chains: TActionChain[];
+	params: string | null;
+};
+
+export type TDiagramActionChains = Record<string, Record<string, TActionChainParams>>;
 
 export type TFromChoice = {
 	choice: string;

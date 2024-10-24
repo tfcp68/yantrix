@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { context } from '../context';
 import { expressions } from '../expressions';
@@ -19,6 +19,7 @@ export function setupDictionaries(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
 	expressionRecord: TExpressionRecord;
 }) {
 	let dictionaries: TDictionaries = [];
@@ -28,13 +29,21 @@ export function setupDictionaries(props: {
 	dictionaries.push(
 		`export const actionsDictionary = ${JSON.stringify(props.actionDictionary.getDictionary(), null, 2)}`,
 	);
-	dictionaries.push(`const reducer = {${context.contextSerializer.getStateToContext({
+	if (Object.keys(props.eventDictionary.getDictionary()).length > 0) {
+		dictionaries.push(
+			`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,
+		);
+	}
+	dictionaries.push(
+		`export const globalEventDictionary = GlobalEventDictionary`,
+	);
+	dictionaries.push(`const reducer = {${context.serializer.getStateToContext({
 		diagram: props.diagram,
 		stateDictionary: props.stateDictionary,
 		actionDictionary: props.actionDictionary,
 		expressions: props.expressionRecord,
 	}).join(',\n\t')}}`);
-	dictionaries.push(`const predicates = {${forks.serializer.createPredicates({
+	dictionaries.push(`const predicates = {${forks.serializer.getPredicates({
 		expressionRecord: props.expressionRecord,
 		actionDictionary: props.actionDictionary,
 		stateDictionary: props.stateDictionary,
@@ -42,6 +51,7 @@ export function setupDictionaries(props: {
 	})}}`);
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 	dictionaries.push(`functionDictionary.register(builtInFunctions);`);
+	dictionaries.push(`const eventAdapter = new AutomataEventAdapter();`);
 	dictionaries.push();
 	imports.functions.checkForCyclicDependencies({
 		dependencyGraph: props.dependencyGraph,

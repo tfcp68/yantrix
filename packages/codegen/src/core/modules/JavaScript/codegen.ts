@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import {
 	ICodegen,
 	TConstants,
@@ -15,6 +15,7 @@ import { TImports } from './JavaScriptCompiler/imports';
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
@@ -26,13 +27,20 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	expressions: TExpressionRecord;
 	dictionaries: string[];
 	protected imports: TImports = {
-		'@yantrix/automata': ['GenericAutomata', 'FunctionDictionary'],
+		'@yantrix/automata': [
+			'GenericAutomata',
+			'FunctionDictionary',
+			'EventDictionary as GlobalEventDictionary',
+			'AutomataEventAdapter',
+			'EventBus',
+		],
 		'@yantrix/functions': ['builtInFunctions'],
 	};
 
 	constructor({ diagram, constants }: TModuleParams) {
-		this.actionDictionary = new BasicActionDictionary();
 		this.stateDictionary = new BasicStateDictionary();
+		this.actionDictionary = new BasicActionDictionary();
+		this.eventDictionary = new BasicEventDictionary();
 
 		this.diagram = diagram;
 
@@ -55,7 +63,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.dictionaries = [];
 		this.initialContextKeys = [];
 
-		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
+		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary, this.eventDictionary);
 
 		this.dictionaries = JavaScriptCompiler.dictionaries.functions.setupDictionaries({
 			dependencyGraph: this.dependencyGraph,
@@ -63,6 +71,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			expressionRecord: this.expressions,
 			actionDictionary: this.actionDictionary,
 			stateDictionary: this.stateDictionary,
+			eventDictionary: this.eventDictionary,
 		});
 	}
 
@@ -78,7 +87,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			${JavaScriptCompiler.dictionaries.serializer.getStatesMap({
 					stateDictionary: this.stateDictionary,
 				})}
-			${JavaScriptCompiler.context.contextSerializer.getDefaultContext({
+			${JavaScriptCompiler.context.serializer.getDefaultContext({
 					expressions: this.expressions,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
@@ -94,6 +103,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					className: options.className,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
+					actionDictionary: this.actionDictionary,
+					eventDictionary: this.eventDictionary,
+					expressions: this.expressions,
 				})}
 		`;
 	}

@@ -25,7 +25,8 @@ export type TSubscribeWithMeta = TSubscribeWithPayload & {
 	meta: TMeta;
 };
 
-export type TSubscribe = TSubscribeWithMeta | TSubscribeWithPayload | TSubscribeStatement;
+export type TEventSubscribe = TSubscribeWithMeta | TSubscribeWithPayload | TSubscribeStatement;
+export type TSubscribes = { subscribe: TEventSubscribe[] };
 
 export type TContext<T extends TKeyItems = TKeyItems> = {
 	context: T;
@@ -35,10 +36,12 @@ export type TEventEmitStatement = {
 	identifier: string;
 };
 
-export type TEmitWithMeta = TEventEmitStatement & TMeta;
-export type TEmitFull = TEventEmitStatement & TMeta & TContext;
-export type TEvenEmit = TEmitWithMeta | TEmitFull | TEventEmitStatement;
-export type TEvents = { emit: TEvenEmit[] };
+export type TEmitWithMeta = TEventEmitStatement & {
+	meta: TMeta;
+};
+export type TEmitFull = TEmitWithMeta & { context: TKeyItems<'reducer'> };
+export type TEventEmit = TEmitWithMeta | TEmitFull | TEventEmitStatement;
+export type TEmits = { emit: TEventEmit[] };
 
 export type TContextShort = {
 	context: TKeyItems;
@@ -62,4 +65,4 @@ export type TByPass = {
 	byPass: boolean;
 };
 
-export type TNotes = TInitialState & TContextDescription & TSubscribe & TEvents & TByPass & TDefines;
+export type TNotes = TInitialState & TContextDescription & TSubscribes & TEmits & TByPass & TDefines;
