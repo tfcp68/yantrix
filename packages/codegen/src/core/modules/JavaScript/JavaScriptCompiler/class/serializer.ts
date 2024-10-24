@@ -57,7 +57,7 @@ export function getClassTemplate(props: {
 			'%FUNCTION_REGISTRY%': 'functionDictionary',
 			'%EVENT_DICTIONARY%': 'GlobalEventDictionary',
 			'%E_BUS%': 'EventBus',
-			'%EVENTS_GLOBAL_REGISTER%': events.serializer.getRegisterGlobalEventsCode(),
+			'%EVENTS_GLOBAL_REGISTER%': events.serializer.getRegisterGlobalEventsCode({ eventDictionary }),
 			'%EVENTS_EMIT%': events.serializer.getEmittedEvents({ diagram, stateDictionary, eventDictionary, expressions }),
 			'%EVENTS_SUBSCRIBE%': events.serializer.getSubscribedEvents({ diagram, actionDictionary, eventDictionary, expressions }),
 			'%IS_KEY_OF%': props.classSerializer.getIsKeyOf().toString(),

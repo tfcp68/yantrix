@@ -3,8 +3,9 @@ import { ExpressionTypes, isEmitFull, isEmitWithMeta, isSubscribeWithMeta, isSub
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { context } from '../context';
 
-function getRegisterGlobalEventsCode() {
-	return `GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) })`;
+function getRegisterGlobalEventsCode(props: { eventDictionary: BasicEventDictionary }) {
+	if (Object.keys(props.eventDictionary.getDictionary()).length === 0) return '';
+	return `GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) });`;
 }
 
 function getEmittedEvents(props: {
@@ -111,8 +112,6 @@ function getSubscribedEvents(props: {
 
 				eventBusSubscribes.push(`
                     this.eventBus.subscribe(${eventId}, ({ event, meta }) => {
-
-                        // note: these seem to be all actions from all automatas subscribed to this event
                         const newActions = this.eventAdapter.handleEvent({ event, meta });
                         for(const action of newActions) {
                             this.dispatch(action);

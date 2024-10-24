@@ -22,9 +22,9 @@ export class %CLASSNAME% extends GenericAutomata {
             functionRegistry: %FUNCTION_REGISTRY%
         });
 
-        %EVENTS_GLOBAL_REGISTER%;
-        %EVENTS_EMIT%;
-        %EVENTS_SUBSCRIBE%;
+        %EVENTS_GLOBAL_REGISTER%
+        %EVENTS_EMIT%
+        %EVENTS_SUBSCRIBE%
     }
 
     isKeyOf = %IS_KEY_OF%;

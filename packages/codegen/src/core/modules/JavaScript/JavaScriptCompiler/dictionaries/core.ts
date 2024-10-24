@@ -29,9 +29,11 @@ export function setupDictionaries(props: {
 	dictionaries.push(
 		`export const actionsDictionary = ${JSON.stringify(props.actionDictionary.getDictionary(), null, 2)}`,
 	);
-	dictionaries.push(
-		`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,
-	);
+	if (Object.keys(props.eventDictionary.getDictionary()).length > 0) {
+		dictionaries.push(
+			`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,
+		);
+	}
 	dictionaries.push(
 		`export const globalEventDictionary = GlobalEventDictionary`,
 	);
