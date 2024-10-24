@@ -103,7 +103,7 @@ describe('byPass state', () => {
 		 	+ByPass
 		end note
 		note right of F
-			#{a = 100}
+			#{a = 100} <= $a
 		end note
 		`;
 
@@ -112,7 +112,7 @@ describe('byPass state', () => {
 		const res = await import(`./fixtures/generated/byPassPayload_generated.js`);
 		const automata = new res.Test();
 
-		automata.dispatch({ action: res.actionsDictionary['toB(a)'], payload: {} });
+		automata.dispatch({ action: res.actionsDictionary['toB(a)'], payload: { a: 300 } });
 
 		expect(automata.context).toStrictEqual({ a: 100 });
 	});

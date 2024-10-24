@@ -90,7 +90,7 @@ export function getRootReducer() {
 					${getRootReducerActionValidation()}
 		
 							
-					const getNew = (action,state,context) => {
+					const getNew = (action,state,context,payload) => {
 						const actionMove = actionToStateFromStateDict[state][action];
 						const newStateObject = { state: actionMove.state[0] }
 						const contextWithInitial = getDefaultContext(context,payload)
@@ -109,10 +109,10 @@ export function getRootReducer() {
 
 					}		
 
-					let localCtx = getNew(action,state,context) 
+					let localCtx = getNew(action,state,context,payload) 
 
 					while(byPassedStates.has(localCtx.state)) {
-						localCtx = getNew(actionsDictionary['${ByPassAction}'], localCtx.state, localCtx.context)
+						localCtx = getNew(actionsDictionary['${ByPassAction}'], localCtx.state, localCtx.context, {})
 					}
 
 					return localCtx	
