@@ -26,7 +26,7 @@ const invalidContextStatements = [
 	'#(%s)',
 ];
 
-const validExpressionStatements = [
+const validExpressionDefaultValues = [
 	`#{%s = #%s}`,
 	`#{%s = '%s'}`,
 	`#{%s = $%s}`,
@@ -35,7 +35,7 @@ const validExpressionStatements = [
 	`#{%s = '%i'}`,
 	`#{%s = '%d'}`,
 ];
-const invalidExpressionStatements = [
+const invalidExpressionDefaultValues = [
 	`#{%s - %rand}`,
 	`#{%s  %rand}`,
 	`#{%s == %rand}`,
@@ -57,7 +57,6 @@ const invalidStateTransformerStatements = [
 ];
 
 const validSubscribeStatements = ['subscribe/%s %s', 'subscribe/%s %s (#%s)', 'subscribe/%s %s (#%s) <= (#%s)'];
-
 const invalidSubscribeStatements = [
 	`%s/%s => %s`,
 	`subscribe\\%s => %s`,
@@ -85,6 +84,16 @@ const invalidEmitStatements = [
 	`emit/%s <= {%list}`,
 	`emit/%s <= [%list]`,
 	`emit/%s => (%list)`,
+];
+
+const validExpressionStatements = [
+	'=%s($%s, #%s)?',
+	'=%s(%s($%s, %i))?',
+];
+const invalidExpressionStatements = [
+	'%s($%s, #%s)',
+	'%s($%s, #%s)?',
+	'=%s($%s, #%s)',
 ];
 
 function generateRandomStatementsFromTemplate(arr: string[], casesAmount: number = randomInteger(1, 20)) {
@@ -393,7 +402,7 @@ describe('base grammar declarations', () => {
 
 		describe('normal expressions', () => {
 			describe('correct expressions', () => {
-				const cases = generateRandomStatementsFromTemplate(validExpressionStatements);
+				const cases = generateRandomStatementsFromTemplate(validExpressionDefaultValues);
 				it.each(cases)('%s --- CORRECT', (input) => {
 					const result = parser.parse(input);
 					assert.isOk(result.contextDescription[0].context[0].keyItem.expression);
@@ -401,7 +410,7 @@ describe('base grammar declarations', () => {
 			});
 
 			describe('incorrect expressions', () => {
-				const cases = generateRandomStatementsFromTemplate(invalidExpressionStatements);
+				const cases = generateRandomStatementsFromTemplate(invalidExpressionDefaultValues);
 				it.each(cases)(`%s --- ERROR`, (input) => {
 					expect(() => parser.parse(input)).toThrowError();
 				});
@@ -489,6 +498,20 @@ describe('base grammar declarations', () => {
 
 		describe('incorrect statements', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidEmitStatements);
+			it.each(cases)(`%s --- ERROR`, str => expect(() => parser.parse(str)).toThrowError());
+		});
+	});
+
+	describe('expression statements creation', () => {
+		const parser = new YantrixParser();
+
+		describe('correct statements', () => {
+			const cases = generateRandomStatementsFromTemplate(validExpressionStatements, 1);
+			it.each(cases)('%s --- CORRECT', str => assert.isOk(parser.parse(str)));
+		});
+
+		describe('incorrect statements', () => {
+			const cases = generateRandomStatementsFromTemplate(invalidExpressionStatements, 1);
 			it.each(cases)(`%s --- ERROR`, str => expect(() => parser.parse(str)).toThrowError());
 		});
 	});

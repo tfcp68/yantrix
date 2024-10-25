@@ -233,10 +233,10 @@ export const stateDiagramDoublePath = `
 
    [*] --> A
    A --> ChoiceState1
-   ChoiceState1 --> ChoiceState2
+   ChoiceState1 --> ChoiceState2: predicate1($value)
    ChoiceState1 --> B
+   ChoiceState2 --> D: predicate2($value)
    ChoiceState2 --> B
-   ChoiceState2 --> D
    B --> [*]
    D --> [*]
 
