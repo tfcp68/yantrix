@@ -36,7 +36,7 @@ stateDiagram-v2
 	end note
 	note right of INCREMENT
 		+ByPass
-		#{value}<=min(#max,max(#min,add(#value,$by))
+		#{value}<=min(#max,max(#min,add(#value,$by)))
 	end note
 	note right of DECREMENT
 		+ByPass
@@ -50,7 +50,7 @@ end note
 The details of what's going on here are explained [below](#syntax-breakdown). For now, assume it's saved to a file named `slider.mermaid`. Then, we pass that source to a code generator and choose a language we need
 
 ```shell
-$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language Javascript --className Slider
+$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language JavaScript --className Slider
 ```
 
 Now, we import the generated file into your projects:
@@ -79,7 +79,7 @@ const rightHandler = () => SliderController.dispatch(Slider.createAction('INCREA
 const leftHandler = () => SliderController.dispatch(Slider.createAction('DECREASE', { by: 50 }));
 
 // bind this to a click handler, using relative coordinate
-const setHandler = (percentage) =>
+const setHandler = percentage =>
 	SliderController.dispatch(
 		Slider.createAction('SET', {
 			value: SLIDER_MIN + percentage * (SLIDER_MAX - SLIDER_MIN),

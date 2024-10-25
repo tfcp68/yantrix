@@ -46,7 +46,7 @@ end note
 Yantrix codegen lets you specify a paremeter `className`, which whill result in the name of the generated Class. However, when using default imports, this name is lost, while it's could be a good unique identifier, when using a lot of `FSM`s. To keep it, every exported class has a static property `id` containing the same name
 
 ```shell
-$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language Javascript --className Slider
+$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language JavaScript --className Slider
 ```
 
 ```javascript
@@ -136,7 +136,7 @@ Slider.getState(stateMap.ENABLED);
 In typescript versions [Dictionaries](#dictionaries) are available as types too:
 
 ```typescript
-import { actionMap, TActionLiteral, stateMap, TStateLiteral } from '../slider_controller.js';
+import { actionMap, stateMap, TActionLiteral, TStateLiteral } from '../slider_controller.js';
 
 type TActionLiteral = keyof typeof actionMap;
 type TStateLiteral = keyof typeof stateMap;
