@@ -4,7 +4,7 @@ title: Javascript API
 
 # Javascript API
 
-When generating a JS/TS class, it has `@yantrix/automata` as dependency and implements [IAutomata](../API-Reference/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
+When generating a JS/TS class, it has `@yantrix/automata` as dependency and implements [IAutomata](../API/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
 
 In this section, all snippets are provided with the same diagram analyzed in [Introduction](../):
 
@@ -83,7 +83,7 @@ Slider.getState('ENABLED') === SliderInstance.getContext().state;
 
 ## Action Helpers
 
-To invoke an `Action`, a [dispatch](../API-Reference/automata/interfaces/IAutomata.html#dispatch) method should be used. Since it accepts numeric ids, they also have to be mapped.
+To invoke an `Action`, a [dispatch](../API/automata/interfaces/IAutomata.html#dispatch) method should be used. Since it accepts numeric ids, they also have to be mapped.
 
 ```javascript
 Slider.getAction('DISABLE');

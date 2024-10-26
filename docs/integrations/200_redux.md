@@ -4,7 +4,7 @@ title: Redux
 
 # Integrating with Redux
 
-The connector allows for integration both with native Redux and with Redux-Toolkit Library. FSMs for Redux integration must be complemented using Typescript codegen, thus providing a [`@yantrix/automata`](..API-Reference/automata/) implementation.
+The connector allows for integration both with native Redux and with Redux-Toolkit Library. FSMs for Redux integration must be complemented using Typescript codegen, thus providing a [`@yantrix/automata`](..API/automata/) implementation.
 
 ```shell
 $ npm install @yantrix/redux @yantrix-codegen
@@ -64,7 +64,7 @@ sequenceDiagram
 	Redux Slice -->>- Subscribers: Slice State
 ```
 
-`@yantrix/redux` lib provides a `createFSMSlice` method which creates a Redux Toolkit Slice which exports all `FSM`s `Actions` as reducers, that invoke [`dispatch`](../API-Reference/automata/interfaces/IAutomata.html#dispatch) method of an FSM to resolve the next state of the produced slice
+`@yantrix/redux` lib provides a `createFSMSlice` method which creates a Redux Toolkit Slice which exports all `FSM`s `Actions` as reducers, that invoke [`dispatch`](../API/automata/interfaces/IAutomata.html#dispatch) method of an FSM to resolve the next state of the produced slice
 
 You shall provide a string constant do discriminate every particular integration. If you must, you can use a same constant for different slices, assuming `Actions` of `FSM`s are globally unique.
 
@@ -136,7 +136,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 const YantrixSlice = createFSMSlice({
 	name: TrafficLight.id,
 	fsm: TrafficLight,
-	contextToRedux: (context) => context, // optional, default mapper
+	contextToRedux: context => context, // optional, default mapper
 });
 ```
 
@@ -146,7 +146,7 @@ If needed, a `Context` of an FSM can be transformed in a different manner to red
 const YantrixSlice = createFSMSlice({
 	name: TrafficLight.id,
 	fsm: TrafficLight,
-	contextToRedux: (context) => ({
+	contextToRedux: context => ({
 		counter: context.counter,
 		redColorOn: ['Red', 'RedYellow'].includes(context.state),
 		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),

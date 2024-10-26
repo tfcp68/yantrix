@@ -374,7 +374,7 @@ Now, it's only about dispatching proper `Payloads` to the `FSM`.
 
 ## What's next?
 
--   See [Sample FSM Designs](./concepts/999_design_examples.html) and [generate some code](./API-Reference/codegen/README.html)
+-   See [Sample FSM Designs](./concepts/999_design_examples.html) and [generate some code](./API/codegen)
 -   Learn Yantrix [Syntax](./syntax) and try making an `FSM` of your own
 -   Try some [Integrations](./integrations) with your favorite frameworks to achieve fast results
 -   Read more on [framework architecture](./concepts) and how to expand beyond one `FSM` into `Slice`s and built a whole `Application` on Yantrix

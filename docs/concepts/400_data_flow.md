@@ -82,7 +82,7 @@ _Figure 2: Yantrix Destinations Layer_
 
 ## Event Adapters
 
-`Event Adapter` is a component that plugs into an `FSM` and then connects to `Event Stack`. Every incoming `Event` is passed to an [interface](../API-Reference/automata/interfaces/IAutomataEventAdapter.html#handleevent) that may produce a `Payload` from it. If so, the `Payload` is then passed to an attached `FSM`, and after the transition concludes, another [interface](../API-Reference/automata/interfaces/IAutomataEventAdapter.html#handletransition) translates a resulting `Context` into another `Event`, if required. The `Event` is then added to the `Event Stack`.
+`Event Adapter` is a component that plugs into an `FSM` and then connects to `Event Stack`. Every incoming `Event` is passed to an [interface](../API/automata/interfaces/IAutomataEventAdapter.html#handleevent) that may produce a `Payload` from it. If so, the `Payload` is then passed to an attached `FSM`, and after the transition concludes, another [interface](../API/automata/interfaces/IAutomataEventAdapter.html#handletransition) translates a resulting `Context` into another `Event`, if required. The `Event` is then added to the `Event Stack`.
 
 This, each `Event Adapter` is dependent on all three semantic spaces: `Events`, `Actions` and `States`. If several `FSM`s use the same `States` and `Actions`, they also can use same `Event Adapters` attached to the same `Event Stack`, making them reusable. However, when autogenerating `Slices` with Yantrix, there's no fine control over namespaces, providing only two options:
 

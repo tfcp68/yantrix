@@ -4,7 +4,7 @@ title: React
 
 # Integrating with React
 
-Since React team advocates consistently for functional style, we also aim to provide functional API with [Hooks](https://react.dev/reference/react/hooks). However, Yantrix still exports [objective API](../API-Reference/automata/interfaces/IAutomata.html), so it has to be tuned in a way.
+Since React team advocates consistently for functional style, we also aim to provide functional API with [Hooks](https://react.dev/reference/react/hooks). However, Yantrix still exports [objective API](../API/automata/interfaces/IAutomata.html), so it has to be tuned in a way.
 
 ## Setup
 
@@ -165,8 +165,9 @@ const Toggler = () => {
 			onClick={() =>
 				dispatch({
 					action: getAction('switch'),
-				})
-			}></div>
+				})}
+		>
+		</div>
 	);
 };
 ```
