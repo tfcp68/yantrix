@@ -59,9 +59,6 @@ end note
 note left of WORKING
 	#{counter} <= add(#counter, neg($value = 1))
 end note
-note right of State2
-+ByPass
-end note
 note right of State1
 	#{counter} <= 0
 end note

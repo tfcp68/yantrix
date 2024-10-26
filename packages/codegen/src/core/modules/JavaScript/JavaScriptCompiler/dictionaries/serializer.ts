@@ -103,6 +103,12 @@ export function getStatesMap(props: {
 	return `const statesMap = ${JSON.stringify(getObjectKeysMap(props.stateDictionary.getDictionary()), null, 2)}`;
 }
 
+export const getSerializedSetByPassed = (props: {
+	byPassedList: number[];
+}) => {
+	return `const byPassedStates = new Set([${props.byPassedList.join(',')}])`;
+};
+
 export function getActionToStateFromState(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
@@ -123,4 +129,5 @@ export const dictionariesSerializer = {
 	getDictionariesCode,
 	getActionsMap,
 	getStatesMap,
+	getSerializedSetByPassed,
 } as const;

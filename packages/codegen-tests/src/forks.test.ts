@@ -36,10 +36,7 @@ describe('forks', () => {
 						action: actionsDictionary['START (counter)'],
 						payload: { counter: defaultCounterValue },
 					},
-					{
-						action: actionsDictionary['[-]'],
-						payload: { value: 0 },
-					},
+
 				];
 				automata.setActionQueue(queue);
 				automata.consumeAction(queue.length);
@@ -76,12 +73,14 @@ describe('forks', () => {
 
 		it('state reducer is invoked when transitioning to the same state after the fork', () => {
 			const value = randomInteger(0, defaultCounterValue);
+			const prev = automata.context.counter;
 			automata.dispatch({
 				action: actionsDictionary['REDUCE (value)'],
 				payload: { value },
 			});
+
 			expect(automata.state).toBe(statesDictionary.WORKING);
-			expect(automata.context.counter).toBe(defaultCounterValue - value);
+			expect(automata.context.counter).toBe(prev - value);
 		});
 	});
 
@@ -152,10 +151,12 @@ describe('forks', () => {
 		it('state reducer is NOT invoked when staying on the same state', () => {
 			const expected = automata.context.counter;
 			const value = randomInteger(-100, -1);
+
 			automata.dispatch({
 				action: actionsDictionary['REDUCE (value)'],
 				payload: { value },
 			});
+
 			expect(automata.state).toBe(statesDictionary.WORKING);
 			expect(automata.context.counter).toBe(expected);
 		});
@@ -178,10 +179,7 @@ describe('forks', () => {
 						action: actionsDictionary['START (counter)'],
 						payload: { counter: defaultCounterValue },
 					},
-					{
-						action: actionsDictionary['[-]'],
-						payload: { value: 0 },
-					},
+
 				];
 				automata.setActionQueue(queue);
 				automata.consumeAction(queue.length);

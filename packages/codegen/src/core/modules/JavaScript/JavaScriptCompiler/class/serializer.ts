@@ -1,5 +1,6 @@
 import { BasicStateDictionary } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
+import { ByPassAction } from '../../../../../constants';
 import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { replaceFileContents } from '../../../../../utils/utils';
 import { context } from '../context';
@@ -84,21 +85,38 @@ export function getActionValidator() {
 export function getRootReducer() {
 	return `({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
+					
 					${getRootReducerStateValidation()}
 					${getRootReducerActionValidation()}
+		
+							
+					const getNew = (action,state,context,payload) => {
+						const actionMove = actionToStateFromStateDict[state][action];
+						const newStateObject = { state: actionMove.state[0] }
+						const contextWithInitial = getDefaultContext(context,payload)
 
-					const contextWithInitial = getDefaultContext(context,payload)
 
-					const actionMove = actionToStateFromStateDict[state][action];
-					const newStateObject = { state: actionMove.state[0] }
-					${getRootReducerNewStatePredicateResolution()}
-					const newState = newStateObject.state;
-					const newContextFunc = reducer[newState]
+						${getRootReducerNewStatePredicateResolution()}
 
-					if(typeof newContextFunc !== 'function') {
-						throw new Error('Invalid newContextFunc')
+						const newState = newStateObject.state;
+						const newContextFunc = reducer[newState]
+
+						if(typeof newContextFunc !== 'function') {
+							throw new Error('Invalid newContextFunc')
+						}
+
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+
+					}		
+
+					let localCtx = getNew(action,state,context,payload) 
+
+					while(byPassedStates.has(localCtx.state)) {
+						localCtx = getNew(actionsDictionary['${ByPassAction}'], localCtx.state, localCtx.context, {})
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+
+					return localCtx	
+	
   				}`;
 }
 

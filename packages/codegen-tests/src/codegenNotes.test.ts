@@ -59,6 +59,83 @@ function getTemplateWithPreviousContext() {
 	};
 }
 
+describe('byPass state', () => {
+	it('should throw an error if the ByPass state has more than 1 transition', async () => {
+		const template = `stateDiagram-v2
+		B --> EXIT: [-]
+		B --> Failed: [-]
+		note left of B
+		 	+ByPass
+		end note`;
+
+		const call = () => generateAndSave({ input: template, automataName: 'Test', lang: 'JavaScript' }, 'byPassError');
+
+		await expect(call).rejects.toThrowError();
+	});
+	it('should throw an error if the ByPass state has no transition', async () => {
+		const template = `stateDiagram-v2
+		C --> B: KEK
+		note left of B
+		 	+ByPass
+		end note`;
+
+		const call = () => generateAndSave({ input: template, automataName: 'Test', lang: 'JavaScript' }, 'byPassError');
+
+		await expect(call).rejects.toThrowError();
+	});
+	it('should throw an error if the ByPass state has no action [-]', async () => {
+		const template = `stateDiagram-v2
+		C --> B: toB
+		B --> F: exit
+		note left of B
+		 	+ByPass
+		end note`;
+
+		const call = () => generateAndSave({ input: template, automataName: 'Test', lang: 'JavaScript' }, 'byPassError');
+
+		await expect(call).rejects.toThrowError();
+	});
+	it('payload is not propagated through ByPass', async () => {
+		const template = `stateDiagram-v2
+		C --> B: toB(a)
+		B --> F: [-]
+		note left of B
+		 	+ByPass
+		end note
+		note right of F
+			#{a = 100} <= $a
+		end note
+		`;
+
+		await generateAndSave({ input: template, automataName: 'Test', lang: 'JavaScript' }, 'byPassPayload');
+
+		const res = await import(`./fixtures/generated/byPassPayload_generated.js`);
+		const automata = new res.Test();
+
+		automata.dispatch({ action: res.actionsDictionary['toB(a)'], payload: { a: 300 } });
+
+		expect(automata.context).toStrictEqual({ a: 100 });
+	});
+	it('the finite automaton must go to the next state after the byPasses state', async () => {
+		const template = `stateDiagram-v2
+		C --> B: toB
+		B --> EXIT: [-]
+		note left of B
+		 	+ByPass
+		end note
+		`;
+
+		await generateAndSave({ input: template, automataName: 'Test', lang: 'JavaScript' }, 'byPassedState');
+
+		const res = await import(`./fixtures/generated/byPassedState_generated.js`);
+		const automata = new res.Test();
+
+		automata.dispatch({ action: res.actionsDictionary.toB, payload: {} });
+
+		expect(automata.state).toBe(res.statesDictionary.EXIT);
+	});
+});
+
 describe('default assign', async () => {
 	const defaultSuite = getReferenceAssign();
 	const input = '#{'.concat(defaultSuite.map(el => el.input).join(',')).concat('}');
