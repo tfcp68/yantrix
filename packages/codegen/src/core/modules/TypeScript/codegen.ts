@@ -6,12 +6,13 @@ import { TypeScriptCompiler } from './TypescriptCompiler';
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typeof ModuleNames.TypeScript> {
 	constructor(params: TModuleParams) {
 		super(params);
-		this.imports['@yantrix/automata']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
+		this.imports['@yantrix/automata']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator', 'TAutomataFunction');
 	}
 
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
 		return `
 			${TypeScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
+			${TypeScriptCompiler.types.serializer.createTypes({ diagram: this.diagram })}
 			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode({
 					dictionaries: this.dictionaries,
 				})}
