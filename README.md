@@ -9,7 +9,7 @@ traditional state manager like [Redux](https://redux.js.org/), while allowing de
 workflows, rather than writing and debugging the
 actual code.
 
-Lends itself perfectly to [Architecture-as-Code](https://jondavid-black.github.io/AaC/) paradigm and no-code/less-code
+Lends itself perfectly to Architecture-as-Code paradigm and no-code/less-code
 tools for developers, like [n8n](https://github.com/n8n-io/n8n).
 
 ## The Idea

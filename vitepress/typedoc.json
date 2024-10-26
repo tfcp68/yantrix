@@ -1,16 +1,18 @@
 {
-	"out": "src/API-Reference",
+	"out": "src/API",
 	"entryPoints": ["../packages/*"],
 	"name": "Yantrix API",
 	"entryPointStrategy": "packages",
 	"includeVersion": false,
 	"plugin": ["typedoc-plugin-markdown"],
 	"readme": "none",
+	"modulesFileName": "index",
 	"useCodeBlocks": true,
 	"disableSources": true,
 	"textContentMappings": {
-		"title.indexPage": "API Reference"
+		"title.indexPage": "API"
 	},
+	"entryFileName": "index",
 	"outputFileStrategy": "members",
 	"excludeScopesInPaths": true
 }

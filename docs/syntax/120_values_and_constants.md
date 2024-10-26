@@ -9,7 +9,7 @@ title: Values and Constants
 As of now, data contracts in diagrams do not have typings.
 
 When exporting Typescript code, they are declared as `any`. However, FSM itself (it's `States` and `Actions`) is typed
-along with [Automata](../API-reference/automata/) instance.
+along with [Automata](../API/automata) instance.
 
 For other languages, Yantrix aims to provide compatibility with elementary types, existing in most of them:
 
@@ -19,7 +19,7 @@ For other languages, Yantrix aims to provide compatibility with elementary types
 -   **Lists (Tuples)**: Lists and Tuples are processed as similarly as possible for a given language. They also are
     immutable and can only be a read-only argument of the calling function
 -   **Objects(Dictionaries)**: implementation is highly language-dependent and aims to reproduce the behaviour of
-    Typescript [`Record`](../API-reference/automata/interfaces/IAutomata.html) implementation as closely as possible.
+    Typescript [`Record`](./automata/interfaces/IAutomata.html) implementation as closely as possible.
     For `Functions` implementation **Object** arguments should be defined as immutable and read-only.
 -   **Binary** &mdash; a special type that is used for conditional logic. It is essentially a **Number** but is interpreted
     as a boolean by the following rules:
@@ -88,7 +88,7 @@ subscribe/someEvent SomeAction ( payloadValue ) <= ( eventMetaValue )
 ## Default values
 
 Default values are assigned to vars when the requested property is absent in `Data Object` or equals to `Null` (an empty pointer). To assign a default value
-the `KEY_ITEM` is followed by `=` and a [`Constant`](constants.html) or [`Expression`](expressions.html). For instance:
+the `KEY_ITEM` is followed by `=` and a [`Constant`](#constant-declaration) or [`Expression`](130_expressions.html). For instance:
 
 ```
 #{anyValue, stringValue = 'foobar', numericValue = cos(div(%%pi,6))}

@@ -4,7 +4,7 @@ title: Javascript API
 
 # Javascript API
 
-When generating a JS/TS class, it has `@yantrix/automata` as dependency and implements [IAutomata](../API-Reference/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
+When generating a JS/TS class, it has `@yantrix/automata` as dependency and implements [IAutomata](../API/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
 
 In this section, all snippets are provided with the same diagram analyzed in [Introduction](../):
 
@@ -46,7 +46,7 @@ end note
 Yantrix codegen lets you specify a paremeter `className`, which whill result in the name of the generated Class. However, when using default imports, this name is lost, while it's could be a good unique identifier, when using a lot of `FSM`s. To keep it, every exported class has a static property `id` containing the same name
 
 ```shell
-$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language Javascript --className Slider
+$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language JavaScript --className Slider
 ```
 
 ```javascript
@@ -83,7 +83,7 @@ Slider.getState('ENABLED') === SliderInstance.getContext().state;
 
 ## Action Helpers
 
-To invoke an `Action`, a [dispatch](../API-Reference/automata/interfaces/IAutomata.html#dispatch) method should be used. Since it accepts numeric ids, they also have to be mapped.
+To invoke an `Action`, a [dispatch](../API/automata/interfaces/IAutomata.html#dispatch) method should be used. Since it accepts numeric ids, they also have to be mapped.
 
 ```javascript
 Slider.getAction('DISABLE');
@@ -136,7 +136,7 @@ Slider.getState(stateMap.ENABLED);
 In typescript versions [Dictionaries](#dictionaries) are available as types too:
 
 ```typescript
-import { actionMap, TActionLiteral, stateMap, TStateLiteral } from '../slider_controller.js';
+import { actionMap, stateMap, TActionLiteral, TStateLiteral } from '../slider_controller.js';
 
 type TActionLiteral = keyof typeof actionMap;
 type TStateLiteral = keyof typeof stateMap;
