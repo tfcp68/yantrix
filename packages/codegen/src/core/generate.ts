@@ -4,7 +4,7 @@ import { IGenerateOptions, TStateIncludingNotes } from '../types/common';
 import { CodegenCreator } from './Codegen';
 
 async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<string> {
-	const { states, transitions } = diagram;
+	const { states, transitions, actionChains } = diagram;
 	const parserInstance = new YantrixParser();
 
 	const statesIncludingNotes = states.map((state) => {
@@ -32,6 +32,7 @@ async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, op
 		{
 			states: statesIncludingNotes,
 			transitions,
+			actionChains,
 		},
 		constants,
 	);

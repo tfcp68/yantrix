@@ -9,13 +9,20 @@ export function fillDictionaries(diagram: TStateDiagramMatrixIncludeNotes, state
 
 	for (const state of diagram.states) {
 		for (const path of state.actionsPath.map(p => p.action)) {
-			const fullPath = path.join('');
-			const isUniqueAction = actionDictionary.getActionValues({ keys: [fullPath] })[0] === null;
-
+			// for (const action of path) {
+			// 	const test = actionDictionary.getActionValues({ keys: [action] });
+			// 	const isUniqueAction = actionDictionary.getActionValues({ keys: [action] })[0] === null;
+			// 	if (!isUniqueAction) {
+			// 		continue;
+			// 	}
+			// 	actionDictionary.addActions({ keys: [action] });
+			// }
+			const firstAction = path[0]!;
+			const isUniqueAction = actionDictionary.getActionValues({ keys: [firstAction] })[0] === null;
 			if (!isUniqueAction) {
 				continue;
 			}
-			actionDictionary.addActions({ keys: [path.join(' ')] });
+			actionDictionary.addActions({ keys: [firstAction] });
 		}
 	}
 }
