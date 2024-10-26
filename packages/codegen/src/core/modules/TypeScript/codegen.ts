@@ -12,10 +12,12 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
 		return `
 			${TypeScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
-			${TypeScriptCompiler.types.serializer.createTypes({ diagram: this.diagram })}
 			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode({
 					dictionaries: this.dictionaries,
 				})}
+			${TypeScriptCompiler.types.serializer.getContextReducerTypes({ diagram: this.diagram, className: options.className })}
+			${TypeScriptCompiler.types.serializer.getActionsTypes({ className: options.className })}
+			${TypeScriptCompiler.types.serializer.getStateTypes({ className: options.className })}
 			${TypeScriptCompiler.dictionaries.serializer.getActionsMap({
 					actionDictionary: this.actionDictionary,
 				})}

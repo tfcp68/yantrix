@@ -1,70 +1,54 @@
-import { isFunctionExpression, TContextItem, TContextReducer, TKeyItemReducer } from '@yantrix/yantrix-parser';
-import { TStateDiagramMatrixIncludeNotes, TStateIncludingNotes } from '../../../../../types/common';
+import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
+import { parseStateNotes } from './functions';
 
-function createTypes(props: {
+function getContextReducerTypes(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
+	className: string;
 }) {
 	const states = props.diagram.states;
-	const stateTypes = [];
+	const automataTypes = [];
+	const typeMap: Record<string, { context: any; reducer: any }> = {};
 	for (const state of states) {
-		const parsedTypes = parseStateNotes(state);
-		stateTypes.push(parsedTypes);
-	}
-	return stateTypes.join('\n');
-}
-
-function parseStateNotes(state: TStateIncludingNotes): string {
-	const notes = state.notes;
-	if (!notes) return '';
-
-	const contextTypes = [];
-	const reducerTypes = [];
-	for (const contextStatement of notes.contextDescription) {
-		const contextType = parseStatementContext(contextStatement);
-		contextTypes.push(contextType);
-
-		const reducerType = parseStatementReducer(contextStatement as TContextReducer);
-		reducerTypes.push(reducerType);
-	}
-	const mappedContextType = `type ${state.id}_Context = ${contextTypes.join(' | ')}\n`;
-	const mappedReducerType = `type ${state.id}_Reducer = ${reducerTypes.join(' | ')}\n`;
-
-	return `${mappedContextType}${mappedReducerType}`;
-}
-
-function parseStatementContext(contextStatement: TContextItem) {
-	const contextKeyItems = [];
-	const { context } = contextStatement;
-	for (const { keyItem } of context) {
-		contextKeyItems.push(`${keyItem.identifier}: any`);
-	}
-	const contextType = `{ ${contextKeyItems.join(', ')} }`;
-	return contextType;
-}
-
-function parseStatementReducer(contextStatement: TContextReducer) {
-	if (!contextStatement.reducer) return [];
-	const reducerKeyItems = [];
-	const { reducer } = contextStatement;
-	for (const { keyItem } of reducer) {
-		if (itemIsReducer(keyItem)) {
-			reducerKeyItems.push(`${keyItem.identifier}: any`);
-		} else if (isFunctionExpression(keyItem.expression)) {
-			reducerKeyItems.push(`${keyItem.expression.FunctionDeclaration.FunctionName}: TAutomataFunction`);
+		const parseResult = parseStateNotes(state);
+		if (parseResult !== null) {
+			const [stateId, parsedTypes] = parseResult;
+			typeMap[stateId] = parsedTypes;
+			automataTypes.push(`${parsedTypes.context}${parsedTypes.reducer}`);
 		}
 	}
-	const reducerType = `{ ${reducerKeyItems.join(', ')} }`;
-	return reducerType;
+	automataTypes.push(`
+		type TContext = {
+			${Object.keys(typeMap).map(state => `"${state}": ${state}_Context`).join(',\n')}
+		}
+	`);
+	automataTypes.push(`
+		export type TAutomataContext${props.className ?? ''}<T extends keyof TContext> = TContext[T];
+	`);
+	automataTypes.push(`
+		type TReducer = {
+			${Object.keys(typeMap).map(state => `"${state}": ${state}_Reducer`).join(',\n')}
+		}
+	`);
+	automataTypes.push(`
+		export type TAutomataReducer${props.className ?? ''}<T extends keyof TReducer> = TReducer[T];
+	`);
+	return automataTypes.join('\n');
 }
 
-function itemIsReducer(obj: any): obj is TKeyItemReducer {
-	return obj != null
-		&& Object.hasOwn(obj, 'identifier')
-		&& obj.identifier != null
-		&& Object.hasOwn(obj, 'expressionType')
-		&& obj.expressionType != null;
+function getActionsTypes(props: {
+	className: string;
+}) {
+	return `export type TActions${props.className} = keyof typeof actionsDictionary;`;
+}
+
+function getStateTypes(props: {
+	className: string;
+}) {
+	return `export type TStates${props.className} = keyof typeof statesDictionary;`;
 }
 
 export const typeSerializer = {
-	createTypes,
+	getContextReducerTypes,
+	getActionsTypes,
+	getStateTypes,
 } as const;
