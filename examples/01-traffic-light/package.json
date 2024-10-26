@@ -9,7 +9,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"preview": "vite preview",
-		"gen-automata": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
+		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.1.0",
