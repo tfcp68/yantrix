@@ -23,13 +23,21 @@ jobs:
       - name: Install dependencies
         uses: ./packages/scripts/actions/pnpmCache
 
-      - name: Build dependencies (PR)
+      - name: Build main packages (PR)
         if: ${{ github.event_name != 'push' }}
-        run: pnpm exec turbo run build --filter="...[origin/${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}]" --concurrency=4
+        run: pnpm exec turbo run build --filter="{./packages/*}...[origin/${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}]" --concurrency=4
 
-      - name: Build dependencies (Push)
+      - name: Build main packages (Push)
         if: ${{ github.event_name == 'push' }}
-        run: pnpm exec turbo run build --filter="...[HEAD^1]" --concurrency=4
+        run: pnpm exec turbo run build --filter="{./packages/*}...[HEAD^1]" --concurrency=4
+
+      - name: Build examples (PR)
+        if: ${{ github.event_name != 'push' }}
+        run: pnpm exec turbo run build --filter="{./examples/*}...[origin/${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || 'main' }}]" --concurrency=4
+
+      - name: Build examples (Push)
+        if: ${{ github.event_name == 'push' }}
+        run: pnpm exec turbo run build --filter="{./examples/*}...[HEAD^1]" --concurrency=4
 
       - name: Tests (PR)
         if: ${{ github.event_name != 'push' }}

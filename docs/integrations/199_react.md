@@ -4,7 +4,7 @@ title: React
 
 # Integrating with React
 
-Since React team advocates consistently for functional style, we also aim to provide functional API with [Hooks](https://react.dev/reference/react/hooks). However, Yantrix still exports [objective API](../API-Reference/automata/interfaces/IAutomata.html), so it has to be tuned in a way.
+Since React team advocates consistently for functional style, we also aim to provide functional API with [Hooks](https://react.dev/reference/react/hooks). However, Yantrix still exports [objective API](../API/automata/interfaces/IAutomata.html), so it has to be tuned in a way.
 
 ## Setup
 
@@ -111,9 +111,10 @@ const Toggler = ({ id: string }) => {
 
 	return (
 		<div
-			class='toggle'
-			onClick={clickHandler)
-			}></div>
+			class="toggle"
+			onClick={clickHandler}
+		>
+		</div>
 	);
 };
 
@@ -125,14 +126,14 @@ const Counter = ({ id: string }) => {
 
 	const { counter } = getContext();
 
-	return <div class='counter'>{counter}</div>;
+	return <div class="counter">{counter}</div>;
 };
 
 // The parent component creates a unique ID that makes both children Components use the same FSM
 const TrafficLight = () => {
 	const [id, setId] = useState(Math.random().toFixed(6));
 	return (
-		<div class='trafficLight'>
+		<div class="trafficLight">
 			<Toggler id={id} />
 			<Counter id={id} />
 		</div>
@@ -165,8 +166,9 @@ const Toggler = () => {
 			onClick={() =>
 				dispatch({
 					action: getAction('switch'),
-				})
-			}></div>
+				})}
+		>
+		</div>
 	);
 };
 ```
