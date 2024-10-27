@@ -17,14 +17,9 @@ export class %CLASSNAME% extends GenericAutomata {
             rootReducer: %REDUCER%,
             stateValidator: %STATE_VALIDATOR%,
             actionValidator: %ACTION_VALIDATOR%,
-            eventBus: %E_BUS%,
-            eventDictionary: %EVENT_DICTIONARY%,
             functionRegistry: %FUNCTION_REGISTRY%
         });
-
-        %EVENTS_GLOBAL_REGISTER%
-        %EVENTS_EMIT%
-        %EVENTS_SUBSCRIBE%
+        %EVENT_BUS_REGISTER%
     }
 
     isKeyOf = %IS_KEY_OF%;

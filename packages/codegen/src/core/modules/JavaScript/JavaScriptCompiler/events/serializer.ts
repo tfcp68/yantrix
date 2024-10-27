@@ -1,139 +1,82 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { ExpressionTypes, isEmitFull, isEmitWithMeta, isSubscribeWithMeta, isSubscribeWithPayload } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
-import { context } from '../context';
+import { getEventBusSubscribeCode, getEventEmitterHandlerCode, getEventListenerCode } from './functions';
 
 function getRegisterGlobalEventsCode(props: { eventDictionary: BasicEventDictionary }) {
 	if (Object.keys(props.eventDictionary.getDictionary()).length === 0) return '';
 	return `GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) });`;
 }
 
-function getEmittedEvents(props: {
+function getEventAdapterCode(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	stateDictionary: BasicStateDictionary;
+	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
+	expressions: TExpressionRecord;
+}) {
+	const lines: string[] = [];
+	lines.push('const eventAdapter = new AutomataEventAdapter()');
+	lines.push(getEventEmittersCode(props));
+	lines.push(getEventListenersCode(props));
+	return lines.join('\n');
+}
+
+function getEventEmittersCode(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
-	const lines: string[] = [];
-	for (const state of props.diagram.states) {
-		const stateId = props.stateDictionary.getStateValues({ keys: [state.id] })[0];
+	const { diagram, stateDictionary, eventDictionary, expressions } = props;
+	return diagram.states.map((state) => {
+		const stateId = stateDictionary.getStateValues({ keys: [state.id] })[0];
 		const emittedEvents = state.notes?.emit;
 		if (emittedEvents && emittedEvents.length > 0) {
-			lines.push(`
-                this.eventAdapter.addEventEmitter(${stateId}, ({ state, context }) => {
-                    const eventsToEmit = [
-                        ${emittedEvents
-								.map((e) => {
-									if (isEmitFull(e)) {
-										e.context = e.context.map(c => ({
-											keyItem: {
-												...c.keyItem,
-												expressionType: ExpressionTypes.Context,
-											},
-										}));
-									}
-									return `
-                                {
-                                    event: ${props.eventDictionary.getEventValues({ keys: [e.identifier] })[0]},
-                                    meta: {
-                                        ${isEmitFull(e)
-												? context.serializer.getBoundValues({
-													expressions: props.expressions,
-													arr: context.serializer.mapReducerItems({ reducer: e.context, sourcePath: 'context', expressions: props.expressions }),
-													context: e.meta,
-												})
-												: (isEmitWithMeta(e)
-														? context.serializer.getBoundValues({
-															expressions: props.expressions,
-															arr: context.serializer.mapReducerItems({ reducer: e.meta, sourcePath: 'context', expressions: props.expressions }),
-															context: e.meta,
-														})
-														: '')
-										}
-                                    }
-                                }
-                            `;
-								})
-								.join(',\n')}
-                    ];
-                    
-                    this.eventBus.dispatch(...eventsToEmit);
-
-                    return eventsToEmit[0];
-                });
-            `);
+			return `
+                eventAdapter.addEventEmitter(
+                    ${stateId}, 
+                    ${getEventEmitterHandlerCode({ events: emittedEvents, eventDictionary, expressions })}
+                );
+            `;
+		} else {
+			return '';
 		}
-	}
-	if (lines.length > 0) lines.unshift('// add event emitters');
-	return lines.join('\n');
+	}).join('\n');
 }
 
-function getSubscribedEvents(props: {
+function getEventListenersCode(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	actionDictionary: BasicActionDictionary;
 	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
-	const eventSubscribes: string[] = [];
-	const eventBusSubscribes: string[] = [];
-	for (const state of props.diagram.states) {
-		const eventsToSubscribe = state.notes?.subscribe;
-		if (eventsToSubscribe && eventsToSubscribe.length > 0) {
-			eventsToSubscribe.forEach((e) => {
-				const eventId = props.eventDictionary.getEventValues({ keys: [e.identifier] })[0];
-				const actionId = props.actionDictionary.getActionValues({ keys: [e.actionName] })[0];
+	const { diagram, actionDictionary, eventDictionary, expressions } = props;
+	return diagram.states.map((state) => {
+		return state.notes?.subscribe?.map((event) => {
+			const eventId = eventDictionary.getEventValues({ keys: [event.identifier] })[0];
+			const actionId = actionDictionary.getActionValues({ keys: [event.actionName] })[0];
+			return getEventListenerCode({ event, eventId, actionId, expressions });
+		}) ?? '';
+	}).join('\n');
+}
 
-				eventSubscribes.push(`
-                    this.eventAdapter.addEventListener(${eventId}, ({ event, meta }) => {
-
-                        return {
-                            action: ${actionId},
-                            payload: {
-                                ${isSubscribeWithMeta(e)
-										? context.serializer.getBoundValues({
-											expressions: props.expressions,
-											arr: context.serializer.mapReducerItems({ reducer: e.meta, sourcePath: 'meta', expressions: props.expressions }),
-											context: e.payload,
-										})
-										: (
-												isSubscribeWithPayload(e)
-													? context.serializer.getBoundValues({
-														expressions: props.expressions,
-														arr: context.serializer.mapReducerItems({ reducer: e.payload, sourcePath: 'meta', expressions: props.expressions }),
-														context: e.payload,
-													})
-													: ''
-											)
-								}
-                            }
-                        }
-                    })
-                `);
-
-				eventBusSubscribes.push(`
-                    this.eventBus.subscribe(${eventId}, ({ event, meta }) => {
-                        const newActions = this.eventAdapter.handleEvent({ event, meta });
-                        for(const action of newActions) {
-                            this.dispatch(action);
-                        }
-                        return {
-                            event,
-                            meta,
-                            task_id: 'event_id${eventId}',
-                            result: this.eventBus.getEventStack()
-                        }
-                    })
-                `);
-			});
-		}
-	}
-	const result = eventSubscribes.concat(eventBusSubscribes);
-	if (result.length > 0) result.unshift('// add event listeners');
-	return result.join('\n');
+function getEventBusSubscribesCode(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	eventDictionary: BasicEventDictionary;
+}) {
+	const { diagram, eventDictionary } = props;
+	return diagram.states.map((state) => {
+		return state.notes?.subscribe?.map((event) => {
+			const eventId = eventDictionary.getEventValues({ keys: [event.identifier] })[0];
+			return getEventBusSubscribeCode({ eventId });
+		}) ?? '';
+	}).join('\n');
 }
 
 export const eventsSerializer = {
 	getRegisterGlobalEventsCode,
-	getEmittedEvents,
-	getSubscribedEvents,
+	getEventAdapterCode,
+	getEventEmittersCode,
+	getEventListenersCode,
+	getEventBusSubscribesCode,
 };

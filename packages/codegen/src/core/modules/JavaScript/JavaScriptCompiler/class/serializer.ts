@@ -15,7 +15,7 @@ export function getClassTemplate(props: {
 	expressions: TExpressionRecord;
 	classSerializer: typeof classSerializer;
 }) {
-	const { diagram, stateDictionary, actionDictionary, eventDictionary, expressions } = props;
+	const { diagram } = props;
 
 	const initialState = state.functions.getInitialState({
 		diagram,
@@ -56,10 +56,7 @@ export function getClassTemplate(props: {
 			'%ACTION_VALIDATOR%': props.classSerializer.getActionValidator().toString(),
 			'%FUNCTION_REGISTRY%': 'functionDictionary',
 			'%EVENT_DICTIONARY%': 'GlobalEventDictionary',
-			'%E_BUS%': 'EventBus',
-			'%EVENTS_GLOBAL_REGISTER%': events.serializer.getRegisterGlobalEventsCode({ eventDictionary }),
-			'%EVENTS_EMIT%': events.serializer.getEmittedEvents({ diagram, stateDictionary, eventDictionary, expressions }),
-			'%EVENTS_SUBSCRIBE%': events.serializer.getSubscribedEvents({ diagram, actionDictionary, eventDictionary, expressions }),
+			'%EVENT_BUS_REGISTER%': events.serializer.getEventBusSubscribesCode({ diagram, eventDictionary: props.eventDictionary }),
 			'%IS_KEY_OF%': props.classSerializer.getIsKeyOf().toString(),
 		},
 	);
