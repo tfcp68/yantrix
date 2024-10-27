@@ -13,7 +13,7 @@ import {
 	TAutomataStateContext,
 } from './types/index.js';
 
-import { IAutomata, IAutomataEventAdapter, IAutomataEventBus, IAutomataFunctionRegistry, IEventDictionary } from './types/interfaces.js';
+import { IAutomata, IAutomataEventAdapter, IAutomataFunctionRegistry } from './types/interfaces.js';
 
 export function createAutomata<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
@@ -34,11 +34,6 @@ export function createAutomata<
 				EventMetaType
 			> | null = null;
 
-			public eventBus: IAutomataEventBus<
-				EventType,
-				Record<EventType, any>
-			> | null = null;
-
 			#state: StateType | null = null;
 			#context: ContextType[StateType] | null = null;
 			#actionQueue: TAutomataQueue<ActionType, PayloadType> = [];
@@ -46,7 +41,6 @@ export function createAutomata<
 			#paused = false;
 			#rootReducer: TAutomataReducer<StateType, ActionType, ContextType, PayloadType> | null = null;
 			#functionRegistry: IAutomataFunctionRegistry | null = null;
-			#eventDictionary: IEventDictionary<EventType, Record<EventType, any>> | null = null;
 
 			constructor(
 				eventAdapter: IAutomataEventAdapter<
@@ -135,8 +129,6 @@ export function createAutomata<
 					stateValidator,
 					actionValidator,
 					eventValidator,
-					eventDictionary,
-					eventBus,
 					functionRegistry,
 				} = params;
 				if (rootReducer == null)
@@ -150,16 +142,6 @@ export function createAutomata<
 					this.#functionRegistry = null;
 				} else {
 					this.#functionRegistry = functionRegistry;
-				}
-				if (eventDictionary == null) {
-					this.#eventDictionary = null;
-				} else {
-					this.#eventDictionary = eventDictionary;
-				}
-				if (eventBus == null) {
-					this.eventBus = null;
-				} else {
-					this.eventBus = eventBus;
 				}
 				this.#actionQueue = [];
 				this.#enabled = enabled;
@@ -198,7 +180,6 @@ export function createAutomata<
 					this.clearActionQueue();
 					this.setContext(reducedValue);
 
-					// trigger event emitters after automata context has been updated
 					if (this.eventAdapter) {
 						this.eventAdapter.handleTransition(this.getContext());
 					}
@@ -314,24 +295,6 @@ export function createAutomata<
 
 			setFunctionRegistry: (registry: IAutomataFunctionRegistry | null) => this = (registry = null) => {
 				this.#functionRegistry = registry;
-				return this;
-			};
-
-			getEventDictionary(): IEventDictionary<EventType, Record<EventType, any>> | null {
-				return this.#eventDictionary;
-			}
-
-			setEventDictionary: (dictionary: IEventDictionary<EventType, Record<EventType, any>> | null) => this = (dictionary = null) => {
-				this.#eventDictionary = dictionary;
-				return this;
-			};
-
-			getEventBus(): IAutomataEventBus<EventType, Record<EventType, any>> | null {
-				return this.eventBus;
-			}
-
-			setEventBus: (bus: IAutomataEventBus<EventType, Record<EventType, any>> | null) => this = (bus = null) => {
-				this.eventBus = bus;
 				return this;
 			};
 

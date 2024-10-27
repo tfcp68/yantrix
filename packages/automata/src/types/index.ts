@@ -1,4 +1,4 @@
-import { IAutomataEventBus, IAutomataFunctionRegistry, IEventDictionary } from './interfaces';
+import { IAutomataFunctionRegistry } from './interfaces';
 
 export type TAutomataBaseStateType = number;
 export type TAutomataBaseActionType = number;
@@ -116,8 +116,6 @@ export type TAutomataParams<
 	actionValidator?: TValidator<ActionType>;
 	eventValidator?: TValidator<EventType>;
 	eventMetaValidator?: TValidator<EventMetaType>;
-	eventDictionary?: IEventDictionary<EventType, Record<EventType, any>>;
-	eventBus?: IAutomataEventBus<EventType, Record<EventType, any>>;
 	functionRegistry?: IAutomataFunctionRegistry;
 	enabled?: boolean;
 	paused?: boolean;
