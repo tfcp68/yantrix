@@ -1,3 +1,4 @@
+import { ModuleNames } from '@yantrix/codegen';
 import { randomArray, randomDecimal, randomInteger, randomString } from '@yantrix/utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { constant, generateAssignCase, getReferenceAssign } from './fixtures/defaultAssign';
@@ -100,7 +101,7 @@ describe('default assign', async () => {
 			const input = note.input;
 
 			await generateAndSave(
-				{ input, automataName: 'Test', lang: 'JavaScript', constants: JSON.stringify(constant) },
+				{ input, automataName: 'Test', lang: ModuleNames.JavaScript, constants: JSON.stringify(constant) },
 				note.name,
 			);
 		}
@@ -152,7 +153,7 @@ describe('default assign', async () => {
 		const note = `#{a} <= add($a=10, $b=5)`;
 		const input = getTemplateInput(note);
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'functionDefaultAssign');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'functionDefaultAssign');
 
 		const res = await import(`./fixtures/generated/functionDefaultAssign_generated.js`);
 
@@ -174,7 +175,7 @@ describe('reducers', () => {
 
 		const input = getTemplate(`#{${current}}`, `#{${previousContextString}}`);
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'shortcutContext');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'shortcutContext');
 		const res = await import(`./fixtures/generated/shortcutContext_generated.js`);
 
 		const automata = new res.Test();
@@ -193,7 +194,7 @@ describe('reducers', () => {
 
 		const input = getTemplate(`#{${left}}`);
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'shortcutContextWithNull');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'shortcutContextWithNull');
 		const res = await import(`./fixtures/generated/shortcutContextWithNull_generated.js`);
 
 		const automata = new res.Test();
@@ -214,7 +215,7 @@ describe('reducers', () => {
 
 		const input = getTemplate(`#{${left}} <= ${right}`, `#{${previousContextString}}`);
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'defaultContext');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'defaultContext');
 		const res = await import(`./fixtures/generated/defaultContext_generated.js`);
 
 		const automata = new res.Test();
@@ -234,7 +235,7 @@ describe('reducers', () => {
 		const right = objectKeysToString(output, '#');
 		const input = getTemplate(`#{${left}} <= ${right}`);
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'nullContextFull');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'nullContextFull');
 		const res = await import(`./fixtures/generated/nullContextFull_generated.js`);
 
 		const automata = new res.Test();
@@ -257,7 +258,7 @@ describe('reducers', () => {
 
 		const input = getTemplate(`#{${left}} <= ${right}`);
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'payloadBase');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'payloadBase');
 		const res = await import(`./fixtures/generated/payloadBase_generated.js`);
 
 		const automata = new res.Test();
@@ -276,7 +277,7 @@ describe('reducers', () => {
 		const input = `#{${objectKeysToString(output)}} <= $payload1, $payload2`;
 
 		await generateAndSave(
-			{ input: getTemplate(input), automataName: 'Test', lang: 'JavaScript' },
+			{ input: getTemplate(input), automataName: 'Test', lang: ModuleNames.JavaScript },
 			'payloadWithEmptyObject',
 		);
 		const res = await import(`./fixtures/generated/payloadWithEmptyObject_generated.js`);
@@ -298,7 +299,7 @@ describe('reducers', () => {
 		const input = `#{a,b,c,d} <= ${output.a}, "${output.b}", ${output.c}, []`;
 
 		await generateAndSave(
-			{ input: getTemplate(input), automataName: 'Test', lang: 'JavaScript' },
+			{ input: getTemplate(input), automataName: 'Test', lang: ModuleNames.JavaScript },
 			'expressionReducer',
 		);
 		const res = await import(`./fixtures/generated/expressionReducer_generated.js`);
@@ -322,7 +323,7 @@ describe('reducers', () => {
 			${input}
 		end note`;
 
-		await generateAndSave({ input: test, automataName: 'Test', lang: 'JavaScript' }, 'functionCall');
+		await generateAndSave({ input: test, automataName: 'Test', lang: ModuleNames.JavaScript }, 'functionCall');
 		const res = await import(`./fixtures/generated/functionCall_generated.js`);
 
 		const automata = new res.Test();
@@ -352,7 +353,7 @@ describe('constants reference', () => {
 			{
 				input: getTemplateInput(input),
 				automataName: 'Test',
-				lang: 'JavaScript',
+				lang: ModuleNames.JavaScript,
 				constants: JSON.stringify(constants),
 			},
 			'constants',
@@ -378,7 +379,7 @@ describe('constants reference', () => {
 					{
 						input: getTemplateInput(`#{a,b,c} <= %%i1, %%i2, %%i3`),
 						automataName: 'Test',
-						lang: 'JavaScript',
+						lang: ModuleNames.JavaScript,
 						constants: JSON.stringify({ [key]: value }),
 					},
 					'constants',
@@ -395,7 +396,7 @@ describe('constants reference', () => {
 				{
 					input: getTemplateInput(input),
 					automataName: 'Test',
-					lang: 'JavaScript',
+					lang: ModuleNames.JavaScript,
 					constants: JSON.stringify(constants),
 				},
 				'constants',
@@ -411,7 +412,7 @@ describe('constants reference', () => {
 				{
 					input: getTemplateInput(input),
 					automataName: 'Test',
-					lang: 'JavaScript',
+					lang: ModuleNames.JavaScript,
 				},
 				'constants',
 			);
@@ -429,7 +430,7 @@ describe('initial', () => {
 			+init
 		end note;
 		`;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'qwerty');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'qwerty');
 		const res = await import(`./fixtures/generated/qwerty_generated.js`);
 
 		const automata = new res.Test();
@@ -442,7 +443,7 @@ describe('initial', () => {
 		A --> F: t
 		`;
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'defaultStartState');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'defaultStartState');
 		const res = await import(`./fixtures/generated/defaultStartState_generated.js`);
 
 		const automata = new res.Test();
@@ -473,7 +474,7 @@ describe('default context', () => {
 
 		`;
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'tata');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'tata');
 		const res = await import(`./fixtures/generated/tata_generated.js`);
 
 		const automata = new res.Test();
@@ -489,7 +490,7 @@ describe('default context', () => {
 					[*] --> C: toC
 					`,
 				automataName: 'Test',
-				lang: 'JavaScript',
+				lang: ModuleNames.JavaScript,
 			},
 			'defaultContextEmptyObject',
 		);
@@ -508,7 +509,7 @@ describe('functions', () => {
 			{
 				input: getTemplateInput(input),
 				automataName: 'Test',
-				lang: 'JavaScript',
+				lang: ModuleNames.JavaScript,
 			},
 			'nestedCallFunction',
 		);
@@ -533,7 +534,7 @@ describe('functions', () => {
 			{
 				input,
 				automataName: 'Test',
-				lang: 'JavaScript',
+				lang: ModuleNames.JavaScript,
 				constants: JSON.stringify(constants),
 			},
 			'mixedArgumentTypes',
@@ -556,7 +557,7 @@ describe('functions', () => {
       #{result} <= round(mult(add($a, $b), div($c, $d)))
     end note`;
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'chainedFunctionCalls');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'chainedFunctionCalls');
 		const res = await import(`./fixtures/generated/chainedFunctionCalls_generated.js`);
 
 		const automata = new res.Test();
@@ -577,7 +578,7 @@ describe('functions', () => {
       #{maxValue} <= max($numbers)
     end note`;
 
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'arrayOperations');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'arrayOperations');
 		const res = await import(`./fixtures/generated/arrayOperations_generated.js`);
 
 		const automata = new res.Test();
@@ -606,7 +607,7 @@ describe('user defined functions', () => {
 		//   #{result} <= f()
 		// end note
 		// `;
-	// 	await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'constantValueFunction');
+	// 	await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'constantValueFunction');
 	// 	const res = await import(`./fixtures/generated/constantValueFunction_generated.js`);
 
 		// 	const automata = new res.Test();
@@ -639,7 +640,7 @@ describe('user defined functions', () => {
 		`;
 
 		await expect(
-			generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'cyclicDependencies'),
+			generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'cyclicDependencies'),
 		).rejects.toThrowError();
 	});
 	it(`the order in which the function is defined has no effect
@@ -658,7 +659,7 @@ describe('user defined functions', () => {
 			#{a=lol2()}
 		end note
 		`;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'functionOrder');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'functionOrder');
 		const res = await import(`./fixtures/generated/functionOrder_generated.js`);
 
 		const automata = new res.Test();
@@ -678,7 +679,7 @@ describe('user defined functions', () => {
 			#{a=lol3()}
 		end note
 		`;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'withoutArguments');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'withoutArguments');
 		const res = await import(`./fixtures/generated/withoutArguments_generated.js`);
 
 		const automata = new res.Test();
@@ -698,7 +699,7 @@ describe('user defined functions', () => {
 			#{a=lol4(1,2)}
 		end note
 		`;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'withArguments');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'withArguments');
 		const res = await import(`./fixtures/generated/withArguments_generated.js`);
 
 		const automata = new res.Test();
@@ -718,7 +719,7 @@ describe('user defined functions', () => {
 			#{a=lol5(1,2)}
 		end note
 		`;
-		await generateAndSave({ input, automataName: 'Test', lang: 'JavaScript' }, 'withArgumentsAndDefaultValue');
+		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'withArgumentsAndDefaultValue');
 		const res = await import(`./fixtures/generated/withArgumentsAndDefaultValue_generated.js`);
 
 		const automata = new res.Test();
@@ -749,7 +750,7 @@ describe('user defined functions', () => {
 			{
 				input,
 				automataName: 'Test',
-				lang: 'JavaScript',
+				lang: ModuleNames.JavaScript,
 				constants: JSON.stringify(constants),
 			},
 			'complexFunctionWithConstants',
@@ -792,7 +793,7 @@ describe('user defined functions', () => {
 			{
 				input,
 				automataName: 'Test',
-				lang: 'JavaScript',
+				lang: ModuleNames.JavaScript,
 				constants: JSON.stringify(constants),
 			},
 			'functionWithPreviousContextAndPayload',

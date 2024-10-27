@@ -2,6 +2,7 @@ import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
 import { IGenerateOptions, TStateIncludingNotes } from '../types/common';
 import { CodegenCreator } from './Codegen';
+import { ModuleNames } from './modules';
 
 async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<string> {
 	const { states, transitions, actionChains } = diagram;
@@ -38,7 +39,7 @@ async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, op
 	);
 
 	const codegen = creator.createCodegen({
-		language: options.outLang ?? 'TypeScript',
+		language: options.outLang ?? ModuleNames.TypeScript,
 		constants,
 	});
 

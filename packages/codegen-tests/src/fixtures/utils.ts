@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAutomataFromStateDiagram, TOutLang } from '@yantrix/codegen';
+import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import fe from 'fs-extra';
 
@@ -9,10 +9,10 @@ const dirname = path.dirname(filename);
 
 const pathSave = path.resolve(dirname);
 const langToExt: Record<TOutLang, string> = {
-	JavaScript: 'js',
-	TypeScript: 'ts',
-	Java: 'java',
-	Python: 'py',
+	[ModuleNames.JavaScript]: 'js',
+	[ModuleNames.TypeScript]: 'ts',
+	[ModuleNames.Java]: 'java',
+	[ModuleNames.Python]: 'py',
 };
 
 type TGenerateAutomataParams = {
