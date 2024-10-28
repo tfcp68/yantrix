@@ -97,7 +97,7 @@ const store = configureStore({
 ### API
 
 ```typescript
-declare type CreateFSMSliceOptions<StateType, ContextType = object> = {
+declare type TCreateFSMSliceOptions<StateType, ContextType = object> = {
 	name: string;
 	fsm: ClassConstructor<IAutomata>;
 	contextToRedux?: (context: ContextType) => StateType;
@@ -105,7 +105,7 @@ declare type CreateFSMSliceOptions<StateType, ContextType = object> = {
 	selectors?: Record<string, (state: StateType) => any>;
 };
 
-declare function createFSMSlice(options: CreateFSMSliceOptions): ReturnType<createSlice>;
+declare function createFSMSlice(options: TCreateFSMSliceOptions): ReturnType<createSlice>;
 ```
 
 ### State
@@ -211,20 +211,21 @@ import TrafficLight from '../generated/traffic-light.ts';
 
 export const store = configureStore({
 	reducer: combineReducers({
-		/*... */
+		/* ... */
 	}),
-	middleware: (getDefaultMiddleware) =>
+	middleware: getDefaultMiddleware =>
 		getDefaultMiddleware().concat(
 			createMiddleware(
 				TrafficLight,
-				({ type, payload }) => (type !== 'yantrix/trafficLight') ?
-					null :
-					TrafficLight.createAction('Switch'),
+				({ type, payload }) => (type !== 'yantrix/trafficLight')
+					? null
+					: TrafficLight.createAction('Switch'),
 				({ state, context }) => ({
 					type: 'changeTrafficLight', // assume this action is handled elsewhere in Redux
 					payload: { color: state, counter: context.counter }
 				})
 			)
+		)
 });
 ```
 

@@ -1,7 +1,7 @@
 import path, { dirname } from 'node:path';
-import { generateAutomataFromStateDiagram, Modules } from '@yantrix/codegen';
+import { generateAutomataFromStateDiagram, ModuleNames, Modules } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import { Command, Option } from 'commander';
+import { Command } from 'commander';
 import fe from 'fs-extra';
 import { isString } from 'lodash-es';
 import pc from 'picocolors';
@@ -34,7 +34,7 @@ program
 	.command('codegen')
 	.description('Generate Automata from given state diagram')
 	.argument('[diagramFile]', 'Diagram file to be parsed', '')
-	.addOption(new Option('-l, --language <lang>', 'Output file language').choices(Object.keys(Modules)))
+	.option('-l, --language <lang>', 'Target language')
 	.option('-o, --outfile <path>', 'Output file path')
 	.option('-c, --className <className>', 'Generating Automata class name')
 	.option('-e, --eval <diagramText>', 'Evaluate the given state diagram')
@@ -84,8 +84,9 @@ program
 		}
 
 		const allowedLangs = Object.keys(Modules);
+		options.language = <keyof typeof Modules>options.language.toLowerCase();
 		if (!allowedLangs.includes(options.language)) {
-			const allowedMsg = `Allowed languages: ${allowedLangs.join(', ')}`;
+			const allowedMsg = `Allowed languages: ${Object.keys(ModuleNames).join(', ')}`;
 			error(`Invalid output language specified. ${allowedMsg}`);
 			process.exit(1);
 		}

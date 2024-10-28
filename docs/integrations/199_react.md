@@ -111,9 +111,10 @@ const Toggler = ({ id: string }) => {
 
 	return (
 		<div
-			class='toggle'
-			onClick={clickHandler)
-			}></div>
+			class="toggle"
+			onClick={clickHandler}
+		>
+		</div>
 	);
 };
 
@@ -125,14 +126,14 @@ const Counter = ({ id: string }) => {
 
 	const { counter } = getContext();
 
-	return <div class='counter'>{counter}</div>;
+	return <div class="counter">{counter}</div>;
 };
 
 // The parent component creates a unique ID that makes both children Components use the same FSM
 const TrafficLight = () => {
 	const [id, setId] = useState(Math.random().toFixed(6));
 	return (
-		<div class='trafficLight'>
+		<div class="trafficLight">
 			<Toggler id={id} />
 			<Counter id={id} />
 		</div>

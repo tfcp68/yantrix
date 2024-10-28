@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ModuleNames } from '@yantrix/codegen';
 import { describe, expect, it } from 'vitest';
 import { generateAndSave } from './fixtures/utils.js';
 
@@ -26,7 +27,7 @@ const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixture
 
 describe('codegen output', () => {
 	describe('gamePhaseAutomata', async () => {
-		await generateAndSave({ input, automataName: 'GamePhaseAutomata', lang: 'JavaScript' }, 'GamePhaseAutomata');
+		await generateAndSave({ input, automataName: 'GamePhaseAutomata', lang: ModuleNames.JavaScript }, 'GamePhaseAutomata');
 		const { GamePhaseAutomata, actionsDictionary, statesDictionary } = await import(
 			getGeneratedFixturePath('GamePhaseAutomata_generated.js')
 		);

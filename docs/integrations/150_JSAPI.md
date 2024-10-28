@@ -51,9 +51,12 @@ $ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language Jav
 
 ```javascript
 import { Slider } from '../slider_controller.js';
-// or
+```
+or
+```javascript
 import Slider from '../slider_controller.js';
-
+```
+```javascript
 Slider.id === 'Slider'; // true
 ```
 
