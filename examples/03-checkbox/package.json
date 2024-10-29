@@ -1,0 +1,44 @@
+{
+	"name": "03-checkbox-react",
+	"type": "module",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"lint": "eslint .",
+		"format": "eslint --fix --format=pretty .",
+		"preview": "vite preview",
+		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
+	},
+	"dependencies": {
+		"@radix-ui/react-slot": "^1.1.0",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/functions": "workspace:^",
+		"@yantrix/react": "workspace:^",
+		"@yantrix/utils": "workspace:^",
+		"class-variance-authority": "^0.7.0",
+		"clsx": "^2.1.1",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tailwind-merge": "^2.5.2",
+		"tailwindcss-animate": "^1.0.7"
+	},
+	"devDependencies": {
+		"@antfu/eslint-config": "^3.7.3",
+		"@types/node": "^22.7.3",
+		"@types/react": "^18.3.9",
+		"@types/react-dom": "^18.3.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"autoprefixer": "^10.4.20",
+		"eslint": "^9.11.1",
+		"globals": "^15.9.0",
+		"postcss": "^8.4.47",
+		"tailwindcss": "^3.4.13",
+		"typescript": "^5.6.2",
+		"vite": "^5.4.8",
+		"vite-plugin-node-polyfills": "^0.22.0"
+	}
+}
