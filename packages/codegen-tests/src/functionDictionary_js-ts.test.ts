@@ -1,4 +1,5 @@
 import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';
+import { ModuleNames } from '@yantrix/codegen';
 import { builtInFunctions } from '@yantrix/functions';
 import { randomInteger, randomString } from '@yantrix/utils';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
@@ -32,7 +33,7 @@ const createNameFromTemplate = (str: string) =>
 	str.replaceAll('%s', randomString()).replaceAll('%d', randomInteger(0, 9).toString());
 
 describe('jS/TS Function Dictionary', async () => {
-	await generateAndSave({ input, automataName: 'FunctionDictionaryTest', lang: 'JavaScript' }, 'functions');
+	await generateAndSave({ input, automataName: 'FunctionDictionaryTest', lang: ModuleNames.JavaScript }, 'functions');
 
 	const res = await import(`./fixtures/generated/functions_generated.js`);
 

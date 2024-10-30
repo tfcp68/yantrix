@@ -4,10 +4,10 @@ import { PythonCodegen } from './Python.js';
 import { TypeScriptCodegen } from './TypeScript';
 
 export const ModuleNames = {
-	JavaScript: 'JavaScript',
-	TypeScript: 'TypeScript',
-	Python: 'Python',
-	Java: 'Java',
+	JavaScript: 'javascript',
+	TypeScript: 'typescript',
+	Python: 'python',
+	Java: 'java',
 } as const;
 
 export const Modules = {

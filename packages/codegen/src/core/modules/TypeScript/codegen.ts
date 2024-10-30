@@ -18,6 +18,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			${TypeScriptCompiler.dictionaries.serializer.getActionsMap({
 					actionDictionary: this.actionDictionary,
 				})}
+			export type TActions${options.className} = keyof typeof actionsMap;
 			${TypeScriptCompiler.dictionaries.serializer.getStatesMap({
 					stateDictionary: this.stateDictionary,
 				})}
