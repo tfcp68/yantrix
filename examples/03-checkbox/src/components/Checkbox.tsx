@@ -16,19 +16,17 @@ export function Checkbox() {
 		dispatchAutomata(TLA.createAction('TOGGLE', { id }));
 	};
 
-	const isChecked = (id) => {
-		return state[id] === TLA.getState('CHECKED');
-	};
+	const isChecked = id => TLA.getState(state, 'CHECKED') && state[id] === true;
 
 	return (
 		<div className="flex flex-col items-center space-y-3">
 			{checkboxesData.map(checkbox => (
 				<div key={checkbox.id} className="relative">
 					<Card className="w-38 border-none p-3 space-y-3">
-						<label className="flex items-center space-x-2 text-purple-300">
+						<label className="flex items-center space-x-2 text-white">
 							<input
 								type="checkbox"
-								className="h-5 w-5 text-purple-400 rounded"
+								className="h-5 w-5 rounded"
 								checked={isChecked(checkbox.id)}
 								onChange={() => toggleCheckbox(checkbox.id)}
 							/>
