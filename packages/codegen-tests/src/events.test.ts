@@ -94,24 +94,6 @@ describe('automata Events', () => {
 	});
 
 	describe('event interactions', () => {
-		// it('events can be emitted from automata during action dispatch', async () => {
-		// 	await generateAndSave({ input: templates.basicEmit, automataName: 'BasicEmitAutomata', lang: ModuleNames.JavaScript}, `event_basicEmit`);
-		// 	const { BasicEmitAutomata, actionsDictionary } = await import(
-		// 		getGeneratedFixturePath('event_basicEmit_generated.js')
-		// 	);
-
-		// 	const automataEmitter = new BasicEmitAutomata();
-
-		// 	const spy = vi.spyOn(automataEmitter.eventBus, 'dispatch');
-
-		// 	automataEmitter.dispatch({
-		// 		action: actionsDictionary.MOVE,
-		// 		payload: {},
-		// 	});
-
-		// 	expect(spy).toHaveBeenCalled();
-		// });
-
 		it('events from automatas can be listened to by subscriber automata', async () => {
 			await generateAndSave({ input: templates.selfSubscribeAndEmit, automataName: 'SelfAutomata', lang: ModuleNames.JavaScript }, `event_selfSubscribeEmit`);
 			const { SelfAutomata, actionsDictionary } = await import(

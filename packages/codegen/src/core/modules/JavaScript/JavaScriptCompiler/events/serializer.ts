@@ -2,11 +2,6 @@ import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } fro
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { getEventBusSubscribeCode, getEventEmitterHandlerCode, getEventListenerCode } from './functions';
 
-function getRegisterGlobalEventsCode(props: { eventDictionary: BasicEventDictionary }) {
-	if (Object.keys(props.eventDictionary.getDictionary()).length === 0) return '';
-	return `GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) });`;
-}
-
 function getEventAdapterCode(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
@@ -74,7 +69,6 @@ function getEventBusSubscribesCode(props: {
 }
 
 export const eventsSerializer = {
-	getRegisterGlobalEventsCode,
 	getEventAdapterCode,
 	getEventEmittersCode,
 	getEventListenersCode,

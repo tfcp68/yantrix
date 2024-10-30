@@ -81,9 +81,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode({
 					dictionaries: this.dictionaries,
 				})}
-			${JavaScriptCompiler.events.serializer.getRegisterGlobalEventsCode({
-					eventDictionary: this.eventDictionary,
-				})}
 			${JavaScriptCompiler.events.serializer.getEventAdapterCode({
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,

@@ -98,3 +98,4 @@ export class BasicEventDictionary
 }
 
 export const EventDictionary = new BasicEventDictionary();
+export default BasicEventDictionary;
