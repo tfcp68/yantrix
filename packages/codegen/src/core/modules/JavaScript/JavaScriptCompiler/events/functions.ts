@@ -3,7 +3,7 @@ import { ExpressionTypes, isEmitFull, isEmitWithMeta, isSubscribeWithMeta, isSub
 import { TExpressionRecord } from '../../../../../types/common';
 import { context } from '../context';
 
-export function getEventEmitterHandlerCode(props: {
+export function getEventEmitterHandler(props: {
 	events: TEventEmit[];
 	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
@@ -20,36 +20,7 @@ export function getEventEmitterHandlerCode(props: {
 	}`;
 }
 
-export function getEventListenerCode(props: {
-	event: TEventSubscribe;
-	eventId: number | null | undefined;
-	actionId: number | null | undefined;
-	expressions: TExpressionRecord;
-}) {
-	const { event, eventId, actionId, expressions } = props;
-	return `
-	eventAdapter.addEventListener(${eventId}, ${getEventListenerHandlerCode({ event, actionId, expressions })})
-	`;
-}
-
-export function getEventBusSubscribeCode(props: {
-	eventId: number | null | undefined;
-}) {
-	return `EventBus.subscribe(${props.eventId}, ({ event, meta }) => {
-		const newActions = this.eventAdapter?.handleEvent({ event, meta }) ?? [];
-		for(const action of newActions) {
-			this.dispatch(action);
-		}
-		return {
-			event,
-			meta,
-			task_id: 'event_id${props.eventId}',
-			result: EventBus.getEventStack()
-		}
-	})`;
-}
-
-function getEventListenerHandlerCode(props: {
+export function getEventListenerHandler(props: {
 	event: TEventSubscribe;
 	actionId: number | null | undefined;
 	expressions: TExpressionRecord;
@@ -60,7 +31,7 @@ function getEventListenerHandlerCode(props: {
 		return {
 			action: ${actionId},
 			payload: {
-				${getActionPayloadCode({ event, expressions })}
+				${getActionPayload({ event, expressions })}
 			}
 		}
 	}`;
@@ -75,17 +46,15 @@ function getEventCode(e: TEventEmit, eventDictionary: BasicEventDictionary, expr
 			},
 		}));
 	}
-	return `
-		{
+	return `{
 			event: ${eventDictionary.getEventValues({ keys: [e.identifier] })[0]},
 			meta: {
-				${getEventMetaCode({ event: e, expressions })}
+				${getEventMeta({ event: e, expressions })}
 			}
-		}
-	`;
+		}`;
 }
 
-function getEventMetaCode(props: {
+function getEventMeta(props: {
 	event: TEventEmit;
 	expressions: TExpressionRecord;
 }): string {
@@ -107,7 +76,7 @@ function getEventMetaCode(props: {
 	}
 }
 
-function getActionPayloadCode(props: {
+function getActionPayload(props: {
 	event: TEventSubscribe;
 	expressions: TExpressionRecord;
 }) {

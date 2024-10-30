@@ -37,9 +37,6 @@ export function setupDictionaries(props: {
 			`GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) });`,
 		);
 	}
-	dictionaries.push(
-		`export const globalEventDictionary = GlobalEventDictionary`,
-	);
 	dictionaries.push(`const reducer = {${context.serializer.getStateToContext({
 		diagram: props.diagram,
 		stateDictionary: props.stateDictionary,
