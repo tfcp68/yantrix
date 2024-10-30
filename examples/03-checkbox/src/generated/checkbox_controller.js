@@ -14,15 +14,6 @@ export const actionsDictionary = {
   "TOGGLE": 1814974636
 }
 
-// const reducer = {
-// 	945742542: (prevContext, payload, functionDictionary) => {
-// 		return prevContext
-// 	},
-// 	1460296583: (prevContext, payload, functionDictionary) => {
-// 		return prevContext
-// 	}
-// }
-
 const reducer = {
     945742542: (prevContext, { id }) => {
         return {
@@ -54,10 +45,6 @@ const statesMap = {
 }
 
 const byPassedStates = new Set([])
-
-// const getDefaultContext = (prevContext, payload) => {
-// 	return prevContext
-// }
 
 const getDefaultContext = (prevContext, { id }) => ({
     ...prevContext,
@@ -110,7 +97,6 @@ export class Checkbox extends GenericAutomata {
 						const contextWithInitial = getDefaultContext(context,payload)
 
 			if(actionMove.state.length > 1 && actionMove.predicate != null) {
-				// determine new state from predicate
 				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
 				if(resolvedPredicateValue == null) return { state, context };
 				newStateObject.state = resolvedPredicateValue;
