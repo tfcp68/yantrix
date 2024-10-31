@@ -8,14 +8,13 @@ function getPredicatesCode(props: {
 	actionDictionary: BasicActionDictionary;
 	expressionRecord: TExpressionRecord;
 }) {
-	const lines: string[] = [];
-	Object.entries(getPredicates(props)).forEach(([stateId, predicates]) => {
-		lines.push(`${stateId}: {
-			${getStatePredicateCode(predicates)}
-		}`);
-	});
+	const predicateObject = getPredicates(props);
+	const entries = Object.entries(predicateObject);
+	if (!entries || entries.length === 0) return '';
 	return `const predicates = {
-		${lines.join(',\n')}
+		${Object.entries(predicateObject)
+				.map(([stateId, predicates]) => `${stateId}: { ${getStatePredicateCode(predicates)} }`)
+				.join(',\n')}
 	}`;
 }
 

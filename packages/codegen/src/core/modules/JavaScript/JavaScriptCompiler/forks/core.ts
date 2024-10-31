@@ -22,7 +22,8 @@ export function getPredicates(props: {
 
 	const entries = Object
 		.entries(diagram.actionChains)
-		.map(([stateName, stateActions]) => stateToPredicates(stateName, stateActions, props));
+		.map(([stateName, stateActions]) => stateToPredicates(stateName, stateActions, props))
+		.filter(val => val !== null);
 
 	const automataPredicates = Object.fromEntries(entries);
 
@@ -37,7 +38,7 @@ function stateToPredicates(
 		stateDictionary: BasicStateDictionary;
 		expressionRecord: TExpressionRecord;
 	},
-): [number, { [k: string]: string }] {
+): [number, { [k: string]: string }] | null {
 	const { stateDictionary } = props;
 	const originalStateId = stateDictionary.getDictionary()[stateName];
 	if (!originalStateId) {
@@ -45,7 +46,10 @@ function stateToPredicates(
 	}
 	const statePredicateEntries = Object
 		.entries(stateActions)
-		.map(([actionName, actionParams]) => actionToPredicate(actionName, actionParams.chains, props));
+		.map(([actionName, actionParams]) => actionToPredicate(actionName, actionParams.chains, props))
+		.filter(val => val !== null);
+
+	if (!statePredicateEntries || statePredicateEntries.length === 0) return null;
 
 	const statePredicates = Object.fromEntries(statePredicateEntries);
 	return [originalStateId, statePredicates];
@@ -59,19 +63,24 @@ function actionToPredicate(
 		stateDictionary: BasicStateDictionary;
 		expressionRecord: TExpressionRecord;
 	},
-): [number, string] {
+): [number, string] | null {
 	const { actionDictionary } = props;
 	const actionId = actionDictionary.getDictionary()[action];
 	if (!actionId) {
 		throw new Error(`Incorrect action: ${action}`);
 	}
-	const stateTransitionConditions = chains.map(actionChain => getStateTransitionConditions(actionChain, props));
+	const stateTransitionConditions = chains
+		.map(actionChain => getStateTransitionConditions(actionChain, props))
+		.filter(val => val != null);
 	const predicate = getPredicateContent(stateTransitionConditions);
+
+	if (!predicate) return null;
 
 	return [actionId, predicate];
 }
 
-function getPredicateContent(stateTransitionConditions: string[]) {
+function getPredicateContent(stateTransitionConditions: string[] | null) {
+	if (!stateTransitionConditions || stateTransitionConditions.length === 0) return null;
 	return `(prevContext, payload, functionDictionary) => {
 		${
 			stateTransitionConditions.map((conditions, index) => `
@@ -102,15 +111,14 @@ function getStateTransitionConditions(
 		.map(segment => resolveChainSegment(segment, props))
 		.map((cond, index) => `const cond${index + 1} = ${cond};`);
 
-	if (conditions.length > 0) {
-		conditions.push(`
-			if(${conditions.map((_, index) => `cond${index + 1} === true`).join(' && ')}) {
-				return ${transitionStateId};
-			}
-			else return undefined;`,
-		);
-	}
+	if (conditions.length === 0) return null;
 
+	conditions.push(`
+		if(${conditions.map((_, index) => `cond${index + 1} === true`).join(' && ')}) {
+			return ${transitionStateId};
+		}
+		else return undefined;`,
+	);
 	return conditions.join('\n');
 }
 

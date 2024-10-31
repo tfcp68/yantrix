@@ -33,7 +33,9 @@ export function setupDictionaries(props: {
 			`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,
 		);
 		dictionaries.push(
-			`GlobalEventDictionary.addEvents({ keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null) });`,
+			`GlobalEventDictionary.addEvents({
+				keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null)
+			 });`,
 		);
 	}
 	dictionaries.push(`const reducer = {${context.serializer.getStateToContext({
