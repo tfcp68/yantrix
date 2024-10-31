@@ -2,7 +2,6 @@ import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } fro
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { context } from '../context';
 import { expressions } from '../expressions';
-import { forks } from '../forks';
 import { imports, TDependencyGraph } from '../imports';
 import { TDictionaries } from './types';
 
@@ -43,12 +42,6 @@ export function setupDictionaries(props: {
 		actionDictionary: props.actionDictionary,
 		expressions: props.expressionRecord,
 	}).join(',\n\t')}}`);
-	dictionaries.push(`const predicates = {${forks.serializer.getPredicates({
-		expressionRecord: props.expressionRecord,
-		actionDictionary: props.actionDictionary,
-		stateDictionary: props.stateDictionary,
-		diagram: props.diagram,
-	})}}`);
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 	dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 	dictionaries.push();

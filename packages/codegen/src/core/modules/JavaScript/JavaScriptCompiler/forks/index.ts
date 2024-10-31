@@ -1,7 +1,5 @@
-import { getPredicates } from './serializer';
+import { serializer } from './serializer';
 
 export const forks = {
-	serializer: {
-		getPredicates,
-	},
+	serializer,
 };
