@@ -1,7 +1,7 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TEventSubscribe } from '@yantrix/yantrix-parser';
+import { TEventEmit, TEventSubscribe } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TStateIncludingNotes } from '../../../../../types/common';
-import { getEventEmitterHandler, getEventListenerHandler } from './functions';
+import { getActionPayload, getEventCode } from './functions';
 
 export function stateToEventEmitter(state: TStateIncludingNotes, props: {
 	stateDictionary: BasicStateDictionary;
@@ -67,4 +67,38 @@ function eventToEventBusSubscribe(event: TEventSubscribe, props: {
             result: EventBus.getEventStack()
         }
     })`;
+}
+
+function getEventEmitterHandler(props: {
+	events: TEventEmit[];
+	eventDictionary: BasicEventDictionary;
+	expressions: TExpressionRecord;
+}) {
+	const { events, eventDictionary, expressions } = props;
+	return `({ state, context }) => {
+		const eventsToEmit = [
+			${events.map(e => getEventCode(e, eventDictionary, expressions)).join(',\n')}
+		];
+		
+		EventBus.dispatch(...eventsToEmit);
+
+		return eventsToEmit[0];
+	}`;
+}
+
+function getEventListenerHandler(props: {
+	event: TEventSubscribe;
+	actionId: number | null | undefined;
+	expressions: TExpressionRecord;
+}) {
+	const { event, actionId, expressions } = props;
+	return `({ event, meta }) => {
+
+		return {
+			action: ${actionId},
+			payload: {
+				${getActionPayload({ event, expressions })}
+			}
+		}
+	}`;
 }

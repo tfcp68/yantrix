@@ -3,41 +3,7 @@ import { ExpressionTypes, isEmitFull, isEmitWithMeta, isSubscribeWithMeta, isSub
 import { TExpressionRecord } from '../../../../../types/common';
 import { context } from '../context';
 
-export function getEventEmitterHandler(props: {
-	events: TEventEmit[];
-	eventDictionary: BasicEventDictionary;
-	expressions: TExpressionRecord;
-}) {
-	const { events, eventDictionary, expressions } = props;
-	return `({ state, context }) => {
-		const eventsToEmit = [
-			${events.map(e => getEventCode(e, eventDictionary, expressions)).join(',\n')}
-		];
-		
-		EventBus.dispatch(...eventsToEmit);
-
-		return eventsToEmit[0];
-	}`;
-}
-
-export function getEventListenerHandler(props: {
-	event: TEventSubscribe;
-	actionId: number | null | undefined;
-	expressions: TExpressionRecord;
-}) {
-	const { event, actionId, expressions } = props;
-	return `({ event, meta }) => {
-
-		return {
-			action: ${actionId},
-			payload: {
-				${getActionPayload({ event, expressions })}
-			}
-		}
-	}`;
-}
-
-function getEventCode(e: TEventEmit, eventDictionary: BasicEventDictionary, expressions: TExpressionRecord) {
+export function getEventCode(e: TEventEmit, eventDictionary: BasicEventDictionary, expressions: TExpressionRecord) {
 	if (isEmitFull(e)) {
 		e.context = e.context.map(c => ({
 			keyItem: {
@@ -54,7 +20,7 @@ function getEventCode(e: TEventEmit, eventDictionary: BasicEventDictionary, expr
 		}`;
 }
 
-function getEventMeta(props: {
+export function getEventMeta(props: {
 	event: TEventEmit;
 	expressions: TExpressionRecord;
 }): string {
@@ -76,7 +42,7 @@ function getEventMeta(props: {
 	}
 }
 
-function getActionPayload(props: {
+export function getActionPayload(props: {
 	event: TEventSubscribe;
 	expressions: TExpressionRecord;
 }) {
