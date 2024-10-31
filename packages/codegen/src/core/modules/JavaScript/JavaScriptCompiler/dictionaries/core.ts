@@ -1,6 +1,5 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
-import { context } from '../context';
 import { expressions } from '../expressions';
 import { imports, TDependencyGraph } from '../imports';
 import { TDictionaries } from './types';
@@ -38,12 +37,6 @@ export function setupDictionaries(props: {
 			 });`,
 		);
 	}
-	dictionaries.push(`const reducer = {${context.serializer.getStateToContext({
-		diagram: props.diagram,
-		stateDictionary: props.stateDictionary,
-		actionDictionary: props.actionDictionary,
-		expressions: props.expressionRecord,
-	}).join(',\n\t')}}`);
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 	dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 	dictionaries.push();

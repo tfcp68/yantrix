@@ -102,6 +102,12 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
 				})}
+			${JavaScriptCompiler.context.serializer.getStateReducerCode({
+					diagram: this.diagram,
+					stateDictionary: this.stateDictionary,
+					actionDictionary: this.actionDictionary,
+					expressions: this.expressions,
+				})}
 			${JavaScriptCompiler.forks.serializer.getPredicatesCode({
 					expressionRecord: this.expressions,
 					actionDictionary: this.actionDictionary,

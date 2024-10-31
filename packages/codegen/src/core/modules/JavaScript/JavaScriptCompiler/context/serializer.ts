@@ -12,6 +12,17 @@ import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../
 import { pathRecord } from '../../../../shared';
 import { expressions } from '../expressions';
 
+function getStateReducerCode(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	stateDictionary: BasicStateDictionary;
+	actionDictionary: BasicActionDictionary;
+	expressions: TExpressionRecord;
+}) {
+	return `const reducer = {
+		${getStateToContext(props).join(',\n\t')}
+	}`;
+}
+
 function getContextItem(props: {
 	ctx: TContextItem;
 	expressions: TExpressionRecord;
@@ -216,12 +227,12 @@ function getDefaultContext(props: {
 	}
 
 	return `const getDefaultContext = (prevContext, payload) => {
-
 				return prevContext
 		}`;
 }
 
 export const contextSerializer = {
+	getStateReducerCode,
 	getContextItem,
 	mapReducerItems,
 	getBoundValues,
