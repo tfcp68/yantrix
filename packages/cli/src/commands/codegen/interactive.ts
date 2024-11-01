@@ -1,0 +1,247 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import * as p from '@clack/prompts';
+import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
+import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
+import c from 'ansis';
+import { isSymbol } from 'lodash-es';
+import { TLanguage } from '../../types/common';
+import { DISABLE_FLAGS, LANGUAGES } from '../../utils/constants';
+import { isGitClean, isJSON } from '../../utils/utils';
+
+export async function interactive() {
+	const results = await p.group({
+		uncommittedConfirmed: async () => {
+			if (isGitClean())
+				return Promise.resolve(true);
+
+			const confirmed = await p.confirm({
+				initialValue: false,
+				message: 'There are uncommitted changes in the current repository, are you sure to continue?',
+			});
+
+			if (!confirmed) {
+				p.cancel('Automata generation cancelled');
+				process.exit(0);
+			}
+
+			return confirmed;
+		},
+		diagram: async () => {
+			const path = await p.text({
+				placeholder: './diagram.mermaid',
+				message: 'Enter path to the *.mermaid diagram file',
+			});
+
+			if (isSymbol(path)) {
+				p.cancel('Automata generation cancelled');
+				process.exit(0);
+			}
+
+			if (!path || path.trim() === '') {
+				p.cancel('Diagram file path cannot be empty!');
+				process.exit(1);
+			}
+
+			if (!existsSync(resolve(path))) {
+				p.cancel('Provided diagram file path does not exist');
+				process.exit(1);
+			}
+
+			const content = readFileSync(path, 'utf8');
+
+			if (content.length === 0) {
+				p.cancel('Diagram file is empty!');
+				process.exit(1);
+			}
+
+			return content;
+		},
+		language: () => {
+			return p.select({
+				initialValue: 'TypeScript',
+				message: 'Select the language for the generated Automata',
+				options: LANGUAGES.map(lang => ({
+					value: lang,
+					label: lang,
+				})),
+			});
+		},
+		outfile: async () => {
+			const path = await p.text({
+				placeholder: './Automata.ts',
+				message: 'Enter the output file path',
+			});
+
+			if (isSymbol(path)) {
+				p.cancel('Automata generation cancelled');
+				process.exit(0);
+			}
+
+			if (!path || path.trim() === '') {
+				p.cancel('Output file path cannot be empty!');
+				process.exit(1);
+			}
+
+			return resolve(path);
+		},
+		className: async () => {
+			const cn = await p.text({
+				placeholder: 'Automata',
+				message: 'Enter the name of the generated Automata class',
+			});
+
+			if (isSymbol(cn)) {
+				p.cancel('Automata generation cancelled');
+				process.exit(0);
+			}
+
+			if (!cn || cn.trim() === '') {
+				p.cancel('Class name cannot be empty');
+				process.exit(1);
+			}
+
+			if (!/[a-z_]\w*/i.test(cn)) {
+				p.cancel('Class name must satisfy regex /[a-z_]\\w*/i');
+				process.exit(1);
+			}
+
+			return cn;
+		},
+		constants: async () => {
+			const choice = await p.select({
+				initialValue: 'skip',
+				message: 'Add constants in generated Automata?',
+				options: [
+					{
+						value: 'skip',
+						label: 'No, skip this step',
+					},
+					{
+						value: 'json',
+						label: 'Yes, from JSON string',
+					},
+					{
+						value: 'file',
+						label: 'Yes, from ".json" file',
+					},
+				],
+			});
+
+			if (choice === 'json') {
+				const text = await p.text({
+					placeholder: '{"a": "A", "b": "B", "c": "C"}',
+					message: 'Enter constants to be used in generated Automata',
+				});
+
+				if (isSymbol(text)) {
+					p.cancel('Automata generation cancelled');
+					process.exit(0);
+				}
+
+				if (!text || text.trim() === '') {
+					return p.log.warn('Constants string is empty, skipping this step...');
+				}
+
+				if (!isJSON(text)) {
+					return p.log.warn('Invalid constants string provided, skipping this step...');
+				}
+
+				return text;
+			} else if (choice === 'file') {
+				const path = await p.text({
+					placeholder: './constants.json',
+					message: 'Enter path to constants file',
+				});
+
+				if (isSymbol(path)) {
+					p.cancel('Automata generation cancelled');
+					process.exit(0);
+				}
+
+				if (!path || path.trim() === '') {
+					return p.log.warn('Path to constants file is empty, skipping this step...');
+				}
+
+				if (!existsSync(resolve(path))) {
+					p.cancel('Provided constants file path does not exist');
+					process.exit(1);
+				}
+
+				if (!path.endsWith('.json')) {
+					p.cancel('Path constants file must end with .json');
+					process.exit(1);
+				}
+
+				const content = readFileSync(path, 'utf8');
+
+				if (content.length === 0) {
+					p.cancel('Constants file is empty!');
+					process.exit(1);
+				}
+
+				if (!isJSON(content)) {
+					p.cancel('Invalid constants file provided');
+					process.exit(1);
+				}
+
+				return content;
+			} else {
+				return '{}';
+			}
+		},
+	}, {
+		onCancel: () => {
+			p.cancel('Automata generation cancelled');
+			process.exit(0);
+		},
+	});
+
+	const spinner = p.spinner();
+	spinner.start(`Parsing state diagram...`);
+
+	const structure = await parseStateDiagram(results.diagram).catch((err) => {
+		const msg1 = 'An error occurred while parsing given state diagram';
+		const msg2 = err instanceof Error ? `\n${err.message}` : '';
+		spinner.stop(c.red(`${msg1}${msg2}`));
+		process.exit(1);
+	});
+
+	spinner.message('Creating matrix from given state diagram...');
+
+	const matrix = await createStateDiagram(structure).catch((err) => {
+		const msg1 = 'An error occurred creating matrix from given state diagram';
+		const msg2 = err instanceof Error ? `\n${err.message}` : '';
+		spinner.stop(c.red(`${msg1}${msg2}`));
+		process.exit(1);
+	});
+
+	spinner.message('Generating Automata...');
+
+	const automata = await generateAutomataFromStateDiagram(matrix, {
+		outLang: <TLanguage>results.language,
+		className: results.className,
+		constants: results.constants,
+	}).catch((err) => {
+		const msg1 = 'An error occurred while generating Automata';
+		const msg2 = err instanceof Error ? `\n${err.message}` : '';
+		spinner.stop(c.red(`${msg1}${msg2}`));
+		process.exit(1);
+	});
+
+	spinner.message(`Writing Automata to file ${results.outfile}...`);
+
+	const writeable = `${DISABLE_FLAGS.join('\n')}\n${automata}`;
+
+	try {
+		if (!existsSync(dirname(results.outfile))) mkdirSync(dirname(results.outfile), { recursive: true });
+		writeFileSync(results.outfile, writeable, { encoding: 'utf-8' });
+		spinner.stop(`Generated Automata saved to ${results.outfile}`);
+		process.exit(0);
+	} catch (err) {
+		const msg1 = 'An error occurred while writing Automata to file';
+		const msg2 = err instanceof Error ? `\n${err.message}` : '';
+		spinner.stop(c.red(`${msg1}${msg2}`));
+		process.exit(1);
+	}
+}
