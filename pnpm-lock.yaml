@@ -386,22 +386,18 @@ importers:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
-      '@yantrix/functions':
-        specifier: workspace:^
-        version: link:../functions
-      '@yantrix/utils':
-        specifier: workspace:^
-        version: link:../utils
-    devDependencies:
       '@yantrix/cli':
         specifier: workspace:^
         version: link:../cli
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
-      tsx:
-        specifier: ^4.19.1
-        version: 4.19.1
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../functions
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   packages/scripts:
     dependencies:
@@ -7997,6 +7993,7 @@ snapshots:
       '@esbuild/win32-arm64': 0.23.0
       '@esbuild/win32-ia32': 0.23.0
       '@esbuild/win32-x64': 0.23.0
+    optional: true
 
   esbuild@0.24.0:
     optionalDependencies:
@@ -10758,6 +10755,7 @@ snapshots:
       get-tsconfig: 4.7.6
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   tty-browserify@0.0.1: {}
 
