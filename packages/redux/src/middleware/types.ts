@@ -1,10 +1,26 @@
 import { Middleware, PayloadAction } from '@reduxjs/toolkit';
+import { TClassConstructor } from '@yantrix/utils';
 import { TAutomata } from '../types';
 
-export type TCreateMiddleware = <ActionType extends PayloadAction, AutomataType extends TAutomata, StoreType = any>(
+export type TCreateMiddleware = <
+	ActionType extends PayloadAction<any>,
+	AutomataType extends TClassConstructor<TAutomata>,
+	StoreType = any,
+>(
 	FSM: AutomataType,
-	// if the following mapper returns null, the Payload is not dispatched to FSM
-	// mapActionToFSMPayload: (action: ActionType) => TInferAutomataPayload<AutomataType>,
-	// // if the following mapper returns null, the Action is not dispatched to Redux
-	// mapContextToAction: (context: TInferAutomataContext<ActionType>) => ActionType,
+	mapActionToFSMPayload: (action: ActionType) => TInferAutomataPayload<AutomataType>,
+	mapContextToAction: (context: TInferAutomataContext<TAutomata>) => ActionType | null,
 ) => Middleware<ActionType, StoreType>;
+
+export type TInferAutomataPayload<AutomataType> = AutomataType extends
+{
+	createAction: (action: infer A, payload: infer P) => any;
+}
+	? (A extends string ? { action: number; payload: P } : never) | null
+	: never;
+
+export type TInferAutomataContext<AutomataType> = AutomataType extends {
+	getContext: () => infer ContextType;
+}
+	? ContextType
+	: never;

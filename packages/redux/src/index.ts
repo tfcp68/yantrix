@@ -56,31 +56,3 @@ export function useReduxAutomata(automataId: TAutomataId) {
 	}
 	return [automata.basicAutomata, automata.dispatch] as const;
 }
-
-// const contextToReduxParams = {
-// 	initialCounter: 0,
-// 	counter: 0,
-// };
-//
-// const { actions, reducer } = createFSMSlice<
-// 	TActionsTrafficLightAutomata,
-// 	typeof contextToReduxParams
-// >({
-// 	name: TrafficLightAutomata.id,
-// 	Fsm: TrafficLightAutomata,
-// 	contextToRedux: context => ({
-// 		...context,
-// 		...contextToReduxParams,
-// 	}),
-//
-// });
-//
-// const store = configureStore({
-// 	reducer: combineReducers({
-// 		[TrafficLightAutomata.id]: reducer,
-// 	}),
-// });
-//
-// store.dispatch(actions.Switch({}));
-//
-// store.getState();
