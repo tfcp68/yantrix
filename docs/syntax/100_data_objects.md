@@ -39,7 +39,7 @@ State Naming Rules and Conventions:
 
 In fact, an `Action` is created automatically with every transition between `States`. If not specified, it's given a
 descriptive name based on its starting and ending `State`. However, it's wiser to specify names for transitions. They
-will then be exported as [`ActionDictionary`](../API-Reference/automata/interfaces/IActionDictionary.html), allowing
+will then be exported as [`ActionDictionary`](../API/automata/interfaces/IActionDictionary.html), allowing
 for better typing and [Integrations](../integrations/). `Actions` can be dispatched directly into `FSM` API, or be generated automatically by the attached `Event Adapter`, that translates an `Event` from `Event Bus` to an `Action` with `Payload`.
 
 ```mermaid

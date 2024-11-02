@@ -7,7 +7,7 @@ import {
 	TModuleParams,
 	TStateDiagramMatrixIncludeNotes,
 } from '../../../types/common';
-import { fillDictionaries } from '../../shared';
+import { fillDictionaries, getStatesByPass } from '../../shared';
 import { ModuleNames } from '../index';
 import { JavaScriptCompiler } from './JavaScriptCompiler';
 import { TImports } from './JavaScriptCompiler/imports';
@@ -77,6 +77,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				})}
 			${JavaScriptCompiler.dictionaries.serializer.getStatesMap({
 					stateDictionary: this.stateDictionary,
+				})}
+			${JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed({
+					byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
 				})}
 			${JavaScriptCompiler.context.contextSerializer.getDefaultContext({
 					expressions: this.expressions,

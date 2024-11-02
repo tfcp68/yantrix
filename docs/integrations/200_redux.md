@@ -4,7 +4,7 @@ title: Redux
 
 # Integrating with Redux
 
-The connector allows for integration both with native Redux and with Redux-Toolkit Library. FSMs for Redux integration must be complemented using Typescript codegen, thus providing a [`@yantrix/automata`](..API-Reference/automata/) implementation.
+The connector allows for integration both with native Redux and with Redux-Toolkit Library. FSMs for Redux integration must be complemented using Typescript codegen, thus providing a [`@yantrix/automata`](..API/automata/) implementation.
 
 ```shell
 $ npm install @yantrix/redux @yantrix-codegen
@@ -64,7 +64,7 @@ sequenceDiagram
 	Redux Slice -->>- Subscribers: Slice State
 ```
 
-`@yantrix/redux` lib provides a `createFSMSlice` method which creates a Redux Toolkit Slice which exports all `FSM`s `Actions` as reducers, that invoke [`dispatch`](../API-Reference/automata/interfaces/IAutomata.html#dispatch) method of an FSM to resolve the next state of the produced slice
+`@yantrix/redux` lib provides a `createFSMSlice` method which creates a Redux Toolkit Slice which exports all `FSM`s `Actions` as reducers, that invoke [`dispatch`](../API/automata/interfaces/IAutomata.html#dispatch) method of an FSM to resolve the next state of the produced slice
 
 You shall provide a string constant do discriminate every particular integration. If you must, you can use a same constant for different slices, assuming `Actions` of `FSM`s are globally unique.
 
@@ -97,7 +97,7 @@ const store = configureStore({
 ### API
 
 ```typescript
-declare type CreateFSMSliceOptions<StateType, ContextType = object> = {
+declare type TCreateFSMSliceOptions<StateType, ContextType = object> = {
 	name: string;
 	fsm: ClassConstructor<IAutomata>;
 	contextToRedux?: (context: ContextType) => StateType;
@@ -105,7 +105,7 @@ declare type CreateFSMSliceOptions<StateType, ContextType = object> = {
 	selectors?: Record<string, (state: StateType) => any>;
 };
 
-declare function createFSMSlice(options: CreateFSMSliceOptions): ReturnType<createSlice>;
+declare function createFSMSlice(options: TCreateFSMSliceOptions): ReturnType<createSlice>;
 ```
 
 ### State
@@ -136,7 +136,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 const YantrixSlice = createFSMSlice({
 	name: TrafficLight.id,
 	fsm: TrafficLight,
-	contextToRedux: (context) => context, // optional, default mapper
+	contextToRedux: context => context, // optional, default mapper
 });
 ```
 
@@ -146,7 +146,7 @@ If needed, a `Context` of an FSM can be transformed in a different manner to red
 const YantrixSlice = createFSMSlice({
 	name: TrafficLight.id,
 	fsm: TrafficLight,
-	contextToRedux: (context) => ({
+	contextToRedux: context => ({
 		counter: context.counter,
 		redColorOn: ['Red', 'RedYellow'].includes(context.state),
 		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
@@ -211,20 +211,21 @@ import TrafficLight from '../generated/traffic-light.ts';
 
 export const store = configureStore({
 	reducer: combineReducers({
-		/*... */
+		/* ... */
 	}),
-	middleware: (getDefaultMiddleware) =>
+	middleware: getDefaultMiddleware =>
 		getDefaultMiddleware().concat(
 			createMiddleware(
 				TrafficLight,
-				({ type, payload }) => (type !== 'yantrix/trafficLight') ?
-					null :
-					TrafficLight.createAction('Switch'),
+				({ type, payload }) => (type !== 'yantrix/trafficLight')
+					? null
+					: TrafficLight.createAction('Switch'),
 				({ state, context }) => ({
 					type: 'changeTrafficLight', // assume this action is handled elsewhere in Redux
 					payload: { color: state, counter: context.counter }
 				})
 			)
+		)
 });
 ```
 

@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ModuleNames } from '@yantrix/codegen';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { randomInteger } from '../../utils/src/fixtures';
 import templates from './fixtures/forksTemplates';
@@ -12,7 +13,7 @@ describe('forks', () => {
 	beforeAll(async () => {
 		// Object.keys(templates).forEach(async templateName => {
 		//     const input = templates[templateName as keyof typeof templates];
-		//     await generateAndSave({ input, automataName: capitalize(templateName), lang: 'JavaScript' }, `fork_${templateName}`);
+		//     await generateAndSave({ input, automataName: capitalize(templateName), lang: ModuleNames.JavaScript }, `fork_${templateName}`);
 		// })
 
 		// ???
@@ -20,7 +21,7 @@ describe('forks', () => {
 	});
 
 	describe('default', async () => {
-		await generateAndSave({ input: templates.defaultFork, automataName: 'DefaultFork', lang: 'JavaScript' }, `fork_defaultFork`);
+		await generateAndSave({ input: templates.defaultFork, automataName: 'DefaultFork', lang: ModuleNames.JavaScript }, `fork_defaultFork`);
 		const { DefaultFork, actionsDictionary, statesDictionary } = await import(
 			getGeneratedFixturePath('fork_defaultFork_generated.js')
 		);
@@ -36,10 +37,7 @@ describe('forks', () => {
 						action: actionsDictionary['START (counter)'],
 						payload: { counter: defaultCounterValue },
 					},
-					{
-						action: actionsDictionary['[-]'],
-						payload: { value: 0 },
-					},
+
 				];
 				automata.setActionQueue(queue);
 				automata.consumeAction(queue.length);
@@ -76,17 +74,19 @@ describe('forks', () => {
 
 		it('state reducer is invoked when transitioning to the same state after the fork', () => {
 			const value = randomInteger(0, defaultCounterValue);
+			const prev = automata.context.counter;
 			automata.dispatch({
 				action: actionsDictionary['REDUCE (value)'],
 				payload: { value },
 			});
+
 			expect(automata.state).toBe(statesDictionary.WORKING);
-			expect(automata.context.counter).toBe(defaultCounterValue - value);
+			expect(automata.context.counter).toBe(prev - value);
 		});
 	});
 
 	describe('fork with no default path', async () => {
-		await generateAndSave({ input: templates.noDefaultPathFork, automataName: 'NoDefaultPathFork', lang: 'JavaScript' }, `fork_noDefaultPathFork`);
+		await generateAndSave({ input: templates.noDefaultPathFork, automataName: 'NoDefaultPathFork', lang: ModuleNames.JavaScript }, `fork_noDefaultPathFork`);
 		const { NoDefaultPathFork, actionsDictionary, statesDictionary } = await import(
 			getGeneratedFixturePath('fork_noDefaultPathFork_generated.js')
 		);
@@ -152,17 +152,19 @@ describe('forks', () => {
 		it('state reducer is NOT invoked when staying on the same state', () => {
 			const expected = automata.context.counter;
 			const value = randomInteger(-100, -1);
+
 			automata.dispatch({
 				action: actionsDictionary['REDUCE (value)'],
 				payload: { value },
 			});
+
 			expect(automata.state).toBe(statesDictionary.WORKING);
 			expect(automata.context.counter).toBe(expected);
 		});
 	});
 
 	describe('fork that leads into another fork', async () => {
-		await generateAndSave({ input: templates.forkIntoFork, automataName: 'ForkIntoFork', lang: 'JavaScript' }, `fork_forkIntoFork`);
+		await generateAndSave({ input: templates.forkIntoFork, automataName: 'ForkIntoFork', lang: ModuleNames.JavaScript }, `fork_forkIntoFork`);
 		const { ForkIntoFork, actionsDictionary, statesDictionary } = await import(
 			getGeneratedFixturePath('fork_forkIntoFork_generated.js')
 		);
@@ -178,10 +180,7 @@ describe('forks', () => {
 						action: actionsDictionary['START (counter)'],
 						payload: { counter: defaultCounterValue },
 					},
-					{
-						action: actionsDictionary['[-]'],
-						payload: { value: 0 },
-					},
+
 				];
 				automata.setActionQueue(queue);
 				automata.consumeAction(queue.length);
@@ -227,7 +226,7 @@ describe('forks', () => {
 	});
 
 	describe('fork with duplicate default paths is not generated', async () => {
-		await expect(generateAndSave({ input: templates.multipleDefaultPathsFork, automataName: 'MultipleDefaultPathsFork', lang: 'JavaScript' }, `fork_multipleDefaultPathsFork`))
+		await expect(generateAndSave({ input: templates.multipleDefaultPathsFork, automataName: 'MultipleDefaultPathsFork', lang: ModuleNames.JavaScript }, `fork_multipleDefaultPathsFork`))
 			.rejects
 			.toThrow('Duplicate default path encountered');
 	});

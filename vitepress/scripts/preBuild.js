@@ -13,7 +13,7 @@ const SOURCE_DIR = path.resolve(ROOT_DIR, 'docs');
 const TARGET_DIR = path.resolve(__dirname, '../src');
 
 const TEST_REPORTS_DIR = path.resolve(ROOT_DIR, 'test_reports');
-const API_REFERENCE_DIR = path.resolve(__dirname, '../src/API-Reference');
+const API_REFERENCE_DIR = path.resolve(__dirname, '../src/API');
 
 function preBuild() {
 	copyDirectorySync(SOURCE_DIR, TARGET_DIR);
