@@ -16,7 +16,7 @@ export function getPredicates(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	expressionRecord: TExpressionRecord;
+	expressions: TExpressionRecord;
 }) {
 	const { diagram } = props;
 
@@ -36,7 +36,7 @@ function stateToPredicates(
 	props: {
 		actionDictionary: BasicActionDictionary;
 		stateDictionary: BasicStateDictionary;
-		expressionRecord: TExpressionRecord;
+		expressions: TExpressionRecord;
 	},
 ): [number, { [k: string]: string }] | null {
 	const { stateDictionary } = props;
@@ -61,7 +61,7 @@ function actionToPredicate(
 	props: {
 		actionDictionary: BasicActionDictionary;
 		stateDictionary: BasicStateDictionary;
-		expressionRecord: TExpressionRecord;
+		expressions: TExpressionRecord;
 	},
 ): [number, string] | null {
 	const { actionDictionary } = props;
@@ -98,7 +98,7 @@ function getStateTransitionConditions(
 	actionChain: TActionChain,
 	props: {
 		stateDictionary: BasicStateDictionary;
-		expressionRecord: TExpressionRecord;
+		expressions: TExpressionRecord;
 	},
 ) {
 	const { chain, state } = actionChain;
@@ -108,7 +108,7 @@ function getStateTransitionConditions(
 	}
 
 	const conditions = chain
-		.map(segment => resolveChainSegment(segment, props))
+		.map(segment => resolveChainSegment(segment, { expressionRecord: props.expressions }))
 		.map((cond, index) => `const cond${index + 1} = ${cond};`);
 
 	if (conditions.length === 0) return null;

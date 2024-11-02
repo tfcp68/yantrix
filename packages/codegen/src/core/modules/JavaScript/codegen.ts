@@ -76,59 +76,31 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
+		const props = {
+			imports: this.imports,
+			dictionaries: this.dictionaries,
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+			eventDictionary: this.eventDictionary,
+			expressions: this.expressions,
+			byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
+			dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
+			classSerializer: JavaScriptCompiler.class.serializer,
+			className: options.className,
+		};
 		return `
-			${JavaScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
-			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode({
-					dictionaries: this.dictionaries,
-				})}
-			${JavaScriptCompiler.events.serializer.getEventAdapterCode({
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-					actionDictionary: this.actionDictionary,
-					eventDictionary: this.eventDictionary,
-					expressions: this.expressions,
-				})}
-			${JavaScriptCompiler.dictionaries.serializer.getActionsMap({
-					actionDictionary: this.actionDictionary,
-				})}
-			${JavaScriptCompiler.dictionaries.serializer.getStatesMap({
-					stateDictionary: this.stateDictionary,
-				})}
-			${JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed({
-					byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
-				})}
-			${JavaScriptCompiler.context.serializer.getDefaultContext({
-					expressions: this.expressions,
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-				})}
-			${JavaScriptCompiler.context.serializer.getStateReducerCode({
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-					actionDictionary: this.actionDictionary,
-					expressions: this.expressions,
-				})}
-			${JavaScriptCompiler.forks.serializer.getPredicatesCode({
-					expressionRecord: this.expressions,
-					actionDictionary: this.actionDictionary,
-					stateDictionary: this.stateDictionary,
-					diagram: this.diagram,
-				})}
-			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState({
-					dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-					actionDictionary: this.actionDictionary,
-				})}
-			${JavaScriptCompiler.class.serializer.getClassTemplate({
-					classSerializer: JavaScriptCompiler.class.serializer,
-					className: options.className,
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-					actionDictionary: this.actionDictionary,
-					eventDictionary: this.eventDictionary,
-					expressions: this.expressions,
-				})}
+			${JavaScriptCompiler.imports.serializer.getImportsCode(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
+			${JavaScriptCompiler.events.serializer.getEventAdapterCode(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getActionsMap(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getStatesMap(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
+			${JavaScriptCompiler.context.serializer.getDefaultContext(props)}
+			${JavaScriptCompiler.context.serializer.getStateReducerCode(props)}
+			${JavaScriptCompiler.forks.serializer.getPredicatesCode(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
+			${JavaScriptCompiler.class.serializer.getClassTemplate(props)}
 		`;
 	}
 }
