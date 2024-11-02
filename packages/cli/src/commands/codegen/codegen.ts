@@ -148,6 +148,17 @@ export async function codegen(argv: IArgv) {
 			fs.writeFileSync(outputFilePath, writeable, { encoding: 'utf-8' });
 
 			p.log.success(`Automata saved to ${outputFilePath}`);
+
+			if (argv.language.includes('script')) {
+				const message = [
+					'Since you have chosen the *-script language, ',
+					'you need to install additional packages to work with the generated Automata:',
+					'\n - @yantrix/automata',
+					'\n - @yantrix/functions',
+				].join('');
+
+				p.log.warn(message);
+			}
 		} catch (err) {
 			if (err instanceof Error) p.log.error(err.message);
 			process.exit(1);
