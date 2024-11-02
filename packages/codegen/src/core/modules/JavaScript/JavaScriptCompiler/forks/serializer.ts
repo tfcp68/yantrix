@@ -6,7 +6,7 @@ function getPredicatesCode(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	expressionRecord: TExpressionRecord;
+	expressions: TExpressionRecord;
 }) {
 	const predicateObject = getPredicates(props);
 	const entries = Object.entries(predicateObject);
