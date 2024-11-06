@@ -88,7 +88,7 @@ functionDictionary.register(builtInFunctions);
   "RedYellow": "RedYellow",
   "Green": "Green",
   "Yellow": "Yellow"
-}
+} as const
 			const getDefaultContext = (prevContext, payload) => {
 				const ctx = {counter: (function(){
 						const boundValue = (function(){
