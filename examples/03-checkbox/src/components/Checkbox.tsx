@@ -10,13 +10,13 @@ const checkboxesData = [
 ];
 
 export function Checkbox() {
-	const { dispatch: dispatchAutomata, state } = useFSM(TLA);
+	const { dispatch: dispatchAutomata, state } = useFSM<Record<number, boolean>>(TLA);
 
-	const toggleCheckbox = (id) => {
+	const toggleCheckbox = (id: number) => {
 		dispatchAutomata(TLA.createAction('TOGGLE', { id }));
 	};
 
-	const isChecked = id => TLA.getState(state, 'CHECKED') && state[id] === true;
+	const isChecked = (id: number) => TLA.getState(state)?.[id];
 
 	return (
 		<div className="flex flex-col items-center space-y-3">
