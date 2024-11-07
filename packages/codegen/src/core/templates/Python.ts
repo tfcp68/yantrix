@@ -1,9 +1,14 @@
 export const PythonTemplate = `
-class %CLASSNAME%: # (GenericAutomata)
+class %CLASSNAME%:
+    def __init__(self):
+        super().__init__()
+        self.state: %STATE%,
+        self.context': %CONTEXT%,
+        self.functionRegistry': %F_REGISTRY%
 
-    id = %ID%
-    actions = %ACTIONS_MAP%
-    states = %STATES_MAP%
+        self.id = %ID%
+        self.actions = %ACTIONS_MAP%
+        self.states = %STATES_MAP%
 
     %GET_STATE%
 
@@ -14,12 +19,6 @@ class %CLASSNAME%: # (GenericAutomata)
     %CREATE_ACTION%
 
     %REDUCER%
-
-    def __init__(self):
-        super().__init__()
-        self.state: %STATE%,
-        self.context': %CONTEXT%,
-        self.functionRegistry': %F_REGISTRY%
 
     %S_VALIDATOR%
 
