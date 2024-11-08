@@ -162,7 +162,7 @@ export async function codegen(argv: IArgv) {
 			}
 		} catch (err) {
 			if (err instanceof Error) p.log.error(err.message);
-			process.exit(1);
+			process.exit(EXIT_ERROR_CODE);
 		}
 	}
 }
