@@ -51,7 +51,9 @@ export async function codegen(argv: IArgv) {
 			}
 		}
 
+		let constants = '{}';
 		const className = argv.className ?? 'GeneratedAutomata';
+
 		switch (true) {
 			case !isProvided(diagramText): {
 				p.log.error('Diagram cannot be empty.');
@@ -80,7 +82,6 @@ export async function codegen(argv: IArgv) {
 			}
 		}
 
-		let constants = '{}';
 		if (isProvided(argv.constantFile)) {
 			if (isProvided(argv.constants) && argv.verbose) {
 				p.log.warn('Ignoring "constants" flag because "constants-file" flag is set.');
