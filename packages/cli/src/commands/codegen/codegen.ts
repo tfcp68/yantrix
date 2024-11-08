@@ -80,11 +80,6 @@ export async function codegen(argv: IArgv) {
 			}
 		}
 
-		if (!RE_CLASS_NAME.test(className)) {
-			p.log.error('Invalid characters in class name specified.');
-			process.exit(EXIT_ERROR_CODE);
-		}
-
 		let constants = '{}';
 		if (isProvided(argv.constantFile)) {
 			if (isProvided(argv.constants) && argv.verbose) {
