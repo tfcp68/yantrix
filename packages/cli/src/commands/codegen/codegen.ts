@@ -5,7 +5,7 @@ import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import { IArgv, TLanguage } from '../../types/common';
 import { isProvided } from '../../types/guards';
-import { DISABLE_FLAGS, LANGUAGES, RE_CLASS_NAME } from '../../utils/constants';
+import { DISABLE_FLAGS, EXIT_ERROR_CODE, LANGUAGES, RE_CLASS_NAME } from '../../utils/constants';
 import { isJSON, toFilteredArgvs } from '../../utils/utils';
 import { interactive } from './interactive';
 
@@ -32,12 +32,13 @@ export async function codegen(argv: IArgv) {
 		} else {
 			if (!isProvided(argv.diagramFile)) {
 				p.log.error('Diagram file path is required.');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
+
 			const filePath = path.resolve(argv.diagramFile);
 			if (!fs.existsSync(filePath)) {
 				p.log.error(`Provided diagram file path does not exist: ${filePath}`);
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			if (argv.verbose) p.log.warn(`Reading diagram from ${filePath}...`);
@@ -46,39 +47,42 @@ export async function codegen(argv: IArgv) {
 				diagramText = fs.readFileSync(filePath, 'utf-8');
 			} catch (err) {
 				if (err instanceof Error) p.log.error(err.message);
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 		}
 
-		if (!isProvided(diagramText)) {
-			p.log.error('Diagram cannot be empty.');
-			process.exit(1);
-		}
-
-		if (!argv.outfile) {
-			p.log.error('Output file path flag is required (--outfile <path>)');
-			process.exit(1);
-		}
-
-		if (!argv.language) {
-			p.log.error('Output language flag is required (--language <lang>)');
-			process.exit(1);
-		}
-
-		if (!LANGUAGES.includes(<TLanguage>argv.language)) {
-			const allowedMsg = `Allowed languages: ${LANGUAGES.join(', ')}`;
-			p.log.error(`Invalid output language specified. ${allowedMsg}`);
-			process.exit(1);
-		}
-
 		const className = argv.className ?? 'GeneratedAutomata';
-		if (argv.verbose && !isProvided(argv.className)) {
-			p.log.warn(`Class name not specified, using default (${className})`);
+		switch (true) {
+			case !isProvided(diagramText): {
+				p.log.error('Diagram cannot be empty.');
+				return process.exit(EXIT_ERROR_CODE);
+			}
+			case !isProvided(argv.outfile): {
+				p.log.error('Output file path flag is required (--outfile <path>)');
+				return process.exit(EXIT_ERROR_CODE);
+			}
+			case !isProvided(argv.language): {
+				p.log.error('Output language flag is required (--language <lang>)');
+				return process.exit(EXIT_ERROR_CODE);
+			}
+			case !LANGUAGES.includes(<TLanguage>argv.language): {
+				const allowedMsg = `Allowed languages: ${LANGUAGES.join(', ')}`;
+				p.log.error(`Invalid output language specified. ${allowedMsg}`);
+				return process.exit(EXIT_ERROR_CODE);
+			}
+			case argv.verbose && !isProvided(argv.className): {
+				p.log.warn(`Class name not specified, using default (${className})`);
+				return process.exit(EXIT_ERROR_CODE);
+			}
+			case !RE_CLASS_NAME.test(className): {
+				p.log.error('Invalid characters in class name specified.');
+				return process.exit(EXIT_ERROR_CODE);
+			}
 		}
 
 		if (!RE_CLASS_NAME.test(className)) {
 			p.log.error('Invalid characters in class name specified.');
-			process.exit(1);
+			process.exit(EXIT_ERROR_CODE);
 		}
 
 		let constants = '{}';
@@ -90,7 +94,7 @@ export async function codegen(argv: IArgv) {
 			const filePath = path.resolve(argv.constantFile);
 			if (!fs.existsSync(filePath)) {
 				p.log.error('Provided constants file path does not exist');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			if (argv.verbose) p.log.warn(`Reading constants from ${filePath}...`);
@@ -98,12 +102,12 @@ export async function codegen(argv: IArgv) {
 				constants = fs.readFileSync(filePath, 'utf-8');
 			} catch (err) {
 				if (err instanceof Error) p.log.error(err.message);
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 		} else if (isProvided(argv.constants)) {
 			if (!isJSON(argv.constants)) {
 				p.log.error('Constants must be a valid JSON string.');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			constants = argv.constants;
@@ -114,13 +118,13 @@ export async function codegen(argv: IArgv) {
 		const structure = await parseStateDiagram(diagramText).catch((err) => {
 			p.log.error('An error occurred while parsing given state diagram');
 			if (err instanceof Error) p.log.error(err.message);
-			process.exit(1);
+			process.exit(EXIT_ERROR_CODE);
 		});
 
 		const matrix = await createStateDiagram(structure).catch((err) => {
 			p.log.error('An error occurred creating matrix from given state diagram');
 			if (err instanceof Error) p.log.error(err.message);
-			process.exit(1);
+			process.exit(EXIT_ERROR_CODE);
 		});
 
 		const automata = await generateAutomataFromStateDiagram(matrix, {
@@ -130,7 +134,7 @@ export async function codegen(argv: IArgv) {
 		}).catch((err) => {
 			p.log.error('An error occurred while generating Automata');
 			if (err instanceof Error) p.log.error(err.message);
-			process.exit(1);
+			process.exit(EXIT_ERROR_CODE);
 		});
 
 		const disableFlagLines = DISABLE_FLAGS.join('\n');

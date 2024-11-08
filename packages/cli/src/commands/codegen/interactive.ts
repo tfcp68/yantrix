@@ -8,7 +8,7 @@ import c from 'ansis';
 import { isSymbol } from 'lodash-es';
 import { detectSync } from 'package-manager-detector';
 import { TLanguage } from '../../types/common';
-import { DISABLE_FLAGS, LANGUAGES } from '../../utils/constants';
+import { DISABLE_FLAGS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
 import { isGitClean, isJSON } from '../../utils/utils';
 
 export async function interactive() {
@@ -24,7 +24,7 @@ export async function interactive() {
 
 			if (!confirmed) {
 				p.cancel('Automata generation cancelled');
-				process.exit(0);
+				process.exit(EXIT_SUCCESS_CODE);
 			}
 
 			return confirmed;
@@ -37,24 +37,24 @@ export async function interactive() {
 
 			if (isSymbol(path)) {
 				p.cancel('Automata generation cancelled');
-				process.exit(0);
+				process.exit(EXIT_SUCCESS_CODE);
 			}
 
 			if (!path || path.trim() === '') {
 				p.cancel('Diagram file path cannot be empty!');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			if (!existsSync(resolve(path))) {
 				p.cancel('Provided diagram file path does not exist');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			const content = readFileSync(path, 'utf8');
 
 			if (content.length === 0) {
 				p.cancel('Diagram file is empty!');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			return content;
@@ -77,12 +77,12 @@ export async function interactive() {
 
 			if (isSymbol(path)) {
 				p.cancel('Automata generation cancelled');
-				process.exit(0);
+				process.exit(EXIT_SUCCESS_CODE);
 			}
 
 			if (!path || path.trim() === '') {
 				p.cancel('Output file path cannot be empty!');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			return resolve(path);
@@ -95,17 +95,17 @@ export async function interactive() {
 
 			if (isSymbol(cn)) {
 				p.cancel('Automata generation cancelled');
-				process.exit(0);
+				process.exit(EXIT_SUCCESS_CODE);
 			}
 
 			if (!cn || cn.trim() === '') {
 				p.cancel('Class name cannot be empty');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			if (!/[a-z_]\w*/i.test(cn)) {
 				p.cancel('Class name must satisfy regex /[a-z_]\\w*/i');
-				process.exit(1);
+				process.exit(EXIT_ERROR_CODE);
 			}
 
 			return cn;
@@ -138,7 +138,7 @@ export async function interactive() {
 
 				if (isSymbol(text)) {
 					p.cancel('Automata generation cancelled');
-					process.exit(0);
+					process.exit(EXIT_SUCCESS_CODE);
 				}
 
 				if (!text || text.trim() === '') {
@@ -158,7 +158,7 @@ export async function interactive() {
 
 				if (isSymbol(path)) {
 					p.cancel('Automata generation cancelled');
-					process.exit(0);
+					process.exit(EXIT_SUCCESS_CODE);
 				}
 
 				if (!path || path.trim() === '') {
@@ -167,24 +167,24 @@ export async function interactive() {
 
 				if (!existsSync(resolve(path))) {
 					p.cancel('Provided constants file path does not exist');
-					process.exit(1);
+					process.exit(EXIT_ERROR_CODE);
 				}
 
 				if (!path.endsWith('.json')) {
 					p.cancel('Path constants file must end with .json');
-					process.exit(1);
+					process.exit(EXIT_ERROR_CODE);
 				}
 
 				const content = readFileSync(path, 'utf8');
 
 				if (content.length === 0) {
 					p.cancel('Constants file is empty!');
-					process.exit(1);
+					process.exit(EXIT_ERROR_CODE);
 				}
 
 				if (!isJSON(content)) {
 					p.cancel('Invalid constants file provided');
-					process.exit(1);
+					process.exit(EXIT_ERROR_CODE);
 				}
 
 				return content;
@@ -206,7 +206,7 @@ export async function interactive() {
 		const msg1 = 'An error occurred while parsing given state diagram';
 		const msg2 = err instanceof Error ? `\n${err.message}` : '';
 		spinner.stop(c.red(`${msg1}${msg2}`));
-		process.exit(1);
+		process.exit(EXIT_ERROR_CODE);
 	});
 
 	spinner.message('Creating matrix from given state diagram...');
@@ -215,7 +215,7 @@ export async function interactive() {
 		const msg1 = 'An error occurred creating matrix from given state diagram';
 		const msg2 = err instanceof Error ? `\n${err.message}` : '';
 		spinner.stop(c.red(`${msg1}${msg2}`));
-		process.exit(1);
+		process.exit(EXIT_ERROR_CODE);
 	});
 
 	spinner.message('Generating Automata...');
@@ -228,7 +228,7 @@ export async function interactive() {
 		const msg1 = 'An error occurred while generating Automata';
 		const msg2 = err instanceof Error ? `\n${err.message}` : '';
 		spinner.stop(c.red(`${msg1}${msg2}`));
-		process.exit(1);
+		process.exit(EXIT_ERROR_CODE);
 	});
 
 	spinner.message(`Writing Automata to file ${results.outfile}...`);
@@ -243,7 +243,7 @@ export async function interactive() {
 		const msg1 = 'An error occurred while writing Automata to file';
 		const msg2 = err instanceof Error ? `\n${err.message}` : '';
 		spinner.stop(c.red(`${msg1}${msg2}`));
-		process.exit(1);
+		process.exit(EXIT_ERROR_CODE);
 	}
 
 	if (results.language.includes('script')) {
@@ -262,8 +262,8 @@ export async function interactive() {
 			const msg3 = '\n\nPlease install them yourself, otherwise Automata will not work at all';
 
 			spinner.stop(c.red(`${msg1}${msg2}${msg3}`), 1);
-			process.exit(1);
+			process.exit(EXIT_ERROR_CODE);
 		}
-		process.exit(0);
+		process.exit(EXIT_SUCCESS_CODE);
 	}
 }
