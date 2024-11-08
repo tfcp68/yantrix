@@ -80,33 +80,34 @@ export async function codegen(argv: IArgv) {
 				p.log.error('Invalid characters in class name specified.');
 				return process.exit(EXIT_ERROR_CODE);
 			}
-		}
+			default: {
+				if (isProvided(argv.constantFile)) {
+					if (isProvided(argv.constants) && argv.verbose) {
+						p.log.warn('Ignoring "constants" flag because "constants-file" flag is set.');
+					}
 
-		if (isProvided(argv.constantFile)) {
-			if (isProvided(argv.constants) && argv.verbose) {
-				p.log.warn('Ignoring "constants" flag because "constants-file" flag is set.');
-			}
+					const filePath = path.resolve(argv.constantFile);
+					if (!fs.existsSync(filePath)) {
+						p.log.error('Provided constants file path does not exist');
+						return process.exit(EXIT_ERROR_CODE);
+					}
 
-			const filePath = path.resolve(argv.constantFile);
-			if (!fs.existsSync(filePath)) {
-				p.log.error('Provided constants file path does not exist');
-				process.exit(EXIT_ERROR_CODE);
-			}
+					if (argv.verbose) p.log.warn(`Reading constants from ${filePath}...`);
+					try {
+						constants = fs.readFileSync(filePath, 'utf-8');
+					} catch (err) {
+						if (err instanceof Error) p.log.error(err.message);
+						return process.exit(EXIT_ERROR_CODE);
+					}
+				} else if (isProvided(argv.constants)) {
+					if (!isJSON(argv.constants)) {
+						p.log.error('Constants must be a valid JSON string.');
+						return process.exit(EXIT_ERROR_CODE);
+					}
 
-			if (argv.verbose) p.log.warn(`Reading constants from ${filePath}...`);
-			try {
-				constants = fs.readFileSync(filePath, 'utf-8');
-			} catch (err) {
-				if (err instanceof Error) p.log.error(err.message);
-				process.exit(EXIT_ERROR_CODE);
+					constants = argv.constants;
+				}
 			}
-		} else if (isProvided(argv.constants)) {
-			if (!isJSON(argv.constants)) {
-				p.log.error('Constants must be a valid JSON string.');
-				process.exit(EXIT_ERROR_CODE);
-			}
-
-			constants = argv.constants;
 		}
 
 		if (argv.verbose) p.log.warn(`Parsing given state diagram:\n${diagramText}`);
