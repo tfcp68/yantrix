@@ -1,20 +1,20 @@
 import { TCreateMiddleware } from './types';
 
 /**
- * Создает middleware для интеграции конечного автомата (FSM) с Redux.
- * Middleware преобразует действия Redux в payload для FSM и возвращает действия обратно в Redux из контекста FSM.
+ * Creates middleware for integrating a finite state machine (FSM) with Redux.
+ * The middleware transforms Redux actions into payloads for the FSM and returns actions back to Redux from the FSM context.
  *
- * @template ActionType - Тип действия Redux, который должен расширять PayloadAction.
- * @template AutomataType - Тип конструктора конечного автомата (FSM).
- * @template StoreType - Тип хранилища Redux (по умолчанию любой).
+ * @template ActionType - The type of Redux action, which should extend PayloadAction.
+ * @template AutomataType - The type of FSM constructor.
+ * @template StoreType - The Redux store type (defaults to any).
  *
- * @param {AutomataType} FSM - Конструктор конечного автомата (FSM), который будет использоваться в middleware.
- * @param {(action: ActionType) => TInferAutomataPayload<AutomataType>} mapActionToFSMPayload - Функция, которая преобразует действие Redux в payload для FSM.
- * Она принимает действие Redux и возвращает объект с типами `{ action, payload }` или `null`, если действие не должно быть обработано FSM.
- * @param {(context: TInferAutomataContext<AutomataType>) => ActionType} mapContextToAction - Функция, которая преобразует контекст FSM обратно в действие Redux.
- * Она принимает контекст FSM и возвращает действие Redux, которое будет диспатчено в Redux хранилище.
+ * @param {AutomataType} FSM - The FSM constructor to be used in the middleware.
+ * @param {(action: ActionType) => TInferAutomataPayload<AutomataType>} mapActionToFSMPayload - Function that transforms a Redux action into an FSM payload.
+ * It takes a Redux action and returns an object of the form `{ action, payload }` or `null` if the action should not be processed by the FSM.
+ * @param {(context: TInferAutomataContext<AutomataType>) => ActionType} mapContextToAction - Function that transforms the FSM context back into a Redux action.
+ * It takes the FSM context and returns a Redux action, which will be dispatched to the Redux store.
  *
- * @returns {Middleware<ActionType, StoreType>} Функция middleware для Redux, которая может быть использована в процессе конфигурации хранилища.
+ * @returns {Middleware<ActionType, StoreType>} The Redux middleware function, which can be used in store configuration.
  *
  * @example
  * const middleware = createMiddleware(
@@ -26,6 +26,7 @@ import { TCreateMiddleware } from './types';
  *   })
  * );
  */
+
 export const createMiddleware: TCreateMiddleware = (FSM, mapActionToFSMPayload, mapContextToAction) => {
 	const fsmInstance = new FSM();
 	return () => next => (action) => {

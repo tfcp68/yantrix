@@ -3,52 +3,54 @@ import { isStaticMethodsAutomata } from '@yantrix/utils';
 import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice } from '../types';
 
 /**
- * Функция для создания обертки над redux slice.
- * Хранит в себе текущее состояни автомата, возвращает готовый слайс с редьюсерами,
- * которые соответствуют action's автомата
- * @template Actions Тип, представляющий возможные действия автомата (string | number | symbol).
- *  @template ContextReduxType Тип контекста, который сохраняется в redux.
- *  @template Automata Тип самого автомата, который должен реализовать TAutomata.
- *  @param {TCreateFSMSliceOptions<Automata, ContextReduxType>} options
- *  Опции для создания слайса:
+ * Function for creating a wrapper around a Redux slice.
+ * Stores the current state of the FSM and returns a ready-to-use slice with reducers
+ * that correspond to the FSM's actions.
  *
- *  @param {TClassConstructor<Automata>} options.Fsm
- *  Класс автомата, который используется для инициализации FSM и определения его действий и состояний.
+ * @template Actions Type representing possible FSM actions (string | number | symbol).
+ * @template ContextReduxType Type of the context stored in Redux.
+ * @template Automata Type of the FSM, which should implement TAutomata.
+ * @param {TCreateFSMSliceOptions<Automata, ContextReduxType>} options
+ * Options for creating the slice:
  *
- *  @param {string} options.name
- *  Имя создаваемого слайса, используемое в redux store.
+ * @param {TClassConstructor<Automata>} options.Fsm
+ * The FSM class used to initialize the FSM and define its actions and states.
  *
- *  @param {string} [options.reducerPath]
- *  Путь для редьюсера, который может использоваться для размещения редьюсера в иерархии состояний.
+ * @param {string} options.name
+ * The name of the slice to be created, used in the Redux store.
  *
- *  @param {(context: ContextType) => StateType} [options.contextToRedux]
- *  Функция, преобразующая контекст автомата в контекст Redux, чтобы синхронизировать данные между
- *  автоматом и redux store. Если не указана, контекст автомата будет использоваться без изменений.
+ * @param {string} [options.reducerPath]
+ * Path for the reducer, which can be used to place the reducer in a state hierarchy.
  *
- *  @param {SliceSelectors<TAutomataContext<ContextReduxType>>} [options.selectors]
- *  Набор селекторов для доступа к данным слайса из состояния Redux.
- *  @returns {ReturnType<typeof createSlice>}
- * Созданный redux slice, содержащий редьюсеры, соответствующие действиям автомата, и селекторы.
- *  @example
- *  // Пример использования с автоматом TrafficLightAutomata:
- *  const trafficLightSlice = createFSMSlice({
- *  Fsm: TrafficLightAutomata,
- *  name: 'trafficLight',
- *  contextToRedux: (context) => ({ color: context.state, count: context.counter }),
- *  selectors: {
- *  selectColor: (state) => state.trafficLight.color,
- *  selectCounter: (state) => state.trafficLight.counter,
- *  },
- *  });
+ * @param {(context: ContextType) => StateType} [options.contextToRedux]
+ * Function that transforms the FSM context into the Redux context to synchronize data between
+ * the FSM and the Redux store. If not specified, the FSM context will be used as is.
  *
- *  // Доступ к действиям автомата через dispatch:
- *  dispatch(trafficLightSlice.actions.Switch({}));
+ * @param {SliceSelectors<TAutomataContext<ContextReduxType>>} [options.selectors]
+ * Set of selectors for accessing slice data from the Redux state.
  *
- *  @description
- *  Функция оборачивает автомат в redux slice, сохраняя текущее состояние автомата и контекст.
- *  Каждое действие автомата автоматически вызывает соответствующий редьюсер в созданном слайсе.
- *  Такой подход обеспечивает декомпозицию и автоматизацию логики конечного автомата
- *  в структуре redux store.
+ * @returns {ReturnType<typeof createSlice>}
+ * Created Redux slice containing reducers that correspond to the FSM's actions and selectors.
+ *
+ * @example
+ * // Example usage with the TrafficLightAutomata FSM:
+ * const trafficLightSlice = createFSMSlice({
+ *   Fsm: TrafficLightAutomata,
+ *   name: 'trafficLight',
+ *   contextToRedux: (context) => ({ color: context.state, count: context.counter }),
+ *   selectors: {
+ *     selectColor: (state) => state.trafficLight.color,
+ *     selectCounter: (state) => state.trafficLight.counter,
+ *   },
+ * });
+ *
+ * // Access FSM actions via dispatch:
+ * dispatch(trafficLightSlice.actions.Switch({}));
+ *
+ * @description
+ * The function wraps the FSM into a Redux slice, storing the current state of the FSM and its context.
+ * Each FSM action automatically calls the corresponding reducer in the created slice.
+ * This approach ensures decomposition and automation of FSM logic within the Redux store structure.
  */
 export function createFSMSlice<Actions extends string
 	| number
