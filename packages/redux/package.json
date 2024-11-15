@@ -42,12 +42,9 @@
 	"dependencies": {
 		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
-		"@yantrix/functions": "workspace:^",
-		"@yantrix/utils": "workspace:^"
-	},
-	"devDependencies": {
 		"@yantrix/cli": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
-		"tsx": "^4.19.1"
+		"@yantrix/functions": "workspace:^",
+		"@yantrix/utils": "workspace:^"
 	}
 }

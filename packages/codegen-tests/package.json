@@ -63,11 +63,6 @@
 		"@yantrix/functions": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/utils": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
-		"fs-extra": "^11.2.0",
-		"tsup": "^1.0.0"
-	},
-	"devDependencies": {
-		"@types/fs-extra": "^11.0.4"
+		"@yantrix/yantrix-parser": "workspace:^"
 	}
 }

@@ -1,8 +1,8 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
-import fe from 'fs-extra';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -23,8 +23,10 @@ type TGenerateAutomataParams = {
 };
 
 export function saveFile(fileName: string, content: string, ext: string) {
-	fe.ensureDirSync(path.resolve(pathSave, `generated`));
-	fe.writeFileSync(path.resolve(pathSave, `generated/${fileName}_generated.${ext}`), content);
+	const dir = path.resolve(pathSave, `generated`);
+
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+	fs.writeFileSync(path.join(dir, `${fileName}_generated.${ext}`), content);
 }
 
 export async function generateAutomata(options: TGenerateAutomataParams) {

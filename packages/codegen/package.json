@@ -63,15 +63,7 @@
 		"@yantrix/functions": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/utils": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^",
-		"commander": "^12.1.0",
-		"fs-extra": "^11.2.0",
-		"picocolors": "^1.1.0"
-	},
-	"devDependencies": {
-		"@types/fs-extra": "^11.0.4",
-		"@yantrix/utils": "workspace:^",
-		"tsx": "^4.19.1"
+		"@yantrix/yantrix-parser": "workspace:^"
 	},
 	"publishConfig": {
 		"access": "public",
