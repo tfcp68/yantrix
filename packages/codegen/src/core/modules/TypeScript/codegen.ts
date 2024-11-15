@@ -1,4 +1,5 @@
 import { ICodegen, TGetCodeOptionsMap, TModuleParams } from '../../../types/common';
+import { getStatesByPass } from '../../shared';
 import { ModuleNames } from '../index';
 import { JavaScriptCodegen } from '../JavaScript';
 import { TypeScriptCompiler } from './TypescriptCompiler';
@@ -17,6 +18,9 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 				})}
 			${TypeScriptCompiler.dictionaries.serializer.getActionsMap({
 					actionDictionary: this.actionDictionary,
+				})}
+			${TypeScriptCompiler.dictionaries.serializer.getSerializedSetByPassed({
+					byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
 				})}
 			export type TActions${options.className} = keyof typeof actionsMap;
 			${TypeScriptCompiler.dictionaries.serializer.getStatesMap({

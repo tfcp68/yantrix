@@ -72,12 +72,15 @@ const reducer = {74979334: (prevContext, payload, functionDictionary) => {
 
 				return prevContext
 			}}
+const predicates = {}
 export const functionDictionary = new FunctionDictionary();
 functionDictionary.register(builtInFunctions);
 			const actionsMap = {
   "Reset (initialCounter=0)": "Reset (initialCounter=0)",
   "Switch": "Switch"
-} as const
+}
+			const byPassedStates = new Set([])
+			export type TActionsTrafficLightAutomata = keyof typeof actionsMap;
 			const statesMap = {
   "~~~START~~~": "~~~START~~~",
   "Off": "Off",
@@ -86,7 +89,6 @@ functionDictionary.register(builtInFunctions);
   "Green": "Green",
   "Yellow": "Yellow"
 } as const
-			export type TActionsTrafficLightAutomata = keyof typeof actionsMap;
 			const getDefaultContext = (prevContext, payload) => {
 				const ctx = {counter: (function(){
 						const boundValue = (function(){
@@ -118,76 +120,82 @@ functionDictionary.register(builtInFunctions);
 			}
 
 			const actionToStateFromStateDict = {74979334: {
-				  1011118777: {
-				  	state: 79183,
-				  },
-				},
+				1011118777: {
+					state: [79183]
+				}
+
+	},
 	79183: {
-				  1805606060: {
-				  	state: 82033,
-				  },
+				1011118777: {
+					state: [79183]
+				}
+			,
 
+				1805606060: {
+					state: [82033]
+				}
 
-				  1011118777: {
-				  	state: 79183,
-				  },
-				},
+	},
 	82033: {
-				  1805606060: {
-				  	state: 1051543483,
-				  },
+				1011118777: {
+					state: [79183]
+				}
+			,
 
+				1805606060: {
+					state: [1051543483]
+				}
 
-				  1011118777: {
-				  	state: 79183,
-				  },
-				},
+	},
 	1051543483: {
-				  1805606060: {
-				  	state: 69066467,
-				  },
+				1011118777: {
+					state: [79183]
+				}
+			,
 
+				1805606060: {
+					state: [69066467]
+				}
 
-				  1011118777: {
-				  	state: 79183,
-				  },
-				},
+	},
 	69066467: {
-				  1805606060: {
-				  	state: 1650372460,
-				  },
+				1011118777: {
+					state: [79183]
+				}
+			,
 
+				1805606060: {
+					state: [1650372460]
+				}
 
-				  1011118777: {
-				  	state: 79183,
-				  },
-				},
+	},
 	1650372460: {
-				  1805606060: {
-				  	state: 82033,
-				  },
+				1011118777: {
+					state: [79183]
+				}
+			,
 
+				1805606060: {
+					state: [82033]
+				}
 
-				  1011118777: {
-				  	state: 79183,
-				  },
-				},}
+	},}
 
 export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata';
+    static id = 'TrafficLightAutomata_1730553618974';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
     static hasState = (instance: TrafficLightAutomata, state: keyof typeof TrafficLightAutomata.states) => instance.state === TrafficLightAutomata.getState(state);
     static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
     static createAction = (action: keyof typeof actionsMap, payload:any) => {
-			const actionId = TrafficLightAutomata.getAction(action);
-			return {
-				action: actionId,
-				payload,
-			}
-		};
+		const actionId = TrafficLightAutomata.getAction(action);
+		return {
+			action: actionId,
+			payload,
+		}
+	};
 
     constructor() {
         super();
@@ -196,23 +204,51 @@ export class TrafficLightAutomata extends GenericAutomata {
             context:{"counter":null},
             rootReducer: ({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
+
 					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")
 					if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
-					const {state:newState} = actionToStateFromStateDict[state][action]
 
-					const contextWithInitial = getDefaultContext(context,payload)
 
-					const newContextFunc = reducer[newState]
+					const getNew = (action,state,context,payload) => {
+						const actionMove = actionToStateFromStateDict[state][action];
+						const newStateObject = { state: actionMove.state[0] }
+						const contextWithInitial = getDefaultContext(context,payload)
 
-					if(typeof newContextFunc !== 'function') {
-						throw new Error('Invalid newContextFunc')
+
+
+			if(actionMove.state.length > 1 && actionMove.predicate != null) {
+				// determine new state from predicate
+				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
+				if(resolvedPredicateValue == null) return { state, context };
+				newStateObject.state = resolvedPredicateValue;
+			}
+
+
+						const newState = newStateObject.state;
+						const newContextFunc = reducer[newState]
+
+						if(typeof newContextFunc !== 'function') {
+							throw new Error('Invalid newContextFunc')
+						}
+
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+
 					}
-					return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+
+					let localCtx = getNew(action,state,context,payload)
+
+					while(byPassedStates.has(localCtx.state)) {
+						localCtx = getNew(actionsDictionary['[-]'], localCtx.state, localCtx.context, {})
+					}
+
+					return localCtx
+
   				},
             stateValidator: ((s) => Object.values(statesDictionary).includes(s)) as TValidator<TAutomataBaseStateType>,
             actionValidator: ((a) => Object.values(actionsDictionary).includes(a)) as TValidator<TAutomataBaseActionType>,
             functionRegistry: functionDictionary,
         });
+
     }
 
     isKeyOf = ((key, obj) => key in obj) as (key: any, obj: object) => key is keyof typeof obj;
