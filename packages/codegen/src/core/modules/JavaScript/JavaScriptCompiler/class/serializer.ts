@@ -4,7 +4,6 @@ import { ByPassAction } from '../../../../../constants';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { replaceFileContents } from '../../../../../utils/utils';
 import { context } from '../context';
-import { events } from '../events';
 import { state } from '../state';
 
 export function getClassTemplate(props: {
@@ -57,7 +56,6 @@ export function getClassTemplate(props: {
 			'%ACTION_VALIDATOR%': props.classSerializer.getActionValidator().toString(),
 			'%FUNCTION_REGISTRY%': 'functionDictionary',
 			'%EVENT_DICTIONARY%': 'GlobalEventDictionary',
-			'%EVENT_BUS_REGISTER%': events.serializer.getEventBusSubscribesCode({ diagram, eventDictionary: props.eventDictionary }),
 			'%IS_KEY_OF%': props.classSerializer.getIsKeyOf().toString(),
 		},
 	);

@@ -3,6 +3,26 @@ import { TEventEmit, TEventSubscribe } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TStateIncludingNotes } from '../../../../../types/common';
 import { getActionPayload, getEventCode } from './functions';
 
+export function getEventEmitters(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	stateDictionary: BasicStateDictionary;
+	eventDictionary: BasicEventDictionary;
+	expressions: TExpressionRecord;
+}) {
+	const { diagram } = props;
+	return diagram.states.map(state => stateToEventEmitter(state, props)).join('\n');
+}
+
+export function getEventListeners(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
+	expressions: TExpressionRecord;
+}) {
+	const { diagram } = props;
+	return diagram.states.map(state => stateToEventListeners(state, props)).join('\n');
+}
+
 export function stateToEventEmitter(state: TStateIncludingNotes, props: {
 	stateDictionary: BasicStateDictionary;
 	eventDictionary: BasicEventDictionary;
@@ -30,12 +50,6 @@ export function stateToEventListeners(state: TStateIncludingNotes, props: {
 	return state.notes?.subscribe?.map(event => eventToEventListener(event, props)) ?? '';
 }
 
-export function stateToEventBusSubscribes(state: TStateIncludingNotes, props: {
-	eventDictionary: BasicEventDictionary;
-}) {
-	return state.notes?.subscribe?.map(event => eventToEventBusSubscribe(event, props)) ?? '';
-}
-
 function eventToEventListener(event: TEventSubscribe, props: {
 	actionDictionary: BasicActionDictionary;
 	eventDictionary: BasicEventDictionary;
@@ -50,25 +64,6 @@ function eventToEventListener(event: TEventSubscribe, props: {
     )`;
 }
 
-function eventToEventBusSubscribe(event: TEventSubscribe, props: {
-	eventDictionary: BasicEventDictionary;
-}) {
-	const { eventDictionary } = props;
-	const eventId = eventDictionary.getEventValues({ keys: [event.identifier] })[0];
-	return `EventBus.subscribe(${eventId}, ({ event, meta }) => {
-        const newActions = this.eventAdapter?.handleEvent({ event, meta }) ?? [];
-        for(const action of newActions) {
-            this.dispatch(action);
-        }
-        return {
-            event,
-            meta,
-            task_id: 'event_id${eventId}',
-            result: EventBus.getEventStack()
-        }
-    })`;
-}
-
 function getEventEmitterHandler(props: {
 	events: TEventEmit[];
 	eventDictionary: BasicEventDictionary;
@@ -80,9 +75,7 @@ function getEventEmitterHandler(props: {
 			${events.map(e => getEventCode(e, eventDictionary, expressions)).join(',\n')}
 		];
 		
-		EventBus.dispatch(...eventsToEmit);
-
-		return eventsToEmit[0];
+		return eventsToEmit;
 	}`;
 }
 

@@ -32,7 +32,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			'FunctionDictionary',
 			'EventDictionary as GlobalEventDictionary',
 			'AutomataEventAdapter',
-			'EventBus',
+			'BasicEventBus',
 		],
 		'@yantrix/functions': ['builtInFunctions'],
 	};
@@ -93,6 +93,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			${JavaScriptCompiler.imports.serializer.getImportsCode(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
 			${JavaScriptCompiler.events.serializer.getEventAdapterCode(props)}
+			${JavaScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}
 			${JavaScriptCompiler.dictionaries.serializer.getActionsMap(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getStatesMap(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
