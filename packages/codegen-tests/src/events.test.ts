@@ -9,7 +9,7 @@ import { generateAndSave } from './fixtures/utils';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
 
-describe.skip('automata Events', () => {
+describe('automata Events', () => {
 	describe('event Adapter', async () => {
 		await generateAndSave({ input: templates.defaultTemplate, automataName: 'EventAdapterAutomata', lang: ModuleNames.JavaScript }, `event_adapter`);
 		const { EventAdapterAutomata } = await import(
@@ -94,9 +94,36 @@ describe.skip('automata Events', () => {
 	});
 
 	describe('event interactions', () => {
-		it('events from automatas can be listened to by subscriber automata', async () => {
+		it('automata can listen to events dispatched by event bus', async () => {
+			await generateAndSave({ input: templates.basicSubscribe, automataName: 'BasicSubscribeAutomata', lang: ModuleNames.JavaScript }, `event_basicSubscribe`);
+			const { BasicSubscribeAutomata, createEventBus, statesDictionary, eventDictionary } = await import(
+				getGeneratedFixturePath('event_basicSubscribe_generated.js')
+			);
+			const [EventBus, automatas] = createEventBus('test', {
+				subscribe: BasicSubscribeAutomata,
+			});
+
+			const subscribeAutomata = automatas.subscribe;
+
+			expect(subscribeAutomata).toBeDefined();
+			expect(EventBus).toBeDefined();
+
+			const listenerSpy = vi.spyOn(subscribeAutomata.eventAdapter, 'handleEvent');
+
+			expect(subscribeAutomata.state).toBe(statesDictionary.INIT);
+
+			EventBus.dispatch({
+				event: eventDictionary.specialEvent,
+				meta: {},
+			});
+
+			expect(subscribeAutomata.state).toBe(statesDictionary.EVENT_RECEIVED);
+
+			expect(listenerSpy).toHaveBeenCalled();
+		});
+		it('subscribe/emit in 1 automata', async () => {
 			await generateAndSave({ input: templates.selfSubscribeAndEmit, automataName: 'SelfAutomata', lang: ModuleNames.JavaScript }, `event_selfSubscribeEmit`);
-			const { SelfAutomata, createEventBus } = await import(
+			const { SelfAutomata, createEventBus, statesDictionary, eventDictionary } = await import(
 				getGeneratedFixturePath('event_selfSubscribeEmit_generated.js')
 			);
 
@@ -109,61 +136,46 @@ describe.skip('automata Events', () => {
 			expect(selfAutomata).toBeDefined();
 			expect(EventBus).toBeDefined();
 
-			console.log('automata: ', selfAutomata);
-			console.log('bus: ', EventBus);
-
-			// const spy = vi.spyOn(selfAutomata.eventAdapter, 'handleEvent');
-
-			// selfAutomata.dispatch({
-			// 	action: actionsDictionary.MOVE,
-			// 	payload: {},
-			// });
-
-			// expect(spy).toHaveBeenCalled();
-		});
-
-		it('basic subscribe & emit in 1 automata', async () => {
-			await generateAndSave({ input: templates.selfSubscribeAndEmit, automataName: 'SelfAutomata', lang: ModuleNames.JavaScript }, `event_selfSubscribeEmit`);
-			const { SelfAutomata, statesDictionary, actionsDictionary } = await import(
-				getGeneratedFixturePath('event_selfSubscribeEmit_generated.js')
-			);
-			const selfAutomata = new SelfAutomata();
-
 			const listenerSpy = vi.spyOn(selfAutomata.eventAdapter, 'handleEvent');
 
 			expect(selfAutomata.state).toBe(statesDictionary.INIT);
 
-			selfAutomata.dispatch({
-				action: actionsDictionary.MOVE,
-				payload: {},
+			EventBus.dispatch({
+				event: eventDictionary.eventFromBus,
+				meta: {},
 			});
 
-			expect(selfAutomata.state).toBe(statesDictionary.EVENT_RECEIVED);
+			expect(selfAutomata.state).toBe(statesDictionary.STATE_AFTER_EMIT_TRIGGER);
 
-			expect(listenerSpy).toHaveBeenCalled();
+			expect(listenerSpy).toHaveBeenCalledTimes(2);
 		});
 
 		it('state of automata#1 changes after emit from automata#2', async () => {
 			await generateAndSave({ input: templates.basicSubscribe, automataName: 'BasicSubscribeAutomata', lang: ModuleNames.JavaScript }, `event_basicSubscribe`);
 			await generateAndSave({ input: templates.basicEmit, automataName: 'BasicEmitAutomata', lang: ModuleNames.JavaScript }, `event_basicEmit`);
-			const { BasicSubscribeAutomata, statesDictionary: subscribeStates } = await import(
+			const { BasicSubscribeAutomata, createEventBus, statesDictionary: subscribeStates } = await import(
 				getGeneratedFixturePath('event_basicSubscribe_generated.js')
 			);
-			const { BasicEmitAutomata, statesDictionary: emitStates, actionsDictionary: emitActions } = await import(
+			const { BasicEmitAutomata, statesDictionary: emitStates, eventDictionary } = await import(
 				getGeneratedFixturePath('event_basicEmit_generated.js')
 			);
 
-			const automataSubscriber = new BasicSubscribeAutomata();
-			const automataEmitter = new BasicEmitAutomata();
+			const [EventBus, automatas] = createEventBus('test', {
+				subscribe: BasicSubscribeAutomata,
+				emit: BasicEmitAutomata,
+			});
+
+			const automataSubscriber = automatas.subscribe;
+			const automataEmitter = automatas.emit;
 
 			const spy = vi.spyOn(automataSubscriber, 'dispatch');
 
 			expect(automataSubscriber.state).toBe(subscribeStates.INIT);
 			expect(automataEmitter.state).toBe(emitStates.INIT);
 
-			automataEmitter.dispatch({
-				action: emitActions.MOVE,
-				payload: {},
+			EventBus.dispatch({
+				event: eventDictionary.eventFromBus,
+				meta: {},
 			});
 
 			expect(automataEmitter.state).toBe(emitStates.EMIT_TRIGGER);
@@ -175,24 +187,29 @@ describe.skip('automata Events', () => {
 		it('state of automata#1 does not change on emitting wrong events from automata#2', async () => {
 			await generateAndSave({ input: templates.basicSubscribe, automataName: 'BasicSubscribeAutomata', lang: ModuleNames.JavaScript }, `event_basicSubscribe`);
 			await generateAndSave({ input: templates.wrongEventEmit, automataName: 'WrongEventEmitAutomata', lang: ModuleNames.JavaScript }, `event_wrongEventEmit`);
-			const { BasicSubscribeAutomata, statesDictionary: subscribeStates } = await import(
+			const { BasicSubscribeAutomata, createEventBus, statesDictionary: subscribeStates } = await import(
 				getGeneratedFixturePath('event_basicSubscribe_generated.js')
 			);
-			const { WrongEventEmitAutomata, statesDictionary: emitStates, actionsDictionary: emitActions } = await import(
+			const { WrongEventEmitAutomata, statesDictionary: emitStates, eventDictionary } = await import(
 				getGeneratedFixturePath('event_wrongEventEmit_generated.js')
 			);
 
-			const automataSubscriber = new BasicSubscribeAutomata();
-			const automataEmitter = new WrongEventEmitAutomata();
+			const [EventBus, automatas] = createEventBus('test', {
+				subscribe: BasicSubscribeAutomata,
+				emit: WrongEventEmitAutomata,
+			});
+
+			const automataSubscriber = automatas.subscribe;
+			const automataEmitter = automatas.emit;
 
 			const spy = vi.spyOn(automataSubscriber, 'dispatch');
 
 			expect(automataSubscriber.state).toBe(subscribeStates.INIT);
 			expect(automataEmitter.state).toBe(emitStates.INIT);
 
-			automataEmitter.dispatch({
-				action: emitActions.MOVE,
-				payload: {},
+			EventBus.dispatch({
+				event: eventDictionary.eventFromBus,
+				meta: {},
 			});
 
 			expect(automataEmitter.state).toBe(emitStates.EMIT_TRIGGER);
@@ -204,15 +221,20 @@ describe.skip('automata Events', () => {
 		it('action payload can be filled from incoming event meta information', async () => {
 			await generateAndSave({ input: templates.subscribeWithMeta, automataName: 'SubscribeWithMetaAutomata', lang: ModuleNames.JavaScript }, `event_subscribeWithMeta`);
 			await generateAndSave({ input: templates.emitWithMeta, automataName: 'EmitWithMetaAutomata', lang: ModuleNames.JavaScript }, `event_emitWithMeta`);
-			const { SubscribeWithMetaAutomata, statesDictionary: subscribeStates } = await import(
+			const { SubscribeWithMetaAutomata, createEventBus, statesDictionary: subscribeStates } = await import(
 				getGeneratedFixturePath('event_subscribeWithMeta_generated.js')
 			);
-			const { EmitWithMetaAutomata, statesDictionary: emitStates, actionsDictionary: emitActions } = await import(
+			const { EmitWithMetaAutomata, statesDictionary: emitStates, eventDictionary } = await import(
 				getGeneratedFixturePath('event_emitWithMeta_generated.js')
 			);
 
-			const automataSubscriber = new SubscribeWithMetaAutomata();
-			const automataEmitter = new EmitWithMetaAutomata();
+			const [EventBus, automatas] = createEventBus('test', {
+				subscribe: SubscribeWithMetaAutomata,
+				emit: EmitWithMetaAutomata,
+			});
+
+			const automataSubscriber = automatas.subscribe;
+			const automataEmitter = automatas.emit;
 
 			const spy = vi.spyOn(automataSubscriber, 'dispatch');
 
@@ -224,9 +246,9 @@ describe.skip('automata Events', () => {
 			expect(subscriberContext.contextValue1).toBeUndefined();
 			expect(subscriberContext.contextValue2).toBeUndefined();
 
-			automataEmitter.dispatch({
-				action: emitActions.MOVE,
-				payload: {},
+			EventBus.dispatch({
+				event: eventDictionary.eventFromBus,
+				meta: {},
 			});
 
 			expect(spy).toHaveBeenCalled();
@@ -243,15 +265,20 @@ describe.skip('automata Events', () => {
 		it('event meta information can be filled from context of the automata', async () => {
 			await generateAndSave({ input: templates.subscribeWithMeta, automataName: 'SubscribeWithMetaAutomata', lang: ModuleNames.JavaScript }, `event_subscribeWithMeta`);
 			await generateAndSave({ input: templates.emitWithMetaFromContext, automataName: 'EmitWithMetaFromContextAutomata', lang: ModuleNames.JavaScript }, `event_emitWithMetaFromContext`);
-			const { SubscribeWithMetaAutomata, statesDictionary: subscribeStates } = await import(
+			const { SubscribeWithMetaAutomata, createEventBus, statesDictionary: subscribeStates } = await import(
 				getGeneratedFixturePath('event_subscribeWithMeta_generated.js')
 			);
-			const { EmitWithMetaFromContextAutomata, statesDictionary: emitStates, actionsDictionary: emitActions } = await import(
+			const { EmitWithMetaFromContextAutomata, statesDictionary: emitStates, actionsDictionary: emitActions, eventDictionary } = await import(
 				getGeneratedFixturePath('event_emitWithMetaFromContext_generated.js')
 			);
 
-			const automataSubscriber = new SubscribeWithMetaAutomata();
-			const automataEmitter = new EmitWithMetaFromContextAutomata();
+			const [EventBus, automatas] = createEventBus('test', {
+				subscribe: SubscribeWithMetaAutomata,
+				emit: EmitWithMetaFromContextAutomata,
+			});
+
+			const automataSubscriber = automatas.subscribe;
+			const automataEmitter = automatas.emit;
 
 			const spy = vi.spyOn(automataSubscriber, 'dispatch');
 
@@ -271,9 +298,9 @@ describe.skip('automata Events', () => {
 			expect(subscriberContext.contextValue1).toBeUndefined();
 			expect(subscriberContext.contextValue2).toBeUndefined();
 
-			automataEmitter.dispatch({
-				action: emitActions.MOVE,
-				payload: {},
+			EventBus.dispatch({
+				event: eventDictionary.eventFromBus,
+				meta: {},
 			});
 
 			expect(automataEmitter.state).toBe(emitStates.EMIT_TRIGGER);

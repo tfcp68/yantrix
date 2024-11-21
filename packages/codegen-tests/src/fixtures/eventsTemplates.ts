@@ -50,11 +50,11 @@ const basicSubscribe = `
 stateDiagram-v2
 direction TB
 [*] --> INIT
-INIT --> EVENT_RECEIVED: MOVE
+INIT --> EVENT_RECEIVED: RESPOND_TO_EVENT
 EVENT_RECEIVED --> END: END_ACTION
 note right of INIT
 +Init
-subscribe/specialEvent MOVE
+subscribe/specialEvent RESPOND_TO_EVENT
 end note
 `;
 
@@ -62,10 +62,11 @@ const basicEmit = `
 stateDiagram-v2
 direction TB
 [*] --> INIT
-INIT --> EMIT_TRIGGER: MOVE
+INIT --> EMIT_TRIGGER: RESPOND_TO_EVENT
 EMIT_TRIGGER --> END: END_ACTION
 note right of INIT
 +Init
+subscribe/eventFromBus RESPOND_TO_EVENT
 end note
 note right of EMIT_TRIGGER
 emit/specialEvent
@@ -76,10 +77,11 @@ const emitWithMeta = `
 stateDiagram-v2
 direction TB
 [*] --> INIT: RESET
-INIT --> EMIT_TRIGGER: MOVE
+INIT --> EMIT_TRIGGER: RESPOND_TO_EVENT
 EMIT_TRIGGER --> END: END_ACTION
 note right of INIT
 +Init
+subscribe/eventFromBus RESPOND_TO_EVENT
 end note
 note right of EMIT_TRIGGER
 emit/specialEvent ($meta1=10, $meta2='string')
@@ -105,10 +107,11 @@ const emitWithMetaFromContext = `
 stateDiagram-v2
 direction TB
 [*] --> INIT: RESET
-INIT --> EMIT_TRIGGER: MOVE
+INIT --> EMIT_TRIGGER: RESPOND_TO_EVENT
 EMIT_TRIGGER --> END: END_ACTION
 note right of INIT
 +Init
+subscribe/eventFromBus RESPOND_TO_EVENT
 #{contextValue1=10, contextValue2='string'}
 end note
 note right of EMIT_TRIGGER
@@ -135,10 +138,11 @@ const wrongEventEmit = `
 stateDiagram-v2
 direction TB
 [*] --> INIT
-INIT --> EMIT_TRIGGER: MOVE
+INIT --> EMIT_TRIGGER: RESPOND_TO_EVENT
 EMIT_TRIGGER --> END: END_ACTION
 note right of INIT
 +Init
+subscribe/eventFromBus RESPOND_TO_EVENT
 end note
 note right of EMIT_TRIGGER
 emit/newEvent
@@ -149,15 +153,16 @@ const selfSubscribeAndEmit = `
 stateDiagram-v2
 direction TB
 [*] --> INIT
-INIT --> EMIT_TRIGGER: MOVE
-EMIT_TRIGGER --> EVENT_RECEIVED: RESPOND_TO_EVENT
-EVENT_RECEIVED --> END: END_ACTION
+INIT --> EMIT_TRIGGER: RESPOND_TO_EVENT
+EMIT_TRIGGER --> STATE_AFTER_EMIT_TRIGGER: RESPOND_TO_EVENT
+STATE_AFTER_EMIT_TRIGGER --> END: END_ACTION
 note right of INIT
 +Init
-subscribe/specialEvent RESPOND_TO_EVENT
+subscribe/eventFromBus RESPOND_TO_EVENT
+subscribe/eventFromSelf RESPOND_TO_EVENT
 end note
 note right of EMIT_TRIGGER
-emit/specialEvent ($meta1=10, $meta2='string')
+emit/eventFromSelf ($meta1=10, $meta2='string')
 end note
 `;
 
