@@ -27,7 +27,6 @@ describe('createFSMSlice test', () => {
 	it('validate state', () => {
 		const { validateState } = new TrafficLightAutomata();
 		const currState = store.getState()[TrafficLightAutomata.id]?.state;
-
 		expect(validateState(currState)).toBeTruthy();
 	});
 });

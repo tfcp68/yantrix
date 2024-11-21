@@ -219,7 +219,7 @@ export const store = configureStore({
 				TrafficLight,
 				({ type, payload }) => (type !== 'yantrix/trafficLight')
 					? null
-					: TrafficLight.createAction('Switch'),
+					: TrafficLight.createAction('Switch', payload),
 				({ state, context }) => ({
 					type: 'changeTrafficLight', // assume this action is handled elsewhere in Redux
 					payload: { color: state, counter: context.counter }

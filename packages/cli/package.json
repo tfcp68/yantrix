@@ -28,12 +28,10 @@
 		"Miely Machine"
 	],
 	"bin": {
-		"yantrix": "dist/yantrix.js"
-	},
-	"directories": {
-		"bin": "bin"
+		"yantrix": "bin/index.js"
 	},
 	"files": [
+		"bin",
 		"dist"
 	],
 	"engines": {
@@ -45,16 +43,17 @@
 		"lint": "eslint ."
 	},
 	"dependencies": {
+		"@clack/prompts": "^0.7.0",
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
-		"commander": "^12.1.0",
-		"fs-extra": "^11.2.0",
-		"picocolors": "^1.1.0"
+		"ansis": "^3.3.2",
+		"package-manager-detector": "^0.2.2",
+		"restore-cursor": "^5.1.0",
+		"yargs": "^17.7.2"
 	},
 	"devDependencies": {
-		"@types/fs-extra": "^11.0.4",
-		"tsx": "^4.19.1"
+		"@types/yargs": "^17.0.33"
 	},
 	"publishConfig": {
 		"access": "public",

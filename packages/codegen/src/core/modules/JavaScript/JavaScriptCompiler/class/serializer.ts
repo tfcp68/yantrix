@@ -42,7 +42,7 @@ export function getClassTemplate(props: {
 
 		{
 			'%CLASSNAME%': props.className,
-			'%ID%': `'${props.className}'`,
+			'%ID%': `'${props.className}_${Date.now()}'`,
 			'%ACTIONS_MAP%': 'actionsMap',
 			'%STATES_MAP%': 'statesMap',
 			'%GET_STATE%': props.classSerializer.getGetStateFunc().toString(),
@@ -91,11 +91,11 @@ export function getActionValidator() {
 export function getRootReducer() {
 	return `({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
-					
+
 					${getRootReducerStateValidation()}
 					${getRootReducerActionValidation()}
-		
-							
+
+
 					const getNew = (action,state,context,payload) => {
 						const actionMove = actionToStateFromStateDict[state][action];
 						const newStateObject = { state: actionMove.state[0] }
@@ -113,16 +113,16 @@ export function getRootReducer() {
 
 						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
 
-					}		
+					}
 
-					let localCtx = getNew(action,state,context,payload) 
+					let localCtx = getNew(action,state,context,payload)
 
 					while(byPassedStates.has(localCtx.state)) {
 						localCtx = getNew(actionsDictionary['${ByPassAction}'], localCtx.state, localCtx.context, {})
 					}
 
-					return localCtx	
-	
+					return localCtx
+
   				}`;
 }
 
