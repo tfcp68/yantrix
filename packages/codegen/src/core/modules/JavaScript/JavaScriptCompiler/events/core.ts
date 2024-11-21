@@ -1,12 +1,9 @@
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TEventEmit, TEventSubscribe } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TStateIncludingNotes } from '../../../../../types/common';
 import { getActionPayload, getEventCode } from './functions';
 
 export function getEventEmitters(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
-	stateDictionary: BasicStateDictionary;
-	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
 	const { diagram } = props;
@@ -15,8 +12,6 @@ export function getEventEmitters(props: {
 
 export function getEventListeners(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
-	actionDictionary: BasicActionDictionary;
-	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
 	const { diagram } = props;
@@ -24,17 +19,14 @@ export function getEventListeners(props: {
 }
 
 export function stateToEventEmitter(state: TStateIncludingNotes, props: {
-	stateDictionary: BasicStateDictionary;
-	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
-	const { stateDictionary, eventDictionary, expressions } = props;
-	const stateId = stateDictionary.getStateValues({ keys: [state.id] })[0];
+	const { expressions } = props;
 	const emittedEvents = state.notes?.emit;
 	if (emittedEvents && emittedEvents.length > 0) {
 		return `eventAdapter.addEventEmitter(
-				${stateId}, 
-				${getEventEmitterHandler({ events: emittedEvents, eventDictionary, expressions })}
+				statesDictionary["${state.id}"], 
+				${getEventEmitterHandler({ events: emittedEvents, expressions })}
 			);`;
 	} else {
 		return '';
@@ -43,52 +35,44 @@ export function stateToEventEmitter(state: TStateIncludingNotes, props: {
 
 export function stateToEventListeners(state: TStateIncludingNotes, props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
-	actionDictionary: BasicActionDictionary;
-	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
-	return state.notes?.subscribe?.map(event => eventToEventListener(event, props)) ?? '';
+	return state.notes?.subscribe?.map(event => eventToEventListener(event, props)).join(';\n') ?? '';
 }
 
 function eventToEventListener(event: TEventSubscribe, props: {
-	actionDictionary: BasicActionDictionary;
-	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
-	const { eventDictionary, actionDictionary, expressions } = props;
-	const eventId = eventDictionary.getEventValues({ keys: [event.identifier] })[0];
-	const actionId = actionDictionary.getActionValues({ keys: [event.actionName] })[0];
+	const { expressions } = props;
 	return `eventAdapter.addEventListener(
-        ${eventId}, 
-        ${getEventListenerHandler({ event, actionId, expressions })}
+        eventDictionary["${event.identifier}"], 
+        ${getEventListenerHandler({ event, expressions })}
     )`;
 }
 
 function getEventEmitterHandler(props: {
 	events: TEventEmit[];
-	eventDictionary: BasicEventDictionary;
 	expressions: TExpressionRecord;
 }) {
-	const { events, eventDictionary, expressions } = props;
+	const { events, expressions } = props;
 	return `({ state, context }) => {
 		const eventsToEmit = [
-			${events.map(e => getEventCode(e, eventDictionary, expressions)).join(',\n')}
+			${events.map(e => getEventCode(e, expressions)).join(',\n')}
 		];
 		
-		return eventsToEmit;
+		return eventsToEmit[0];
 	}`;
 }
 
 function getEventListenerHandler(props: {
 	event: TEventSubscribe;
-	actionId: number | null | undefined;
 	expressions: TExpressionRecord;
 }) {
-	const { event, actionId, expressions } = props;
+	const { event, expressions } = props;
 	return `({ event, meta }) => {
 
 		return {
-			action: ${actionId},
+			action: actionsDictionary["${event.actionName}"],
 			payload: {
 				${getActionPayload({ event, expressions })}
 			}

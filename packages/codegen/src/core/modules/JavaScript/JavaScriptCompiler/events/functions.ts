@@ -1,9 +1,8 @@
-import { BasicEventDictionary } from '@yantrix/automata';
 import { ExpressionTypes, isEmitFull, isEmitWithMeta, isSubscribeWithMeta, isSubscribeWithPayload, TEventEmit, TEventSubscribe } from '@yantrix/yantrix-parser';
 import { TExpressionRecord } from '../../../../../types/common';
 import { context } from '../context';
 
-export function getEventCode(e: TEventEmit, eventDictionary: BasicEventDictionary, expressions: TExpressionRecord) {
+export function getEventCode(e: TEventEmit, expressions: TExpressionRecord) {
 	if (isEmitFull(e)) {
 		e.context = e.context.map(c => ({
 			keyItem: {
@@ -13,7 +12,7 @@ export function getEventCode(e: TEventEmit, eventDictionary: BasicEventDictionar
 		}));
 	}
 	return `{
-			event: ${eventDictionary.getEventValues({ keys: [e.identifier] })[0]},
+			event: eventDictionary["${e.identifier}"],
 			meta: {
 				${getEventMeta({ event: e, expressions })}
 			}
