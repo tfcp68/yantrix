@@ -1,9 +1,10 @@
 import { compareActionChains, isValidInternalId, isValidStateId } from '../utils/index.js';
 import { ChoiceCycleError } from './errors/stateDiagramErrors.js';
-import { TActionsStructure, TStateDiagramStructure } from './types/index.js';
+import { TActionsStructure, TActionWithParams, TStateDiagramStructure } from './types/index.js';
 
 import {
 	TActionChain,
+	TActionChainParams,
 	TActionPathArray,
 	TChoicesId,
 	TDiagramAction,
@@ -436,21 +437,31 @@ function checkValidStates(states: TDiagramStatesArray) {
 	this structure binds action paths with the exact state that the automata should transition to,
 	when every single segment in the chain resolves to TRUE
 */
-function createActionChainsFromTransitions(transitions: TDiagramTransitions): TDiagramActionChains {
+function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramStructure, transitions: TDiagramTransitions): TDiagramActionChains {
 	const chains: TDiagramActionChains = {};
 	for (const state in transitions) {
 		const stateTransitions = transitions[state]!;
-		const chain: Record<string, TActionChain[]> = {};
+		const chain: Record<string, TActionChainParams> = {};
 
 		for (const transition in stateTransitions) {
 			const actions: string[] | undefined = stateTransitions[transition]?.actionsPath[0]?.action;
 			if (actions) {
 				const actionName = actions[0]!;
+				const actionInStructure = stateDiagramStructure.actions.find(a => a.id === actionName) as TActionWithParams;
 				if (!chain[actionName]) {
-					chain[actionName] = [];
+					chain[actionName] = {
+						chains: [],
+						params: actionInStructure?.params || null,
+					};
 				}
-				chain[actionName].push({
-					chain: actions.slice(1),
+				chain[actionName].chains.push({
+					chain: actions.slice(1).map((actionId) => {
+						const actionInStructure = stateDiagramStructure.actions.find(a => a.id === actionId) as TActionWithParams;
+						if (actionInStructure && actionInStructure.predicate === true) {
+							return `${actionInStructure.id}(${actionInStructure.params})`;
+						}
+						return actionId;
+					}),
 					state: transition,
 				});
 			}
@@ -469,7 +480,7 @@ function checkActionChainsDefaultPathsAndSort(actionChains: TDiagramActionChains
 		const possibleActions = actionChains[state]!;
 		for (const action in possibleActions) {
 			const defaultPaths: any = {};
-			const chains = possibleActions[action]!;
+			const { chains } = possibleActions[action]!;
 			for (const { chain } of chains) {
 				for (let i = 0; i < chain.length; i++) {
 					const path = chain[i]!;
@@ -484,7 +495,7 @@ function checkActionChainsDefaultPathsAndSort(actionChains: TDiagramActionChains
 				}
 			}
 			const sortedChains = sortActionChains(chains);
-			actionChains[state]![action] = sortedChains;
+			actionChains[state]![action]!.chains = sortedChains;
 		}
 	}
 }
@@ -493,15 +504,32 @@ function sortActionChains(actionChains: TActionChain[]) {
 	return actionChains.sort((a, b) => compareActionChains(a.chain, b.chain));
 }
 
+function validateActions(stateDiagramStructure: TStateDiagramStructure) {
+	const actions = stateDiagramStructure.actions;
+	const map: Record<string, Set<string>> = {};
+	for (const action of actions) {
+		if (!map[action.from]) {
+			map[action.from] = new Set();
+		}
+
+		if (map[action.from]?.has(action.id)) {
+			throw new Error(`Duplicate action ${action.id} identified in state ${action.from}`);
+		} else {
+			map[action.from]?.add(action.id);
+		}
+	}
+}
+
 /**
  * @brief This function creates a state diagram;
  * @param stateDiagramStructure - state diagram structure;
  * @returns Returns a dictionary of state diagram.
  */
 export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagramMatrix> {
+	validateActions(stateDiagramStructure);
 	const transitions = getTransitions(stateDiagramStructure);
 	const states = getStates(stateDiagramStructure, transitions);
-	const actionChains = createActionChainsFromTransitions(transitions);
+	const actionChains = createActionChainsFromTransitions(stateDiagramStructure, transitions);
 	checkValidStates(states);
 	checkActionChainsDefaultPathsAndSort(actionChains);
 	return {

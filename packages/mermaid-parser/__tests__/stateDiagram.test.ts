@@ -5,6 +5,7 @@ import {
 	emptyStateDiagram,
 	invalidDiagram,
 	stateDiagramDoublePath,
+	stateDiagramDuplicateActions,
 	stateDiagramSimpleTransition,
 	stateDiagramSimpleTransitionCompleted,
 	stateDiagramSimpleTransitionWithComments,
@@ -43,6 +44,11 @@ describe('state Diagram Parser', () => {
 		it('invalidDiagram', async () => {
 			const diagramText = invalidDiagram;
 			await expect(parseStateDiagram(diagramText)).rejects.toThrowError();
+		});
+		it('duplicateActions', async () => {
+			const diagramText = stateDiagramDuplicateActions;
+			const parsedDiagram = await parseStateDiagram(diagramText);
+			await expect(createStateDiagram(parsedDiagram)).rejects.toThrowError();
 		});
 		it('emptyStateDiagram', async () => {
 			const diagramText = emptyStateDiagram;

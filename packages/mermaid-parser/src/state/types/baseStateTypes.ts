@@ -41,6 +41,12 @@ export type TAction = {
 	from: string;
 	to: string;
 };
+export type TActionParams = {
+	params: string | null;
+	predicate: boolean;
+	internal: boolean;
+} | null;
+export type TActionWithParams = TAction & TActionParams;
 
 /**
  * Array type for transitions action;

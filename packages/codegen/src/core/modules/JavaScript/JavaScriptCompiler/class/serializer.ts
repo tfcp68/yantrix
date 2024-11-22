@@ -1,7 +1,7 @@
-import { BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import { ByPassAction } from '../../../../../constants';
-import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
+import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { replaceFileContents } from '../../../../../utils/utils';
 import { context } from '../context';
 import { state } from '../state';
@@ -10,10 +10,15 @@ export function getClassTemplate(props: {
 	className: string;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
+	eventDictionary: BasicEventDictionary;
+	actionDictionary: BasicActionDictionary;
+	expressions: TExpressionRecord;
 	classSerializer: typeof classSerializer;
 }) {
+	const { diagram } = props;
+
 	const initialState = state.functions.getInitialState({
-		diagram: props.diagram,
+		diagram,
 	});
 
 	const stateValue = props.stateDictionary.getStateValues({ keys: [initialState] })[0];
@@ -23,11 +28,11 @@ export function getClassTemplate(props: {
 	}
 
 	const a = context.functions.getInitialContextShape({
-		diagram: props.diagram,
+		diagram,
 		stateName: StartState,
 	});
 	const b = context.functions.getInitialContextShape({
-		diagram: props.diagram,
+		diagram,
 		stateName: initialState,
 	});
 
@@ -47,9 +52,10 @@ export function getClassTemplate(props: {
 			'%STATE%': (stateValue ?? -1).toString(),
 			'%CONTEXT%': JSON.stringify(initialContext),
 			'%REDUCER%': props.classSerializer.getRootReducer().toString(),
-			'%S_VALIDATOR%': props.classSerializer.getStateValidator().toString(),
-			'%A_VALIDATOR%': props.classSerializer.getActionValidator().toString(),
-			'%F_REGISTRY%': 'functionDictionary',
+			'%STATE_VALIDATOR%': props.classSerializer.getStateValidator().toString(),
+			'%ACTION_VALIDATOR%': props.classSerializer.getActionValidator().toString(),
+			'%FUNCTION_REGISTRY%': 'functionDictionary',
+			'%EVENT_DICTIONARY%': 'GlobalEventDictionary',
 			'%IS_KEY_OF%': props.classSerializer.getIsKeyOf().toString(),
 		},
 	);

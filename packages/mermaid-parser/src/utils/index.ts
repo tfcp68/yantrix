@@ -2,6 +2,8 @@ import { EndState, StartState } from '../constants';
 
 const validStateRegex = /^[a-z][\w-]{0,254}$/i;
 const validFunctionRegex = /^[a-z]\w{0,254}\([\w, $#]+\)$/i;
+const actionParamsRegex = /\(([\w=, $#]+)\)/;
+const expressionValueRegex = /[$#]\w{0,254}(=\w+)?/;
 export function isValidStateId(state: string): boolean {
 	return state === StartState || state === EndState || validStateRegex.test(state);
 }
@@ -42,4 +44,28 @@ export function compareActionChains(a: string[], b: string[]) {
 	}
 
 	return 0; // If all elements are the same
+}
+
+export function extractActionId(str: string | undefined) {
+	if (!str) return '';
+	else return str.split('\(')[0]!.trim();
+}
+
+export function extractActionParams(str: string | undefined) {
+	if (!str) return null;
+
+	const match = str.match(actionParamsRegex);
+	if (match && match[1]) {
+		return match[1];
+	} else {
+		return null;
+	}
+}
+
+export function hasExpressionValues(str: string | undefined) {
+	if (!str) return false;
+
+	const match = str.match(expressionValueRegex);
+	if (match && match.length > 0) return true;
+	else return false;
 }

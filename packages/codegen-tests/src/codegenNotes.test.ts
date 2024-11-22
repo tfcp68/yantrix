@@ -113,7 +113,7 @@ describe('byPass state', () => {
 		const res = await import(`./fixtures/generated/byPassPayload_generated.js`);
 		const automata = new res.Test();
 
-		automata.dispatch({ action: res.actionsDictionary['toB(a)'], payload: { a: 300 } });
+		automata.dispatch({ action: res.actionsDictionary.toB, payload: { a: 300 } });
 
 		expect(automata.context).toStrictEqual({ a: 100 });
 	});

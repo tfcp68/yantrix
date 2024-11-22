@@ -127,8 +127,8 @@ export function createAutomata<
 					enabled = true,
 					rootReducer = null,
 					stateValidator,
-					eventValidator,
 					actionValidator,
+					eventValidator,
 					functionRegistry,
 				} = params;
 				if (rootReducer == null)
@@ -179,6 +179,10 @@ export function createAutomata<
 				} else if (this.isEnabled()) {
 					this.clearActionQueue();
 					this.setContext(reducedValue);
+
+					if (this.eventAdapter) {
+						this.eventAdapter.handleTransition(this.getContext());
+					}
 				}
 				return reducedValue;
 			}
@@ -291,6 +295,15 @@ export function createAutomata<
 
 			setFunctionRegistry: (registry: IAutomataFunctionRegistry | null) => this = (registry = null) => {
 				this.#functionRegistry = registry;
+				return this;
+			};
+
+			getEventAdapter(): IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null {
+				return this.eventAdapter;
+			}
+
+			setEventAdapter: (adapter: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null) => this = (adapter = null) => {
+				this.eventAdapter = adapter;
 				return this;
 			};
 		};

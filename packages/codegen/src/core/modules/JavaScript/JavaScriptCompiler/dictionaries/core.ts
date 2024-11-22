@@ -1,8 +1,6 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
-import { context } from '../context';
 import { expressions } from '../expressions';
-import { forks } from '../forks';
 import { imports, TDependencyGraph } from '../imports';
 import { TDictionaries } from './types';
 
@@ -19,6 +17,7 @@ export function setupDictionaries(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
 	expressionRecord: TExpressionRecord;
 }) {
 	let dictionaries: TDictionaries = [];
@@ -28,18 +27,16 @@ export function setupDictionaries(props: {
 	dictionaries.push(
 		`export const actionsDictionary = ${JSON.stringify(props.actionDictionary.getDictionary(), null, 2)}`,
 	);
-	dictionaries.push(`const reducer = {${context.contextSerializer.getStateToContext({
-		diagram: props.diagram,
-		stateDictionary: props.stateDictionary,
-		actionDictionary: props.actionDictionary,
-		expressions: props.expressionRecord,
-	}).join(',\n\t')}}`);
-	dictionaries.push(`const predicates = {${forks.serializer.createPredicates({
-		expressionRecord: props.expressionRecord,
-		actionDictionary: props.actionDictionary,
-		stateDictionary: props.stateDictionary,
-		diagram: props.diagram,
-	})}}`);
+	if (Object.keys(props.eventDictionary.getDictionary()).length > 0) {
+		dictionaries.push(
+			`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,
+		);
+		dictionaries.push(
+			`GlobalEventDictionary.addEvents({
+				keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null)
+			 });`,
+		);
+	}
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 	dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 	dictionaries.push();

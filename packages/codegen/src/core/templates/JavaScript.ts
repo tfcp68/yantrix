@@ -10,16 +10,15 @@ export class %CLASSNAME% extends GenericAutomata {
     static createAction = %CREATE_ACTION%;
 
     constructor() {
-        super();
+        super(eventAdapter);
         this.init({
             state: %STATE%,
             context:%CONTEXT%,
             rootReducer: %REDUCER%,
-            stateValidator: %S_VALIDATOR%,
-            actionValidator: %A_VALIDATOR%,
-            functionRegistry: %F_REGISTRY%,
+            stateValidator: %STATE_VALIDATOR%,
+            actionValidator: %ACTION_VALIDATOR%,
+            functionRegistry: %FUNCTION_REGISTRY%
         });
-
     }
 
     isKeyOf = %IS_KEY_OF%;

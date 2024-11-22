@@ -26,7 +26,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			${TypeScriptCompiler.dictionaries.serializer.getStatesMap({
 					stateDictionary: this.stateDictionary,
 				})}
-			${TypeScriptCompiler.context.contextSerializer.getDefaultContext({
+			${TypeScriptCompiler.context.serializer.getDefaultContext({
 					expressions: this.expressions,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
@@ -42,6 +42,9 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 					className: options.className,
 					diagram: this.diagram,
 					stateDictionary: this.stateDictionary,
+					actionDictionary: this.actionDictionary,
+					eventDictionary: this.eventDictionary,
+					expressions: this.expressions,
 				})}
 		`;
 	}

@@ -1,5 +1,5 @@
 import { ExpressionTypes } from '../index';
-import { TContextReducer } from '../types/statements';
+import { TContextReducer, TEmitFull, TEmitWithMeta, TSubscribeWithMeta, TSubscribeWithPayload } from '../types/statements';
 import { TExpression } from './expressions';
 import { TKeyItemReducer, TKeyItemWithExpression } from './keyItem';
 
@@ -29,4 +29,32 @@ export function isFunctionExpression(obj: any): obj is TExpression<'function'> {
 		&& obj.expressionType === ExpressionTypes.Function
 		&& obj.FunctionDeclaration != null
 		&& typeof obj.FunctionDeclaration === 'object';
+}
+
+export function isEmitWithMeta(obj: any): obj is TEmitWithMeta {
+	return obj != null
+		&& Object.keys(obj).includes('meta')
+		&& obj.meta != null;
+}
+
+export function isEmitFull(obj: any): obj is TEmitFull {
+	return obj != null
+		&& Object.keys(obj).includes('meta')
+		&& obj.meta != null
+		&& Object.keys(obj).includes('context')
+		&& obj.context != null;
+}
+
+export function isSubscribeWithPayload(obj: any): obj is TSubscribeWithPayload {
+	return obj != null
+		&& Object.keys(obj).includes('payload')
+		&& obj.payload != null;
+}
+
+export function isSubscribeWithMeta(obj: any): obj is TSubscribeWithMeta {
+	return obj != null
+		&& Object.keys(obj).includes('payload')
+		&& obj.payload != null
+		&& Object.keys(obj).includes('meta')
+		&& obj.meta != null;
 }

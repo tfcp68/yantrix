@@ -168,7 +168,7 @@ RAW_KEYLIST
 
 RAW_KEYITEM
         : IDENT {$$ = {keyItem:{identifier:$1}}}
-        | IDENT ASSIGN EXPRESSION {$$ = {keyItem:{identifier: $1, expression: $3}}};
+        | IDENT ASSIGN EXPRESSION {$$ = {keyItem:{identifier: $1,  expression: $3}}};
 
 FUNCTION
         : FUNCTION_NAME LEFT_BRACKET ARGUMENTS RIGHT_BRACKET

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { randomInteger } from '../../utils/src/fixtures';
 import templates from './fixtures/forksTemplates';
 import { generateAndSave } from './fixtures/utils';
@@ -10,16 +10,6 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
 
 describe('forks', () => {
-	beforeAll(async () => {
-		// Object.keys(templates).forEach(async templateName => {
-		//     const input = templates[templateName as keyof typeof templates];
-		//     await generateAndSave({ input, automataName: capitalize(templateName), lang: ModuleNames.JavaScript }, `fork_${templateName}`);
-		// })
-
-		// ???
-
-	});
-
 	describe('default', async () => {
 		await generateAndSave({ input: templates.defaultFork, automataName: 'DefaultFork', lang: ModuleNames.JavaScript }, `fork_defaultFork`);
 		const { DefaultFork, actionsDictionary, statesDictionary } = await import(
@@ -34,7 +24,7 @@ describe('forks', () => {
 			if (automata && actionsDictionary && statesDictionary) {
 				const queue = [
 					{
-						action: actionsDictionary['START (counter)'],
+						action: actionsDictionary.START,
 						payload: { counter: defaultCounterValue },
 					},
 
@@ -57,7 +47,7 @@ describe('forks', () => {
 		it('transition into END state if condition is TRUE', () => {
 			const value = randomInteger(defaultCounterValue + 1, 1000);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.END);
@@ -66,7 +56,7 @@ describe('forks', () => {
 		it('transition back into WORKING state if condition is FALSE', () => {
 			const value = randomInteger(0, defaultCounterValue);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.WORKING);
@@ -76,7 +66,7 @@ describe('forks', () => {
 			const value = randomInteger(0, defaultCounterValue);
 			const prev = automata.context.counter;
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 
@@ -99,7 +89,7 @@ describe('forks', () => {
 			if (automata && actionsDictionary && statesDictionary) {
 				const queue = [
 					{
-						action: actionsDictionary['START (counter)'],
+						action: actionsDictionary.START,
 						payload: { counter: defaultCounterValue },
 					},
 					{
@@ -125,7 +115,7 @@ describe('forks', () => {
 		it('transition into State1 state if isGreater is TRUE', () => {
 			const value = randomInteger(defaultCounterValue + 1, 1000);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.State1);
@@ -134,7 +124,7 @@ describe('forks', () => {
 		it('transition into State2 state if isZero is TRUE', () => {
 			const value = 0;
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.State2);
@@ -143,7 +133,7 @@ describe('forks', () => {
 		it('staying in WORKING state if no condition is TRUE', () => {
 			const value = randomInteger(-100, -1);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.WORKING);
@@ -154,7 +144,7 @@ describe('forks', () => {
 			const value = randomInteger(-100, -1);
 
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 
@@ -177,7 +167,7 @@ describe('forks', () => {
 			if (automata && actionsDictionary && statesDictionary) {
 				const queue = [
 					{
-						action: actionsDictionary['START (counter)'],
+						action: actionsDictionary.START,
 						payload: { counter: defaultCounterValue },
 					},
 
@@ -200,7 +190,7 @@ describe('forks', () => {
 		it('transition into State1 state if isGreater is TRUE', () => {
 			const value = randomInteger(defaultCounterValue + 1, 1000);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.State1);
@@ -209,7 +199,7 @@ describe('forks', () => {
 		it('transition into State2 state if isGreater is FALSE, and isPositive is TRUE', () => {
 			const value = randomInteger(1, defaultCounterValue - 1);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.State2);
@@ -218,7 +208,7 @@ describe('forks', () => {
 		it('transition back into WORKING state as a default path for the second fork, if isGreater and isPositive are FALSE', () => {
 			const value = randomInteger(-100, -1);
 			automata.dispatch({
-				action: actionsDictionary['REDUCE (value)'],
+				action: actionsDictionary.REDUCE,
 				payload: { value },
 			});
 			expect(automata.state).toBe(statesDictionary.WORKING);

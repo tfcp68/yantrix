@@ -1,4 +1,4 @@
-import { JavaScriptCompiler } from '../../JavaScript';
+import { JavaScriptCompiler } from '../../JavaScript/JavaScriptCompiler';
 import { classModule } from './class';
 
 export const TypeScriptCompiler = {
