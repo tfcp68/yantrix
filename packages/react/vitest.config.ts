@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import { VitestMarkdownReporter } from 'vitest-markdown-reporter';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {

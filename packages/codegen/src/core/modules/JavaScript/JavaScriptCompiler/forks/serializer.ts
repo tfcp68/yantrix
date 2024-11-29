@@ -13,8 +13,8 @@ function getPredicatesCode(props: {
 	if (!entries || entries.length === 0) return '';
 	return `const predicates = {
 		${Object.entries(predicateObject)
-				.map(([stateId, predicates]) => `${stateId}: { ${getStatePredicateCode(predicates)} }`)
-				.join(',\n')}
+			.map(([stateId, predicates]) => `${stateId}: { ${getStatePredicateCode(predicates)} }`)
+			.join(',\n')}
 	}`;
 }
 

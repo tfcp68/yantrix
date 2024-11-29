@@ -195,11 +195,11 @@ function getStateToContext(props: {
 		return `${stateValue}: (prevContext, payload, functionDictionary) => {
 
 				return ${getContextTransition({
-		value: stateValue,
-		stateDictionary: props.stateDictionary,
-		diagram: props.diagram,
-		expressions: props.expressions,
-	})}
+					value: stateValue,
+					stateDictionary: props.stateDictionary,
+					diagram: props.diagram,
+					expressions: props.expressions,
+				})}
 			}`;
 	});
 }

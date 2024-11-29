@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "tsc -b && vite build",
 		"lint": "eslint .",
-		"format": "eslint --fix --format=pretty .",
+		"format": "eslint --fix .",
 		"preview": "vite preview",
 		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
 	},
