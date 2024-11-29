@@ -14,38 +14,38 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 		return `
 			${TypeScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
 			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode({
-					dictionaries: this.dictionaries,
-				})}
+				dictionaries: this.dictionaries,
+			})}
 			${TypeScriptCompiler.dictionaries.serializer.getActionsMap({
-					actionDictionary: this.actionDictionary,
-				})}
+				actionDictionary: this.actionDictionary,
+			})}
 			${TypeScriptCompiler.dictionaries.serializer.getSerializedSetByPassed({
-					byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
-				})}
+				byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
+			})}
 			export type TActions${options.className} = keyof typeof actionsMap;
 			${TypeScriptCompiler.dictionaries.serializer.getStatesMap({
-					stateDictionary: this.stateDictionary,
-				})}
+				stateDictionary: this.stateDictionary,
+			})}
 			${TypeScriptCompiler.context.serializer.getDefaultContext({
-					expressions: this.expressions,
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-				})}
+				expressions: this.expressions,
+				diagram: this.diagram,
+				stateDictionary: this.stateDictionary,
+			})}
 			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState({
-					dictionariesSerializer: TypeScriptCompiler.dictionaries.serializer,
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-					actionDictionary: this.actionDictionary,
-				})}
+				dictionariesSerializer: TypeScriptCompiler.dictionaries.serializer,
+				diagram: this.diagram,
+				stateDictionary: this.stateDictionary,
+				actionDictionary: this.actionDictionary,
+			})}
 			${TypeScriptCompiler.class.serializer.getClassTemplate({
-					classSerializer: TypeScriptCompiler.class.serializer,
-					className: options.className,
-					diagram: this.diagram,
-					stateDictionary: this.stateDictionary,
-					actionDictionary: this.actionDictionary,
-					eventDictionary: this.eventDictionary,
-					expressions: this.expressions,
-				})}
+				classSerializer: TypeScriptCompiler.class.serializer,
+				className: options.className,
+				diagram: this.diagram,
+				stateDictionary: this.stateDictionary,
+				actionDictionary: this.actionDictionary,
+				eventDictionary: this.eventDictionary,
+				expressions: this.expressions,
+			})}
 		`;
 	}
 }

@@ -162,9 +162,9 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 		this.dictionaries.push(`
 		public static final Map<String, TAutomataBaseState> statesDictionary = Map.of(
 		${Object
-				.entries(this.stateDictionary.getDictionary())
-				.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
-				.join(',\n')}
+			.entries(this.stateDictionary.getDictionary())
+			.map(([key, value]) => `"${key}", TAutomataBaseState.of(${value}L)`)
+			.join(',\n')}
 		);
 		`);
 
@@ -172,9 +172,9 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 		this.dictionaries.push(`
 		public static final Map<String, TAutomataBaseAction> actionsDictionary = Map.of(
 		${Object
-				.entries(this.actionDictionary.getDictionary())
-				.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
-				.join(',\n')}
+			.entries(this.actionDictionary.getDictionary())
+			.map(([key, value]) => `"${key}", TAutomataBaseAction.of(${value}L)`)
+			.join(',\n')}
 		);
 		`);
 	}
