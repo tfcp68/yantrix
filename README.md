@@ -13,7 +13,7 @@
 	<img src="https://img.shields.io/static/v1?label=opinionated&message=enough&color=success" alt="opinionated" />
 </p>
 
-<h2 align="center" id="about">🧭 About</h2>
+## 🧭 About
 
 Yantrix is a TypeScript framework that provides a set of tools to create robust and self-documented functional
 applications by code generation.
@@ -27,7 +27,7 @@ actual code.
 Lends itself perfectly to Architecture-as-Code paradigm and no-code/less-code
 tools for developers, like [n8n](https://github.com/n8n-io/n8n).
 
-<h2 align="center" id="idea">💡 The Idea</h2>
+## 💡 The Idea
 
 Consider the following:
 
@@ -44,7 +44,7 @@ To achieve those goals, Yantrix offers a visual language to describe data operat
 
 If you're not familiar with automata-based programming, please refer to [🧠Core Concepts](https://tfcp68.github.io/yantrix/concepts/)
 
-<h2 align="center" id="installation">📥 Installation</h2>
+## 📥 Installation
 
 To install Yantrix end-to-end command line tool, you can use one of the following methods:
 
@@ -63,7 +63,7 @@ $ npx nypm install @yantrix/cli
 ```
 > [!NOTE]
 > If your main language is TypeScript, you may prefer to install all available APIs or list only those you require
-> 
+>
 > ```bash
 > # Via NPM
 > $ npm install @yantrix/automata @yantrix/utils @yantrix/yantrix-parser
@@ -78,7 +78,7 @@ $ npx nypm install @yantrix/cli
 > $ npx nypm install @yantrix/automata @yantrix/utils @yantrix/yantrix-parser
 > ```
 
-<h2 align="center" id="usage">📖 Usage</h2>
+## 📖 Usage
 
 Basically, you turn diagrams into a code module in required language
 
@@ -92,12 +92,10 @@ $ yantrix codegen --eval "A-->B" --outfile ../yantrix-generated.ts --language Ty
 
 For detailed information, see the [documentation](https://tfcp68.github.io/yantrix)
 
+## 🌱 Contributing
 
+See [Contributing](https://tfcp68.github.io/yantrix/contributing/)
 
-<h2 align="center" id="contributing">🌱 Contributing</h2>
-
-See [Contributing](https://tfcp68.github.io/yantrixcontributing/)
-
-<h2 align="center" id="license">📜 License</h2>
+## 📜 License
 
 Made with 💜. Published under [MIT License](./LICENSE).

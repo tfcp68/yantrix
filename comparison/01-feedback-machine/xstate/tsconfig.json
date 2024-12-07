@@ -1,7 +1,27 @@
 {
-	"references": [
-		{ "path": "./tsconfig.app.json" },
-		{ "path": "./tsconfig.node.json" }
+	"$schema": "https://json.schemastore.org/tsconfig.json",
+	"extends": "../../../tsconfig.json",
+	"compilerOptions": {
+		"incremental": true,
+		"jsx": "preserve",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"]
+		},
+		"allowJs": true,
+		"noEmit": true,
+		"outDir": "dist",
+		"esModuleInterop": true,
+		"skipLibCheck": true
+	},
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"src/**/*.js",
+		"src/**/*.jsx",
+		"src/**/*.cjs",
+		"src/**/*.mjs"
 	],
-	"files": []
+	"exclude": ["node_modules"]
 }
