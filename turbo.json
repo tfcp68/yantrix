@@ -19,7 +19,7 @@
 		"test": {
 			"dependsOn": ["^build"],
 			"inputs": ["__tests__/**", "src/**", "package.json", "tsconfig.json"],
-			"outputs": ["coverage/**"],
+			"outputs": ["coverage/**", "../../test_reports/**"],
 			"outputLogs": "new-only"
 		},
 		"lint": {
