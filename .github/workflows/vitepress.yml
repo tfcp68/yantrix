@@ -24,14 +24,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Install Node.js v20
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js LTS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        uses: ./packages/scripts/actions/pnpmCache
+          node-version: lts/*
+          cache: pnpm
 
       - name: Build packages
         run: pnpm build

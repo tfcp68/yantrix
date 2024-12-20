@@ -16,20 +16,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v20
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js LTS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        uses: ./packages/scripts/actions/pnpmCache
-
-      - name: Build packages
-        run: pnpm build
+          node-version: lts/*
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
 
       - run: pnpx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages, examples and comparisons
+        run: pnpm build
 
       - name: Publish to NPM
         run: pnpm -r publish --access public --no-git-checks
