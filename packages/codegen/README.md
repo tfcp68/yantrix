@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="128" src="/docs/public/logo.png" />
+  <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
   <h1><code>@yantrix/codegen</code></h1>
   <p>Code generation engine for the Yantrix framework that transforms Mermaid state diagrams into type-safe automata implementations. Supports multiple target languages including TypeScript, JavaScript, Java and Python, with extensible architecture for adding new language targets.</p>
 </div>
