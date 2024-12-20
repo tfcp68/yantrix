@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="128" src="/docs/public/logo.png" />
+  <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
   <h1><code>Traffic Light Redux Example</code></h1>
   <p>A simple example showcasing the integration of the Yantrix framework with Redux, showcasing how to create a state machine, connect it to a Redux store, and handle events and state changes.</p>
 </div>

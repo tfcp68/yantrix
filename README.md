@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="128" src="/docs/public/logo.png" />
+  <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
   <h1>Yantrix</h1>
   <p>Opinionated FSM Framework</p>
 </div>

@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="128" src="/docs/public/logo.png" />
+  <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
   <h1><code>@yantrix/yantrix-parser</code></h1>
   <p>A specialized parser component for the Yantrix framework that handles parsing of custom syntax, function declarations, and state diagram annotations. It provides the core parsing capabilities needed to interpret Yantrix's domain-specific language and transform it into executable automata code.</p>
 </div>

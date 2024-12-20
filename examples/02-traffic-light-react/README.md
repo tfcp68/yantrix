@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="128" src="/docs/public/logo.png" />
+  <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
   <h1><code>Traffic Light React Example</code></h1>
   <p>A simple example showcasing the integration of the Yantrix framework with React, showcasing how to create a state machine, use it in a React component, and handle events and state changes.</p>
 </div>
