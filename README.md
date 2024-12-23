@@ -17,6 +17,10 @@ That allows devs to focus on describing contracts and workflows, rather than wri
 </p>
 </div>
 
+## ⚡ Quick Links
+- [Documentation](https://tfcp68.github.io/yantrix)
+- [Contributing](https://tfcp68.github.io/yantrix/contributing/)
+
 ## 💡 The Idea
 
 Consider the following:
