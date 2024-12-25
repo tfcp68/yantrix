@@ -3,7 +3,7 @@
 	"name": "@yantrix/react",
 	"type": "module",
 	"version": "0.1.0",
-	"description": "Integrating Yantrix with React",
+	"description": "React integration for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -24,7 +24,11 @@
 	"bugs": {
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
-	"keywords": [],
+	"keywords": [
+		"react",
+		"yantrix",
+		"fsm"
+	],
 	"exports": {
 		".": {
 			"import": {
