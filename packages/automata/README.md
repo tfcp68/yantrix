@@ -35,7 +35,7 @@ Then, see the docs:
 - [See sample Yantrix designs](https://tfcp68.github.io/yantrix/concepts/999_design_examples.html)
 - [See the API reference](https://tfcp68.github.io/yantrix/API/automata/interfaces/IAutomata.html)
 
-## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)  
+## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)
 ## 📜 License
 
 Made with 💜. Published under [MIT License](./LICENSE).
