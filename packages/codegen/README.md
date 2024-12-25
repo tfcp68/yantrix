@@ -28,6 +28,50 @@ $ npx nypm install @yantrix/codegen
 ```
 
 > We suggest using `pnpm`
+
+After installation, you can use `@yantrix/codegen` in your TypeScript/JavaScript project to generate automata from Mermaid state diagrams for your needs.
+
+```typescript
+import {
+	createStateDiagram,
+	generateAutomataFromStateDiagram,
+	parseStateDiagram
+} from '@yantrix/codegen';
+
+// Your Mermaid state diagram
+const mermaidDiagram = `
+stateDiagram-v2
+[*] --> Idle
+Idle --> Moving
+Moving --> Idle
+Moving --> Crashed
+Crashed --> Idle
+`;
+
+// Parse the diagram into a structured object
+const parsedDiagram = await parseStateDiagram(mermaidDiagram);
+
+// Create a state diagram matrix of states and transitions
+const matrix = await createStateDiagram(parsedDiagram);
+
+// Generate TypeScript code
+const generatedCode = await generateAutomataFromStateDiagram(matrix, {
+	language: 'TypeScript',
+	className: 'MovementAutomata'
+});
+
+// Write the code to a file
+writeFileSync('MovementAutomata.ts', generatedCode);
+```
+
+And finally, you can use the generated code in your project:
+
+```typescript
+import { MovementAutomata } from './MovementAutomata';
+```
+
+For more info, please refer to the [documentation](https://tfcp68.github.io/yantrix/integrations/150_JSAPI.html).
+
 ## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)
 ## 📜 License
 
