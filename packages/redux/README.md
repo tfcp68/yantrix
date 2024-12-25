@@ -4,10 +4,14 @@
 
 Redux integration for the [Yantrix](https://github.com/tfcp68/yantrix/) framework. This package provides various connectors to [`@yantrix/automata`](https://www.npmjs.com/package/@yantrix/automata) to connect new or existing Redux stores to FSM-based state management.
 
-<a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
+<p>
+	<a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
 	<a href="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml" target="_blank"><img src="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml/badge.svg" alt="ci"></a>
+	<a href="https://www.npmjs.com/package/@yantrix/redux"><img src="https://img.shields.io/npm/v/@yantrix/redux.svg?maxAge=3600" alt="npm version" /></a>
+	<a href="https://www.npmjs.com/package/@yantrix/redux"><img src="https://img.shields.io/npm/dt/@yantrix/redux.svg?maxAge=3600" alt="npm downloads" /></a>
 	<a href="https://codecov.io/gh/tfcp68/yantrix" target="_blank"><img src="https://img.shields.io/codecov/c/gh/tfcp68/yantrix/main" alt="coverage"></a>
 	<img src="https://img.shields.io/github/stars/tfcp68/yantrix" alt="stars">
+</p>
 
 ## 📖 Usage
 

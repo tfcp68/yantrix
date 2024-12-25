@@ -4,10 +4,14 @@
 
 Command-line interface for [Yantrix](https://github.com/tfcp68/yantrix/) framework. This package is a console wrapper for certain Yantrix tooling, most notably [code generation](https://www.npmjs.com/package/@yantrix/codegen)
 
-<a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
+<p>
+	<a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
 	<a href="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml" target="_blank"><img src="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml/badge.svg" alt="ci"></a>
+	<a href="https://www.npmjs.com/package/@yantrix/cli"><img src="https://img.shields.io/npm/v/@yantrix/cli.svg?maxAge=3600" alt="npm version" /></a>
+	<a href="https://www.npmjs.com/package/@yantrix/cli"><img src="https://img.shields.io/npm/dt/@yantrix/cli.svg?maxAge=3600" alt="npm downloads" /></a>
 	<a href="https://codecov.io/gh/tfcp68/yantrix" target="_blank"><img src="https://img.shields.io/codecov/c/gh/tfcp68/yantrix/main" alt="coverage"></a>
 	<img src="https://img.shields.io/github/stars/tfcp68/yantrix" alt="stars">
+</p>
 
 ## 📖 Usage
 

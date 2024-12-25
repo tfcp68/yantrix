@@ -4,10 +4,14 @@
 
 React integration for the [Yantrix](https://github.com/tfcp68/yantrix/) framework. This package provides hooks and utilities to use finite state machines implemented with [`@yantrix/automata`](https://www.npmjs.com/package/@yantrix/automata) within React applications, allowing for declarative state management through the `useFSM` hook.
 
-<a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
+<p>
+	<a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
 	<a href="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml" target="_blank"><img src="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml/badge.svg" alt="ci"></a>
+	<a href="https://www.npmjs.com/package/@yantrix/react"><img src="https://img.shields.io/npm/v/@yantrix/react.svg?maxAge=3600" alt="npm version" /></a>
+	<a href="https://www.npmjs.com/package/@yantrix/react"><img src="https://img.shields.io/npm/dt/@yantrix/react.svg?maxAge=3600" alt="npm downloads" /></a>
 	<a href="https://codecov.io/gh/tfcp68/yantrix" target="_blank"><img src="https://img.shields.io/codecov/c/gh/tfcp68/yantrix/main" alt="coverage"></a>
 	<img src="https://img.shields.io/github/stars/tfcp68/yantrix" alt="stars">
+</p>
 
 ## 📖 Usage
 

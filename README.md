@@ -2,7 +2,7 @@
 <img width="128" src="/docs/public/logo.png?raw=true" align="center" />
 <h1>Yantrix: Opinionated FSM Framework</h1>
 <p>
-Yantrix is a <i>(mostly)</i> TypeScript framework and a DSL, that make up a full instrumental chain to implement robust and self-documented functional applications by code generation in multiple programming languages. 
+Yantrix is a <i>(mostly)</i> TypeScript framework and a DSL, that make up a full instrumental chain to implement robust and self-documented functional applications by code generation in multiple programming languages.
 </p>
 <p>
 That allows devs to focus on describing contracts and workflows, rather than writing and debugging the actual code. The toolset is best used to create no-code/less-code solutions and works best within <b>*-as-code</b> paradigms.
@@ -10,6 +10,8 @@ That allows devs to focus on describing contracts and workflows, rather than wri
 <p>
     <a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
 	<a href="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml" target="_blank"><img src="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml/badge.svg" alt="ci"></a>
+	<a href="https://www.npmjs.com/package/@yantrix/cli"><img src="https://img.shields.io/npm/v/@yantrix/cli.svg?maxAge=3600" alt="npm version" /></a>
+	<a href="https://www.npmjs.com/package/@yantrix/cli"><img src="https://img.shields.io/npm/dt/@yantrix/cli.svg?maxAge=3600" alt="npm downloads" /></a>
 	<a href="https://codecov.io/gh/tfcp68/yantrix" target="_blank"><img src="https://img.shields.io/codecov/c/gh/tfcp68/yantrix/main" alt="coverage"></a>
 	<img src="https://img.shields.io/github/stars/tfcp68/yantrix" alt="stars">
 	<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ftfcp68%2Fyantrix&count_bg=%233DAEC8&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=visitors&edge_flat=false"/></a>
