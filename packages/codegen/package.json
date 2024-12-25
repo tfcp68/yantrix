@@ -3,7 +3,7 @@
 	"name": "@yantrix/codegen",
 	"type": "module",
 	"version": "0.0.1",
-	"description": "Generates automata from given mermaid state diagram",
+	"description": "Yantrix framework code generator API",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -25,7 +25,9 @@
 	},
 	"keywords": [
 		"FSM",
-		"Miely Machine"
+		"Yantrix",
+		"codegen",
+		"metaprogramming"
 	],
 	"exports": {
 		".": {
