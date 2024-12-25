@@ -34,8 +34,8 @@ Then, see the docs:
 - [React Integration](https://tfcp68.github.io/yantrix/integrations/199_react.html)
 - [Example: React](https://tfcp68.github.io/yantrix/examples/110_react.html)
 - [More Examples](https://tfcp68.github.io/yantrix/concepts/999_design_examples.html)
-  
-## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)  
+
+## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)
 ## 📜 License
 
 Made with 💜. Published under [MIT License](./LICENSE).

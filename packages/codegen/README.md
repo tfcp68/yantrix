@@ -11,7 +11,7 @@ Code generation engine for [Yantrix](https://tfcp68.github.io/yantrix/) framewor
 
 ## 📖 Usage
 
-Install the primary package using your prefered package manager. All the secondary dependencies will be installed automatically. 
+Install the primary package using your prefered package manager. All the secondary dependencies will be installed automatically.
 
 ```bash
 # Via NPM
@@ -28,7 +28,7 @@ $ npx nypm install @yantrix/codegen
 ```
 
 > We suggest using `pnpm`
-## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)  
+## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)
 ## 📜 License
 
 Made with 💜. Published under [MIT License](./LICENSE).

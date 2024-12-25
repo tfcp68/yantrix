@@ -34,8 +34,8 @@ Then, see the docs:
 - [Redux Integration](https://tfcp68.github.io/yantrix/integrations/200_redux.html)
 - [Example: Redux](https://tfcp68.github.io/yantrix/examples/100_react.html)
 - [More Examples](https://tfcp68.github.io/yantrix/concepts/999_design_examples.html)
-  
-## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)  
+
+## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)
 ## 📜 License
 
 Made with 💜. Published under [MIT License](./LICENSE).
