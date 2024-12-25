@@ -38,8 +38,8 @@ See more:
 - [Quick start in Typescript](https://tfcp68.github.io/yantrix/)
 - [Learn language options](https://tfcp68.github.io/yantrix/integrations/100_language_support.html)
 - [Diagram examples](https://tfcp68.github.io/yantrix/concepts/999_design_examples.html)
-  
-## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)  
+
+## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)
 ## 📜 License
 
 Made with 💜. Published under [MIT License](./LICENSE).
