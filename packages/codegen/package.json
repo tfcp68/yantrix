@@ -27,7 +27,12 @@
 		"FSM",
 		"Yantrix",
 		"codegen",
-		"metaprogramming"
+		"generation",
+		"metaprogramming",
+		"python",
+		"java",
+		"javascript",
+		"typescript"
 	],
 	"exports": {
 		".": {
