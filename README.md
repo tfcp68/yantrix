@@ -5,7 +5,7 @@
 Yantrix is a <i>(mostly)</i> TypeScript framework and a DSL, that make up a full instrumental chain to implement robust and self-documented functional applications by code generation in multiple programming languages. 
 </p>
 <p>
-That allows devs to focus on describing contracts and workflows, rather than writing and debugging the actual code. The toolset is best used to create no-code/less-code solutions and works best within ***-as-code** paradigms.
+That allows devs to focus on describing contracts and workflows, rather than writing and debugging the actual code. The toolset is best used to create no-code/less-code solutions and works best within <b>*-as-code</b> paradigms.
 </p>
 <p>
     <a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
@@ -16,6 +16,8 @@ That allows devs to focus on describing contracts and workflows, rather than wri
 	<img src="https://img.shields.io/static/v1?label=opinionated&message=enough&color=success" alt="opinionated" />
 </p>
 </div>
+
+> WARNING: The project is still in its earliest phase and is definetely **not** production ready. Please note, that not every feature mentioned in documentation is readily implemented too. Sometimes the fastest way to get the needed functionality is to implement it yourself. Contributions are welcome.
 
 ## ⚡ Quick Links
 - [Documentation](https://tfcp68.github.io/yantrix)
