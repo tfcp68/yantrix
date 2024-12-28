@@ -9,12 +9,22 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   autofix:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
+      - name: Set up swap space
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 10
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:

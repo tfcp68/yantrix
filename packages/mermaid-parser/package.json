@@ -3,7 +3,7 @@
 	"name": "@yantrix/mermaid-parser",
 	"type": "module",
 	"version": "0.0.1",
-	"description": "Provides Yantrix abstractions from MermaidJS State and Sequence diagrams",
+	"description": "Part of Yantrix framework: imports Mermaid state and sequence diagrams",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -25,7 +25,8 @@
 	},
 	"keywords": [
 		"FSM",
-		"MermaidJS",
+		"Yantrix",
+		"Mermaid",
 		"diagrams",
 		"parser"
 	],

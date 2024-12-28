@@ -1,31 +1,29 @@
 <div align="center">
-  <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
-  <h1>Yantrix</h1>
-  <p>Opinionated FSM Framework</p>
-</div>
-
-<p align="center">
+<img width="128" src="/docs/public/logo.png?raw=true" align="center" />
+<h1>Yantrix: Opinionated FSM Framework</h1>
+<p>
+Yantrix is a <i>(mostly)</i> TypeScript framework and a DSL, that make up a full instrumental chain to implement robust and self-documented functional applications by code generation in multiple programming languages.
+</p>
+<p>
+That allows devs to focus on describing contracts and workflows, rather than writing and debugging the actual code. The toolset is best used to create no-code/less-code solutions and works best within <b>*-as-code</b> paradigms.
+</p>
+<p>
     <a href="https://github.com/tfcp68/yantrix/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/tfcp68/yantrix" alt="license"></a>
 	<a href="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml" target="_blank"><img src="https://github.com/tfcp68/yantrix/actions/workflows/tests.yml/badge.svg" alt="ci"></a>
+	<a href="https://www.npmjs.com/package/@yantrix/cli"><img src="https://img.shields.io/npm/v/@yantrix/cli.svg?maxAge=3600" alt="npm version" /></a>
+	<a href="https://www.npmjs.com/package/@yantrix/cli"><img src="https://img.shields.io/npm/dt/@yantrix/cli.svg?maxAge=3600" alt="npm downloads" /></a>
 	<a href="https://codecov.io/gh/tfcp68/yantrix" target="_blank"><img src="https://img.shields.io/codecov/c/gh/tfcp68/yantrix/main" alt="coverage"></a>
 	<img src="https://img.shields.io/github/stars/tfcp68/yantrix" alt="stars">
 	<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Ftfcp68%2Fyantrix&count_bg=%233DAEC8&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=visitors&edge_flat=false"/></a>
 	<img src="https://img.shields.io/static/v1?label=opinionated&message=enough&color=success" alt="opinionated" />
 </p>
+</div>
 
-## 🧭 About
+> WARNING: The project is still in its earliest phase and is definetely **not** production ready. Please note, that not every feature mentioned in documentation is readily implemented too. Sometimes the fastest way to get the needed functionality is to implement it yourself. Contributions are welcome.
 
-Yantrix is a TypeScript framework that provides a set of tools to create robust and self-documented functional
-applications by code generation.
-The business logic is represented by declarative,
-event-driven [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine), while the application state is
-an [Anemic Domain Model](https://en.wikipedia.org/wiki/Anemic_domain_model), making it great a counterpart to any
-traditional state manager like [Redux](https://redux.js.org/), while allowing devs to focus on describing contracts and
-workflows, rather than writing and debugging the
-actual code.
-
-Lends itself perfectly to Architecture-as-Code paradigm and no-code/less-code
-tools for developers, like [n8n](https://github.com/n8n-io/n8n).
+## ⚡ Quick Links
+- [Documentation](https://tfcp68.github.io/yantrix)
+- [Contributing](https://tfcp68.github.io/yantrix/contributing/)
 
 ## 💡 The Idea
 
@@ -42,7 +40,7 @@ If you agree to most of these takes, you'd probably like Yantrix. If not, still 
 
 To achieve those goals, Yantrix offers a visual language to describe data operations and bind them to discriminate well-defined processes, organized into the aforementioned State Machines. That approach is not the most traditional but is extremely reliable and manageable when you get the hang of it. To crown it all, being _visual_ means the code can be immediately visualized to produce a representation of applied logic that is easy to conceive and is very efficient at storing knowledge about the produced software in documentation hubs.
 
-If you're not familiar with automata-based programming, please refer to [🧠Core Concepts](https://tfcp68.github.io/yantrix/concepts/)
+To break it down: the business logic is represented by declarative, event-driven [finite state machines](https://en.wikipedia.org/wiki/Finite-state_machine), while the application state is stored as an [Anemic Domain Model](https://en.wikipedia.org/wiki/Anemic_domain_model). To learn more about automata-based programming, please refer to [🧠Core Concepts](https://tfcp68.github.io/yantrix/concepts/)
 
 ## 📥 Installation
 

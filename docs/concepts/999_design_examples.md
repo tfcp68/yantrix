@@ -98,7 +98,7 @@ stateDiagram-v2
 	end note
 	note right of SELECTED
 		+ByPass
-		#{selectedIndex} <= $index = -1
+		#{selectedIndex} <= $index=-1
 	end note
 ```
 
@@ -107,6 +107,30 @@ Here we create an `FSM` that stores a list of options in its `Context` and allow
 Here we also create a single **DISABLED** `State`, because we uphoisted the state of many controls rather than controlling a single one, as in [Checkbox](#checkboxes) example, allowing us to preserve the visible state of every radio option when being **DISABLED**.
 
 Also, a special **UNSET** `Action`, that removes the selection: it works by _not_ passing a `Payload`, which triggers `$index = -1` fallback to [default value](../syntax/120_values_and_constants.html#default-values)
+
+## Data Loader
+
+The most notable example of a stateful control object in web programming is an asynchronous request, or, in general Javascript, a Promise type. The most basic variant of Mermaid representation of it is already a Yantrix code for an async call:
+```mermaid
+stateDiagram-v2
+direction LR
+Init-->Loading
+Loading-->Ready
+Loading-->Error
+```
+
+the more beautiful and _best-practice_ approach to it though would look like this:
+```mermaid
+stateDiagram-v2
+direction LR
+[*]-->Init:CALL
+Init-->Loading: CALL
+Loading-->Ready: SUCCESS
+Loading-->Error: FAIL
+note left of Init
++ByPass
+end note
+```
 
 ## Dropdown Control
 

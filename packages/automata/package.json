@@ -3,7 +3,7 @@
 	"name": "@yantrix/automata",
 	"type": "module",
 	"version": "0.0.1",
-	"description": "Miely Machine representation with bus adapters",
+	"description": "Yantrix framework core: reference Typescript implementation of finite state machine",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -25,7 +25,9 @@
 	},
 	"keywords": [
 		"FSM",
-		"Miely Machine"
+		"Miely Machine",
+		"Yantrix",
+		"Typescript"
 	],
 	"exports": {
 		".": {
