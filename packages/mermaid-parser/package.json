@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/mermaid-parser",
 	"type": "module",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Part of Yantrix framework: imports Mermaid state and sequence diagrams",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",

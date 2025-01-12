@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/automata",
 	"type": "module",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Yantrix framework core: reference Typescript implementation of finite state machine",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
