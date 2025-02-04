@@ -76,8 +76,6 @@ contains(var, substring = 'searchString')
 | `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any | - Condition 1<br/>- Option 1<br/>- Condition 2<br/>- Option 2</br>- ...<br/>- Default  | `Option N`, if `Condition N` is truthy, or `Default` if none are |
 | `coalesce`  |                   (any, ..) => any                    | any collection of `Expressions` | first non-Null value in the list of arguments|
 | `choose`    |                   (**Number**, [any,...] => any         | - Index<br/>- Option 1<br/>- Option 2<br/>- ...   | picks `Index+1`th option from arguments, i.e. `choose(0,"a","b")` returns `"a"` |
-| `random`    |                   () => **Number**                    | | a uniform random number between 0 and 1, that is easily used as a **Binary** |
-| `random`    |        (**Number**, **Number**) => **Number**         | - From<br/> - To | a uniform random number between `From` and `To` inclusive |
 
 ## Built-Ins: Internals
 
@@ -87,6 +85,19 @@ contains(var, substring = 'searchString')
 | `_currentStateId`  | () => **Number**   | `FSM` | returns Current state numeric key, as used in built code |
 | `_currentActionName`  | () => **String**   | `FSM` | Current action string name, as described in the surce diagram |
 | `_currentActionId`  | () => **Number**   | `FSM` | Current action numeric key, as used in built code |
-
+| `currentEpoch`  | () => **Number**   | `FSM` | Current iteration of reduction cycle for framework core, can be used as a discrete timer |
+| `currentCycle`  | () => **Number**   | `FSM` | Current iteration of reduction cycle for current FSM |
+| `currentTimestamp`  | () => **Number**   | `FSM` | Current system time in microseconds |
+| `currentTime`  | () => **Number**   | `FSM` | Current date and time in ISO-8601 format |
+| `random`    |                   () => **Number**                    | any | a uniform random number between 0 and 1, that is easily used as a **Binary** |
+| `random`    |        (**Number**, **Number**) => **Number**         | any | a uniform random number between low and upper boundary inclusive |
+| `weightedRandom`    |        (**Object**) => **String**         | any | a random key of `Object`, whereby `Object`'s values are interpreted as integer weights. If any of `Object` values is not a **Number**, throws an error |
 
 ## Defining functions
+
+A custom function can be defined anywhere in the diagram using the following syntax:
+```
+define/<FUNCTION_NAME> (<ARGUMENTS_LIST>) => <RETURN_VALUE>
+```
+
+Regardless of whether it's a `Transformer` or a `Predicate`, this function can be used anywhere in the same diagram or a `Slice`, including "before" the definition in the source code 
