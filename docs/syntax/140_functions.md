@@ -72,10 +72,21 @@ contains(var, substring = 'searchString')
 
 | Function(s) |                       Signature                       |                                      Arguments                                      | Returns                                                                                                  |
 | :---------- | :---------------------------------------------------: | :---------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
-| `if`        |             (**Binary**, any, any) => any             | a condition to check, a value to return if it's truthy, a value to return otherwise | the first argument, if condition is truthy; the second argument in the other case                        |
-| `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any |        condition 1, return value 1, condition 2, return value 2, ... , else         | the result of the expression, following a truthy condition; or the latest expression, if none is present |
-| `coalesce`  |                   (any, ..) => any                    |                           any collection of `Expressions`                           | first non-Null value in the list of arguments                                                            |
-| `random`    |                   () => **Number**                    |                                                                                     | a uniform random number between 0 and 1, that is easily used as a **Binary**                             |
-| `random`    |        (**Number**, **Number**) => **Number**         |                                                                                     | a uniform random number between the first and the second arguments                                       |
+| `if`        |             (**Binary**, any, any) => any             | - Condition<br/>- Yes option<br>- No option| `Yes option`, if `Condition` is truthy, or `No option` otherwise |
+| `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any | - Condition 1<br/>- Option 1<br/>- Condition 2<br/>- Option 2</br>- ...<br/>- Default  | `Option N`, if `Condition N` is truthy, or `Default` if none are |
+| `coalesce`  |                   (any, ..) => any                    | any collection of `Expressions` | first non-Null value in the list of arguments|
+| `choose`    |                   (**Number**, [any,...] => any         | - Index<br/>- Option 1<br/>- Option 2<br/>- ...   | picks `Index+1`th option from arguments, i.e. `choose(0,"a","b")` returns `"a"` |
+| `random`    |                   () => **Number**                    | | a uniform random number between 0 and 1, that is easily used as a **Binary** |
+| `random`    |        (**Number**, **Number**) => **Number**         | - From<br/> - To | a uniform random number between `From` and `To` inclusive |
+
+## Built-Ins: Internals
+
+| Function(s) |                       Signature                       |                                      Context                                      | Returns                                                                                                  |
+| :---------- | :---------------------------------------------------: | :---------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
+| `_currentStateName`  | () => **String**   | `FSM` | returns current state string name, as described in the source diagram |
+| `_currentStateId`  | () => **Number**   | `FSM` | returns Current state numeric key, as used in built code |
+| `_currentActionName`  | () => **String**   | `FSM` | Current action string name, as described in the surce diagram |
+| `_currentActionId`  | () => **Number**   | `FSM` | Current action numeric key, as used in built code |
+
 
 ## Defining functions
