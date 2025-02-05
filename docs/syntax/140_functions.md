@@ -93,7 +93,9 @@ contains(var, substring = 'searchString')
 | `random`    |        (**Number**, **Number**) => **Number**         | any | a uniform random number between low and upper boundary inclusive |
 | `weightedRandom`    |        (**Object**) => **String**         | any | a random key of `Object`, whereby `Object`'s values are interpreted as integer weights. If any of `Object` values is not a **Number**, throws an error |
 
-## Defining functions
+## Custom functions
+
+### Inline functions
 
 A custom function can be defined anywhere in the diagram using the following syntax:
 ```
@@ -101,3 +103,11 @@ define/<FUNCTION_NAME> (<ARGUMENTS_LIST>) => <RETURN_VALUE>
 ```
 
 Regardless of whether it's a `Transformer` or a `Predicate`, this function can be used anywhere in the same diagram or a `Slice`, including "before" the definition in the source code 
+
+### Injecting functions
+
+```
+inject/<FUNCTION_NAME> (<ARGUMENTS_LIST>) => <RETURN_VALUE>
+```
+
+### Recursion
