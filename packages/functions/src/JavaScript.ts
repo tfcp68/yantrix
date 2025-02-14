@@ -1,4 +1,6 @@
 // Built-Ins: Conditional expressions
+import * as lodash from 'lodash-es';
+
 function _if(condition: boolean, true_value: unknown, false_value: unknown): unknown {
 	return condition === true ? true_value : false_value;
 }
@@ -280,18 +282,6 @@ function lookup(list: unknown[], value: unknown): unknown {
 	return list.includes(value) ? value : null;
 }
 
-function filterBy(list: object[], property_name: string, value: unknown): object[] {
-	return list.filter(obj => property_name in obj && obj[property_name as keyof typeof obj] === value);
-}
-
-function find(list: object[], property_name: string, value: unknown): unknown {
-	return (
-		list.filter(
-			obj => property_name in obj && obj[property_name as keyof typeof obj] === value,
-		)[0] ?? null
-	);
-}
-
 function left(list: unknown[], len: number) {
 	return list.slice(0, len);
 }
@@ -304,7 +294,7 @@ function indexOf(list: unknown[], value: unknown): number {
 	return list.indexOf(value);
 }
 
-export const ListTransformers = { len, lookup, filterBy, find, left, right, indexOf };
+export const ListTransformers = { len, lookup, find, left, right, indexOf };
 
 // ==================
 
@@ -330,7 +320,94 @@ function strIndexOf(str: string, substr: string): number {
 	return str.indexOf(substr);
 }
 
-export const StringTransformers = { substr, strlen, strLeft, strRight, strIndexOf };
+function concat(...strings: string[]): string {
+	return strings.join('');
+}
+
+function sample(str: string, len: number): string {
+	return lodash.sampleSize(str, len).join('');
+}
+
+function shuffle(str: string): string {
+	return lodash.shuffle(str).join('');
+}
+
+function padLeft(str: string, len: number, pattern = ' '): string {
+	return str.padStart(len, pattern);
+}
+
+function padRight(str: string, len: number, pattern = ' '): string {
+	return str.padEnd(len, pattern);
+}
+
+export const StringTransformers = {
+	substr,
+	strlen,
+	strLeft,
+	strRight,
+	strIndexOf,
+	concat,
+	sample,
+	shuffle,
+	padLeft,
+	padRight,
+};
+
+// Built-Ins: Collection Transformers
+
+function filterBy(list: object[], property_name: string, value: unknown): object[] {
+	return list.filter(obj => property_name in obj && obj[property_name as keyof typeof obj] === value);
+}
+
+function omit(list: object[], property_name: string, value: unknown): object[] {
+	return list.filter(obj => property_name in obj && obj[property_name as keyof typeof obj] !== value);
+}
+
+function find(list: object[], property_name: string, value: unknown): object | null {
+	return (
+		list.filter(
+			obj => property_name in obj && obj[property_name as keyof typeof obj] !== value,
+		)[0] ?? null
+	);
+}
+
+function pick(list: object[], property_name: string): unknown[] {
+	return list.map(obj => obj[property_name as keyof typeof obj]);
+}
+
+export const CollectionTransformers = { filterBy, omit, find, pick };
+
+// Built-Ins: Object Transformers
+
+function keys(obj: object): unknown[] {
+	return Object.keys(obj);
+}
+
+function values(obj: object): unknown[] {
+	return Object.values(obj);
+}
+
+function zip(keys: unknown[], values: unknown[]): object {
+	return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
+}
+
+function setAttr(obj: object, key: string, value: unknown): object {
+	return { ...obj, [key]: value };
+}
+
+function unsetAttr(obj: object, key: string): object {
+	return { ...obj, [key]: undefined };
+}
+
+function merge(...objects: object[]): object {
+	return Object.assign({}, ...objects);
+}
+
+function intersect(...objects: object[]): object {
+	return Object.assign({}, ...objects);
+}
+
+export const ObjectTransformers = { keys, values, zip, setAttr, unsetAttr, merge, intersect };
 
 // ==================
 
@@ -344,4 +421,6 @@ export const builtInFunctions = {
 	...Statistics,
 	...ListTransformers,
 	...StringTransformers,
+	...CollectionTransformers,
+	...ObjectTransformers,
 };

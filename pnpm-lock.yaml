@@ -460,7 +460,11 @@ importers:
         specifier: workspace:^
         version: link:../yantrix-parser
 
-  packages/functions: {}
+  packages/functions:
+    dependencies:
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
 
   packages/mermaid-parser:
     dependencies:
