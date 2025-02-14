@@ -1,10 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/codegen-tests",
+	"name": "@yantrix/core",
 	"type": "module",
 	"version": "0.0.1",
-	"private": true,
-	"description": "Tests for codegen",
+	"description": "",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -20,12 +19,13 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/codegen-tests"
+		"directory": "packages/core"
 	},
 	"bugs": {
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
 	"keywords": [],
+	"sideEffects": false,
 	"exports": {
 		".": {
 			"import": {
@@ -41,6 +41,9 @@
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"bin": {
+		"yantrix": "node_modules/@yantrix/cli/bin/index.js"
+	},
 	"files": [
 		"dist"
 	],
@@ -48,17 +51,24 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"buildAndTest": "cd ../codegen && pnpm build && cd ../codegen-tests && pnpm i && pnpm test",
-		"test": "vitest run --coverage  --outputFile=../../test_reports/codegen.md",
+		"build": "tsc --noEmit && tsup",
+		"test": "vitest run",
 		"lint": "eslint .",
 		"format": "eslint --fix ."
 	},
-	"directories": {
-		"lib": "src"
-	},
 	"dependencies": {
-		"@yantrix/core": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^"
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/functions": "workspace:^",
+		"@yantrix/utils": "workspace:^"
+	},
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
 	}
 }

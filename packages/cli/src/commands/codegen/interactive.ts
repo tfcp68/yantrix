@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+// import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import * as p from '@clack/prompts';
@@ -6,7 +6,7 @@ import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import c from 'ansis';
 import { isSymbol } from 'lodash-es';
-import { detectSync } from 'package-manager-detector';
+// import { detectSync } from 'package-manager-detector';
 import { TLanguage } from '../../types/common';
 import { DISABLE_FLAGS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
 import { isGitClean, isJSON } from '../../utils/utils';
@@ -246,24 +246,24 @@ export async function interactive() {
 		process.exit(EXIT_ERROR_CODE);
 	}
 
-	if (results.language.includes('script')) {
-		const spinner = p.spinner();
+	// if (results.language.includes('script')) {
+	// 	const spinner = p.spinner();
 
-		spinner.start('Installing additional packages...');
-		try {
-			const pm = detectSync();
-			if (!pm) throw new Error('Could not detect package manager');
+	// 	spinner.start('Installing additional packages...');
+	// 	try {
+	// 		const pm = detectSync();
+	// 		if (!pm) throw new Error('Could not detect package manager');
 
-			execSync(`${pm.agent} install @yantrix/automata @yantrix/functions`);
-			spinner.stop('Additional packages installed successfully!');
-		} catch (e) {
-			const msg1 = 'An error occurred while installing additional packages: "@yantrix/automata", "@yantrix/functions"';
-			const msg2 = e instanceof Error ? `\n${e.message}` : '';
-			const msg3 = '\n\nPlease install them yourself, otherwise Automata will not work at all';
+	// 		execSync(`${pm.agent} install @yantrix/automata @yantrix/functions`);
+	// 		spinner.stop('Additional packages installed successfully!');
+	// 	} catch (e) {
+	// 		const msg1 = 'An error occurred while installing additional packages: "@yantrix/automata", "@yantrix/functions"';
+	// 		const msg2 = e instanceof Error ? `\n${e.message}` : '';
+	// 		const msg3 = '\n\nPlease install them yourself, otherwise Automata will not work at all';
 
-			spinner.stop(c.red(`${msg1}${msg2}${msg3}`), 1);
-			process.exit(EXIT_ERROR_CODE);
-		}
-		process.exit(EXIT_SUCCESS_CODE);
-	}
+	// 		spinner.stop(c.red(`${msg1}${msg2}${msg3}`), 1);
+	// 		process.exit(EXIT_ERROR_CODE);
+	// 	}
+	// 	process.exit(EXIT_SUCCESS_CODE);
+	// }
 }
