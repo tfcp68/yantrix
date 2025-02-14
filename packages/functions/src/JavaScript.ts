@@ -3,6 +3,7 @@ function _if(condition: boolean, true_value: unknown, false_value: unknown): unk
 	return condition === true ? true_value : false_value;
 }
 
+/** WRAPPER FUNCTION */
 function _wrapper<T extends number | boolean | unknown>(callback: (nums: T[]) => T) {
 	return (...nums: T[]) => {
 		if (nums.length === 1 && Array.isArray(nums[0])) {
@@ -13,6 +14,7 @@ function _wrapper<T extends number | boolean | unknown>(callback: (nums: T[]) =>
 	};
 }
 
+/** CASE FUNCTION */
 function _case(first_case_condition: boolean,	first_case_return_value: unknown,	other_cases: Array<[condition: boolean, return_value: unknown]>): unknown {
 	if (first_case_condition) {
 		return first_case_return_value;
@@ -36,6 +38,9 @@ function _random(min?: number, max?: number): number {
 	}
 }
 
+/**
+ * Conditionals
+ */
 export const Conditionals = {
 	if: _if,
 	case: _case,
@@ -60,6 +65,9 @@ const none = _wrapper((conditions: boolean[]): boolean => {
 	return !(conditions.find(cond => cond === false) ?? true);
 });
 
+/**
+ * Binary Predicates
+ */
 export const BinaryPredicates = {
 	and,
 	all: and,
@@ -100,10 +108,12 @@ function isLessOrEqual(x: number, y: number): boolean {
 function isNegative(x: number): boolean {
 	return x < 0;
 }
+/** HELLO */
 function isPositive(x: number): boolean {
 	return x > 0;
 }
 
+/** Numeric Predicates */
 export const NumericPredicates = {
 	isEven,
 	isOdd,
@@ -146,6 +156,7 @@ function isNull(exp: object): boolean {
 	return exp == null;
 }
 
+/** Lookup Predicates */
 export const LookupPredicates = {
 	contains,
 	has,
@@ -334,6 +345,7 @@ export const StringTransformers = { substr, strlen, strLeft, strRight, strIndexO
 
 // ==================
 
+/** Built-in JavaScript functions */
 export const builtInFunctions = {
 	...Conditionals,
 	...BinaryPredicates,
