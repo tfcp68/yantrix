@@ -5,7 +5,7 @@ import * as p from '@clack/prompts';
 import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import c from 'ansis';
-import { isSymbol } from 'lodash-es';
+import { isSymbol } from 'es-toolkit';
 import { TLanguage } from '../../types/common';
 import { DISABLE_FLAGS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
 import { isGitClean, isJSON } from '../../utils/utils';

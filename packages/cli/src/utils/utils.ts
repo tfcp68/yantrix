@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { camelCase } from 'lodash-es';
+import { camelCase } from 'es-toolkit';
 
 export function isJSON(str: string) {
 	try {

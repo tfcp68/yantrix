@@ -50,6 +50,7 @@
 		"@yantrix/codegen": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"ansis": "^3.3.2",
+		"es-toolkit": "^1.32.0",
 		"package-manager-detector": "^0.2.2",
 		"restore-cursor": "^5.1.0",
 		"yargs": "^17.7.2"

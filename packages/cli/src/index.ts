@@ -1,6 +1,6 @@
 import * as p from '@clack/prompts';
 import c from 'ansis';
-import { isError } from 'lodash-es';
+import { isError } from 'es-toolkit';
 import restoreCursor from 'restore-cursor';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
