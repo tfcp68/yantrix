@@ -1,5 +1,4 @@
 import { execSync } from 'node:child_process';
-import { camelCase } from 'es-toolkit';
 
 export function isJSON(str: string) {
 	try {
@@ -26,7 +25,7 @@ export function toFilteredArgvs(argvs: string[], excluded: string[] = []) {
 	for (const argv of argvs) {
 		if (!specials.includes(argv)
 			&& !excluded.includes(argv)
-			&& argv === camelCase(argv)
+			&& !argv.includes('-')
 			&& argv.length > 1
 		) {
 			filtered.push(argv);
