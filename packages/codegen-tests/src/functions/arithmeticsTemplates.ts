@@ -22,8 +22,8 @@ const templates: TTemplate[] = [
 
 			tests.push({
 				function: async () => {
-					for (let i = -5; i < 5; i++) {
-						const payload = i < 0 ? sampleRange(-1000, -1) : sampleRange(0, 1000);
+					for (let i = 0; i < 100; i++) {
+						const payload = sampleRange(-1000, 1000);
 
 						const Automata = module.Automata;
 						const automata = new Automata();
@@ -61,8 +61,8 @@ const templates: TTemplate[] = [
 			const tests = [] as TTestIteration[];
 			tests.push({
 				function: async () => {
-					for (let i = -5; i < 5; i++) {
-						const payload = i < 0 ? sampleRange(-1000, -1) : sampleRange(0, 1000);
+					for (let i = 0; i < 100; i++) {
+						const payload = sampleRange(-1000, 1000);
 
 						const Automata = module.Automata;
 						const automata = new Automata();
@@ -101,9 +101,8 @@ const templates: TTemplate[] = [
 
 			tests.push({
 				function: async () => {
-					for (let i = -5; i < 5; i++) {
-						const payload = i < 0 ? sampleRange(-1000, -1) : sampleRange(0, 1000);
-
+					for (let i = 0; i < 100; i++) {
+						const payload = sampleRange(-1000, 1000);
 						const Automata = module.Automata;
 						const automata = new Automata();
 						automata.dispatch({
@@ -138,9 +137,9 @@ const templates: TTemplate[] = [
 
 			tests.push({
 				function: async () => {
-					for (let i = 0; i < 10; i++) {
-						const payload1 = sampleRange(0, 1000);
-						const payload2 = sampleRange(0, 1000);
+					for (let i = 0; i < 100; i++) {
+						const payload1 = sampleRange(-1000, 1000);
+						const payload2 = sampleRange(-1000, 1000);
 
 						const Automata = module.Automata;
 						const automata = new Automata();
