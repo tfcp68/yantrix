@@ -89,6 +89,42 @@ const templates: TTemplate[] = [
 		function_name: 'div',
 		returnedValueExpectedFunction: (v1, v2) => v1 / v2,
 	}),
+	// generateTemplate({
+	// 	function_name: 'pow',
+	// 	returnedValueExpectedFunction: (v1, v2) => v1 ** v2,
+	// }),
+	generateTemplate({
+		function_name: 'inc',
+		returnedValueExpectedFunction: v1 => v1 + 1,
+	}),
+	generateTemplate({
+		function_name: 'dec',
+		returnedValueExpectedFunction: v1 => v1 - 1,
+	}),
+	generateTemplate({
+		function_name: 'neg',
+		returnedValueExpectedFunction: v1 => -v1,
+	}),
+	generateTemplate({
+		function_name: 'inv',
+		returnedValueExpectedFunction: v1 => 1 / v1,
+	}),
+	generateTemplate({
+		function_name: 'mod',
+		returnedValueExpectedFunction: (v1, v2) => v1 % v2,
+	}),
+	generateTemplate({
+		function_name: 'trunc',
+		returnedValueExpectedFunction: v1 => Math.trunc(v1),
+	}),
+	generateTemplate({
+		function_name: 'ceil',
+		returnedValueExpectedFunction: v1 => Math.ceil(v1),
+	}),
+	generateTemplate({
+		function_name: 'round',
+		returnedValueExpectedFunction: v1 => Math.round(v1),
+	}),
 ];
 
 export default templates;
