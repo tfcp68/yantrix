@@ -2,156 +2,55 @@ import { sampleRange } from '@yantrix/utils';
 import { expect } from 'vitest';
 import { TTemplate, TTestIteration } from './types';
 
-const templates: TTemplate[] = [
-	{
+const generateTemplate = (props: {
+	function_name: string;
+	returnedValueExpectedFunction: (...payloads: number[]) => number;
+	payloadsCount?: number;
+}) => {
+	props.payloadsCount = props?.payloadsCount || 2;
+
+	let payloadStr = '(';
+
+	for (let i = 1; i <= props.payloadsCount; i++) {
+		payloadStr += `$payload${i}, `;
+	}
+
+	payloadStr = `${payloadStr.slice(0, -2)})`;
+
+	const template: TTemplate = {
 		input: `
 			stateDiagram-v2
 			[*] --> end: call
 			end --> end: call
-			note left of [*]
-			#{ ReturnedValue  = 0}
-			end note
 			note left of end
-			#{ ReturnedValue } <= add(#ReturnedValue, $payload)
+			#{ ReturnedValue } <= ${props.function_name}${payloadStr}
 			end note
 		`,
-		description: 'add function',
-		automataName: 'add_function_with_payload',
+		description: `${props.function_name} function`,
+		automataName: `${props.function_name}_function_with_${props.payloadsCount}_payloads`,
 		getTestIterations: (module) => {
 			const tests = [] as TTestIteration[];
 
 			tests.push({
 				function: async () => {
 					for (let i = 0; i < 100; i++) {
-						const payload = sampleRange(-1000, 1000);
+						const payloads = [];
+						for (let i = 1; i <= props.payloadsCount!; i++) {
+							payloads.push(sampleRange(-1000, 1000));
+						}
 
 						const Automata = module.Automata;
 						const automata = new Automata();
 						automata.dispatch({
 							action: Automata.getAction(Automata.actions.call),
-							payload: {
-								payload,
-							},
+							payload: payloads.reduce((previousValue, currentValue, currentIndex) => ({
+								...previousValue,
+								[`payload${currentIndex + 1}`]: currentValue,
+							}), {}),
 						});
 						expect(automata.state).toBe(Automata.getState(Automata.states.end));
-						expect(automata.context.ReturnedValue).toBe(payload);
-					}
-				},
-				name: `must pass equal tests`,
-			});
-
-			return tests;
-		},
-	},
-	{
-		input: `
-			stateDiagram-v2
-			[*] --> end: call
-			end --> end: call
-			note left of [*]
-			#{ ReturnedValue  = 0}
-			end note
-			note left of end
-			#{ ReturnedValue } <= diff(#ReturnedValue, $payload)
-			end note
-		`,
-		description: 'diff function',
-		automataName: 'diff_function_with_payload',
-		getTestIterations: (module) => {
-			const tests = [] as TTestIteration[];
-			tests.push({
-				function: async () => {
-					for (let i = 0; i < 100; i++) {
-						const payload = sampleRange(-1000, 1000);
-
-						const Automata = module.Automata;
-						const automata = new Automata();
-						automata.dispatch({
-							action: Automata.getAction(Automata.actions.call),
-							payload: {
-								payload,
-							},
-						});
-						expect(automata.state).toBe(Automata.getState(Automata.states.end));
-						expect(automata.context.ReturnedValue).toBe(-payload);
-					}
-				},
-				name: `must pass equal tests`,
-			});
-
-			return tests;
-		},
-	},
-	{
-		input: `
-			stateDiagram-v2
-			[*] --> end: call
-			end --> end: call
-			note left of [*]
-			#{ ReturnedValue  = 5}
-			end note
-			note left of end
-			#{ ReturnedValue } <= mult(#ReturnedValue, $payload)
-			end note
-		`,
-		description: 'mult function',
-		automataName: 'mult_function_with_payload',
-		getTestIterations: (module) => {
-			const tests = [] as TTestIteration[];
-
-			tests.push({
-				function: async () => {
-					for (let i = 0; i < 100; i++) {
-						const payload = sampleRange(-1000, 1000);
-						const Automata = module.Automata;
-						const automata = new Automata();
-						automata.dispatch({
-							action: Automata.getAction(Automata.actions.call),
-							payload: {
-								payload,
-							},
-						});
-						expect(automata.state).toBe(Automata.getState(Automata.states.end));
-						expect(automata.context.ReturnedValue).toBe(5 * payload);
-					}
-				},
-				name: `must pass equal tests`,
-			});
-
-			return tests;
-		},
-	},
-	{
-		input: `
-			stateDiagram-v2
-			[*] --> end: call
-			end --> end: call
-			note left of end
-			#{ ReturnedValue } <= div($payload1, $payload2)
-			end note
-		`,
-		description: 'div function',
-		automataName: 'div_function_with_payload',
-		getTestIterations: (module) => {
-			const tests = [] as TTestIteration[];
-
-			tests.push({
-				function: async () => {
-					for (let i = 0; i < 100; i++) {
-						const payload1 = sampleRange(-1000, 1000);
-						const payload2 = sampleRange(-1000, 1000);
-
-						const Automata = module.Automata;
-						const automata = new Automata();
-						automata.dispatch({
-							action: Automata.getAction(Automata.actions.call),
-							payload: {
-								payload1,
-								payload2,
-							},
-						});
-						expect(automata.state).toBe(Automata.getState(Automata.states.end));
-						expect(automata.context.ReturnedValue, `expected ${automata.context.ReturnedValue} to be ${payload1} / ${payload2} = ${payload1 / payload2}`).toBe(payload1 / payload2);
+						const expectedResult = props.returnedValueExpectedFunction(...payloads);
+						expect(automata.context.ReturnedValue).toBe(expectedResult);
 					}
 				},
 				name: 'must pass equal tests',
@@ -159,7 +58,37 @@ const templates: TTemplate[] = [
 
 			return tests;
 		},
-	},
+	};
+	return template;
+};
+
+const templates: TTemplate[] = [
+	generateTemplate({
+		function_name: 'add',
+		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc + v),
+	}),
+	generateTemplate({
+		function_name: 'add',
+		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc + v),
+		payloadsCount: 10,
+	}),
+	generateTemplate({
+		function_name: 'diff',
+		returnedValueExpectedFunction: (v1, v2) => v1 - v2,
+	}),
+	generateTemplate({
+		function_name: 'mult',
+		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc * v),
+	}),
+	generateTemplate({
+		function_name: 'mult',
+		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc * v),
+		payloadsCount: 10,
+	}),
+	generateTemplate({
+		function_name: 'div',
+		returnedValueExpectedFunction: (v1, v2) => v1 / v2,
+	}),
 ];
 
 export default templates;
