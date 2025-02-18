@@ -1,3 +1,4 @@
+import { builtInFunctions } from '@yantrix/functions';
 import { sampleRange } from '@yantrix/utils';
 import { expect } from 'vitest';
 import { TTemplate, TTestIteration } from './types';
@@ -65,65 +66,65 @@ const generateTemplate = (props: {
 const templates: TTemplate[] = [
 	generateTemplate({
 		function_name: 'add',
-		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc + v),
+		returnedValueExpectedFunction: builtInFunctions.add,
 	}),
 	generateTemplate({
 		function_name: 'add',
-		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc + v),
+		returnedValueExpectedFunction: builtInFunctions.add,
 		payloadsCount: 10,
 	}),
 	generateTemplate({
 		function_name: 'diff',
-		returnedValueExpectedFunction: (v1, v2) => v1 - v2,
+		returnedValueExpectedFunction: builtInFunctions.diff,
 	}),
 	generateTemplate({
 		function_name: 'mult',
-		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc * v),
+		returnedValueExpectedFunction: builtInFunctions.mult,
 	}),
 	generateTemplate({
 		function_name: 'mult',
-		returnedValueExpectedFunction: (...payloads) => payloads.reduce((acc, v) => acc * v),
+		returnedValueExpectedFunction: builtInFunctions.mult,
 		payloadsCount: 10,
 	}),
 	generateTemplate({
 		function_name: 'div',
-		returnedValueExpectedFunction: (v1, v2) => v1 / v2,
+		returnedValueExpectedFunction: builtInFunctions.div,
 	}),
-	// generateTemplate({
-	// 	function_name: 'pow',
-	// 	returnedValueExpectedFunction: (v1, v2) => v1 ** v2,
-	// }),
+	generateTemplate({
+		function_name: 'pow',
+		returnedValueExpectedFunction: builtInFunctions.pow,
+	}),
 	generateTemplate({
 		function_name: 'inc',
-		returnedValueExpectedFunction: v1 => v1 + 1,
+		returnedValueExpectedFunction: builtInFunctions.inc,
 	}),
 	generateTemplate({
 		function_name: 'dec',
-		returnedValueExpectedFunction: v1 => v1 - 1,
+		returnedValueExpectedFunction: builtInFunctions.dec,
 	}),
 	generateTemplate({
 		function_name: 'neg',
-		returnedValueExpectedFunction: v1 => -v1,
+		returnedValueExpectedFunction: builtInFunctions.neg,
 	}),
 	generateTemplate({
 		function_name: 'inv',
-		returnedValueExpectedFunction: v1 => 1 / v1,
+		returnedValueExpectedFunction: builtInFunctions.inv,
 	}),
 	generateTemplate({
 		function_name: 'mod',
-		returnedValueExpectedFunction: (v1, v2) => v1 % v2,
+		returnedValueExpectedFunction: builtInFunctions.mod,
 	}),
 	generateTemplate({
 		function_name: 'trunc',
-		returnedValueExpectedFunction: v1 => Math.trunc(v1),
+		returnedValueExpectedFunction: builtInFunctions.trunc,
 	}),
 	generateTemplate({
 		function_name: 'ceil',
-		returnedValueExpectedFunction: v1 => Math.ceil(v1),
+		returnedValueExpectedFunction: builtInFunctions.ceil,
 	}),
 	generateTemplate({
 		function_name: 'round',
-		returnedValueExpectedFunction: v1 => Math.round(v1),
+		returnedValueExpectedFunction: builtInFunctions.round,
 	}),
 ];
 
