@@ -5,7 +5,7 @@ import { variadic } from './utils';
 export const and = variadic((conditions: boolean[]) => every(conditions, Boolean));
 export const all = and;
 
-export const or = variadic((conditions: boolean[]) => every(conditions, Boolean));
+export const or = variadic((conditions: boolean[]) => some(conditions, Boolean));
 export const any = or;
 
 export const not = (condition: boolean) => !condition;
