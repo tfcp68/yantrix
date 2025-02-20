@@ -1,4 +1,4 @@
-import conditionals from './conditionals';
+import * as conditionals from './conditionals';
 import * as predicates from './predicates';
 import * as transformers from './transformers';
 

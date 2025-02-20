@@ -1,43 +1,72 @@
+import { isArray, isEqual, isNull, isNumber, isObject, isString, some, values } from 'lodash-es';
+import { variadic } from './utils';
+
 // Logical predicates
-export const and = (...conditions: boolean[]): boolean => conditions.every(Boolean);
-export const or = (...conditions: boolean[]): boolean => conditions.some(Boolean);
-export const not = (condition: boolean): boolean => !condition;
-export const none = (...conditions: boolean[]): boolean => !and(...conditions);
+export const and = variadic((conditions: boolean[]) => conditions.every(Boolean));
+export const all = and;
+
+export const or = variadic((conditions: boolean[]) => conditions.some(Boolean));
+export const any = or;
+
+export const not = (condition: boolean) => !condition;
+export const none = variadic((conditions: boolean[]) => not(and(conditions)));
 
 // Numeric predicates
-export const isEven = (num: number): boolean => num % 2 === 0;
-export const isOdd = (num: number): boolean => num % 2 !== 0;
-export const isInteger = (num: number): boolean => Number.isInteger(num);
-export const isEqual = (a: any, b: any): boolean => a === b;
-export const isGreater = (a: number, b: number): boolean => a > b;
-export const isGreaterOrEqual = (a: number, b: number): boolean => a >= b;
-export const isLess = (a: number, b: number): boolean => a < b;
-export const isLessOrEqual = (a: number, b: number): boolean => a <= b;
-export const isNegative = (num: number): boolean => num < 0;
-export const isPositive = (num: number): boolean => num >= 0;
+export const isEven = (n: number) => isNumber(n) ? n % 2 === 0 : false;
+export const isOdd = (n: number) => isNumber(n) ? Math.abs(n % 2) === 1 : false;
+
+export const isInteger = (value: number) => {
+	if (!isNumber(value)) return false;
+	return Number.isInteger(value);
+};
+
+export const isGreater = (a: number, b: number) => {
+	if (!isNumber(a) || !isNumber(b)) return false;
+	return a > b;
+};
+
+export const isGreaterOrEqual = (a: number, b: number): boolean => {
+	if (!isNumber(a) || !isNumber(b)) return false;
+	return a >= b;
+};
+
+export const isLess = (a: number, b: number): boolean => {
+	if (!isNumber(a) || !isNumber(b)) return false;
+	return a < b;
+};
+
+export const isLessOrEqual = (a: number, b: number): boolean => {
+	if (!isNumber(a) || !isNumber(b)) return false;
+	return a <= b;
+};
+
+export const isNegative = (value: number): boolean => {
+	if (!isNumber(value)) return false;
+	return value < 0;
+};
+
+export const isPositive = (value: number): boolean => {
+	if (!isNumber(value)) return false;
+	return value >= 0;
+};
 
 // Lookup predicates
-export const contains = (container: string | any[] | Record<string, any>, value: any): boolean => {
-	if (typeof container === 'string' && typeof value === 'string') {
-		return container.includes(value);
-	}
-	if (Array.isArray(container)) {
-		return container.includes(value);
-	}
-	if (typeof container === 'object' && container !== null) {
-		return Object.values(container).includes(value);
-	}
+export function contains(str: string, substr: string): boolean;
+export function contains<T extends object>(obj: T, value: T[keyof T]): boolean;
+export function contains<T, V>(list: ArrayLike<T>, value: V): boolean;
+export function contains(container: string | object | any[], value: any): boolean {
+	if (isString(container) && isString(value)) return container.includes(value);
+	if (isArray(container)) return some(container, item => isEqual(item, value));
+	if (isObject(container) && !isNull(container)) return values(container).some(item => isEqual(item, value));
 	return false;
-};
+}
 
-export const has = (container: any[] | Record<string, any>, key: string | number): boolean => {
-	if (Array.isArray(container) && typeof key === 'number') {
-		return key >= 0 && key < container.length;
-	}
-	if (typeof container === 'object' && container !== null && typeof key === 'string') {
-		return key in container;
-	}
+export function has<T>(list: T[], index: number): boolean;
+export function has<T extends object>(obj: T, key: keyof T): boolean;
+export function has(container: any[] | object, keyOrIndex: number | keyof any): boolean {
+	if (isArray(container) && isNumber(keyOrIndex)) return !!container[keyOrIndex];
+	if (isObject(container) && !isNull(container) && isString(keyOrIndex)) return keyOrIndex in container;
 	return false;
-};
+}
 
-export const isNull = (value: any): boolean => value === null;
+export { isEqual, isNull };
