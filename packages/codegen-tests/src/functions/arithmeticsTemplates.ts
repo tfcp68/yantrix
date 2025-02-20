@@ -1,18 +1,24 @@
 import { builtInFunctions } from '@yantrix/functions';
 import { sampleRange } from '@yantrix/utils';
 import { expect } from 'vitest';
+import { Constructable } from 'vitest/utils.js';
 import { TTemplate, TTestIteration } from './types';
 
-const generateTemplate = (props: {
-	function_name: string;
-	returnedValueExpectedFunction: (...payloads: number[]) => number;
-	payloadsCount?: number;
-}) => {
-	props.payloadsCount = props?.payloadsCount || 2;
+const getRandomNumber = () => sampleRange(-10000, 10000);
 
+const generateTemplate = <T>(props: {
+	function_name: string;
+	returnedValueExpectedFunction?: (...payloads: T[]) => any;
+	getPayloads: (iteration: number) => T[];
+	iterationsCount?: number;
+	expectError?: boolean;
+	error?: string | Constructable | RegExp | Error;
+}) => {
+	if (!props.iterationsCount) props.iterationsCount = 100;
+	let payloads = props.getPayloads(0);
 	let payloadStr = '(';
 
-	for (let i = 1; i <= props.payloadsCount; i++) {
+	for (let i = 1; i <= payloads.length; i++) {
 		payloadStr += `$payload${i}, `;
 	}
 
@@ -28,18 +34,13 @@ const generateTemplate = (props: {
 			end note
 		`,
 		description: `${props.function_name} function`,
-		automataName: `${props.function_name}_function_with_${props.payloadsCount}_payloads`,
+		automataName: `${props.function_name}_function_with_${payloads.length}_payloads`,
 		getTestIterations: (module) => {
 			const tests = [] as TTestIteration[];
 
-			tests.push({
-				function: async () => {
-					for (let i = 0; i < 100; i++) {
-						const payloads = [];
-						for (let i = 1; i <= props.payloadsCount!; i++) {
-							payloads.push(sampleRange(-1000, 1000));
-						}
-
+			const testFunction = async () => {
+				for (let i = 0; i < props.iterationsCount!; i++) {
+					const inner = async () => {
 						const Automata = module.Automata;
 						const automata = new Automata();
 						automata.dispatch({
@@ -50,11 +51,24 @@ const generateTemplate = (props: {
 							}), {}),
 						});
 						expect(automata.state).toBe(Automata.getState(Automata.states.end));
-						const expectedResult = props.returnedValueExpectedFunction(...payloads);
-						expect(automata.context.ReturnedValue).toBe(expectedResult);
+						if (props.returnedValueExpectedFunction) {
+							const expectedResult = props.returnedValueExpectedFunction(...payloads);
+							expect(automata.context.ReturnedValue, JSON.stringify(payloads)).toBe(expectedResult);
+						}
+						payloads = props.getPayloads(i);
+					};
+
+					if (props.expectError) {
+						await expect(inner).rejects.toThrowError(props.error);
+					} else {
+						await inner();
 					}
-				},
-				name: 'must pass equal tests',
+				}
+			};
+
+			tests.push({
+				function: testFunction,
+				name: props.expectError ? 'must throw error' : 'must pass equal tests',
 			});
 
 			return tests;
@@ -66,65 +80,84 @@ const generateTemplate = (props: {
 const templates: TTemplate[] = [
 	generateTemplate({
 		function_name: 'add',
-		returnedValueExpectedFunction: builtInFunctions.add,
+		returnedValueExpectedFunction: (...n) => builtInFunctions.add(n),
+		getPayloads: () => Array.from({ length: 2 }, () => getRandomNumber()),
 	}),
 	generateTemplate({
 		function_name: 'add',
 		returnedValueExpectedFunction: builtInFunctions.add,
-		payloadsCount: 10,
+		getPayloads: () => Array.from({ length: 10 }, () => getRandomNumber()),
 	}),
 	generateTemplate({
 		function_name: 'diff',
 		returnedValueExpectedFunction: builtInFunctions.diff,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'mult',
 		returnedValueExpectedFunction: builtInFunctions.mult,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'mult',
 		returnedValueExpectedFunction: builtInFunctions.mult,
-		payloadsCount: 10,
+		getPayloads: () => Array.from({ length: 10 }, () => getRandomNumber()),
 	}),
 	generateTemplate({
 		function_name: 'div',
 		returnedValueExpectedFunction: builtInFunctions.div,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'pow',
 		returnedValueExpectedFunction: builtInFunctions.pow,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'inc',
 		returnedValueExpectedFunction: builtInFunctions.inc,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'dec',
 		returnedValueExpectedFunction: builtInFunctions.dec,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'neg',
 		returnedValueExpectedFunction: builtInFunctions.neg,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'inv',
 		returnedValueExpectedFunction: builtInFunctions.inv,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'mod',
 		returnedValueExpectedFunction: builtInFunctions.mod,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'trunc',
 		returnedValueExpectedFunction: builtInFunctions.trunc,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'ceil',
 		returnedValueExpectedFunction: builtInFunctions.ceil,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
 	}),
 	generateTemplate({
 		function_name: 'round',
-		returnedValueExpectedFunction: builtInFunctions.round,
+		getPayloads: () => ([getRandomNumber(), getRandomNumber()]),
+	}),
+
+	generateTemplate({
+		function_name: 'pow',
+		getPayloads: () => ([getRandomNumber(), 'asfasf']),
+		expectError: true,
+		error: TypeError,
 	}),
 ];
 
