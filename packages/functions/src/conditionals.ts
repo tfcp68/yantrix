@@ -2,15 +2,17 @@ import { find, isArray, isBoolean, isNil, isNumber } from 'lodash-es';
 import { TCasePair, TNestedArray } from './types';
 import { variadic } from './utils';
 
-const if_ = <T>(condition: boolean, trueValue: T, falseValue: T): T => (condition ? trueValue : falseValue);
+function _if<T>(condition: boolean, trueValue: T, falseValue: T): T {
+	return (condition ? trueValue : falseValue);
+}
 
-function case_<T, A = T>(condition: boolean, expression: T, alt?: A): T | A | null;
-function case_<T, A = T>(condition: boolean, expression: T, ...rest: any[]): T | A | null;
-function case_<T, A = T>(pair: TCasePair<T>, alt?: A): T | A | null;
-function case_<T, A = T>(pairs: TCasePair<T>[], alt?: A): T | A | null;
-function case_<T, A = T>(pairs: TNestedArray<TCasePair<T>>, alt?: A): T | A | null;
-function case_<T, A = T>(...pairsAndAlt: [...TNestedArray<TCasePair<T>>[], A]): T | A | null;
-function case_<T, A = T>(...args: unknown[]): T | A | null {
+function _case<T, A = T>(condition: boolean, expression: T, alt?: A): T | A | null;
+function _case<T, A = T>(condition: boolean, expression: T, ...rest: any[]): T | A | null;
+function _case<T, A = T>(pair: TCasePair<T>, alt?: A): T | A | null;
+function _case<T, A = T>(pairs: TCasePair<T>[], alt?: A): T | A | null;
+function _case<T, A = T>(pairs: TNestedArray<TCasePair<T>>, alt?: A): T | A | null;
+function _case<T, A = T>(...pairsAndAlt: [...TNestedArray<TCasePair<T>>[], A]): T | A | null;
+function _case<T, A = T>(...args: unknown[]): T | A | null {
 	const isValidPair = (pair: unknown): pair is TCasePair<T> => {
 		return isArray(pair) && pair.length === 2 && isBoolean(pair[0]);
 	};
@@ -89,14 +91,14 @@ const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {
 	return find(values, value => !isNil(value)) ?? null;
 });
 
-const random = (min?: number, max?: number): number => {
+function random(min?: number, max?: number): number {
 	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
-};
+}
 
 export {
-	case_ as case,
+	_case as case,
 	coalesce,
-	if_ as if,
+	_if as if,
 	random,
 };

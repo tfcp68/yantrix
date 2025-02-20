@@ -1,54 +1,59 @@
-import { isArray, isEqual, isNull, isNumber, isObject, isString, some, values } from 'lodash-es';
+import { every, isArray, isEqual, isNull, isNumber, isObject, isString, some, values } from 'lodash-es';
 import { variadic } from './utils';
 
 // Logical predicates
-export const and = variadic((conditions: boolean[]) => conditions.every(Boolean));
+export const and = variadic((conditions: boolean[]) => every(conditions, Boolean));
 export const all = and;
 
-export const or = variadic((conditions: boolean[]) => conditions.some(Boolean));
+export const or = variadic((conditions: boolean[]) => every(conditions, Boolean));
 export const any = or;
 
 export const not = (condition: boolean) => !condition;
 export const none = variadic((conditions: boolean[]) => not(and(conditions)));
 
 // Numeric predicates
-export const isEven = (n: number) => isNumber(n) ? n % 2 === 0 : false;
-export const isOdd = (n: number) => isNumber(n) ? Math.abs(n % 2) === 1 : false;
+export function isEven(n: number) {
+	return isNumber(n) ? n % 2 === 0 : false;
+}
 
-export const isInteger = (value: number) => {
+export function isOdd(n: number) {
+	return isNumber(n) ? Math.abs(n % 2) === 1 : false;
+}
+
+export function isInteger(value: number) {
 	if (!isNumber(value)) return false;
 	return Number.isInteger(value);
-};
+}
 
-export const isGreater = (a: number, b: number) => {
+export function isGreater(a: number, b: number) {
 	if (!isNumber(a) || !isNumber(b)) return false;
 	return a > b;
-};
+}
 
-export const isGreaterOrEqual = (a: number, b: number): boolean => {
+export function isGreaterOrEqual(a: number, b: number): boolean {
 	if (!isNumber(a) || !isNumber(b)) return false;
 	return a >= b;
-};
+}
 
-export const isLess = (a: number, b: number): boolean => {
+export function isLess(a: number, b: number): boolean {
 	if (!isNumber(a) || !isNumber(b)) return false;
 	return a < b;
-};
+}
 
-export const isLessOrEqual = (a: number, b: number): boolean => {
+export function isLessOrEqual(a: number, b: number): boolean {
 	if (!isNumber(a) || !isNumber(b)) return false;
 	return a <= b;
-};
+}
 
-export const isNegative = (value: number): boolean => {
+export function isNegative(value: number): boolean {
 	if (!isNumber(value)) return false;
 	return value < 0;
-};
+}
 
-export const isPositive = (value: number): boolean => {
+export function isPositive(value: number): boolean {
 	if (!isNumber(value)) return false;
 	return value >= 0;
-};
+}
 
 // Lookup predicates
 export function contains(str: string, substr: string): boolean;
