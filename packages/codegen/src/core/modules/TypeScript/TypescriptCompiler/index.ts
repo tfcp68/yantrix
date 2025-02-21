@@ -8,4 +8,6 @@ export const TypeScriptCompiler = {
 	expressions: JavaScriptCompiler.expressions,
 	imports: JavaScriptCompiler.imports,
 	state: JavaScriptCompiler.state,
+	events: JavaScriptCompiler.events,
+	forks: JavaScriptCompiler.forks,
 };

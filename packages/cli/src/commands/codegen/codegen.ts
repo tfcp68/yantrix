@@ -150,16 +150,16 @@ export async function codegen(argv: IArgv) {
 
 			p.log.success(`Automata saved to ${outputFilePath}`);
 
-			if (argv.language.includes('script')) {
-				const message = [
-					'Since you have chosen the *-script language, ',
-					'you need to install additional packages to work with the generated Automata:',
-					'\n - @yantrix/automata',
-					'\n - @yantrix/functions',
-				].join('');
+			// if (argv.language.includes('script')) {
+			// 	const message = [
+			// 		'Since you have chosen the *-script language, ',
+			// 		'you need to install additional packages to work with the generated Automata:',
+			// 		'\n - @yantrix/automata',
+			// 		'\n - @yantrix/functions',
+			// 	].join('');
 
-				p.log.warn(message);
-			}
+			// 	p.log.warn(message);
+			// }
 		} catch (err) {
 			if (err instanceof Error) p.log.error(err.message);
 			process.exit(EXIT_ERROR_CODE);

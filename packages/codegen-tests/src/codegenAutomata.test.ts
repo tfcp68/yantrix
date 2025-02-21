@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ModuleNames } from '@yantrix/codegen';
+import { ModuleNames } from '@yantrix/core';
 import { describe, expect, it } from 'vitest';
 import { generateAndSave } from './fixtures/utils.js';
 

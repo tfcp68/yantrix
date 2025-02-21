@@ -33,6 +33,6 @@ export const useAppDispatch = () => useDispatch<TAppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<TRootState> = useSelector;
 
 export const switchLight = () => actions.Switch({});
-export const resetLight = () => actions['Reset (initialCounter=0)']({
+export const resetLight = () => actions.Reset({
 	initialCounter: 0,
 });

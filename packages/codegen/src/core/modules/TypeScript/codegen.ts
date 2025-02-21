@@ -7,45 +7,58 @@ import { TypeScriptCompiler } from './TypescriptCompiler';
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typeof ModuleNames.TypeScript> {
 	constructor(params: TModuleParams) {
 		super(params);
-		this.imports['@yantrix/automata']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
+		this.imports['@yantrix/core']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
+		const props = {
+			imports: this.imports,
+			dictionaries: this.dictionaries,
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+			eventDictionary: this.eventDictionary,
+			expressions: this.expressions,
+			byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
+			dictionariesSerializer: TypeScriptCompiler.dictionaries.serializer,
+			classSerializer: TypeScriptCompiler.class.serializer,
+			className: options.className,
+		};
 		return `
-			${TypeScriptCompiler.imports.serializer.getImportsCode({ imports: this.imports })}
-			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode({
-				dictionaries: this.dictionaries,
-			})}
-			${TypeScriptCompiler.dictionaries.serializer.getActionsMap({
-				actionDictionary: this.actionDictionary,
-			})}
-			${TypeScriptCompiler.dictionaries.serializer.getSerializedSetByPassed({
-				byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
-			})}
+			${TypeScriptCompiler.imports.serializer.getImportsCode(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
+			${TypeScriptCompiler.events.serializer.getEventAdapterCode(props)}
+			${TypeScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}
+			${TypeScriptCompiler.dictionaries.serializer.getActionsMap(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getStatesMap(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
 			export type TActions${options.className} = keyof typeof actionsMap;
-			${TypeScriptCompiler.dictionaries.serializer.getStatesMap({
-				stateDictionary: this.stateDictionary,
-			})}
-			${TypeScriptCompiler.context.serializer.getDefaultContext({
-				expressions: this.expressions,
-				diagram: this.diagram,
-				stateDictionary: this.stateDictionary,
-			})}
-			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState({
-				dictionariesSerializer: TypeScriptCompiler.dictionaries.serializer,
-				diagram: this.diagram,
-				stateDictionary: this.stateDictionary,
-				actionDictionary: this.actionDictionary,
-			})}
-			${TypeScriptCompiler.class.serializer.getClassTemplate({
-				classSerializer: TypeScriptCompiler.class.serializer,
-				className: options.className,
-				diagram: this.diagram,
-				stateDictionary: this.stateDictionary,
-				actionDictionary: this.actionDictionary,
-				eventDictionary: this.eventDictionary,
-				expressions: this.expressions,
-			})}
+			${TypeScriptCompiler.context.serializer.getDefaultContext(props)}
+			${TypeScriptCompiler.context.serializer.getStateReducerCode(props)}
+			${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
+			${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
 		`;
+
+		/*
+			правильный порядок
+
+			return `
+				${TypeScriptCompiler.imports.serializer.getImportsCode(props)}
+				${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
+				${TypeScriptCompiler.events.serializer.getEventAdapterCode(props)}
+				${TypeScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}
+				${TypeScriptCompiler.dictionaries.serializer.getActionsMap(props)}
+				${TypeScriptCompiler.dictionaries.serializer.getStatesMap(props)}
+				${TypeScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
+				export type TActions${options.className} = keyof typeof actionsMap;
+				${TypeScriptCompiler.dictionaries.serializer.getStatesMap(props)}
+				${TypeScriptCompiler.context.serializer.getDefaultContext(props)}
+				${TypeScriptCompiler.context.serializer.getStateReducerCode(props)}
+				${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
+				${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
+				${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
+			`;
+		*/
 	}
 }

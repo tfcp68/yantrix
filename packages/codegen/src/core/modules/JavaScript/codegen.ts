@@ -27,14 +27,14 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	expressions: TExpressionRecord;
 	dictionaries: string[];
 	protected imports: TImports = {
-		'@yantrix/automata': [
+		'@yantrix/core': [
 			'GenericAutomata',
 			'FunctionDictionary',
 			'EventDictionary as GlobalEventDictionary',
 			'AutomataEventAdapter',
 			'BasicEventBus',
+			'builtInFunctions',
 		],
-		'@yantrix/functions': ['builtInFunctions'],
 	};
 
 	constructor({ diagram, constants }: TModuleParams) {

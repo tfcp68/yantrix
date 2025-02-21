@@ -1,5 +1,4 @@
-import { ModuleNames } from '@yantrix/codegen';
-import { randomArray, randomDecimal, randomInteger, randomString } from '@yantrix/utils';
+import { ModuleNames, randomArray, randomDecimal, randomInteger, randomString } from '@yantrix/core';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { constant, generateAssignCase, getReferenceAssign } from './fixtures/defaultAssign';
 import { generateAndSave, mapFromObjectToString, objectKeysToString } from './fixtures/utils';
