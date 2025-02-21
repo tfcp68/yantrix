@@ -1,5 +1,6 @@
 {
 	"extends": ["../../typedoc.base.json"],
 	"entryPoints": ["src/index.ts"],
-	"intentionallyNotExported": ["TypeScriptCodegen", "JavaScriptCodegen"]
+	"intentionallyNotExported": ["TypeScriptCodegen", "JavaScriptCodegen"],
+	"excludeNotDocumented": false
 }

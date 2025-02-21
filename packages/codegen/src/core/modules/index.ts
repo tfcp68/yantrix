@@ -10,6 +10,9 @@ export const ModuleNames = {
 	Java: 'java',
 } as const;
 
+/**
+ * Currently supported language modules for code generation.
+ */
 export const Modules = {
 	[ModuleNames.JavaScript]: JavaScriptCodegen,
 	[ModuleNames.TypeScript]: TypeScriptCodegen,
