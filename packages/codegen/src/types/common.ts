@@ -24,17 +24,18 @@ export interface ICodegenOptions<T = TOutLang> {
  */
 export interface IGenerateOptions {
 	/**
-	 * The name of the class Automata  to generate.
+	 * The name of the class for the generated Automata.
 	 */
 	className: string;
 
 	/**
 	 * The output language for the generated code.
+	 * You can check the supported languages and features [here](/integrations/100_language_support.html).
 	 */
 	outLang: TOutLang;
 
 	/**
-	 * Constant reference
+	 * Included constants to be used in the generated Automata.
 	 */
 	constants?: string;
 }
@@ -71,6 +72,12 @@ export type TGetCodeOptionsMap = {
 	[ModuleNames.Java]: IGetCodeJavaOptions;
 };
 
+/**
+ * Interface that is implemented by all code generators.
+ * @interface ICodegen
+ * @template T - The output language.
+ * @property {Function} getCode - The function that returns the generated code, following all the conventions established by the output language `T`.
+ */
 export interface ICodegen<T extends TOutLang> {
 	getCode: (options: TGetCodeOptionsMap[T]) => string;
 }

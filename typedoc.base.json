@@ -2,10 +2,10 @@
 	"$schema": "https://typedoc.org/schema.json",
 	"includeVersion": true,
 	"readme": "none",
+	"exclude": ["**/codegen-tests/**"],
 	"excludePrivate": true,
 	"excludeInternal": true,
 	"excludeExternals": true,
 	"excludeProtected": true,
-
 	"excludeNotDocumented": true
 }
