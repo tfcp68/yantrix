@@ -21,14 +21,16 @@ import {
 
 import { variadic } from './utils';
 
+function invalid(type: 0): never;
 function invalid(type: 1): never;
 function invalid(type: 2): never;
 function invalid(type: 3, presence: 0 | 1): never;
 function invalid(message: string): never;
-function invalid(messageOrType: 1 | 2 | 3 | string, presence?: 0 | 1): never {
+function invalid(messageOrType: 0 | 1 | 2 | 3 | string, presence?: 0 | 1): never {
 	const message = isString(messageOrType)
 		? messageOrType
 		: {
+				0: 'Division by 0 is not acceptable',
 				1: 'Argument must be provided and be a valid number.',
 				2: 'Both arguments must be provided and be valid numbers.',
 				3: {
@@ -56,7 +58,13 @@ export const mult = variadic<number, number | null>((nums) => {
 });
 
 export function div(a: number, b: number) {
-	return some([a, b], isNil) ? null : isNumber(a) && isNumber(b) ? a / b : invalid(2);
+	return some([a, b], isNil)
+		? null
+		: isNumber(a) && isNumber(b)
+			? b === 0
+				? invalid(0)
+				: a / b
+			: invalid(2);
 }
 
 export function pow(n: number, exp: number) {

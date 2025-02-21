@@ -6,6 +6,24 @@ function _if<T>(condition: boolean, trueValue: T, falseValue: T): T {
 	return (condition ? trueValue : falseValue);
 }
 
+function isValidPair<T = any>(pair: unknown): pair is TCasePair<T> {
+	return isArray(pair) && pair.length === 2 && isBoolean(pair[0]);
+}
+
+function flattenPairs<T = any>(input: unknown): TCasePair<T>[] {
+	if (!isArray(input)) return [];
+
+	const result: TCasePair<T>[] = [];
+	for (const item of input) {
+		if (isValidPair(item)) {
+			result.push(item);
+		} else if (isArray(item)) {
+			result.push(...flattenPairs(item));
+		}
+	}
+	return result;
+}
+
 function _case<T, A = T>(condition: boolean, expression: T, alt?: A): T | A | null;
 function _case<T, A = T>(condition: boolean, expression: T, ...rest: any[]): T | A | null;
 function _case<T, A = T>(pair: TCasePair<T>, alt?: A): T | A | null;
@@ -13,24 +31,6 @@ function _case<T, A = T>(pairs: TCasePair<T>[], alt?: A): T | A | null;
 function _case<T, A = T>(pairs: TNestedArray<TCasePair<T>>, alt?: A): T | A | null;
 function _case<T, A = T>(...pairsAndAlt: [...TNestedArray<TCasePair<T>>[], A]): T | A | null;
 function _case<T, A = T>(...args: unknown[]): T | A | null {
-	const isValidPair = (pair: unknown): pair is TCasePair<T> => {
-		return isArray(pair) && pair.length === 2 && isBoolean(pair[0]);
-	};
-
-	const flattenPairs = (input: unknown): TCasePair<T>[] => {
-		if (!isArray(input)) return [];
-
-		const result: TCasePair<T>[] = [];
-		for (const item of input) {
-			if (isValidPair(item)) {
-				result.push(item);
-			} else if (isArray(item)) {
-				result.push(...flattenPairs(item));
-			}
-		}
-		return result;
-	};
-
 	if (args.length >= 2 && typeof args[0] === 'boolean') {
 		if (args.length > 3 || (args.length === 3 && typeof args[2] === 'boolean')) {
 			const pairs: TCasePair<T>[] = [];
