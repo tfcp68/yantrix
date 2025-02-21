@@ -38,7 +38,7 @@ export const generateTemplate = (props: {
 	description: string;
 }) => {
 	if (!props.iterationsCount) props.iterationsCount = 100;
-	let payloads = props.getPayloads();
+	let payloads = props.getPayloads(0);
 
 	const automataName = props?.expectError
 		? `${props.functionName}_function_with_error`
@@ -69,9 +69,10 @@ export const generateTemplate = (props: {
 						expect(automata.state).toBe(Automata.getState(Automata.states.end));
 						if (props.returnedValueExpectedFunction) {
 							const expectedResult = props.returnedValueExpectedFunction(...payloads);
-							expect(automata.context.ReturnedValue, JSON.stringify(payloads)).toStrictEqual(expectedResult);
+							expect(automata.context.ReturnedValue, JSON.stringify(payloads))
+								.toStrictEqual(expectedResult);
 						}
-						payloads = props.getPayloads();
+						payloads = props.getPayloads(i);
 					};
 
 					if (props.expectError) {
