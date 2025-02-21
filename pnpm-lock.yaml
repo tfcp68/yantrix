@@ -276,12 +276,18 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.1.0
         version: 1.1.0(@types/react@18.3.12)(react@18.3.1)
-      '@yantrix/core':
+      '@yantrix/automata':
         specifier: workspace:^
-        version: link:../../packages/core
+        version: link:../../packages/automata
+      '@yantrix/functions':
+        specifier: workspace:^
+        version: link:../../packages/functions
       '@yantrix/react':
         specifier: workspace:^
         version: link:../../packages/react
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -316,6 +322,12 @@ importers:
       '@vitejs/plugin-react-swc':
         specifier: ^3.7.0
         version: 3.7.2(vite@5.4.11(@types/node@22.10.1))
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../../packages/cli
+      '@yantrix/codegen':
+        specifier: workspace:^
+        version: link:../../packages/codegen
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)

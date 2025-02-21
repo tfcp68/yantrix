@@ -1,4 +1,4 @@
-// import { execSync } from 'node:child_process';
+// import { exec } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import * as p from '@clack/prompts';
@@ -6,7 +6,6 @@ import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import c from 'ansis';
 import { isSymbol } from 'lodash-es';
-// import { detectSync } from 'package-manager-detector';
 import { TLanguage } from '../../types/common';
 import { DISABLE_FLAGS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
 import { isGitClean, isJSON } from '../../utils/utils';
@@ -251,10 +250,7 @@ export async function interactive() {
 
 	// 	spinner.start('Installing additional packages...');
 	// 	try {
-	// 		const pm = detectSync();
-	// 		if (!pm) throw new Error('Could not detect package manager');
-
-	// 		execSync(`${pm.agent} install @yantrix/automata @yantrix/functions`);
+	// 		await exec(`npx nypm install @yantrix/automata @yantrix/functions`);
 	// 		spinner.stop('Additional packages installed successfully!');
 	// 	} catch (e) {
 	// 		const msg1 = 'An error occurred while installing additional packages: "@yantrix/automata", "@yantrix/functions"';

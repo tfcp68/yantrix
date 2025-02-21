@@ -1,6 +1,7 @@
 name: Tests
 
 on:
+  workflow_call:
   push:
     branches:
       - main
@@ -10,6 +11,10 @@ on:
       - main
 
   merge_group: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   tests:
@@ -27,6 +32,12 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: Set up swap space
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 10
+
       - name: Set git to use LF
         run: |
           git config --global core.autocrlf false

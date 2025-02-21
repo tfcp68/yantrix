@@ -2,8 +2,8 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/cli",
 	"type": "module",
-	"version": "0.0.1",
-	"description": "CLI for Yantrix components",
+	"version": "0.0.2",
+	"description": "Yantrix framework command line tools",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -25,7 +25,9 @@
 	},
 	"keywords": [
 		"FSM",
-		"Miely Machine"
+		"Yatrix",
+		"codegen",
+		"cli"
 	],
 	"bin": {
 		"yantrix": "bin/index.js"

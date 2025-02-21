@@ -2,8 +2,8 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/functions",
 	"type": "module",
-	"version": "0.0.1",
-	"description": "",
+	"version": "0.0.2",
+	"description": "Typescript built-ins for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -24,7 +24,11 @@
 	"bugs": {
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
-	"keywords": [],
+	"keywords": [
+		"Yantrix",
+		"FSM",
+		"Typescript"
+	],
 	"sideEffects": false,
 	"exports": {
 		".": {

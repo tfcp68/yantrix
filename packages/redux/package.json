@@ -1,8 +1,8 @@
 {
 	"name": "@yantrix/redux",
 	"type": "module",
-	"version": "0.0.1",
-	"description": "Redux automata integration for Redux",
+	"version": "0.0.2",
+	"description": "Redux integration for Yantrix framework",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"license": "MIT",
 	"homepage": "https://tfcp68.github.io/yantrix",
@@ -16,7 +16,8 @@
 	},
 	"keywords": [
 		"FSM",
-		"Miely Machine"
+		"Redux",
+		"Yantrix"
 	],
 	"exports": {
 		"types": "./dist/index.d.ts",

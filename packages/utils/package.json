@@ -2,8 +2,8 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/utils",
 	"type": "module",
-	"version": "0.0.1",
-	"description": "Various utils for Yantrix components",
+	"version": "0.0.2",
+	"description": "Shared code for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -25,7 +25,7 @@
 	},
 	"keywords": [
 		"FSM",
-		"Miely Machine"
+		"Yantrix"
 	],
 	"exports": {
 		".": {

@@ -2,8 +2,8 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/yantrix-parser",
 	"type": "module",
-	"version": "0.0.1",
-	"description": "Execute jison parser",
+	"version": "0.0.2",
+	"description": "DSL parser for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -24,8 +24,10 @@
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
 	"keywords": [
+		"DSL",
+		"jison",
 		"FSM",
-		"Miely Machine"
+		"Yantrix"
 	],
 	"exports": {
 		".": {
