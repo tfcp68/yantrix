@@ -1,7 +1,7 @@
-import arithmeticsTemplates from './arithmeticsTemplates';
+import transformers from './transformers';
 
 const templates = [
-	...arithmeticsTemplates,
+	...transformers,
 ];
 
 export default templates;

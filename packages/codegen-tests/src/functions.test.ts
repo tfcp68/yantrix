@@ -14,11 +14,9 @@ describe('functions', async () => {
 		const module = await generateAndGetAutomataModule(template.input, template.automataName);
 		const iterations = template.getTestIterations(module);
 
-		describe(template.description, async () => {
+		it(template.description, async () => {
 			for (const iter of iterations) {
-				it(iter.name, async () => {
-					await iter.function();
-				});
+				await iter.function();
 			}
 		});
 	}
