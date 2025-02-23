@@ -155,7 +155,7 @@ export const med = variadic<number, number | null>((nums) => {
 	if (!nums.length) return null;
 	return every(nums, isNumber)
 		? (() => {
-				const sorted = nums.toSorted((a, b) => a - b);
+				const sorted = ([] as number[]).concat(nums).sort((a, b) => a - b);
 				const middle = Math.floor(sorted.length / 2);
 
 				return sorted.length % 2
