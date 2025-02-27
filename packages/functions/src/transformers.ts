@@ -239,7 +239,7 @@ export function shuffle<T>(input: string | T[]): string | T[] {
 // List transformers
 export function lookup<T>(list: T[], value: T) {
 	if (!isArray(list)) return null;
-	return find(list, it => isEqual(it, value));
+	return find(list, it => isEqual(it, value)) || null;
 }
 
 export function repeat<T>(quantity: number, valueSample: T): T[] {

@@ -369,7 +369,7 @@ describe('function Tests', () => {
 		});
 
 		it('should return undefined for missing values', () => {
-			expect(builtInFunctions.lookup([1, 2, 3], 4)).toBeUndefined();
+			expect(builtInFunctions.lookup([1, 2, 3], 4)).toBeNull();
 		});
 
 		it('should handle invalid inputs gracefully', () => {
