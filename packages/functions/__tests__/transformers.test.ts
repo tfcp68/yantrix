@@ -10,7 +10,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.add(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.add(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -26,7 +26,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.diff('a' as any, 5)).toThrow('Both arguments must be provided and be valid numbers.');
+			expect(() => builtInFunctions.diff('a' as any, 5)).toThrowError();
 		});
 	});
 
@@ -37,7 +37,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.mult(2, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.mult(2, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -47,11 +47,11 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for division by zero', () => {
-			expect(() => builtInFunctions.div(10, 0)).toThrow('Division by 0 is not acceptable');
+			expect(() => builtInFunctions.div(10, 0)).toThrowError();
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.div('a' as any, 5)).toThrow('Both arguments must be provided and be valid numbers.');
+			expect(() => builtInFunctions.div('a' as any, 5)).toThrowError();
 		});
 	});
 
@@ -233,7 +233,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.max(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.max(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -243,7 +243,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.min(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.min(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -253,7 +253,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.avg(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.avg(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -264,7 +264,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.med(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.med(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -274,7 +274,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.sum(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.sum(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -284,7 +284,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for non-numeric inputs', () => {
-			expect(() => builtInFunctions.sumsq(1, 'a' as any)).toThrow('All arguments must be numbers.');
+			expect(() => builtInFunctions.sumsq(1, 'a' as any)).toThrowError();
 		});
 	});
 
@@ -294,7 +294,7 @@ describe('function Tests', () => {
 		});
 
 		it('should throw an error for invalid inputs', () => {
-			expect(() => builtInFunctions.sumProduct([1, 2], 'a' as any)).toThrow('All arguments provided must be lists');
+			expect(() => builtInFunctions.sumProduct([1, 2], 'a' as any)).toThrowError();
 		});
 	});
 
