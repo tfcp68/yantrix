@@ -192,7 +192,7 @@ export const sumProduct = variadic<number[], number>((lists) => {
 export function len(str: string): number;
 export function len<T>(list: T[]): number;
 export function len<T>(input: string | T[]): number {
-	return isArray(input) ?? isString(input) ? input.length : 0;
+	return isArray(input) || isString(input) ? input.length : 0;
 }
 
 export function left(str: string, length: number): string;
@@ -207,7 +207,7 @@ export function right(str: string, length: number): string;
 export function right<T>(list: T[], length: number): T[];
 export function right<T>(input: string | T[], length: number): string | T[] {
 	if (isString(input)) return input.substring(Math.max(0, input.length - length));
-	if (isArray(input)) return input.slice(-length);
+	if (isArray(input)) return length ? input.slice(-length) : [];
 	return input;
 }
 
@@ -238,7 +238,7 @@ export function shuffle<T>(input: string | T[]): string | T[] {
 
 // List transformers
 export function lookup<T>(list: T[], value: T) {
-	if (!isArray) return null;
+	if (!isArray(list)) return null;
 	return find(list, it => isEqual(it, value));
 }
 
