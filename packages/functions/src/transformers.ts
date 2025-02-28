@@ -192,7 +192,7 @@ export const sumProduct = variadic<number[], number>((lists) => {
 export function len(str: string): number;
 export function len<T>(list: T[]): number;
 export function len<T>(input: string | T[]): number {
-	return isArray(input) || isString(input) ? input.length : 0;
+	return isArray(input) || isString(input) ? input.length : invalid('First argument must be a list or string.');
 }
 
 export function left(str: string, length: number): string;
