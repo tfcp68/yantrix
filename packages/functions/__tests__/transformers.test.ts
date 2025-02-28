@@ -368,7 +368,7 @@ describe('function Tests', () => {
 			expect(builtInFunctions.lookup([1, 2, 3], 2)).toBe(2);
 		});
 
-		it('should return undefined for missing values', () => {
+		it('should return null for missing values', () => {
 			expect(builtInFunctions.lookup([1, 2, 3], 4)).toBeNull();
 		});
 
