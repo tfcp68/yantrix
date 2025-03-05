@@ -64,5 +64,13 @@
 	"publishConfig": {
 		"access": "public",
 		"provenance": true
+	},
+	"dependencies": {
+		"@yantrix/utils": "workspace:^",
+		"lodash-es": "^4.17.21"
+	},
+	"devDependencies": {
+		"@types/lodash": "^4.17.15",
+		"@types/lodash-es": "^4.17.12"
 	}
 }
