@@ -1,7 +1,4 @@
-import { FunctionDictionary, TAutomataFunction } from '@yantrix/automata';
-import { ModuleNames } from '@yantrix/codegen';
-import { builtInFunctions } from '@yantrix/functions';
-import { randomInteger, randomString } from '@yantrix/utils';
+import { builtInFunctions, FunctionDictionary, ModuleNames, randomInteger, randomString, TAutomataFunction } from '@yantrix/core';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
 import { afterEach, assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { generateAndSave } from './fixtures/utils.js';

@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+// import { exec } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import * as p from '@clack/prompts';
@@ -245,21 +245,21 @@ export async function interactive() {
 		process.exit(EXIT_ERROR_CODE);
 	}
 
-	if (results.language.includes('script')) {
-		const spinner = p.spinner();
+	// if (results.language.includes('script')) {
+	// 	const spinner = p.spinner();
 
-		spinner.start('Installing additional packages...');
-		try {
-			await exec(`npx nypm install @yantrix/automata @yantrix/functions`);
-			spinner.stop('Additional packages installed successfully!');
-		} catch (e) {
-			const msg1 = 'An error occurred while installing additional packages: "@yantrix/automata", "@yantrix/functions"';
-			const msg2 = e instanceof Error ? `\n${e.message}` : '';
-			const msg3 = '\n\nPlease install them yourself, otherwise Automata will not work at all';
+	// 	spinner.start('Installing additional packages...');
+	// 	try {
+	// 		await exec(`npx nypm install @yantrix/automata @yantrix/functions`);
+	// 		spinner.stop('Additional packages installed successfully!');
+	// 	} catch (e) {
+	// 		const msg1 = 'An error occurred while installing additional packages: "@yantrix/automata", "@yantrix/functions"';
+	// 		const msg2 = e instanceof Error ? `\n${e.message}` : '';
+	// 		const msg3 = '\n\nPlease install them yourself, otherwise Automata will not work at all';
 
-			spinner.stop(c.red(`${msg1}${msg2}${msg3}`), 1);
-			process.exit(EXIT_ERROR_CODE);
-		}
-		process.exit(EXIT_SUCCESS_CODE);
-	}
+	// 		spinner.stop(c.red(`${msg1}${msg2}${msg3}`), 1);
+	// 		process.exit(EXIT_ERROR_CODE);
+	// 	}
+	// 	process.exit(EXIT_SUCCESS_CODE);
+	// }
 }
