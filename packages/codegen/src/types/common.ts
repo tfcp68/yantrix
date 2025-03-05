@@ -74,11 +74,15 @@ export type TGetCodeOptionsMap = {
 
 /**
  * Interface that is implemented by all code generators.
- * @interface ICodegen
  * @template T - The output language.
- * @property {Function} getCode - The function that returns the generated code, following all the conventions established by the output language `T`.
+ * @property getCode - The function that returns the generated code, following all the conventions established by the output language `T`.
  */
 export interface ICodegen<T extends TOutLang> {
+	/**
+	 * The function that returns the generated code, following all the conventions established by the output language `T`
+	 * @param options - Options for codegen in the desired output language `T`.
+	 * @returns The generated code.
+	 */
 	getCode: (options: TGetCodeOptionsMap[T]) => string;
 }
 
