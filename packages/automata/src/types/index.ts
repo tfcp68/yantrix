@@ -1,7 +1,18 @@
 import { IAutomataFunctionRegistry } from './interfaces';
 
+/**
+ * Represents the base state type for the automata.
+ */
 export type TAutomataBaseStateType = number;
+
+/**
+ * Represents the base action type for the automata.
+ */
 export type TAutomataBaseActionType = number;
+
+/**
+ * Represents the base event type for the automata.
+ */
 export type TAutomataBaseEventType = number;
 
 export interface IBaseClass {
@@ -10,7 +21,9 @@ export interface IBaseClass {
 }
 
 export type TAbstractConstructor<T = object> = new (...args: any[]) => T;
+
 export type TAbstractFunction<T = any> = (...args: any[]) => T;
+
 export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;
 
 export type TMergeClassTrait<TTrait extends TAbstractConstructor, TTarget extends TAbstractConstructor> = (new (
@@ -19,14 +32,23 @@ export type TMergeClassTrait<TTrait extends TAbstractConstructor, TTarget extend
 Pick<TTarget, keyof TTarget> &
 Pick<TTrait, keyof TTrait>;
 
+/**
+ * Container for automata state.
+ */
 export type TAutomataStateContainer<StateType extends TAutomataBaseStateType> = {
 	state: StateType | null;
 };
 
+/**
+ * Container for automata action.
+ */
 export type TAutomataActionContainer<ActionType extends TAutomataBaseActionType> = {
 	action: ActionType | null;
 };
 
+/**
+ * Container for automata event.
+ */
 export type TAutomataEventContainer<EventType extends TAutomataBaseEventType> = {
 	event: EventType | null;
 };
@@ -94,13 +116,18 @@ export type TAutomataDispatch<
 ) => ReturnType<TAutomataReducer<StateType, ActionType, ContextType, PayloadType, NewStateType>>;
 
 export type TSubscriptionCancelFunction = () => void;
+
 export type TDefinedValues<T> = T extends object
 	? {
 			[P in keyof T]: NonNullable<T[P]>;
 		}
 	: NonNullable<T>;
+
 export type TValidator<T> = (x: any) => x is TDefinedValues<T>;
 
+/**
+ * Parameters for automata configuration.
+ */
 export type TAutomataParams<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -121,16 +148,25 @@ export type TAutomataParams<
 	paused?: boolean;
 };
 
+/**
+ * Queue for automata actions.
+ */
 export type TAutomataQueue<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 > = Array<TAutomataActionPayload<ActionType, PayloadType>>;
 
+/**
+ * Stack for automata events.
+ */
 export type TAutomataEventStack<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = Array<TAutomataEventMetaType<EventType, EventMetaType>>;
 
+/**
+ * Effect function for automata model.
+ */
 export type TAutomataEffect<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,

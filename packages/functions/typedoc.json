@@ -3,6 +3,7 @@
 	"entryPoints": ["src/index.ts"],
 	"categorizeByGroup": false,
 	"navigation": {
-		"includeGroups": true
+		"includeCategories": true,
+		"includeGroups": false
 	}
 }

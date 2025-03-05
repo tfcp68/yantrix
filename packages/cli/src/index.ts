@@ -2,11 +2,25 @@
  * @packageDocumentation
  *
  * Command-line interface for [Yantrix](https://github.com/tfcp68/yantrix/) framework.
- * This package is a console wrapper for certain Yantrix tooling, most notably [code generation](https://www.npmjs.com/package/@yantrix/codegen)
+ * This package is a console wrapper for certain Yantrix tooling, most notably [code generation](https://www.npmjs.com/package/@yantrix/codegen).
  *
- * ## 📖 Installation
-
-Install both `@yantrix/cli` and `@yantrix/codegen` using your prefered package manager. All the secondary dependencies will be installed automatically.
+ * It's not encouraged to use this package individually, as it's main function is to enable the users to
+ * easily generate Yantrix automatas with the help of other packages like `automata` and `functions`.
+ *
+ *
+ * ## How to install
+ *
+ * ### 1. Part of the `@yantrix/core` package
+ *
+ * We recommend simply installing the `core` package that includes everything required to easily start creating finite state machines (including the CLI).
+ *
+ * ### 2. Using the CLI package separately
+ *
+ * In case you want to use the `@yantrix/cli` separately from the core package, just remember that CLI by itself is not enough, and installing extra packages is necessary.
+ *
+ * Here is what you need to do:
+ *
+Install both `@yantrix/cli` and `@yantrix/codegen` using your preferred package manager. All the secondary dependencies will be installed automatically.
 
 ```bash
 # Via NPM
@@ -91,11 +105,6 @@ Since you have chosen the *-script language, you need to install additional pack
 	- @yantrix/functions
 ```
 
-For more information, see also:
-- [Quick start in Typescript](https://tfcp68.github.io/yantrix/)
-- [Learn language options](https://tfcp68.github.io/yantrix/integrations/100_language_support.html)
-- [Diagram examples](https://tfcp68.github.io/yantrix/concepts/999_design_examples.html)
- *
  */
 
 import * as p from '@clack/prompts';
@@ -107,6 +116,8 @@ import { hideBin } from 'yargs/helpers';
 import pkg from '../package.json';
 import { codegen } from './commands/codegen/codegen';
 import { LANGUAGES } from './utils/constants';
+
+export * from './types/common';
 
 // eslint-disable-next-line ts/no-unused-expressions
 yargs(hideBin(process.argv))

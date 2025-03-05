@@ -1,3 +1,5 @@
+/** @showCategories */
+
 /** Wrapper function, ensures that the underlying functions will work with either a single array, or all its members as arguments. */
 function _wrapper<T extends number | boolean | unknown>(callback: (nums: T[]) => T) {
 	return (...nums: T[]) => {
@@ -66,6 +68,7 @@ function _random(min?: number, max?: number): number {
 }
 
 /**
+ * @category Conditionals
  * Functions that execute conditional logic.
  */
 export const Conditionals = {
@@ -85,22 +88,10 @@ export const Conditionals = {
 
 // Built-Ins: Binary Predicates
 
-/**
- * Evaluates a series of conditions and returns true if all conditions are true.
- *
- * @param conditions - An array of boolean conditions to evaluate.
- * @returns True if all conditions are true, otherwise false.
- */
 const and = _wrapper((conditions: boolean[]): boolean => {
 	return conditions.find(cond => cond === false) ?? true;
 });
 
-/**
- * Evaluates a series of conditions and returns true if at least one condition is true.
- *
- * @param conditions - An array of boolean conditions to evaluate.
- * @returns True if at least one condition is true, otherwise false.
- */
 const or = _wrapper((conditions: boolean[]): boolean => {
 	return conditions.find(cond => cond === true) ?? false;
 });
@@ -115,17 +106,12 @@ function not(condition: boolean): boolean {
 	return !condition;
 }
 
-/**
- * Evaluates a series of conditions and returns true if none of the conditions are true.
- *
- * @param conditions - An array of boolean conditions to evaluate.
- * @returns True if none of the conditions are true, otherwise false.
- */
 const none = _wrapper((conditions: boolean[]): boolean => {
 	return !(conditions.find(cond => cond === false) ?? true);
 });
 
 /**
+ * @category Binary Predicates
  * Functions that perform binary logic.
  */
 export const BinaryPredicates = {
@@ -262,6 +248,7 @@ function isPositive(x: number): boolean {
 }
 
 /**
+ * @category Numeric Predicates
  * Functions that compare numerical values and return either 'true' or 'false'.
  */
 export const NumericPredicates = {
@@ -326,6 +313,7 @@ function isNull(exp: object): boolean {
 }
 
 /**
+ * @category Lookup Predicates
  * Functions that check for the presence of values in strings, objects, and arrays, and return either 'true' or 'false'.
  */
 export const LookupPredicates = {
@@ -452,6 +440,7 @@ function round(num: number): number {
 }
 
 /**
+ * @category Arithmetics
  * Functions that perform arithmetic operations on numerical values.
  */
 export const Arithmetics = {
@@ -546,6 +535,7 @@ function rad(num: number): number {
 }
 
 /**
+ * @category Special Maths
  * Functions that perform special mathematical operations on numerical values.
  */
 export const SpecialMaths = { sin, cos, sqrt, log, ln, lg, deg, rad };
@@ -587,6 +577,7 @@ const sumProduct = (...nums_lists: number[][]): number => {
 };
 
 /**
+ * @category Statistics
  * Functions that run statistical operations on arrays.
  */
 export const Statistics = {
@@ -725,6 +716,7 @@ function indexOf(list: unknown[], value: unknown): number {
 }
 
 /**
+ * @category List Transformers
  * Functions that manipulate lists.
  */
 export const ListTransformers = { len, lookup, filterBy, find, left, right, indexOf };
@@ -789,6 +781,7 @@ function strIndexOf(str: string, substr: string): number {
 }
 
 /**
+ * @category String Transformers
  * Functions that manipulate strings.
  */
 export const StringTransformers = { substr, strlen, strLeft, strRight, strIndexOf };
