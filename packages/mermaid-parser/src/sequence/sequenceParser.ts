@@ -229,9 +229,11 @@ function markGraph(
 }
 
 /**
- * @brief The main function that collects all the information and processes it;
- * @param diagramText - diagram [string];
- * @returns Returns dictionary with information from the diagram.
+ * The main function that collects all the information from the Mermaid diagram and transforms it
+ * into a form appropriate for processing with other parts of the Yantrix toolkit.
+ *
+ * @param diagramText - Text of the diagram written in accordance with Mermaid syntax.
+ * @returns Dictionary that contains information from the diagram for further processing.
  */
 export async function parseSequenceDiagram(
 	diagramText: string,
