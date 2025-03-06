@@ -11,3 +11,7 @@ export const ERRORS = {
 	ALL_LIST_ITEMS_MUST_BE_NUMBERS: 'All items in the provided lists must be numbers.',
 	UNEXPECTED_ERROR: 'An unexpected error has occurred.',
 } as const;
+
+export function invalid(errorKey: keyof typeof ERRORS): never {
+	throw new TypeError(ERRORS[errorKey]);
+}

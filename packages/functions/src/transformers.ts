@@ -1,12 +1,8 @@
 import * as _ from 'lodash-es';
 import { TCollection, TNullable } from './types/common';
 import { isCollection } from './types/guards';
-import { ERRORS } from './utils/errors';
+import { invalid } from './utils/errors';
 import { variadic } from './utils/utils';
-
-function invalid(errorKey: keyof typeof ERRORS): never {
-	throw new TypeError(ERRORS[errorKey]);
-}
 
 // Arithmetic transformers
 export const add = variadic<number, number | null>((nums) => {
