@@ -158,7 +158,7 @@ export const sumProduct = variadic<number[], number>((lists) => {
 	lists.every((list, idx) => {
 		if (!list.length) return invalid('NON_EMPTY_LISTS_REQUIRED');
 		if (idx > 0 && list.length !== lists[0]!.length) return invalid('LISTS_MUST_BE_SAME_LENGTH');
-		if (!_.every(_.flatten(lists), _.isNumber)) return invalid('ALL_LIST_ITEMS_MUST_BE_NUMBERS');
+		if (!_.every(list, _.isNumber)) return invalid('ALL_LIST_ITEMS_MUST_BE_NUMBERS');
 		return true;
 	});
 
