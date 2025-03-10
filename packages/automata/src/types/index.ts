@@ -53,6 +53,12 @@ export type TAutomataEventContainer<EventType extends TAutomataBaseEventType> = 
 	event: EventType | null;
 };
 
+/**
+ * Represents the current state & associated context of the automata.
+ *
+ * @template StateType - The type of the automata state.
+ * @template ContextType - The type of the context associated with each state.
+ */
 export type TAutomataStateContext<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends { [K in StateType]: any },
@@ -60,6 +66,12 @@ export type TAutomataStateContext<
 	context: ContextType[StateType] | null;
 };
 
+/**
+ * Represents the action for an automata, together with its payload.
+ *
+ * @template ActionType - The type of the automata action.
+ * @template PayloadType - The type of the payload associated with each action.
+ */
 export type TAutomataActionPayload<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
@@ -67,6 +79,12 @@ export type TAutomataActionPayload<
 	payload: PayloadType[ActionType] | null;
 };
 
+/**
+ * Represents the event that can be emitted or received by an automata.
+ *
+ * @template EventType - The type of the automata event.
+ * @template EventMetaType - The type of the metadata associated with each event.
+ */
 export type TAutomataEventMetaType<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
@@ -74,6 +92,16 @@ export type TAutomataEventMetaType<
 	meta: EventMetaType[EventType] | null;
 };
 
+/**
+ * Represents an event handler function for an automata.
+ *
+ * @template EventType - The type of the automata event.
+ * @template ActionType - The type of the automata action.
+ * @template EventMetaType - The type of the metadata associated with each event.
+ * @template PayloadType - The type of the payload associated with each action.
+ * @param event - The event metadata.
+ * @returns The action(and its payload) that needs to be dispatched to the automata upon processing the event.
+ */
 export type TAutomataEventHandler<
 	EventType extends TAutomataBaseEventType,
 	ActionType extends TAutomataBaseActionType,
@@ -81,6 +109,16 @@ export type TAutomataEventHandler<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 > = (event: TAutomataEventMetaType<EventType, EventMetaType>) => TAutomataActionPayload<ActionType, PayloadType>;
 
+/**
+ * Represents an event emitter function for an automata.
+ *
+ * @template EventType - The type of the automata event.
+ * @template StateType - The type of the automata state.
+ * @template EventMetaType - The type of the metadata associated with each event.
+ * @template ContextType - The type of the context associated with each state.
+ * @param state - The current state of the automata.
+ * @returns The event that needs to be emitted by the automata after executing a certain `Action`.
+ */
 export type TAutomataEventEmitter<
 	EventType extends TAutomataBaseEventType,
 	StateType extends TAutomataBaseStateType,
@@ -95,6 +133,18 @@ export type TAutomataEvent<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 > = TAutomataStateContext<StateType, ContextType> & TAutomataActionPayload<ActionType, PayloadType>;
 
+/**
+ * Represents a reducer function for an automata,
+ * used for changing the state upon the dispatch of a certain `Action`.
+ *
+ * @template StateType - The type of the current automata state.
+ * @template ActionType - The type of the automata action.
+ * @template ContextType - The type of the context associated with each state.
+ * @template PayloadType - The type of the payload associated with each action.
+ * @template NewStateType - The type of the new state for the automata.
+ * @param params - The event parameters.
+ * @returns The new state that the automata should enter and its updated context.
+ */
 export type TAutomataReducer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -105,6 +155,18 @@ export type TAutomataReducer<
 	params: TAutomataEvent<StateType, ActionType, ContextType, PayloadType>,
 ) => TAutomataStateContext<NewStateType, ContextType>;
 
+/**
+ * Represents a dispatch function for an automata,
+ * used for dispatching certain `Actions` to the automata to change its state.
+ *
+ * @template StateType - The type of the automata state.
+ * @template ActionType - The type of the automata action.
+ * @template ContextType - The type of the context associated with each state.
+ * @template PayloadType - The type of the payload associated with each action.
+ * @template NewStateType - The type of the new state after the dispatch.
+ * @param action - The action payload.
+ * @returns The new state of the automata and the updated context.
+ */
 export type TAutomataDispatch<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -117,12 +179,31 @@ export type TAutomataDispatch<
 
 export type TSubscriptionCancelFunction = () => void;
 
+/**
+ * Represents a type with all properties defined and non-nullable.
+ *
+ * @template T - The type to transform.
+ */
 export type TDefinedValues<T> = T extends object
 	? {
 			[P in keyof T]: NonNullable<T[P]>;
 		}
 	: NonNullable<T>;
 
+/**
+ * Represents a validator function of the automata.
+ * Used as a template for validating the automata state, action, event, or event metadata.
+ *
+ * @example
+ * ```typescript
+ * // Create an action validator for the automata:
+ * const testValidator = ((a: number) => a % 15 === 0) as TValidator<TTestAction>;
+ * sampleAutomataInstance.setActionValidator(testValidator);
+ * ```
+ *
+ * @template T - The type of the validator.
+ * @param x - The value to validate.
+ */
 export type TValidator<T> = (x: any) => x is TDefinedValues<T>;
 
 /**
@@ -175,6 +256,15 @@ export type TAutomataEffect<
 
 export type TGenericTransformer<DataType> = (data: DataType) => DataType;
 
+/**
+ * Represents a transformer function for the context of an automata state.
+ * This transformer can be added to the `State Dictionary` of the automata.
+ *
+ * @template StateType - The type of the automata state.
+ * @template ContextType - The type of the context associated with each state.
+ * @param context - The current state (and context) of the automata.
+ * @returns The transformed state (and context) of the automata.
+ */
 export type TContextTransformer<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends {
@@ -193,6 +283,13 @@ export type TModelPredicate<ModelType extends object = Record<string, any>> = (m
 
 export type THighOrderPredicate = (...predicates: Array<(...args: any[]) => boolean>) => boolean;
 
+/**
+ * Represents a task that will be processed by the event bus after emitting a certain `Event`.
+ * Contains the ID of this task, as well as next events to be emitted once this task is completed.
+ *
+ * @template EventType - The type of the automata event.
+ * @template EventMetaType - The type of the metadata associated with each event.
+ */
 export type TEventBusTask<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
@@ -201,9 +298,20 @@ export type TEventBusTask<
 	result: Promise<TAutomataEventStack<EventType, EventMetaType>>;
 };
 
+/**
+ * Handler function for the event bus that transforms emitted events to event bus tasks.
+ *
+ * @template EventType - The type of the automata event.
+ * @template EventMetaType - The type of the metadata associated with each event.
+ * @param event - The event metadata.
+ * @returns The event bus task.
+ */
 export type TEventBusHandler<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = (event: TAutomataEventMetaType<EventType, EventMetaType>) => TEventBusTask<EventType, EventMetaType>;
 
+/**
+ * Represents a function that can be used in the automata.
+ */
 export type TAutomataFunction = ((...args: any) => any) | null;

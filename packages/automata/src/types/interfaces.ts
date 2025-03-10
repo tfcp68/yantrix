@@ -508,10 +508,15 @@ export interface IActionDictionary<
 	getDictionary: (namespace?: string) => TActionDictionaryMapping<ActionType>;
 }
 
+/**
+ * Interface for a dictionary of events.
+ * @template EventType - The type of events.
+ * @template EventMetaType - The type of event metadata.
+ */
 export interface IEventDictionary<
 	EventType extends TAutomataBaseEventType,
-	PayloadType extends { [K in EventType]: any },
-> extends IAutomataExtendedEventContainer<EventType, PayloadType> {
+	EventMetaType extends { [K in EventType]: any },
+> extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
 	/**
 	 * Add new Events to the dictionary, possibly scope them to namespace
 	 * @param {keys:string[],namespace?:string} actions
