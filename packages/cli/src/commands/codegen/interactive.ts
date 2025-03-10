@@ -5,7 +5,6 @@ import * as p from '@clack/prompts';
 import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import c from 'ansis';
-import { isSymbol } from 'lodash-es';
 import { TLanguage } from '../../types/common';
 import { DISABLE_FLAGS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
 import { isGitClean, isJSON } from '../../utils/utils';
@@ -34,7 +33,7 @@ export async function interactive() {
 				message: 'Enter path to the *.mermaid diagram file',
 			});
 
-			if (isSymbol(path)) {
+			if (typeof path === 'symbol') {
 				p.cancel('Automata generation cancelled');
 				process.exit(EXIT_SUCCESS_CODE);
 			}
@@ -74,7 +73,7 @@ export async function interactive() {
 				message: 'Enter the output file path',
 			});
 
-			if (isSymbol(path)) {
+			if (typeof path === 'symbol') {
 				p.cancel('Automata generation cancelled');
 				process.exit(EXIT_SUCCESS_CODE);
 			}
@@ -92,7 +91,7 @@ export async function interactive() {
 				message: 'Enter the name of the generated Automata class',
 			});
 
-			if (isSymbol(cn)) {
+			if (typeof cn === 'symbol') {
 				p.cancel('Automata generation cancelled');
 				process.exit(EXIT_SUCCESS_CODE);
 			}
@@ -135,7 +134,7 @@ export async function interactive() {
 					message: 'Enter constants to be used in generated Automata',
 				});
 
-				if (isSymbol(text)) {
+				if (typeof text === 'symbol') {
 					p.cancel('Automata generation cancelled');
 					process.exit(EXIT_SUCCESS_CODE);
 				}
@@ -155,7 +154,7 @@ export async function interactive() {
 					message: 'Enter path to constants file',
 				});
 
-				if (isSymbol(path)) {
+				if (typeof path === 'symbol') {
 					p.cancel('Automata generation cancelled');
 					process.exit(EXIT_SUCCESS_CODE);
 				}
