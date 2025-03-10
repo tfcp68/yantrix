@@ -171,6 +171,9 @@ export function createStateDictionary<
 		};
 }
 
+/**
+ * Basic state dictionary class that's used in Yantrix automatas.
+ */
 export class BasicStateDictionary
 	extends createStateDictionary<TAutomataBaseStateType, Record<TAutomataBaseStateType, any>>()(AbstractBaseClass)
 	implements IStateDictionary<TAutomataBaseStateType, Record<TAutomataBaseStateType, any>> {

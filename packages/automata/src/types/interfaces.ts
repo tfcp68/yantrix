@@ -34,24 +34,66 @@ import {
 	TValidator,
 } from './index.js';
 
+/**
+ * Interface for an Automata event container.
+ * @template EventType - The type of the event.
+ */
 export interface IAutomataEventContainer<EventType extends TAutomataBaseEventType> {
+	/**
+	 * Validator function for the event.
+	 */
 	validateEvent: TValidator<EventType>;
 
+	/**
+	 * Sets the event validator function.
+	 * @param eventValidator - The validator function for the event.
+	 * @returns The current instance.
+	 */
 	setEventValidator: (eventValidator?: TValidator<EventType>) => this;
 }
 
+/**
+ * Interface for an Automata state container.
+ * @template StateType - The type of the state.
+ */
 export interface IAutomataStateContainer<StateType extends TAutomataBaseStateType> {
+	/**
+	 * Validator function for the state.
+	 */
 	validateState: TValidator<StateType>;
 
+	/**
+	 * Sets the state validator function.
+	 * @param stateValidator - The validator function for the state.
+	 * @returns The current instance.
+	 */
 	setStateValidator: (stateValidator?: TValidator<StateType>) => this;
 }
 
+/**
+ * Interface for an Automata action container.
+ * @template ActionType - The type of the action.
+ */
 export interface IAutomataActionContainer<ActionType extends TAutomataBaseActionType> {
+	/**
+	 * Validator function for the action.
+	 */
 	validateAction: TValidator<ActionType>;
 
+	/**
+	 * Sets the action validator function.
+	 * @param actionValidator - The validator function for the action.
+	 * @returns The current instance.
+	 */
 	setActionValidator: (actionValidator?: TValidator<ActionType> | null) => this;
 }
 
+/**
+ * Interface for an Automata validator container.
+ * @template StateType - The type of the state.
+ * @template ActionType - The type of the action.
+ * @template EventType - The type of the event.
+ */
 export interface IAutomataValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -60,6 +102,11 @@ export interface IAutomataValidatorContainer<
 	IAutomataStateContainer<StateType>,
 	IAutomataActionContainer<ActionType> {}
 
+/**
+ * Interface for an Automata extended action container.
+ * @template ActionType - The type of the action.
+ * @template PayloadType - The type of the payload.
+ */
 export interface IAutomataExtendedActionContainer<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
@@ -71,6 +118,11 @@ export interface IAutomataExtendedActionContainer<
 	) => this;
 }
 
+/**
+ * Interface for an Automata extended event container.
+ * @template EventType - The type of the event.
+ * @template EventMetaType - The type of the event metadata.
+ */
 export interface IAutomataExtendedStateContainer<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends { [K in StateType]: any },
@@ -456,10 +508,15 @@ export interface IActionDictionary<
 	getDictionary: (namespace?: string) => TActionDictionaryMapping<ActionType>;
 }
 
+/**
+ * Interface for a dictionary of events.
+ * @template EventType - The type of events.
+ * @template EventMetaType - The type of event metadata.
+ */
 export interface IEventDictionary<
 	EventType extends TAutomataBaseEventType,
-	PayloadType extends { [K in EventType]: any },
-> extends IAutomataExtendedEventContainer<EventType, PayloadType> {
+	EventMetaType extends { [K in EventType]: any },
+> extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
 	/**
 	 * Add new Events to the dictionary, possibly scope them to namespace
 	 * @param {keys:string[],namespace?:string} actions
@@ -707,7 +764,7 @@ export interface IAutomataFunctionRegistry {
 	 * @param f - function to register, either as just a name(string) or a name-function record
 	 * @param callback - function to invoke, required if the first argument is a string
 	 *
-	 * @throw Will throw an error if:
+	 * @throws Will throw an error if:
 	 *
 	 * 1). Name is not valid (valid name starts with a letter, has length 1-255 and does not contain any special symbols).
 	 *
@@ -721,7 +778,7 @@ export interface IAutomataFunctionRegistry {
 	 * @param functionKey - name of the function
 	 * @returns function to invoke
 	 *
-	 * @throw Will throw an error if the function is not found by the specified key.
+	 * @throws Will throw an error if the function is not found by the specified key.
 	 */
 	get: (functionKey: string) => TAutomataFunction;
 
@@ -742,7 +799,7 @@ export interface IAutomataFunctionRegistry {
 	 * @param args - arguments necessary for the function
 	 * @returns result of calling the function
 	 *
-	 * @throw Will throw an error if:
+	 * @throws Will throw an error if:
 	 *
 	 * 1). Function is not found by the specified key.
 	 *

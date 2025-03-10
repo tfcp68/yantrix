@@ -59,6 +59,10 @@ export type TNote = {
 	text: string[];
 	over: string;
 };
+/**
+ * Type for notes with Yantrix subsyntax written inside of them.
+ * https://mermaid.js.org/syntax/stateDiagram.html#notes
+ */
 export type TNotesStructure = TNote[];
 
 // Dict type for fork;
@@ -72,7 +76,9 @@ export type TFork = {
  */
 export type TForksStructure = TFork[];
 
-// Dict type for states, actions, notes, choice, forks
+/**
+ * Dictionary type for the structure of a state diagram.
+ */
 export type TStateDiagramStructure = {
 	states: TStatesStructure;
 	actions: TActionsStructure;

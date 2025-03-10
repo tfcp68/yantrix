@@ -309,6 +309,9 @@ export function createAutomata<
 		};
 }
 
+/**
+ * Class that represents a basic Yantrix Automata instance.
+ */
 export class GenericAutomata
 	extends createAutomata<
 		TAutomataBaseStateType,

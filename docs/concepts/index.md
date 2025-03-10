@@ -12,25 +12,24 @@ We employ a different approach - visualization-first programming in automata-bas
 
 The canonical example would be asynchronous calls, which are _sometimes_ implemented outrageously verbose. For instance, this code may (or may not) be more or less enigmatic depending on your programming background:
 ```javascript
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading,setLoading] = useState(false);
+const [data, setData] = useState(null);
+const [error, setError] = useState(null);
+const [loading, setLoading] = useState(false);
 
-  const getAsyncData = async ()=>{
-    setLoading(true)
-    try {
-      const data = await callAsyncApi();
-      setData(data)
-    }
-    catch (e) {
-      setError(e.message)
-    }
-    setLoading(false)
-  }
+const getAsyncData = async () => {
+	setLoading(true);
+	try {
+		const data = await callAsyncApi();
+		setData(data);
+	} catch (e) {
+		setError(e.message);
+	}
+	setLoading(false);
+};
 
-  useEffect(()=> {
-    getAsyncData()
-  },[])
+useEffect(() => {
+	getAsyncData();
+}, []);
 ```
 
 Meanwhile, **this** is still a _code_ but it can be interpreted to some extent by any person. And, even more important, by another code.

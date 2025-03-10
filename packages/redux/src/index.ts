@@ -1,3 +1,10 @@
+/**
+ * @packageDocumentation
+ *
+ * The `@yantrix/redux` package provides a set of utilities to connect Yantrix automata to Redux.
+ *
+ */
+
 import { Dispatch } from '@reduxjs/toolkit';
 import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';

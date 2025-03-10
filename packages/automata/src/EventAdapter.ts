@@ -145,6 +145,9 @@ export function createEventAdapter<
 		};
 }
 
+/**
+ * Basic event adapter class that is used in Yantrix automatas.
+ */
 export class AutomataEventAdapter
 	extends createEventAdapter()(AbstractBaseClass)
 	implements

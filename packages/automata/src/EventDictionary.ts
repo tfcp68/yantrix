@@ -89,6 +89,9 @@ export function createEventDictionary<
 		};
 }
 
+/**
+ * Basic event dictionary class that's used in Yantrix automatas.
+ */
 export class BasicEventDictionary
 	extends createEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
 	implements IEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>> {
