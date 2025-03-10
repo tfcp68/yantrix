@@ -177,17 +177,35 @@ export function isPositive(value: number): boolean | null {
 // ==============================
 
 /**
- *
- * Checks if a string, object, or array contains a specified value.
+ * Checks if a string contains a specified substring.
  *
  * @category Lookup Predicates
- * @param a - The string, object, or array to check.
- * @param b - The value to check for.
- * @returns True if the value is found, otherwise false.
+ * @param str - The string to check.
+ * @param substr - The substring to check for.
+ * @returns True if the substring is found, otherwise false.
  */
 export function contains(str: string, substr: string): boolean | null;
+
+/**
+ * Checks if an object contains a specified value.
+ *
+ * @category Lookup Predicates
+ * @param obj - The object to check.
+ * @param value - The value to check for.
+ * @returns True if the value is found, otherwise false.
+ */
 export function contains<T extends object>(obj: T, value: T[keyof T]): boolean | null;
+
+/**
+ * Checks if an array contains a specified value.
+ *
+ * @category Lookup Predicates
+ * @param list - The array to check.
+ * @param value - The value to check for.
+ * @returns True if the value is found, otherwise false.
+ */
 export function contains<T, V>(list: ArrayLike<T>, value: V): boolean | null;
+
 export function contains(container: string | object | any[], value: any): boolean | null {
 	if (isString(container) && isString(value)) return container.includes(value);
 	if (isArray(container)) return some(container, item => isEqual(item, value));
@@ -196,16 +214,25 @@ export function contains(container: string | object | any[], value: any): boolea
 }
 
 /**
- *
- * Checks if an object or array has a specified key or index.
+ * Checks if an array has a specified index.
  *
  * @category Lookup Predicates
- * @param a - The object or array to check.
- * @param b - The key or index to check for.
- * @returns True if the key or index is found, otherwise false.
+ * @param list - The array to check.
+ * @param index - The index to check for.
+ * @returns True if the index is found, otherwise false.
  */
 export function has<T>(list: T[], index: number): boolean | null;
+
+/**
+ * Checks if an object has a specified key.
+ *
+ * @category Lookup Predicates
+ * @param obj - The object to check.
+ * @param key - The key to check for.
+ * @returns True if the key is found, otherwise false.
+ */
 export function has<T extends object>(obj: T, key: keyof T): boolean | null;
+
 export function has(container: any[] | object, keyOrIndex: number | keyof any): boolean | null {
 	if (isArray(container) && isNumber(keyOrIndex)) return !!container[keyOrIndex];
 	if (isObject(container) && !isNull(container) && isString(keyOrIndex)) return keyOrIndex in container;
