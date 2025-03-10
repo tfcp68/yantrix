@@ -13,7 +13,7 @@ export function TrafficLight() {
 		payload: {},
 	});
 	const onReset = () => dispatchAutomata({
-		action: TLA.getAction('Reset (initialCounter=0)'),
+		action: TLA.getAction('Reset'),
 		payload: {
 			initialCounter: 0,
 		},

@@ -12,11 +12,11 @@ export function buildDependencyGraph(props: {
 	const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
 		const { FunctionName, Arguments } = expression.FunctionDeclaration;
 
-		if (!props.imports['@yantrix/functions']) {
-			props.imports['@yantrix/functions'] = [];
+		if (!props.imports['@yantrix/core']) {
+			props.imports['@yantrix/core'] = [];
 		}
 
-		props.imports['@yantrix/functions'].push(FunctionName);
+		props.imports['@yantrix/core'].push(FunctionName);
 
 		if (!props.dependencyGraph.has(currentFunc)) {
 			props.dependencyGraph.set(currentFunc, new Set());

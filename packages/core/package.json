@@ -1,9 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/functions",
+	"name": "@yantrix/core",
 	"type": "module",
-	"version": "0.0.2",
-	"description": "Typescript built-ins for Yantrix framework",
+	"version": "0.0.1",
+	"description": "",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
 		"Noktomezo <https://github.com/Noktomezo>",
@@ -19,16 +19,12 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/functions"
+		"directory": "packages/core"
 	},
 	"bugs": {
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
-	"keywords": [
-		"Yantrix",
-		"FSM",
-		"Typescript"
-	],
+	"keywords": [],
 	"sideEffects": false,
 	"exports": {
 		".": {
@@ -45,6 +41,9 @@
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"bin": {
+		"yantrix": "node_modules/@yantrix/cli/bin/index.js"
+	},
 	"files": [
 		"dist"
 	],
@@ -57,6 +56,13 @@
 		"lint": "eslint .",
 		"format": "eslint --fix ."
 	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/functions": "workspace:^",
+		"@yantrix/utils": "workspace:^"
+	},
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
@@ -64,13 +70,5 @@
 	"publishConfig": {
 		"access": "public",
 		"provenance": true
-	},
-	"dependencies": {
-		"@yantrix/utils": "workspace:^",
-		"lodash-es": "^4.17.21"
-	},
-	"devDependencies": {
-		"@types/lodash": "^4.17.15",
-		"@types/lodash-es": "^4.17.12"
 	}
 }

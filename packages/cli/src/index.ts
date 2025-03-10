@@ -109,7 +109,6 @@ Since you have chosen the *-script language, you need to install additional pack
 
 import * as p from '@clack/prompts';
 import c from 'ansis';
-import { isError } from 'lodash-es';
 import restoreCursor from 'restore-cursor';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -181,7 +180,7 @@ yargs(hideBin(process.argv))
 			try {
 				await codegen(argv);
 			} catch (e) {
-				const msg = isError(e)
+				const msg = e instanceof Error
 					? c.red(e.message)
 					: c.red(`✘ Failed to generate Automata.`);
 
