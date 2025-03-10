@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
+import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/core';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 
 const filename = fileURLToPath(import.meta.url);

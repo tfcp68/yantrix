@@ -124,12 +124,9 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.2.7
         version: 2.4.0(react-redux@9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
-      '@yantrix/automata':
+      '@yantrix/core':
         specifier: workspace:^
-        version: link:../../packages/automata
-      '@yantrix/functions':
-        specifier: workspace:^
-        version: link:../../packages/functions
+        version: link:../../packages/core
       '@yantrix/redux':
         specifier: workspace:^
         version: link:../../packages/redux
@@ -170,12 +167,6 @@ importers:
       '@vitejs/plugin-react-swc':
         specifier: ^3.7.0
         version: 3.7.2(vite@5.4.11(@types/node@22.10.1))
-      '@yantrix/cli':
-        specifier: workspace:^
-        version: link:../../packages/cli
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../../packages/codegen
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
@@ -206,18 +197,12 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.1.0
         version: 1.1.0(@types/react@18.3.12)(react@18.3.1)
-      '@yantrix/automata':
+      '@yantrix/core':
         specifier: workspace:^
-        version: link:../../packages/automata
-      '@yantrix/functions':
-        specifier: workspace:^
-        version: link:../../packages/functions
+        version: link:../../packages/core
       '@yantrix/react':
         specifier: workspace:^
         version: link:../../packages/react
-      '@yantrix/utils':
-        specifier: workspace:^
-        version: link:../../packages/utils
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -252,12 +237,6 @@ importers:
       '@vitejs/plugin-react-swc':
         specifier: ^3.7.0
         version: 3.7.2(vite@5.4.11(@types/node@22.10.1))
-      '@yantrix/cli':
-        specifier: workspace:^
-        version: link:../../packages/cli
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../../packages/codegen
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
@@ -429,6 +408,18 @@ importers:
 
   packages/codegen-tests:
     dependencies:
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../core
+      '@yantrix/mermaid-parser':
+        specifier: workspace:^
+        version: link:../mermaid-parser
+      '@yantrix/yantrix-parser':
+        specifier: workspace:^
+        version: link:../yantrix-parser
+
+  packages/core:
+    dependencies:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
@@ -441,15 +432,9 @@ importers:
       '@yantrix/functions':
         specifier: workspace:^
         version: link:../functions
-      '@yantrix/mermaid-parser':
-        specifier: workspace:^
-        version: link:../mermaid-parser
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
-      '@yantrix/yantrix-parser':
-        specifier: workspace:^
-        version: link:../yantrix-parser
 
   packages/functions:
     dependencies:
