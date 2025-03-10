@@ -2,6 +2,7 @@
 	"out": "src/API",
 	"entryPoints": ["../packages/*"],
 	"exclude": [
+		"../packages/core",
 		"../packages/codegen-tests",
 		"../packages/scripts",
 		"../packages/utils"
