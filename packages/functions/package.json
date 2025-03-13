@@ -66,6 +66,7 @@
 		"provenance": true
 	},
 	"dependencies": {
+		"@yantrix/utils": "workspace:^",
 		"lodash-es": "^4.17.21"
 	},
 	"devDependencies": {
