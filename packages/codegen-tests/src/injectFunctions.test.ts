@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { ModuleNames } from '@yantrix/core';
+import { ModuleNames } from '@yantrix/codegen';
 import { describe, expect, it } from 'vitest';
 import { generateAndSave } from './fixtures/utils.js';
 

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { AutomataEventAdapter, ModuleNames } from '@yantrix/core';
+import { AutomataEventAdapter } from '@yantrix/automata';
+import { ModuleNames } from '@yantrix/codegen';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import templates from './fixtures/eventsTemplates';
 import { generateAndSave } from './fixtures/utils';
