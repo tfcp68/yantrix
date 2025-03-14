@@ -1,223 +1,252 @@
+import * as _ from 'lodash-es';
+import { TCollection, TNullable } from './types/common';
+import { isCollection, isIterable } from './types/guards';
+import { invalid } from './utils/errors';
+import { variadic } from './utils/utils';
+
 // Arithmetic transformers
-export const add = (...numbers: number[]): number => numbers.reduce((sum, num) => sum + num, 0);
-export const diff = (a: number, b: number): number => b - a;
-export const mult = (...numbers: number[]): number => numbers.reduce((product, num) => product * num, 1);
-export const div = (a: number, b: number): number => a / b;
-export const pow = (base: number, exponent: number): number => base ** exponent;
-export const inc = (num: number): number => num + 1;
-export const dec = (num: number): number => num - 1;
-export const neg = (num: number): number => -num;
-export const inv = (num: number): number => 1 / num;
-export const mod = (a: number, b: number): number => a % b;
-export const trunc = (num: number): number => Math.trunc(num);
-export const ceil = (num: number): number => Math.ceil(num);
-export const round = (num: number): number => Math.round(num);
+export const add = variadic<number, number | null>((nums) => {
+	return nums.length
+		? _.reduce(nums, (a, n) => _.isNumber(n) ? a + n : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS'), 0)
+		: null;
+});
+
+export function diff(a: number, b: number) {
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b) ? b - a : invalid('INVALID_NUMBER_ARGUMENTS');
+}
+
+export const mult = variadic<number, number | null>((nums) => {
+	return nums.length
+		? _.reduce(nums, (a, n) => _.isNumber(n) ? n * a : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS'), 1)
+		: null;
+});
+
+export function div(a: number, b: number) {
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b)
+			? b === 0
+				? invalid('DIVISION_BY_ZERO')
+				: a / b
+			: invalid('INVALID_NUMBER_ARGUMENTS');
+}
+
+export function pow(n: number, exp: number) {
+	return _.some([n, exp], _.isNil)
+		? null
+		: _.isNumber(n) && _.isNumber(exp)
+			? n ** exp
+			: invalid('INVALID_NUMBER_ARGUMENTS');
+}
+
+export function inc(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? n + 1 : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function dec(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? n - 1 : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function neg(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? -n : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function inv(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? 1 / n : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function mod(a: number, b: number) {
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b)
+			? a % b
+			: invalid('INVALID_NUMBER_ARGUMENTS');
+}
+
+export function trunc(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.trunc(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function ceil(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.ceil(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function round(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.round(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
 
 // Special math transformers
-export const sin = (num: number): number => Math.sin(num);
-export const cos = (num: number): number => Math.cos(num);
-export const sqrt = (num: number): number => Math.sqrt(num);
-export const log = (num: number, base: number): number => Math.log(num) / Math.log(base);
-export const ln = (num: number): number => Math.log(num);
-export const lg = (num: number): number => Math.log10(num);
-export const deg = (radians: number): number => radians * (180 / Math.PI);
-export const rad = (degrees: number): number => degrees * (Math.PI / 180);
+export function sin(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.sin(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function cos(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.cos(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function sqrt(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.sqrt(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function log(a: number, b: number) {
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b)
+			? Math.log(a) / Math.log(b)
+			: invalid('INVALID_NUMBER_ARGUMENTS');
+}
+
+export function ln(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.log(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function lg(n: number) {
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.log10(n) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function deg(rads: number) {
+	return _.isNil(rads) ? null : _.isNumber(rads) ? rads * (180 / Math.PI) : invalid('INVALID_NUMBER_ARGUMENT');
+}
+
+export function rad(degs: number) {
+	return _.isNil(degs) ? null : _.isNumber(degs) ? degs * (Math.PI / 180) : invalid('INVALID_NUMBER_ARGUMENT');
+}
 
 // Statistics transformers
-export const max = (...values: number[] | [number[]]): number => {
-	const numbers = Array.isArray(values[0]) ? values[0] : values as number[];
-	if (numbers.length === 0) throw new Error('Cannot find maximum of empty array');
+export const max = variadic<number, number | null>((nums) => {
+	return nums.length ? _.maxBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT'))! : null;
+});
 
-	const validNumbers = numbers.filter((n): n is number => typeof n === 'number');
-	if (validNumbers.length !== numbers.length) throw new Error('Cannot find maximum of array with non-numeric values');
+export const min = variadic<number, number | null>((nums) => {
+	return nums.length ? _.minBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT'))! : null;
+});
 
-	return Math.max(...validNumbers);
-};
+export const avg = variadic<number, number | null>((nums) => {
+	return nums.length ? _.meanBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT')) : null;
+});
 
-export const min = (...values: number[] | [number[]]): number => {
-	const numbers = Array.isArray(values[0]) ? values[0] : values as number[];
-	if (numbers.length === 0) throw new Error('Cannot find minimum of empty array');
+export const med = variadic<number, number | null>((nums) => {
+	if (!nums.length) return null;
+	if (!_.every(nums, _.isNumber)) return invalid('INVALID_NUMBER_ARGUMENT');
 
-	const validNumbers = numbers.filter((n): n is number => typeof n === 'number');
-	if (validNumbers.length !== numbers.length) throw new Error('Cannot find minimum of array with non-numeric values');
+	const sorted = _.sortBy(nums);
+	const middle = Math.floor(sorted.length / 2);
 
-	return Math.min(...validNumbers);
-};
+	return sorted.length % 2
+		? sorted[middle]!
+		: (sorted[middle - 1]! + sorted[middle]!) / 2;
+});
 
-export const avg = (...values: number[] | [number[]]): number => {
-	const numbers = Array.isArray(values[0]) ? values[0] : values as number[];
-	if (numbers.length === 0) throw new Error('Cannot calculate average of empty array');
+export const sum = variadic<number, number | null>((nums) => {
+	return nums.length ? _.sumBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT')) : null;
+});
 
-	const validNumbers = numbers.filter((n): n is number => typeof n === 'number');
-	if (validNumbers.length === 0) throw new Error('Cannot calculate average of empty array');
+export const sumsq = variadic<number, number | null>((nums) => {
+	return nums.length ? _.sumBy(nums, n => _.isNumber(n) ? n ** 2 : invalid('INVALID_NUMBER_ARGUMENT')) : null;
+});
 
-	return validNumbers.reduce((sum, num) => sum + num, 0) / validNumbers.length;
-};
+export const sumProduct = variadic<number[], number>((lists) => {
+	if (!lists.every(_.isArray)) return invalid('LISTS_MUST_BE_ARRAYS');
+	if (lists.length < 2) return invalid('MIN_TWO_LISTS_REQUIRED');
 
-export const med = (...values: number[] | [number[]]): number => {
-	const numbers = Array.isArray(values[0]) ? values[0] : values as number[];
-	const sorted = [...numbers].sort((a, b) => a - b);
-	const mid = Math.floor(sorted.length / 2);
-	return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!;
-};
+	lists.every((list, idx) => {
+		if (!list.length) return invalid('NON_EMPTY_LISTS_REQUIRED');
+		if (idx > 0 && list.length !== lists[0]!.length) return invalid('LISTS_MUST_BE_SAME_LENGTH');
+		if (!_.every(list, _.isNumber)) return invalid('ALL_LIST_ITEMS_MUST_BE_NUMBERS');
+		return true;
+	});
 
-export const sum = (list: number[]): number => list.reduce((sum, num) => sum + num, 0);
-export const sumsq = (list: number[]): number => list.reduce((sum, num) => sum + num * num, 0);
-export const sumProduct = (...lists: number[][]): number => {
-	if (lists.length === 0) return 0;
-	const length = lists[0]!.length;
-	if (!lists.every(list => list.length === length)) throw new Error('All lists must have the same length');
-
-	return Array
-		.from({ length }, (_, i) => lists.reduce((product, list) => product * list[i]!, 1))
-		.reduce((sum, product) => sum + product, 0);
-};
+	return _.sum(_.zipWith(...lists, (...values) => values.reduce((prod, num) => prod * num, 1)));
+});
 
 // List and string transformers
 export function len(str: string): number;
-export function len(list: any[]): number;
-export function len(input: string | any[]): number {
-	return input.length;
+export function len<T>(list: T[]): number;
+export function len<T>(iterable: string | T[]): number {
+	return isIterable(iterable) ? iterable.length : 0;
 }
 
 export function left(str: string, length: number): string;
 export function left<T>(list: T[], length: number): T[];
-export function left<T>(input: string | T[], length: number): string | T[] {
-	if (typeof input === 'string') return input.substring(0, length);
-	return input.slice(0, length);
+export function left<T>(iterable: string | T[], length = 0): string | T[] {
+	return isIterable(iterable) && _.isLength(length)
+		? _.isString(iterable)
+			? iterable.substring(0, length)
+			: iterable.slice(0, length)
+		: iterable;
 }
 
 export function right(str: string, length: number): string;
 export function right<T>(list: T[], length: number): T[];
-export function right<T>(input: string | T[], length: number): string | T[] {
-	if (typeof input === 'string') return input.substring(Math.max(0, input.length - length));
-	return input.slice(-length);
+export function right<T>(iterable: string | T[], length = 0): string | T[] {
+	return isIterable(iterable) && _.isLength(length)
+		? _.isString(iterable)
+			? iterable.substring(Math.max(0, iterable.length - length))
+			: iterable.slice(-length)
+		: iterable;
 }
 
 export function indexOf(str: string, search: string): number;
 export function indexOf<T>(list: T[], value: T): number;
-export function indexOf<T>(input: string | T[], search: string | T): number {
-	return input.indexOf(search as any);
-}
-
-export function concat(...strings: string[]): string;
-export function concat<T>(...lists: T[][]): T[];
-export function concat<T>(...inputs: (string | T[])[]): string | T[] {
-	if (inputs.every(input => typeof input === 'string')) return (inputs as string[]).join('');
-	return (inputs as T[][]).reduce((result, list) => [...result, ...list], []);
-}
-
-export function sample(str: string, count: number): string;
-export function sample<T>(list: T[], count: number): T[];
-export function sample<T>(input: string | T[], count: number): string | T[] {
-	const n = count >= 1 ? Math.floor(count) : Math.floor(input.length * count);
-	if (typeof input === 'string') {
-		const chars = input.split('');
-		const shuffled = chars.sort(() => Math.random() - 0.5);
-		return shuffled.slice(0, n).join('');
-	}
-	const shuffled = [...input].sort(() => Math.random() - 0.5);
-
-	return shuffled.slice(0, n);
+export function indexOf<T>(iterable: string | T[], value: string | T): number {
+	return isIterable(iterable)
+		? _.isString(iterable) && _.isString(value)
+			? iterable.indexOf(value)
+			: _.findIndex(iterable as ArrayLike<T>, it => _.isEqual(it, value))
+		: -1;
 }
 
 export function shuffle(str: string): string;
 export function shuffle<T>(list: T[]): T[];
-export function shuffle<T>(input: string | T[]): string | T[] {
-	if (typeof input === 'string') {
-		const chars = input.split('');
-		return chars.sort(() => Math.random() - 0.5).join('');
-	}
-
-	return [...input].sort(() => Math.random() - 0.5);
+export function shuffle<T>(iterable: string | T[]): string | T[] {
+	return isIterable(iterable)
+		? _.isString(iterable)
+			? _.shuffle(iterable).join('')
+			: _.shuffle(iterable)
+		: iterable;
 }
 
 // List transformers
-export const every = <T>(list: T[], n: number, offset: number = 0): T[] => {
-	return list.filter((_, index) => (index - offset) % n === 0);
-};
+export function lookup<T>(list: T[], value: T): TNullable<T> {
+	if (!_.isArray(list)) return null;
 
-export const repeat = <T>(quantity: number, value: T): T[] => Array.from({ length: quantity }, () => value);
+	for (const item of list) {
+		if (_.isEqual(item, value)) return item;
+	}
+
+	return null;
+}
+
+export function repeat<T>(quantity: number, sample: T): T[] {
+	if (!_.isNumber(quantity)) return [];
+	return Array.from<T>({ length: quantity < 0 ? 0 : quantity }).fill(sample);
+}
 
 // String transformers
-export const substr = (str: string, start: number, end?: number): string => str.substring(start, end);
-
-export const padLeft = (str: string, targetLength: number, pattern: string): string => {
-	if (str.length >= targetLength || !pattern) return str;
-	let result = str;
-	while (result.length < targetLength) {
-		const remainingLength = targetLength - result.length;
-		const prefix = pattern.repeat(Math.ceil(remainingLength / pattern.length));
-		result = prefix.slice(0, remainingLength) + result;
-	}
-	return result;
-};
-
-export const padRight = (str: string, targetLength: number, pattern: string): string => {
-	if (str.length >= targetLength || !pattern) return str;
-	let result = str;
-	while (result.length < targetLength) {
-		const remainingLength = targetLength - result.length;
-		const suffix = pattern.repeat(Math.ceil(remainingLength / pattern.length));
-		result = result + suffix.slice(0, remainingLength);
-	}
-	return result;
-};
-
-// Object transformers
-export const keys = (obj: Record<string, any>): string[] => Object.keys(obj);
-export const values = (obj: Record<string, any>): any[] => Object.values(obj);
-
-export const zip = (keys: (string | number)[], values: any[]): Record<string, any> => {
-	if (keys.length !== values.length) {
-		throw new Error('Keys and values arrays must have the same length');
-	}
-	return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
-};
-
-export const setAttr = <T extends Record<string, any>>(obj: T, key: string, value: any): T => ({
-	...obj,
-	[key]: value,
-});
-
-export const unsetAttr = <T extends Record<string, any>>(obj: T, key: string): T => {
-	const { [key]: _, ...rest } = obj;
-	return rest as T;
-};
-
-export const merge = <T extends Record<string, any>>(...objects: T[]): T => Object.assign({}, ...objects);
-
-export const intersect = <T extends Record<string, any>>(...objects: T[]): T => {
-	if (objects.length === 0) return {} as T;
-	const allKeys = objects.map(obj => new Set(Object.keys(obj)));
-	const firstKeySet = allKeys[0];
-	if (!firstKeySet) return {} as T;
-	const commonKeys = [...firstKeySet].filter(key => allKeys.every(keys => keys?.has(key)));
-	return merge(...objects.map(obj =>
-		Object.fromEntries(commonKeys.map(key => [key, obj[key]])),
-	)) as T;
-};
+export function substr(str: string, start: number, end?: number): string {
+	if (!_.isString(str) || !_.isNumber(start) || (!_.isNil(end) && !_.isNumber(end))) return '';
+	return str.substring(start, end);
+}
 
 // Collection transformers
-export const filterBy = <T extends Record<string, any>>(
-	collection: T[],
-	propertyName: string,
-	seekValue: any,
-): T[] => collection.filter(item => item[propertyName] === seekValue);
+export function filterBy<S>(collection: TCollection, prop: string, value: S): TCollection {
+	return isCollection(collection) ? _.filter(collection, it => _.isEqual(it[prop], value)) : [];
+}
 
-export const omit = <T extends Record<string, any>>(
-	collection: T[],
-	propertyName: string,
-	seekValue: any,
-): T[] => collection.filter(item => item[propertyName] !== seekValue);
-
-export const find = <T extends Record<string, any>>(
-	collection: T[],
-	propertyName: string,
-	seekValue: any,
-): T | null => collection.find(item => item[propertyName] === seekValue) || null;
-
-export const pick = <T extends Record<string, any>>(
-	collection: T[],
-	propertyName: string,
-): any[] => collection.map(item => item[propertyName]);
+export const concat = _.concat;
+export const every = _.every;
+export const find = _.find;
+export const intersect = _.intersection;
+export const keys = _.keys;
+export const merge = _.merge;
+export const omit = _.omit;
+export const padLeft = _.padStart;
+export const padRight = _.padEnd;
+export const pick = _.pick;
+export const sample = _.sample;
+export const setAttr = _.set;
+export const unsetAttr = _.unset;
+export const values = _.values;
+export const zip = _.zip;

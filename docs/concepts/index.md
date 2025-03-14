@@ -52,7 +52,6 @@ note right of Error
 end note
 ```
 
-
 The design language allows for basic logic and maths, similar to Excel formulas, being a pretty solid solution for basic programming and business logic implementation. To achieve complex functionality, basic logic elements, such as FSMs, should be interconnected with the help of Events.
 
 Being primary a Typescript solution, the best appliance of Yantrix as of now is Frontend, well-matched to libraries like React and Redux. Due to its codegen approach, Yantrix could work well in Svelte environment and "dumb" s2s Node.js integrations.
