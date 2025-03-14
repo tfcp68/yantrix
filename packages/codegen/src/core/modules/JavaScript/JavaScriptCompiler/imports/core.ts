@@ -8,15 +8,10 @@ export function buildDependencyGraph(props: {
 	dependencyGraph: TDependencyGraph;
 }) {
 	const defines = props.diagram.states.flatMap(state => state.notes?.defines ?? []);
+	const injects = props.diagram.states.flatMap(state => state.notes?.inject ?? []);
 
 	const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
 		const { FunctionName, Arguments } = expression.FunctionDeclaration;
-
-		if (!props.imports['@yantrix/core']) {
-			props.imports['@yantrix/core'] = [];
-		}
-
-		props.imports['@yantrix/core'].push(FunctionName);
 
 		if (!props.dependencyGraph.has(currentFunc)) {
 			props.dependencyGraph.set(currentFunc, new Set());
@@ -30,6 +25,12 @@ export function buildDependencyGraph(props: {
 			}
 		}
 	};
+
+	injects.forEach((inject) => {
+		if (!props.dependencyGraph.has(inject.identifier)) {
+			props.dependencyGraph.set(inject.identifier, new Set());
+		}
+	});
 
 	for (const define of defines) {
 		if (define.expression.expressionType === ExpressionTypes.Function) {

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/core';
+import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 
 const filename = fileURLToPath(import.meta.url);
@@ -20,6 +20,7 @@ type TGenerateAutomataParams = {
 	lang: TOutLang;
 	automataName: string;
 	constants?: string;
+	injects?: string;
 };
 
 export function saveFile(fileName: string, content: string, ext: string) {
@@ -37,6 +38,7 @@ export async function generateAutomata(options: TGenerateAutomataParams) {
 		className: options.automataName,
 		outLang: options.lang,
 		constants: options.constants!,
+		functionFilePath: options.injects,
 	});
 
 	return generatedAutomataOutput;

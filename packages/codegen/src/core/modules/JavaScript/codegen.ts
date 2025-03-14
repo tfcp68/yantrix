@@ -37,7 +37,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		],
 	};
 
-	constructor({ diagram, constants }: TModuleParams) {
+	constructor({ diagram, constants, injectedFunctions }: TModuleParams) {
 		this.stateDictionary = new BasicStateDictionary();
 		this.actionDictionary = new BasicActionDictionary();
 		this.eventDictionary = new BasicEventDictionary();
@@ -72,6 +72,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			actionDictionary: this.actionDictionary,
 			stateDictionary: this.stateDictionary,
 			eventDictionary: this.eventDictionary,
+			injectedFunctions,
 		});
 	}
 
@@ -88,6 +89,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
 			classSerializer: JavaScriptCompiler.class.serializer,
 			className: options.className,
+
 		};
 		return `
 			${JavaScriptCompiler.imports.serializer.getImportsCode(props)}
