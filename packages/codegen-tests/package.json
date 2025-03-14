@@ -57,12 +57,8 @@
 		"lib": "src"
 	},
 	"dependencies": {
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/cli": "workspace:^",
-		"@yantrix/codegen": "workspace:^",
-		"@yantrix/functions": "workspace:^",
+		"@yantrix/core": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
-		"@yantrix/utils": "workspace:^",
 		"@yantrix/yantrix-parser": "workspace:^"
 	}
 }
