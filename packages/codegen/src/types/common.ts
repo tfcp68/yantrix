@@ -1,4 +1,5 @@
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
+import { TNullable } from '@yantrix/utils';
 import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { ModuleNames, Modules } from '../core/modules/index.js';
 
@@ -16,7 +17,9 @@ export type TConstants = Record<string, string | number>;
 
 export interface ICodegenOptions<T = TOutLang> {
 	language: T;
-	constants: TConstants | null;
+	constants: TNullable<TConstants>;
+	functionFilePath: TNullable<string>;
+
 }
 
 /**
@@ -37,6 +40,7 @@ export interface IGenerateOptions {
 	 * Constant reference
 	 */
 	constants?: string;
+	functionFilePath?: string;
 }
 
 export interface ITypedObjectProps {
@@ -79,8 +83,9 @@ export type TOutLang = keyof typeof Modules;
 
 export type TExpressionRecord = {
 	[K in TMappedKeys]: (arg: TExpression<K>) => string;
-};
 
+};
+export type TUserFunctionsDict = TNullable<Record<string, (args?: unknown) => unknown>>;
 export const TAssignTypeDict = {
 	PAYLOAD: 'payload',
 	PREV_CONTEXT: 'prevContext',
@@ -90,5 +95,6 @@ export type TAssignTypes = (typeof TAssignTypeDict)[keyof typeof TAssignTypeDict
 
 export type TModuleParams = {
 	diagram: TStateDiagramMatrixIncludeNotes;
-	constants: TConstants | null;
+	constants: TNullable<TConstants>;
+	injectedFunctions: TUserFunctionsDict;
 };
