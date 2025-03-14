@@ -1,6 +1,6 @@
 import * as _ from 'lodash-es';
 import { TCollection, TNullable } from './types/common';
-import { isCollection } from './types/guards';
+import { isCollection, isIterable } from './types/guards';
 import { invalid } from './utils/errors';
 import { variadic } from './utils/utils';
 
@@ -164,47 +164,48 @@ export const sumProduct = variadic<number[], number>((lists) => {
 // List and string transformers
 export function len(str: string): number;
 export function len<T>(list: T[]): number;
-export function len<T>(input: string | T[]): number {
-	return _.isArray(input) ?? _.isString(input) ? input.length : 0;
+export function len<T>(iterable: string | T[]): number {
+	return isIterable(iterable) ? iterable.length : 0;
 }
 
 export function left(str: string, length: number): string;
 export function left<T>(list: T[], length: number): T[];
-export function left<T>(input: string | T[], length: number): string | T[] {
-	if (_.isString(input)) return input.substring(0, length);
-	if (_.isArray(input)) return input.slice(0, length);
-	return input;
+export function left<T>(iterable: string | T[], length = 0): string | T[] {
+	return isIterable(iterable) && _.isLength(length)
+		? _.isString(iterable)
+			? iterable.substring(0, length)
+			: iterable.slice(0, length)
+		: iterable;
 }
 
 export function right(str: string, length: number): string;
 export function right<T>(list: T[], length: number): T[];
-export function right<T>(input: string | T[], length: number): string | T[] {
-	const len = _.isNumber(length) ? length : 0;
-	return _.isString(input)
-		? input.substring(Math.max(0, input.length - len))
-		: _.isArray(input)
-			? input.slice(-len)
-			: input;
+export function right<T>(iterable: string | T[], length = 0): string | T[] {
+	return isIterable(iterable) && _.isLength(length)
+		? _.isString(iterable)
+			? iterable.substring(Math.max(0, iterable.length - length))
+			: iterable.slice(-length)
+		: iterable;
 }
 
 export function indexOf(str: string, search: string): number;
 export function indexOf<T>(list: T[], value: T): number;
 export function indexOf<T>(iterable: string | T[], value: string | T): number {
-	return _.isString(iterable) && _.isString(value)
-		? iterable.indexOf(value)
-		: _.isArray(iterable)
-			? _.findIndex(iterable, it => _.isEqual(it, value))
-			: -1;
+	return isIterable(iterable)
+		? _.isString(iterable) && _.isString(value)
+			? iterable.indexOf(value)
+			: _.findIndex(iterable as ArrayLike<T>, it => _.isEqual(it, value))
+		: -1;
 }
 
 export function shuffle(str: string): string;
 export function shuffle<T>(list: T[]): T[];
 export function shuffle<T>(iterable: string | T[]): string | T[] {
-	return _.isString(iterable)
-		? _.shuffle(iterable).join()
-		: _.isArray(iterable)
-			? _.shuffle(iterable)
-			: iterable;
+	return isIterable(iterable)
+		? _.isString(iterable)
+			? _.shuffle(iterable).join('')
+			: _.shuffle(iterable)
+		: iterable;
 }
 
 // List transformers
@@ -230,7 +231,7 @@ export function substr(str: string, start: number, end?: number): string {
 }
 
 // Collection transformers
-export function filterBy(collection: TCollection[], prop: string, value: any): TCollection {
+export function filterBy<S>(collection: TCollection, prop: string, value: S): TCollection {
 	return isCollection(collection) ? _.filter(collection, it => _.isEqual(it[prop], value)) : [];
 }
 
