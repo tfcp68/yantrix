@@ -20,6 +20,7 @@ type TGenerateAutomataParams = {
 	lang: TOutLang;
 	automataName: string;
 	constants?: string;
+	injects?: string;
 };
 
 export function saveFile(fileName: string, content: string, ext: string) {
@@ -37,6 +38,7 @@ export async function generateAutomata(options: TGenerateAutomataParams) {
 		className: options.automataName,
 		outLang: options.lang,
 		constants: options.constants!,
+		functionFilePath: options.injects,
 	});
 
 	return generatedAutomataOutput;

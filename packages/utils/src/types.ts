@@ -22,3 +22,4 @@ export type TClassConstructor<C> = {
 };
 
 export type TKeys<T> = keyof T;
+export type TNullable<T> = T | null;

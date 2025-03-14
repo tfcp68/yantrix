@@ -1,5 +1,5 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
+import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
 import { expressions } from '../expressions';
 import { imports, TDependencyGraph } from '../imports';
 import { TDictionaries } from './types';
@@ -17,6 +17,7 @@ export function setupDictionaries(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	injectedFunctions: TUserFunctionsDict;
 	eventDictionary: BasicEventDictionary;
 	expressionRecord: TExpressionRecord;
 }) {
@@ -39,7 +40,7 @@ export function setupDictionaries(props: {
 	}
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 	dictionaries.push(`functionDictionary.register(builtInFunctions);`);
-	dictionaries.push();
+
 	imports.functions.checkForCyclicDependencies({
 		dependencyGraph: props.dependencyGraph,
 	});
@@ -48,6 +49,7 @@ export function setupDictionaries(props: {
 		expressions: props.expressionRecord,
 		dependencyGraph: props.dependencyGraph,
 		dictionaries,
+		injectFunctions: props.injectedFunctions,
 	});
 	return dictionaries;
 }
