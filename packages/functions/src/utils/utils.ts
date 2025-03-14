@@ -1,5 +1,5 @@
-import { every, isArray, map } from 'lodash-es';
-import { TNestedArray } from './types';
+import * as _ from 'lodash-es';
+import { TNestedArray } from '../types/common';
 
 /**
  * Recursively flattens nested arrays until a specific condition is met.
@@ -20,16 +20,20 @@ import { TNestedArray } from './types';
  * flatMapUntilLength([[1], [2]])     // Returns [[1], [2]]
  * flatMapUntilLength([1, [2]])       // Returns [1, [2]]
  */
-export function flatMapUntilLength<T>(array: TNestedArray<T>): TNestedArray<T> {
-	if (!isArray(array)) return [array];
-	if (!array.length) return [];
+export function flattenWhileNested<T>(input: TNestedArray<T>): TNestedArray<T> {
+	if (!_.isArray(input)) return [input];
+	if (_.isEmpty(input)) return input;
 
-	if (array.length === 1) {
-		if (isArray(array[0])) return flatMapUntilLength(array[0] as TNestedArray<T>);
-		return array;
+	if (input.length === 1) {
+		const firstElement = _.first(input);
+		if (_.isArray(firstElement)) return flattenWhileNested(firstElement);
+		return input;
 	}
 
-	return array.length >= 2 && every(array, isArray) ? map(array, flatMapUntilLength) as TNestedArray<T> : array;
+	const hasNonArrayElement = _.some(input, element => !_.isArray(element));
+	if (hasNonArrayElement) return input;
+
+	return _.map(input, element => flattenWhileNested(element as TNestedArray<T>));
 }
 
 /**
@@ -43,19 +47,19 @@ export function flatMapUntilLength<T>(array: TNestedArray<T>): TNestedArray<T> {
  *
  * @example
  * const sum = variadic((nums: number[]) => nums.reduce((a, b) => a + b, 0));
- * sum(1, 2, 3);           // Returns 6
- * sum([1, [2, [3]]]);     // Returns 6
- * sum([[1], 2], [[3]]);   // Returns 6
+ * sum(1, 2, 3);           				// Returns 6
+ * sum([[1, 2, 3]]);     				// Returns 6
+ * sum([[[[[[[[[[1, 2, 3]]]]]]]]]]);	// Returns 6
  *
  * @remarks
  * The wrapper function will:
  * 1. Accept any number of arguments that can be nested arrays
- * 2. Flatten the arguments using flatMapUntilLength
+ * 2. Flatten the arguments using flattenWhileNested
  * 3. Pass the flattened array to the original function
  */
 export function variadic<T, R = T>(fn: (conditions: T[]) => R) {
 	return function (...args: TNestedArray<T>): R {
-		const conditions = flatMapUntilLength(args);
+		const conditions = flattenWhileNested(args);
 		return fn(conditions as T[]);
 	};
 }

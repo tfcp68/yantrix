@@ -1,6 +1,6 @@
 import { find, isArray, isBoolean, isNil, isNumber } from 'lodash-es';
-import { TCasePair, TNestedArray } from './types';
-import { variadic } from './utils';
+import { TCasePair, TNestedArray } from './types/common';
+import { variadic } from './utils/utils';
 
 function _if<T>(condition: boolean, trueValue: T, falseValue: T): T {
 	return (condition ? trueValue : falseValue);
