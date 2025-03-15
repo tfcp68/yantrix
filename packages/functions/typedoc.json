@@ -1,0 +1,9 @@
+{
+	"extends": ["../../typedoc.base.json"],
+	"entryPoints": ["src/index.ts"],
+	"categorizeByGroup": false,
+	"navigation": {
+		"includeCategories": true,
+		"includeGroups": false
+	}
+}

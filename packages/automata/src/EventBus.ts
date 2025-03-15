@@ -98,6 +98,9 @@ export function createEventBus<
 		};
 }
 
+/**
+ * Basic event bus class that is used in Yantrix automatas.
+ */
 export class BasicEventBus
 	extends createEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
 	implements IAutomataEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>> {
