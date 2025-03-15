@@ -7,7 +7,7 @@
  */
 
 import { every, isArray, isEqual, isNull, isNumber, isObject, isString, some, values } from 'lodash-es';
-import { variadic } from './utils';
+import { variadic } from './utils/utils';
 
 // ==============================
 // Logical (binary) predicates

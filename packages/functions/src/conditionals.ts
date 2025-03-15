@@ -1,6 +1,6 @@
 import { find, isArray, isBoolean, isNil, isNumber } from 'lodash-es';
-import { TCasePair, TNestedArray } from './types';
-import { variadic } from './utils';
+import { TCasePair, TNestedArray } from './types/common';
+import { variadic } from './utils/utils';
 
 /**
  * Evaluates a condition and returns one of two values based on the result.
