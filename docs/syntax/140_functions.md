@@ -72,10 +72,80 @@ contains(var, substring = 'searchString')
 
 | Function(s) |                       Signature                       |                                      Arguments                                      | Returns                                                                                                  |
 | :---------- | :---------------------------------------------------: | :---------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
-| `if`        |             (**Binary**, any, any) => any             | a condition to check, a value to return if it's truthy, a value to return otherwise | the first argument, if condition is truthy; the second argument in the other case                        |
-| `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any |        condition 1, return value 1, condition 2, return value 2, ... , else         | the result of the expression, following a truthy condition; or the latest expression, if none is present |
-| `coalesce`  |                   (any, ..) => any                    |                           any collection of `Expressions`                           | first non-Null value in the list of arguments                                                            |
-| `random`    |                   () => **Number**                    |                                                                                     | a uniform random number between 0 and 1, that is easily used as a **Binary**                             |
-| `random`    |        (**Number**, **Number**) => **Number**         |                                                                                     | a uniform random number between the first and the second arguments                                       |
+| `if`        |             (**Binary**, any, any) => any             | - Condition<br/>- Yes option<br>- No option| `Yes option`, if `Condition` is truthy, or `No option` otherwise |
+| `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any | - Condition 1<br/>- Option 1<br/>- Condition 2<br/>- Option 2</br>- ...<br/>- Default  | `Option N`, if `Condition N` is truthy, or `Default` if none are |
+| `coalesce`  |                   (any, ..) => any                    | any collection of `Expressions` | first non-Null value in the list of arguments|
+| `choose`    |                   (**Number**, [any,...] => any         | - Index<br/>- Option 1<br/>- Option 2<br/>- ...   | picks `Index+1`th option from arguments, i.e. `choose(0,"a","b")` returns `"a"` |
 
-## Defining functions
+## Built-Ins: Internals
+
+| Function(s) |                       Signature                       |                                      Context                                      | Returns                                                                                                  |
+| :---------- | :---------------------------------------------------: | :---------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------- |
+| `_currentStateName`  | () => **String**   | `FSM` | returns current state string name, as described in the source diagram |
+| `_currentStateId`  | () => **Number**   | `FSM` | returns Current state numeric key, as used in built code |
+| `_currentActionName`  | () => **String**   | `FSM` | Current action string name, as described in the surce diagram |
+| `_currentActionId`  | () => **Number**   | `FSM` | Current action numeric key, as used in built code |
+| `currentEpoch`  | () => **Number**   | `FSM` | Current iteration of reduction cycle for framework core, can be used as a discrete timer |
+| `currentCycle`  | () => **Number**   | `FSM` | Current iteration of reduction cycle for current FSM |
+| `currentTimestamp`  | () => **Number**   | `FSM` | Current system time in microseconds |
+| `currentTime`  | () => **Number**   | `FSM` | Current date and time in ISO-8601 format |
+| `random`    |                   () => **Number**                    | any | a uniform random number between 0 and 1, that is easily used as a **Binary** |
+| `random`    |        (**Number**, **Number**) => **Number**         | any | a uniform random number between low and upper boundary inclusive |
+| `weightedRandom`    |        (**Object**) => **String**         | any | a random key of `Object`, whereby `Object`'s values are interpreted as integer weights. If any of `Object` values is not a **Number**, throws an error |
+
+## Custom functions
+
+### Inline functions
+
+A custom function can be defined anywhere in the diagram using the following syntax:
+```
+define/<FUNCTION_NAME> (<ARGUMENTS_LIST>) => <RETURN_VALUE>
+```
+
+Regardless of whether it's a `Transformer` or a `Predicate`, this function can be used anywhere in the same diagram or a `Slice`, including "before" the definition in the source code 
+
+Custom function can reference any type of functions, including itself, other inline functions, built-ins and injected functions. They are calculated just-in-time and exhibit little difference to built-ins
+
+### Injecting functions
+
+Sometimes native syntax is just not enough. In this case you can implement certain functions in a target programming language (or few) or even use existing APIs in your system to plug the business logic into diagrams, allowing for fast and easy [integrations](../integrations/).
+
+To import a function, its signature must be explicitely defined with an `inject` directive
+
+```
+inject/<FUNCTION_NAME> (<ARGUMENTS_LIST>) => <RETURN_VALUE>
+```
+
+This instructs the codegen to lookup for an external function dictionary in parameters:
+
+```bash
+yantrix codegen ./input.mermaid --functionFile functions.ts -o ./output.ts -c MyFSM -l typescript 
+```
+
+Obviously, injected functions must be implemented in target language. When trying to build from diagram that ncludes injected functions, which have not been provided, codegen will throw a build-time error. 
+
+Typically a function file should contain a dictionary with named functions, stored as first-class citizens in a given language. When building for language, that does not support storing functions in object keys, modularization tecnhiques should be used. JS/TS users can benefit from both worlds and, even more so, they can import built-in functions directly into their custom implementations:
+
+```typescript
+// functions.ts
+import {coalesce} from '@yantrix/functions`
+
+export const customFunction = (x) => coalesce (x,0);
+export const anotherFunction = (a, b) => a>0?a:b;
+export default {
+  customFunction,
+  anotherFunction
+}
+```
+
+Since the reflection of provided functions is generally not possible, type signature is not checked and can mismatch, as always when passing "external" data into expressions. In typed languages, notably in Typescript, this could potentially lead to build-time type error, which is a relatively good situation to be in. In untyped produced code, if injected function throws the error is caught by Yantrix, and the current reduction cycle typically fails. If you want to handle these situtations predictably, make sure to handle runtime interface mismatches and type exceptions within your function, degrading gracefully whenever possible. 
+
+All that said, this approach lacks versatility, as diagrams are language-agnostic by design and is based on contracts rather than implentations. Its advised not to use it until you're 100% sure you will never need to solve the problem, that you are solving at the moment, for another languages. In the former case, however, injected functions can dramatically improve your performance with Yantrix and are a must-go for all sorts of API integration pipelines. Worst case, you have to reimplement few (or maybe more) functions, containing the business logic, which you would anyways do when migrating stacks.
+
+### Limitations
+
+Any expression is limited by stack depth, and custom functions are not exception. However, when using Injected functions, its stack is not managed, so it's crucially important to avoid any dubios practices, like long synchronous calls, loops and side effects. It's best to keep all injected functions (if not all your code) in [pure functions](https://en.wikipedia.org/wiki/Pure_function).
+
+Both inline and injected functions only support finite number arguments. If you need lists - use them explicitly. 
+
+For the sake of compatibility, prefer using only "plain-text" data as arguments, avoiding language-specific runtime entities, like object instances, `Set`/`Map`, `Blob` and other fancy stuff. Remember: _Keep it stupidly simple_
