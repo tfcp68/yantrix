@@ -37,17 +37,70 @@ function flattenPairs<T = any>(input: unknown): TCasePair<T>[] {
 /**
  * Evaluates a series of conditions and returns the corresponding value for the first true condition.
  *
- * @param first_case_condition - The condition for the first case.
- * @param first_case_return_value - The return value for the first case if the condition is true.
- * @param other_cases - An array of tuples where each tuple contains a condition and a return value.
- * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
+ * @template T - The type of the return value if the condition is true.
+ * @template A - The type of the return value if the condition is false.
+ * @param condition - The condition that needs to be checked.
+ * @param expression - The return value if the condition is true.
+ * @param alt - The return value if the condition is false.
+ * @returns The return value if the condition is true, otherwise the alternative value.
  */
 function _case<T, A = T>(condition: boolean, expression: T, alt?: A): T | A | null;
+
+/**
+ * Evaluates a series of conditions and returns the corresponding value for the first true condition.
+ *
+ * @template T - The type of the return value if the condition is true.
+ * @template A - The type of the return value if the condition is false.
+ * @param condition - The condition for the first case.
+ * @param expression - The return value for the first case if the condition is true.
+ * @param rest - Additional conditions and return values.
+ * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
+ */
 function _case<T, A = T>(condition: boolean, expression: T, ...rest: any[]): T | A | null;
+
+/**
+ * Evaluates a series of conditions and returns the corresponding value for the first true condition.
+ *
+ * @template T - The type of the return value if the condition is true.
+ * @template A - The type of the return value if the condition is false.
+ * @param pair - A tuple containing a condition and a return value.
+ * @param alt - The return value if no conditions are true.
+ * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
+ */
 function _case<T, A = T>(pair: TCasePair<T>, alt?: A): T | A | null;
+
+/**
+ * Evaluates a series of conditions and returns the corresponding value for the first true condition.
+ *
+ * @template T - The type of the return value if the condition is true.
+ * @template A - The type of the return value if the condition is false.
+ * @param pairs - An array of tuples where each tuple contains a condition and a return value.
+ * @param alt - The return value if no conditions are true.
+ * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
+ */
 function _case<T, A = T>(pairs: TCasePair<T>[], alt?: A): T | A | null;
+
+/**
+ * Evaluates a series of conditions and returns the corresponding value for the first true condition.
+ *
+ * @template T - The type of the return value if the condition is true.
+ * @template A - The type of the return value if the condition is false.
+ * @param pairs - A nested array of tuples where each tuple contains a condition and a return value.
+ * @param alt - The return value if no conditions are true.
+ * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
+ */
 function _case<T, A = T>(pairs: TNestedArray<TCasePair<T>>, alt?: A): T | A | null;
+
+/**
+ * Evaluates a series of conditions and returns the corresponding value for the first true condition.
+ *
+ * @template T - The type of the return value if the condition is true.
+ * @template A - The type of the return value if the condition is false.
+ * @param pairsAndAlt - A nested array of tuples where each tuple contains a condition and a return value, followed by an optional alternative value.
+ * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
+ */
 function _case<T, A = T>(...pairsAndAlt: [...TNestedArray<TCasePair<T>>[], A]): T | A | null;
+
 function _case<T, A = T>(...args: unknown[]): T | A | null {
 	if (args.length >= 2 && typeof args[0] === 'boolean') {
 		if (args.length > 3 || (args.length === 3 && typeof args[2] === 'boolean')) {
@@ -108,7 +161,8 @@ function _case<T, A = T>(...args: unknown[]): T | A | null {
 /**
  * Returns the first non-null expression from the provided list of expressions.
  *
- * @param expressions - An array of expressions to evaluate.
+ * @template T - The type of the expressions.
+ * @param values - An array of expressions to evaluate.
  * @returns The first non-null expression, or null if all expressions are null.
  */
 const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {

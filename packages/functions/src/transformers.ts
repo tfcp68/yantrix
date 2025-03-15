@@ -324,6 +324,7 @@ export function len(str: string): number;
  * Returns the length of an array.
  *
  * @category List/String Transformers
+ * @template T - The type of the elements in the array.
  * @param list - The array to evaluate.
  * @returns The length of the array.
  */
@@ -346,6 +347,7 @@ export function left(str: string, length: number): string;
  * Returns the leftmost elements of an array up to a specified length.
  *
  * @category List/String Transformers
+ * @template T - The type of the elements in the array.
  * @param list - The array to evaluate.
  * @param length - The number of elements to return.
  * @returns A subarray containing the leftmost elements up to the specified length.
@@ -373,6 +375,7 @@ export function right(str: string, length: number): string;
  * Returns the rightmost elements of an array up to a specified length.
  *
  * @category List/String Transformers
+ * @template T - The type of the elements in the array.
  * @param list - The array to evaluate.
  * @param length - The number of elements to return.
  * @returns A subarray containing the rightmost elements up to the specified length.
@@ -400,6 +403,7 @@ export function indexOf(str: string, search: string): number;
  * Returns the index of a value in an array.
  *
  * @category List/String Transformers
+ * @template T - The type of the elements in the array.
  * @param list - The array to search.
  * @param value - The value to look for.
  * @returns The index of the value in the array, or -1 if not found.
@@ -425,6 +429,7 @@ export function shuffle(str: string): string;
  * Shuffles the elements of an array.
  *
  * @category List/String Transformers
+ * @template T - The type of the elements in the array.
  * @param list - The array to shuffle.
  * @returns A new array with the elements shuffled.
  */
@@ -442,6 +447,7 @@ export function shuffle<T>(iterable: string | T[]): string | T[] {
  * Looks up a value in a list and returns it if found.
  *
  * @category List Transformers
+ * @template T - The type of the elements in the array.
  * @param list - The list to search.
  * @param value - The value to look for.
  * @returns The value if found, otherwise null.
@@ -460,6 +466,7 @@ export function lookup<T>(list: T[], value: T): TNullable<T> {
  * Repeats a value a specified number of times and returns an array of the repeated values.
  *
  * @category List Transformers
+ * @template T - The type of the elements in the array.
  * @param quantity - The number of times to repeat the value.
  * @param valueSample - The value to repeat.
  * @returns An array containing the repeated values.
@@ -489,6 +496,7 @@ export function substr(str: string, start: number, end?: number): string {
  * Filters a collection of objects by a specified property and value.
  *
  * @category Collection Transformers
+ * @template S - The type of the value to filter by.
  * @param collection - The collection of objects to filter.
  * @param prop - The property name to filter by.
  * @param value - The value to filter by.

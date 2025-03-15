@@ -189,6 +189,7 @@ export function contains(str: string, substr: string): boolean | null;
 /**
  * Checks if an object contains a specified value.
  *
+ * @template T - The type of the object.
  * @category Lookup Predicates
  * @param obj - The object to check.
  * @param value - The value to check for.
@@ -199,6 +200,8 @@ export function contains<T extends object>(obj: T, value: T[keyof T]): boolean |
 /**
  * Checks if an array contains a specified value.
  *
+ * @template T - The type of the elements in the array.
+ * @template V - The type of the value to check for.
  * @category Lookup Predicates
  * @param list - The array to check.
  * @param value - The value to check for.
@@ -216,6 +219,7 @@ export function contains(container: string | object | any[], value: any): boolea
 /**
  * Checks if an array has a specified index.
  *
+ * @template T - The type of the elements in the array.
  * @category Lookup Predicates
  * @param list - The array to check.
  * @param index - The index to check for.
@@ -226,6 +230,7 @@ export function has<T>(list: T[], index: number): boolean | null;
 /**
  * Checks if an object has a specified key.
  *
+ * @template T - The type of the object.
  * @category Lookup Predicates
  * @param obj - The object to check.
  * @param key - The key to check for.
