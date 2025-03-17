@@ -59,7 +59,13 @@ export default withMermaid({
 		},
 		search: {
 			provider: 'local',
-			// todo: find a way to exclude some files from search, like test cases results
+			options: {
+				_render: async (src, env, md) => {
+					const html = await md.render(src, env);
+					if (env.relativePath.includes('test_cases')) return '';
+					return html;
+				},
+			},
 		},
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
 	},
