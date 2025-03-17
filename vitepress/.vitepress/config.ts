@@ -16,9 +16,6 @@ export default withMermaid({
 	title: 'Yantrix',
 	appearance: 'force-dark',
 	lastUpdated: true,
-	search: {
-		provider: 'local',
-	},
 	head: [
 		['meta', { name: 'theme-color', content: '#000000' }],
 		['meta', { property: 'og:image', content: '/yantrix/logo.png' }],
@@ -59,6 +56,10 @@ export default withMermaid({
 		socialLinks: [],
 		outline: {
 			level: [2, 3],
+		},
+		search: {
+			provider: 'local',
+			// todo: find a way to exclude some files from search, like test cases results
 		},
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
 	},
