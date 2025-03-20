@@ -13,26 +13,64 @@ along with [Automata](../API/automata) instance.
 
 For other languages, Yantrix aims to provide compatibility with elementary types, existing in most of them:
 
--   **Numbers**: integer and floats are processed as similarly as possible for a given language
--   **Strings**: strings are processed as immutables, i.e. every string function should return a new string rather than
-    modify one of its arguments
--   **Lists (Tuples)**: Lists and Tuples are processed as similarly as possible for a given language. They also are
-    immutable and can only be a read-only argument of the calling function
--   **Objects(Dictionaries)**: implementation is highly language-dependent and aims to reproduce the behaviour of
-    Typescript [`Record`](./automata/interfaces/IAutomata.html) implementation as closely as possible.
-    For `Functions` implementation **Object** arguments should be defined as immutable and read-only.
--   **Binary** &mdash; a special type that is used for conditional logic. It is essentially a **Number** but is interpreted
-    as a boolean by the following rules:
-    -   If the value is `Null` or unset, the `Binary` is falsy
-    -   If the value is 0 or less, the `Binary` is falsy
-    -   If the value is 1 or greater, the `Binary` is truthy
-    -   Otherwise, the value is rounded by mathematic rules and then is compared again
--   A special **Function** type exists for [Functions](140_functions.html), when they are used as another `Function` parameter, such as in `map`- and `filter`-style iterators.
+### Number
+Most of state values in a typical app are numeric. Every enumerable list should also be mapped to a number for sake of portability.
+
+Yantrix internals also use numbers as a communication language, with all States, Actions and Events names being stored as numerical codes.
+
+In produced code, integer and float values are processed as similarly as possible for a given language
+
+### Strings
+A string is an ordered sequence of characters, i.e. numbers within a certain codepage. All strings in Yantrix are in UTF-8.
+
+Strings are processed as immutables, i.e. every string function should return a new string rather than modify any of its arguments
+
+### Lists (Tuples)
+A list is an ordered sequence of same-type values. Lists are used when order matters, but not the position and quantity.
+Most oftenly used **Lists** are [**Collections** ](#collection).
+
+A tuple is an ordered sequence of values, that could potentially be of different type, and thus the position in the list defines the semantics of value.
+Tuples are used to store values of different nature that are "bound" together by common meaning, and they are usually of fixed length. A good example of a tuple
+would be a vector or a message in most binary protocols.
+
+While having different purpose, Lists and Tuples are pretty much identical syntactically, and are processed as similarly as possible in the produced code, assuming they are of most common iterable type for that language.
+They also are immutable and can only be a read-only argument of the calling function.
+The difference only exists in semantics, i.e. if you use a mapper on a **Tuple** rather than on a **List**, the results might be unexpected.
+
+### Objects
+
+An object, usually called a **Dictionary**, is a _presumably_ unordered set of key-value combinations. Keys are always strings, while values may have arbitrary types. In other words, a dictionary is a one-to-one map between
+a **List** and a **Collection**. Keys are unique and can't be empty, making **Objects** a good option to store database records by their primary keys, but also any structured object, basically.
+
+The implementation is highly language-dependent and aims to reproduce the behaviour of Typescript [`Record`](./automata/interfaces/IAutomata.html) implementation as closely as possible.
+This also means that keys of an **Object** might have intrinsic enumeration sequence, so order matters. For safety, one should never rely on order of properties in a dictionary,
+and only resolve dictionary values by their corresponding key.
+
+**Object** arguments in `Functions` are  immutable and read-only.
+
+## Special types
+
+### Binary
+A special type that is used for conditional logic. It is essentially a **Number** but is interpreted as a boolean by the following rules:
+-   If the value is `Null` or unset, the `Binary` is falsy
+-   If the value is 0 or less, the `Binary` is falsy
+-   If the value is 1 or greater, the `Binary` is truthy
+-   Otherwise, the value is rounded by mathematic rules and then is compared again
+
+### Collection
+
+This is essentialy a **List** of **Objects**, used to store homogenous structures without an index. This is what is typically returned by REST APIs, database queries and various data sources.
+Despite translating to the same type as **List** in the output code, in Yantrix this type is pronounced descretely, and passing a non-compliant **Tuple**/**List** (i.e., having non-homogenous members)
+to a function that is explicitely designed to work with **Collections** will throw an error
+
+### Function
+Special type exists for [Functions](140_functions.html), when they are used as another `Function` parameter, such as in `map`- and `filter`-style iterators. This only works
+when building for languages where callables are [first-class citizens](https://en.wikipedia.org/wiki/First-class_citizen). As of now, all output languages supported by Yantrix do qualify.
 
 ## Properties
 
 Properties are named members of [`Data Objects`](100_data_objects.html). Inside Yantrix intestines `Payload`,`Context`
-and `Event Meta` are dictionaries, and top-level properties of them can be extracted by name. Deeper nested values (i.e., when property is of `Object` type) are extracted with special [`Functions`](140_functions.html)
+and `Event Meta` are [`Objects`](#objects), and top-level properties of them can be extracted by name. Deeper nested values (i.e., when property is of `Object` type) are extracted with special [`Functions`](140_functions.html)
 
 The properties extracted from `Data Objects`, which are destructured from them based on their Keys. Listing Keys is like
 declaring variables, which are members of a dereferenced Data Object.

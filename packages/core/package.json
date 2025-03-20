@@ -1,0 +1,74 @@
+{
+	"$schema": "https://json.schemastore.org/package.json",
+	"name": "@yantrix/core",
+	"type": "module",
+	"version": "0.0.1",
+	"description": "",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"funding": "https://github.com/tfcp68/yantrix?sponsor",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/core"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [],
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"yantrix": "node_modules/@yantrix/cli/bin/index.js"
+	},
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"build": "tsc --noEmit && tsup",
+		"test": "vitest run",
+		"lint": "eslint .",
+		"format": "eslint --fix ."
+	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/functions": "workspace:^",
+		"@yantrix/utils": "workspace:^"
+	},
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}
