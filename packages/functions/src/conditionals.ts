@@ -1,4 +1,4 @@
-import { find, isArray, isBoolean, isNil, isNumber } from 'lodash-es';
+import { find, isArray, isBoolean, isNil } from 'lodash-es';
 import { TCasePair, TNestedArray } from './types/common';
 import { variadic } from './utils/utils';
 
@@ -91,14 +91,13 @@ const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {
 	return find(values, value => !isNil(value)) ?? null;
 });
 
-function random(min?: number, max?: number): number {
-	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
-	else return Math.round(Math.random());
+function choose(index: number, ...options: any[]): any {
+	return options[index];
 }
 
 export {
 	_case as case,
+	choose,
 	coalesce,
 	_if as if,
-	random,
 };

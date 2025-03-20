@@ -17,7 +17,6 @@ export function currentTimestamp(): number {
 export function currentTime(): string {
 	return new Date().toISOString();
 }
-export function random(): number;
 export function random(min?: number, max?: number): number {
 	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
