@@ -6,6 +6,9 @@ title: Redux
 ## Traffic light
 
 Traffic light is a classic example of a finite state machine.
+A traffic light system follows a strict sequence of states (e.g., Red → Green → Yellow → Red).
+In this example, states are being switched whenever you press a "Switch" button below the traffic light block.
+You can press "Reset" to return to the initial state of the application. (All lights are disabled)
 
 ### Demo
 
@@ -15,55 +18,58 @@ You can check out the working example [here](01-traffic-light/index.html){target
 
 Source code for the example is located [here](https://github.com/tfcp68/yantrix/tree/main/examples/01-traffic-light).
 
+<iframe
+style="width: 100%; height: 900px; outline: 1px solid #252525; border: 0; marginBottom: 16px"
+src="https://codesandbox.io/p/devbox/github/tfcp68/yantrix/main/examples/01-traffic-light"
+></iframe>
+
 ### Diagram
 
 ```mermaid
 stateDiagram-v2
-	[*] --> Off: Reset (initialCounter=0)
-	Off --> Red: Switch
-	Red --> RedYellow: Switch
-	RedYellow --> Green: Switch
-	Green --> Yellow: Switch
-	Yellow --> Red: Switch
-	note left of Off
-		+Init
-	end note
+[*] --> Off: Reset (initialCounter=0)
+Off --> Red: Switch
+Red --> RedYellow: Switch
+RedYellow --> Green: Switch
+Green --> Yellow: Switch
+Yellow --> Red: Switch
+note left of Off
+	+Init
+end note
 note right of [*]
-#{ counter = 0 } <= coalesce($initialCounter, inc(#counter))
+	#{ counter = 0 } <= coalesce($initialCounter, inc(#counter))
 end note
 ```
 
-### Manual installation and usage
+### Installation and usage
 
-If you want to install this example manually, do the following:
+If you want to install this example locally, follow these steps:
 
-- Clone the Yantrix repository:
+1. Clone the Yantrix repository:
 ```
 git clone https://github.com/tfcp68/yantrix.git
 ```
-
-- Navigate to the example directory:
+2. Open the example folder:
 ```
-cd yantrix/examples/01-traffic-light
+cd yantrix
+cd examples
+cd 01-traffic-light
 ```
-
-- Install the dependencies:
+3. Install the dependencies:
 ```
-npm install
+pnpm install
 ```
-
-- To generate the automata for the example, you can run the following command:
+4. *(Optional)* To re-generate the automata (for example, if you want to play around with the state diagram), use the following command:
 ```
 yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata
 ```
+5. To run the project in development mode:
+```
+pnpm dev
+```
+You can check out the example application at http://localhost:5173.
 
-- To run in dev mode:
+6. To build for production:
 ```
-npm run dev
-// View the result at http://localhost:5173/
-```
-
-- Build for production:
-```
-npm run build
+pnpm build
 ```
