@@ -1,12 +1,12 @@
 name: 🧩 Strategic task
 description: Implementation by core team
-labels: ['strategic']
-projects: ['tfcp68/3']
+labels: [strategic]
+projects: [tfcp68/3]
 body:
   - type: markdown
     attributes:
-      value: 
-        This form is meant for project supervizors and creates a milestone task in the roadmap. 
+      value:
+        This form is meant for project supervizors and creates a milestone task in the roadmap.
         _It's advised to create a branch and document the feature first_
   - type: textarea
     id: feature-description
@@ -19,7 +19,7 @@ body:
     id: feature-details
     attributes:
       label: Definition of done
-      description: 'Technical details of what has to be implemented'
+      description: Technical details of what has to be implemented
     validations:
       required: true
   - type: textarea

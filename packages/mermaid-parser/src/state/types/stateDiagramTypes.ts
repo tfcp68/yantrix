@@ -3,6 +3,10 @@ export type TActionPath = {
 	note: string[][];
 };
 
+/**
+ * Represents the state diagram matrix.
+ * Contains only the relevant information for the state diagram, other information from Mermaid structures is omitted.
+ */
 export type TStateDiagramMatrix = {
 	states: TDiagramStatesArray;
 	transitions: TDiagramTransitions;
@@ -14,6 +18,9 @@ export type TStateDiagramActionChains = {
 
 export type TActionPathArray = TActionPath[];
 
+/**
+ * Represents the processed state information for the state diagram.
+ */
 export type TDiagramState = {
 	id: string;
 	caption: string;
@@ -22,12 +29,17 @@ export type TDiagramState = {
 	subtree?: TStateDiagramMatrix;
 };
 
+/** Array of processed states from the diagram. */
 export type TDiagramStatesArray = TDiagramState[];
 
+/**
+ * Represents the processed action information for the state diagram.
+ */
 export type TDiagramAction = {
 	actionsPath: TActionPathArray;
 };
 
+/** Processed transitions between states of the diagram. */
 export type TDiagramTransitions = Record<string, Record<string, TDiagramAction>>;
 
 export type TActionChain = {
