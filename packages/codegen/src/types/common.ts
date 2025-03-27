@@ -85,7 +85,9 @@ export type TExpressionRecord = {
 	[K in TMappedKeys]: (arg: TExpression<K>) => string;
 
 };
-export type TUserFunctionsDict = TNullable<Record<string, (args?: unknown) => unknown>>;
+export type TUserFunctionsDict = {
+	path: TNullable<string>;
+};
 export const TAssignTypeDict = {
 	PAYLOAD: 'payload',
 	PREV_CONTEXT: 'prevContext',

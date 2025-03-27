@@ -4,15 +4,20 @@ import { TOutLang, TUserFunctionsDict } from '../types/common';
 import { ModuleNames } from './modules';
 
 const processFileTS = async (filePath: TNullable<string>): Promise<TUserFunctionsDict> => {
-	if (!filePath) return null;
+	if (!filePath) {
+		return {
+			path: null,
+		};
+	}
 	const fileExtension = path.extname(filePath);
 
 	if (!['.js', '.ts'].includes(fileExtension)) {
 		throw new Error('Only .js or .ts files are supported');
 	}
 
-	const functions = await import(filePath);
-	return functions.default;
+	return {
+		path: filePath,
+	};
 };
 
 const processFileDict: Record<TOutLang, (filePath: TNullable<string>) => Promise<TUserFunctionsDict>> = {
