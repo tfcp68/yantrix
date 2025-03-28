@@ -1,4 +1,4 @@
-name: Ubuntu latest test
+name: "Ubuntu latest test"
 
 on:
   workflow_dispatch:

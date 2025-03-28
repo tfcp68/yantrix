@@ -1,4 +1,4 @@
-name: All os tests
+name: "All os tests"
 
 on:
   workflow_call:
