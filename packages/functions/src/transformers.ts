@@ -402,6 +402,16 @@ export function len<T>(iterable: string | T[]): number {
  * @returns A substring containing the leftmost characters up to the specified length.
  */
 export function left(str: string, length: number): string;
+
+/**
+ * Returns the leftmost elements of an array up to a specified length.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to evaluate.
+ * @param length - The number of elements to return.
+ * @returns A new array containing the leftmost elements up to the specified length.
+ */
 export function left<T>(list: T[], length: number): T[];
 export function left<T>(iterable: string | T[], length = 0): string | T[] {
 	return isIterable(iterable) && _.isLength(length)
@@ -420,6 +430,16 @@ export function left<T>(iterable: string | T[], length = 0): string | T[] {
  * @returns A substring containing the rightmost characters up to the specified length.
  */
 export function right(str: string, length: number): string;
+
+/**
+ * Returns the rightmost elements of an array up to a specified length.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to evaluate.
+ * @param length - The number of elements to return.
+ * @returns A new array containing the rightmost elements up to the specified length.
+ */
 export function right<T>(list: T[], length: number): T[];
 export function right<T>(iterable: string | T[], length = 0): string | T[] {
 	return isIterable(iterable) && _.isLength(length)
@@ -438,6 +458,16 @@ export function right<T>(iterable: string | T[], length = 0): string | T[] {
  * @returns The index of the value in the string, or -1 if not found.
  */
 export function indexOf(str: string, search: string): number;
+
+/**
+ * Returns the index of a value in an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to search.
+ * @param value - The value to look for.
+ * @returns The index of the value in the array, or -1 if not found.
+ */
 export function indexOf<T>(list: T[], value: T): number;
 export function indexOf<T>(iterable: string | T[], value: string | T): number {
 	return isIterable(iterable)
@@ -455,6 +485,15 @@ export function indexOf<T>(iterable: string | T[], value: string | T): number {
  * @returns A new string with the characters shuffled.
  */
 export function shuffle(str: string): string;
+
+/**
+ * Shuffles the elements of an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to shuffle.
+ * @returns A new array with the elements shuffled.
+ */
 export function shuffle<T>(list: T[]): T[];
 export function shuffle<T>(iterable: string | T[]): string | T[] {
 	return isIterable(iterable)
@@ -472,6 +511,15 @@ export function shuffle<T>(iterable: string | T[]): string | T[] {
  * @returns A new string with the characters in reverse order.
  */
 export function reverse(str: string): string;
+
+/**
+ * Reverses the elements of an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to reverse.
+ * @returns A new array with the elements in reverse order.
+ */
 export function reverse<T>(list: T[]): T[];
 export function reverse<T>(iterable: string | T[]): string | T[] {
 	return isIterable(iterable)
