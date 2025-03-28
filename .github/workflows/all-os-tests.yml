@@ -24,5 +24,4 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: run test
-        uses: ./.github/workflows/run_test.yml
+      uses: ./.github/actions/run_test

@@ -1,10 +1,6 @@
-name: Tests
+name: run test
 
-on:
-  workflow_call:
-  merge_group: {}
-
-jobs:
+runs:
   using: composite
   steps:
     - name: Set up swap space
