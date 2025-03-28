@@ -42,6 +42,52 @@ define/sumSq (x,y) => add(sq(x), sq(y))
 define/hypot (x,y) => sqrt(sumSq(x, y))
 ```
 
+### Injecting functions
+
+Sometimes native syntax is just not enough. In this case you can implement certain functions in a target programming language (or few) or even use existing APIs in your system to plug the business logic into diagrams, allowing for fast and easy.
+
+To import a function, its signature must be explicitely defined with an `inject` directive
+
+```
+inject/<FUNCTION_NAME>
+```
+
+This instructs the codegen to lookup for an external function dictionary in parameters:
+
+```bash
+yantrix codegen ./input.mermaid --functionFile functions.ts -o ./output.ts -c MyFSM -l typescript
+```
+The path to the function file must be provided relative to the automaton generation path. This path is used to import the functions during code generation, so it must be accessible from the location where the generated code will be placed.
+
+Obviously, injected functions must be implemented in target language. When trying to build from diagram that ncludes injected functions, which have not been provided, codegen will throw a build-time error.
+
+Typically a function file should contain a dictionary with named functions, stored as first-class citizens in a given language. When building for language, that does not support storing functions in object keys, modularization tecnhiques should be used. JS/TS users can benefit from both worlds and, even more so, they can import built-in functions directly into their custom implementations:
+
+```typescript
+// functions.ts
+
+import { coalesce } from '@yantrix/functions';
+
+export const customFunction = x => coalesce (x, 0);
+export const anotherFunction = (a, b) => a > 0 ? a : b;
+export default {
+	customFunction,
+	anotherFunction
+};
+```
+
+Since the reflection of provided functions is generally not possible, type signature is not checked and can mismatch, as always when passing "external" data into expressions. In typed languages, notably in Typescript, this could potentially lead to build-time type error, which is a relatively good situation to be in. In untyped produced code, if injected function throws the error is caught by Yantrix, and the current reduction cycle typically fails. If you want to handle these situtations predictably, make sure to handle runtime interface mismatches and type exceptions within your function, degrading gracefully whenever possible.
+
+All that said, this approach lacks versatility, as diagrams are language-agnostic by design and is based on contracts rather than implentations. Its advised not to use it until you're 100% sure you will never need to solve the problem, that you are solving at the moment, for another languages. In the former case, however, injected functions can dramatically improve your performance with Yantrix and are a must-go for all sorts of API integration pipelines. Worst case, you have to reimplement few (or maybe more) functions, containing the business logic, which you would anyways do when migrating stacks.
+
+### Limitations
+
+Any expression is limited by stack depth, and custom functions are not exception. However, when using Injected functions, its stack is not managed, so it's crucially important to avoid any dubios practices, like long synchronous calls, loops and side effects. It's best to keep all injected functions (if not all your code) in [pure functions](https://en.wikipedia.org/wiki/Pure_function).
+
+Both inline and injected functions only support finite number arguments. If you need lists - use them explicitly.
+
+For the sake of compatibility, prefer using only "plain-text" data as arguments, avoiding language-specific runtime entities, like object instances, `Set`/`Map`, `Blob` and other fancy stuff. Remember: _Keep it stupidly simple_
+
 ## Polymorphism
 
 `Functions` can implement parameter polymorphism, i.e., they can declare several similar signatures operating different

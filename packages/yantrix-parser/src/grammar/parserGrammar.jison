@@ -19,6 +19,7 @@
 'subscribe/'                         return 'SUBSCRIBE'
 'emit/'                              return 'EMIT'
 'define/'                            return 'DEFINE'
+'inject/'                            return 'INJECT'
 'Init'                               return 'INITIAL_STATE'
 'ByPass'                             return 'BY_PASS'
 
@@ -59,7 +60,7 @@ start
         : document 'EOF' {return $1};
 
 document
-        : /* empty */ {$$={defines:[], contextDescription:[],emit:[],subscribe:[],initialState:false,byPass:false}}
+        : /* empty */ {$$={defines:[], contextDescription:[],emit:[],subscribe:[],initialState:false,byPass:false, inject:[]}}
         | document line {
            if($2 !== '\n') {
               if($2.hasOwnProperty('initialState')){
@@ -72,6 +73,7 @@ document
               if($2.hasOwnProperty('emit')) $1['emit'].push($2['emit'])
               if($2.hasOwnProperty('subscribe')) $1['subscribe'].push($2['subscribe'])
               if($2.hasOwnProperty('define')) $1['defines'].push($2['define'])
+              if($2.hasOwnProperty('inject')) $1['inject'].push($2['inject'])
               if($2.hasOwnProperty('expression')) { $$ = $2 }
            }
         };
@@ -87,6 +89,7 @@ statements
         |  EMIT_STATEMENT
         |  SUBSCRIBE_STATEMENT
         |  DEFINE_STATEMENT {$$ = {define:$1}}
+        |  INJECT_STATEMENT {$$ = {inject:$1}}
         |  EXPRESSION_STATEMENT {$$ = {expression: $1}};
 
 CONTEXT_STATEMENT
@@ -115,6 +118,7 @@ SUBSCRIBE_EVENT
 
 
 DEFINE_STATEMENT: DEFINE IDENT DEFINE_ARGUMENTS RIGHT_ARROW DEFINE_FUNCTION {$$ = {identifier:$2, ...$3, expression:$5}};
+INJECT_STATEMENT: INJECT IDENT {$$ = {identifier:$2}};
 
 DEFINE_FUNCTION
         : FUNCTION_NAME LEFT_BRACKET DEFINE_FUNCTION_ARGUMENTS RIGHT_BRACKET
