@@ -14,4 +14,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: ./.github/actions/run_test
+      - uses: actions/checkout@v4
+      - id: run_test
+        uses: ./.github/actions/run_test
