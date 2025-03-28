@@ -1,8 +1,11 @@
-name: ubuntu-latest-test
+name: Ubuntu latest test
 
 on:
   workflow_call:
   pull_request:
+    branches:
+      - main
+  push:
     branches:
       - main
 
