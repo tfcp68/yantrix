@@ -18,25 +18,18 @@ concurrency:
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node_version: [18.x, 20.x, lts/*]
-        include:
-          - os: macos-latest
-            node_version: lts/*
-          - os: windows-latest
-            node_version: lts/*
-      fail-fast: false
-
+    name: Tests
+    runs-on: ubuntu-latest
     steps:
       - name: Set up swap space
-        if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
           swap-size-gb: 10
+
+      - name: Install Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
 
       - name: Set git to use LF
         run: |
