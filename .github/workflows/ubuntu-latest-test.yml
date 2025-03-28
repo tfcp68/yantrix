@@ -1,0 +1,15 @@
+name: ubuntu-latest-test
+
+on:
+  workflow_call:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: run test
+        uses: ./.github/workflows/run_test.yml
