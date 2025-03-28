@@ -24,4 +24,4 @@ jobs:
       fail-fast: false
 
     steps:
-      uses: ./.github/actions/run_test
+      - uses: ./.github/actions/run_test
