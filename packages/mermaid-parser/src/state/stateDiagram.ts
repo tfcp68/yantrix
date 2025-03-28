@@ -521,9 +521,9 @@ function validateActions(stateDiagramStructure: TStateDiagramStructure) {
 }
 
 /**
- * @brief This function creates a state diagram;
- * @param stateDiagramStructure - state diagram structure;
- * @returns Returns a dictionary of state diagram.
+ * This function creates a state diagram for Yantrix automata based on the information from a Mermaid diagram
+ * @param stateDiagramStructure - State diagram structure;
+ * @returns Dictionary of processed state diagram.
  */
 export async function createStateDiagram(stateDiagramStructure: TStateDiagramStructure): Promise<TStateDiagramMatrix> {
 	validateActions(stateDiagramStructure);

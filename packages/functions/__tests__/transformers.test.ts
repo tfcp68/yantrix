@@ -305,8 +305,8 @@ describe('function Tests', () => {
 			expect(builtInFunctions.len([1, 2, 3])).toBe(3);
 		});
 
-		it('should throw error for invalid inputs', () => {
-			expect(() => builtInFunctions.len(null as any)).toThrowError();
+		it('should return 0 for invalid inputs', () => {
+			expect(builtInFunctions.len(null as any)).toBe(0);
 		});
 	});
 

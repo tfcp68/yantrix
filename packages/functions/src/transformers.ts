@@ -1,278 +1,523 @@
-import {
-	indexOf as _indexOf,
-	sum as _sum,
-	every,
-	filter,
-	find,
-	flatMap,
-	isArray,
-	isEqual,
-	isNil,
-	isNull,
-	isNumber,
-	isObject,
-	isString,
-	mean,
-	multiply,
-	some,
-	sumBy,
-	zipWith,
-} from 'lodash-es';
+import * as _ from 'lodash-es';
+import { TCollection, TNullable } from './types/common';
+import { isCollection, isIterable } from './types/guards';
+import { invalid } from './utils/errors';
+import { variadic } from './utils/utils';
 
-import { variadic } from './utils';
-
-function invalid(type: 0): never;
-function invalid(type: 1): never;
-function invalid(type: 2): never;
-function invalid(type: 3, presence: 0 | 1): never;
-function invalid(message: string): never;
-function invalid(messageOrType: 0 | 1 | 2 | 3 | string, presence?: 0 | 1): never {
-	const message = isString(messageOrType)
-		? messageOrType
-		: {
-				0: 'Division by 0 is not acceptable',
-				1: 'Argument must be provided and be a valid number.',
-				2: 'Both arguments must be provided and be valid numbers.',
-				3: {
-					0: 'At least 1 parameter must be provided and be a number.',
-					1: 'All arguments must be numbers.',
-				}[presence ?? 0],
-			}[messageOrType] ?? 'An unexpected error has occurred.';
-
-	throw new TypeError(message);
-}
-
+// ==============================
 // Arithmetic transformers
+// ==============================
+
+/**
+ * Adds a list of numbers together.
+ *
+ * @category Arithmetics
+ * @param nums - An array of numbers.
+ * @returns The sum of the numbers.
+ */
 export const add = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? _sum(nums) : invalid(3, 1);
+	return nums.length
+		? _.reduce(nums, (a, n) => _.isNumber(n) ? a + n : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS'), 0)
+		: null;
 });
 
+/**
+ * Subtracts the second number from the first number.
+ * @category Arithmetics
+ */
 export function diff(a: number, b: number) {
-	return some([a, b], isNil) ? null : isNumber(a) && isNumber(b) ? b - a : invalid(2);
-}
-
-export const mult = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? nums.reduce(multiply, 1) : invalid(3, 1);
-});
-
-export function div(a: number, b: number) {
-	return some([a, b], isNil)
+	return _.some([a, b], _.isNil)
 		? null
-		: isNumber(a) && isNumber(b)
+		: _.isNumber(a) && _.isNumber(b) ? b - a : invalid('INVALID_NUMBER_ARGUMENTS');
+}
+
+/**
+ * Multiplies a list of numbers.
+ *
+ * @category Arithmetics
+ * @param nums - An array of numbers to multiply.
+ * @returns The product of the numbers.
+ */
+export const mult = variadic<number, number | null>((nums) => {
+	return nums.length
+		? _.reduce(nums, (a, n) => _.isNumber(n) ? n * a : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS'), 1)
+		: null;
+});
+
+/**
+ * Divides the first number by the second number.
+ * @category Arithmetics
+ */
+export function div(a: number, b: number) {
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b)
 			? b === 0
-				? invalid(0)
+				? invalid('DIVISION_BY_ZERO')
 				: a / b
-			: invalid(2);
+			: invalid('INVALID_NUMBER_ARGUMENTS');
 }
 
+/**
+ * Raises the first number to the power of the second number.
+ *
+ * @category Arithmetics
+ * @param num1 - The base number.
+ * @param num2 - The exponent.
+ * @returns The result of raising the base to the exponent.
+ */
 export function pow(n: number, exp: number) {
-	return some([n, exp], isNil) ? null : isNumber(n) && isNumber(exp) ? n ** exp : invalid(2);
+	return _.some([n, exp], _.isNil)
+		? null
+		: _.isNumber(n) && _.isNumber(exp)
+			? n ** exp
+			: invalid('INVALID_NUMBER_ARGUMENTS');
 }
+/**
+ * Increments a number by 1.
+ * @category Arithmetics
+ */
 export function inc(n: number) {
-	return isNil(n) ? null : isNumber(n) ? n + 1 : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? n + 1 : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Decrements a number by 1.
+ * @category Arithmetics
+ */
 export function dec(n: number) {
-	return isNil(n) ? null : isNumber(n) ? n - 1 : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? n - 1 : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Negates a number.
+ * @category Arithmetics
+ */
 export function neg(n: number) {
-	return isNil(n) ? null : isNumber(n) ? -n : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? -n : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Inverts a number.
+ * @category Arithmetics
+ */
 export function inv(n: number) {
-	return isNil(n) ? null : isNumber(n) ? 1 / n : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? 1 / n : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Calculates the modulus of two numbers.
+ *
+ * @category Arithmetics
+ * @returns The remainder of the modulus division of the two numbers.
+ */
 export function mod(a: number, b: number) {
-	return some([a, b], isNil) ? null : isNumber(a) && isNumber(b) ? a % b : invalid(2);
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b)
+			? a % b
+			: invalid('INVALID_NUMBER_ARGUMENTS');
 }
-
+/**
+ * Truncates a number to its integer part.
+ *
+ * @category Arithmetics
+ * @param num - The number to truncate.
+ * @returns The integer part of the number.
+ */
 export function trunc(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.trunc(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.trunc(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Rounds a number up to the nearest integer.
+ *
+ * @category Arithmetics
+ * @param num - The number to round up.
+ * @returns The smallest integer greater than or equal to the number.
+ */
 export function ceil(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.ceil(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.ceil(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Rounds a number to the nearest integer.
+ *
+ * @category Arithmetics
+ * @param num - The number to round.
+ * @returns The nearest integer to the number.
+ */
 export function round(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.round(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.round(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 
+// ==============================
 // Special math transformers
+// ==============================
+
+/**
+ * Calculates the sine of a number.
+ * @category Special Maths
+ */
 export function sin(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.sin(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.sin(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Calculates the cosine of a number.
+ * @category Special Maths
+ */
 export function cos(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.cos(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.cos(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Calculates the square root of a number.
+ * @category Special Maths
+ */
 export function sqrt(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.sqrt(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.sqrt(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Calculates the logarithm of a number with a specified base.
+ *
+ * @category Special Maths
+ * @param num - The number to calculate the logarithm of.
+ * @param base - The base of the logarithm.
+ * @returns The logarithm of the number with the specified base.
+ */
 export function log(a: number, b: number) {
-	return some([a, b], isNil) ? null : isNumber(a) && isNumber(b) ? Math.log(a) / Math.log(b) : invalid(2);
+	return _.some([a, b], _.isNil)
+		? null
+		: _.isNumber(a) && _.isNumber(b)
+			? Math.log(a) / Math.log(b)
+			: invalid('INVALID_NUMBER_ARGUMENTS');
 }
-
+/**
+ * Calculates the natural logarithm (base e) of a number.
+ * @category Special Maths
+ */
 export function ln(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.log(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.log(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Calculates the base-10 logarithm of a number.
+ * @category Special Maths
+ */
 export function lg(n: number) {
-	return isNil(n) ? null : isNumber(n) ? Math.log10(n) : invalid(1);
+	return _.isNil(n) ? null : _.isNumber(n) ? Math.log10(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Converts a number from radians to degrees.
+ * @category Special Maths
+ */
 export function deg(rads: number) {
-	return isNil(rads) ? null : isNumber(rads) ? rads * (180 / Math.PI) : invalid(1);
+	return _.isNil(rads) ? null : _.isNumber(rads) ? rads * (180 / Math.PI) : invalid('INVALID_NUMBER_ARGUMENT');
 }
-
+/**
+ * Converts a number from degrees to radians.
+ * @category Special Maths
+ */
 export function rad(degs: number) {
-	return isNil(degs) ? null : isNumber(degs) ? degs * (Math.PI / 180) : invalid(1);
+	return _.isNil(degs) ? null : _.isNumber(degs) ? degs * (Math.PI / 180) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 
-// Statistics transformers
+// ==============================
+// Statistics
+// ==============================
+
+/**
+ * Returns the maximum value from a list of numbers.
+ *
+ * @category Statistics
+ * @param nums - An array of numbers to evaluate.
+ * @returns The maximum value found in the array.
+ */
 export const max = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? Math.max(...nums) : invalid(3, 1);
+	return nums.length ? _.maxBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT'))! : null;
 });
-
+/**
+ * Returns the minimum value from a list of numbers.
+ *
+ * @category Statistics
+ * @param nums - An array of numbers to evaluate.
+ * @returns The minimum value found in the array.
+ */
 export const min = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? Math.min(...nums) : invalid(3, 1);
+	return nums.length ? _.minBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT'))! : null;
 });
-
+/**
+ * Returns the average value from a list of numbers.
+ *
+ * @category Statistics
+ * @param nums - An array of numbers to evaluate.
+ * @returns The average of all values of the array.
+ */
 export const avg = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? mean(nums) : invalid(3, 1);
+	return nums.length ? _.meanBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT')) : null;
 });
-
+/**
+ * Returns the median value from a list of numbers.
+ *
+ * @category Statistics
+ * @param nums - An array of numbers to evaluate.
+ * @returns The median value of the array.
+ */
 export const med = variadic<number, number | null>((nums) => {
 	if (!nums.length) return null;
-	return every(nums, isNumber)
-		? (() => {
-				const sorted = ([] as number[]).concat(nums).sort((a, b) => a - b);
-				const middle = Math.floor(sorted.length / 2);
+	if (!_.every(nums, _.isNumber)) return invalid('INVALID_NUMBER_ARGUMENT');
 
-				return sorted.length % 2
-					? sorted[middle]!
-					: (sorted[middle - 1]! + sorted[middle]!) / 2;
-			})()
-		: invalid(3, 1);
+	const sorted = _.sortBy(nums);
+	const middle = Math.floor(sorted.length / 2);
+
+	return sorted.length % 2
+		? sorted[middle]!
+		: (sorted[middle - 1]! + sorted[middle]!) / 2;
 });
-
+/**
+ * Returns the sum of a list of numbers.
+ *
+ * @category Statistics
+ * @param nums - An array of numbers to evaluate.
+ * @returns The sum of the numbers in the array.
+ */
 export const sum = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? _sum(nums) : invalid(3, 1);
+	return nums.length ? _.sumBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT')) : null;
 });
-
+/**
+ * Returns the sum of the squares of a list of numbers.
+ *
+ * @category Statistics
+ * @param nums - An array of numbers to evaluate.
+ * @returns The sum of the squares of the numbers in the array.
+ */
 export const sumsq = variadic<number, number | null>((nums) => {
-	if (!nums.length) return null;
-	return every(nums, isNumber) ? sumBy(nums, n => n ** 2) : invalid(3, 1);
+	return nums.length ? _.sumBy(nums, n => _.isNumber(n) ? n ** 2 : invalid('INVALID_NUMBER_ARGUMENT')) : null;
 });
-
+/**
+ * Returns the sum of the products of corresponding numbers in multiple lists.
+ *
+ * @category Statistics
+ * @param nums_lists - Multiple arrays of numbers to evaluate.
+ * @returns The sum of the products of corresponding numbers.
+ */
 export const sumProduct = variadic<number[], number>((lists) => {
-	if (!every(lists, isArray)) return invalid('All arguments provided must be lists');
-	if (lists.length < 2) return invalid('At least 2 lists of the same length must be provided.');
+	if (!lists.every(_.isArray)) return invalid('LISTS_MUST_BE_ARRAYS');
+	if (lists.length < 2) return invalid('MIN_TWO_LISTS_REQUIRED');
 
-	const len = lists[0]!.length;
-	if (len === 0) return invalid('All lists must have at least 1 number.');
-	if (!every(lists, sub => len === sub.length)) return invalid('All lists provided must be the same length.');
-	if (!every(flatMap(lists), isNumber)) return invalid('All items in the provided lists must be numbers.');
+	lists.every((list, idx) => {
+		if (!list.length) return invalid('NON_EMPTY_LISTS_REQUIRED');
+		if (idx > 0 && list.length !== lists[0]!.length) return invalid('LISTS_MUST_BE_SAME_LENGTH');
+		if (!_.every(list, _.isNumber)) return invalid('ALL_LIST_ITEMS_MUST_BE_NUMBERS');
+		return true;
+	});
 
-	const products = zipWith(...lists, (...values) => values.reduce((prod, num) => prod * num, 1));
-	return _sum(products);
+	return _.sum(_.zipWith(...lists, (...values) => values.reduce((prod, num) => prod * num, 1)));
 });
 
-// List and string transformers
+// ==============================
+// List & string transformers
+// ==============================
+
+/**
+ * Returns the length of a string.
+ *
+ * @category List/String Transformers
+ * @param str - The string to evaluate.
+ * @returns The length of the string.
+ */
 export function len(str: string): number;
+
+/**
+ * Returns the length of an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to evaluate.
+ * @returns The length of the array.
+ */
 export function len<T>(list: T[]): number;
-export function len<T>(input: string | T[]): number {
-	return isArray(input) || isString(input) ? input.length : invalid('First argument must be a list or string.');
+export function len<T>(iterable: string | T[]): number {
+	return isIterable(iterable) ? iterable.length : 0;
 }
 
+/**
+ * Returns the leftmost characters of a string up to a specified length.
+ *
+ * @category List/String Transformers
+ * @param str - The string to evaluate.
+ * @param length - The number of characters to return.
+ * @returns A substring containing the leftmost characters up to the specified length.
+ */
 export function left(str: string, length: number): string;
+
+/**
+ * Returns the leftmost elements of an array up to a specified length.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to evaluate.
+ * @param length - The number of elements to return.
+ * @returns A subarray containing the leftmost elements up to the specified length.
+ */
 export function left<T>(list: T[], length: number): T[];
-export function left<T>(input: string | T[], length: number): string | T[] {
-	if (isString(input)) return input.substring(0, length);
-	if (isArray(input)) return input.slice(0, length);
-	return input;
+export function left<T>(iterable: string | T[], length = 0): string | T[] {
+	return isIterable(iterable) && _.isLength(length)
+		? _.isString(iterable)
+			? iterable.substring(0, length)
+			: iterable.slice(0, length)
+		: iterable;
 }
 
+/**
+ * Returns the rightmost characters of a string up to a specified length.
+ *
+ * @category List/String Transformers
+ * @param str - The string to evaluate.
+ * @param length - The number of characters to return.
+ * @returns A substring containing the rightmost characters up to the specified length.
+ */
 export function right(str: string, length: number): string;
+
+/**
+ * Returns the rightmost elements of an array up to a specified length.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to evaluate.
+ * @param length - The number of elements to return.
+ * @returns A subarray containing the rightmost elements up to the specified length.
+ */
 export function right<T>(list: T[], length: number): T[];
-export function right<T>(input: string | T[], length: number): string | T[] {
-	if (isString(input)) return input.substring(Math.max(0, input.length - length));
-	if (isArray(input)) return length ? input.slice(-length) : [];
-	return input;
+export function right<T>(iterable: string | T[], length = 0): string | T[] {
+	return isIterable(iterable) && _.isLength(length)
+		? _.isString(iterable)
+			? iterable.substring(Math.max(0, iterable.length - length))
+			: iterable.slice(-length)
+		: iterable;
 }
 
+/**
+ * Returns the index of a value in a string.
+ *
+ * @category List/String Transformers
+ * @param str - The string to search.
+ * @param search - The value to look for.
+ * @returns The index of the value in the string, or -1 if not found.
+ */
 export function indexOf(str: string, search: string): number;
+
+/**
+ * Returns the index of a value in an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to search.
+ * @param value - The value to look for.
+ * @returns The index of the value in the array, or -1 if not found.
+ */
 export function indexOf<T>(list: T[], value: T): number;
-export function indexOf<T>(input: string | T[], value: string | T): number {
-	if (isString(input)) return _indexOf(input, value);
-
-	if (isArray(input)) {
-		for (let i = 0; i < input.length; i++) {
-			if (isEqual(input[i], value)) return i;
-		}
-	}
-
-	return -1;
+export function indexOf<T>(iterable: string | T[], value: string | T): number {
+	return isIterable(iterable)
+		? _.isString(iterable) && _.isString(value)
+			? iterable.indexOf(value)
+			: _.findIndex(iterable as ArrayLike<T>, it => _.isEqual(it, value))
+		: -1;
 }
 
+/**
+ * Shuffles the characters of a string.
+ *
+ * @category List/String Transformers
+ * @param str - The string to shuffle.
+ * @returns A new string with the characters shuffled.
+ */
 export function shuffle(str: string): string;
+/**
+ * Shuffles the elements of an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to shuffle.
+ * @returns A new array with the elements shuffled.
+ */
 export function shuffle<T>(list: T[]): T[];
-export function shuffle<T>(input: string | T[]): string | T[] {
-	const toShuffledArray = <T>(arrayLike: ArrayLike<T>) => Array.from(arrayLike).sort(() => Math.random() - 0.5);
-
-	if (isString(input)) return toShuffledArray(input).join('');
-	if (isArray(input)) return toShuffledArray(input);
-
-	return input;
+export function shuffle<T>(iterable: string | T[]): string | T[] {
+	return isIterable(iterable)
+		? _.isString(iterable)
+			? _.shuffle(iterable).join('')
+			: _.shuffle(iterable)
+		: iterable;
 }
 
 // List transformers
-export function lookup<T>(list: T[], value: T) {
-	if (!isArray(list)) return null;
-	return find(list, it => isEqual(it, value)) || null;
+/**
+ * Looks up a value in a list and returns it if found.
+ *
+ * @category List Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The list to search.
+ * @param value - The value to look for.
+ * @returns The value if found, otherwise null.
+ */
+export function lookup<T>(list: T[], value: T): TNullable<T> {
+	if (!_.isArray(list)) return null;
+
+	for (const item of list) {
+		if (_.isEqual(item, value)) return item;
+	}
+
+	return null;
 }
 
-export function repeat<T>(quantity: number, valueSample: T): T[] {
-	if (!isNumber(quantity)) return [];
-	return Array.from<T>({ length: quantity < 0 ? 0 : quantity }).fill(valueSample);
+/**
+ * Repeats a value a specified number of times and returns an array of the repeated values.
+ *
+ * @category List Transformers
+ * @template T - The type of the elements in the array.
+ * @param quantity - The number of times to repeat the value.
+ * @param valueSample - The value to repeat.
+ * @returns An array containing the repeated values.
+ */
+export function repeat<T>(quantity: number, sample: T): T[] {
+	if (!_.isNumber(quantity)) return [];
+	return Array.from<T>({ length: quantity < 0 ? 0 : quantity }).fill(sample);
 }
 
 // String transformers
+/**
+ * Returns a substring of a string.
+ *
+ * @category String Transformers
+ * @param str - The string to extract the substring from.
+ * @param start - The starting index of the substring.
+ * @param end - The ending index of the substring (optional).
+ * @returns The extracted substring.
+ */
 export function substr(str: string, start: number, end?: number): string {
-	if (!isString(str) || !isNumber(start) || (!isNil(end) && !isNumber(end))) return '';
+	if (!_.isString(str) || !_.isNumber(start) || (!_.isNil(end) && !_.isNumber(end))) return '';
 	return str.substring(start, end);
 }
 
 // Collection transformers
-export function filterBy<T extends Record<string, any>>(collection: T[], prop: string, value: any): T[] {
-	if (!isArray(collection)) return [];
-	return filter(collection, item => isObject(item) && !isNull(item) && isEqual(item[prop], value));
+/**
+ * Filters a collection of objects by a specified property and value.
+ *
+ * @category Collection Transformers
+ * @template S - The type of the value to filter by.
+ * @param collection - The collection of objects to filter.
+ * @param prop - The property name to filter by.
+ * @param value - The value to filter by.
+ * @returns A collection of objects that match the specified property and value.
+ */
+export function filterBy<S>(collection: TCollection, prop: string, value: S): TCollection {
+	return isCollection(collection) ? _.filter(collection, it => _.isEqual(it[prop], value)) : [];
 }
 
-export {
-	concat,
-	every,
-	find,
-	intersection as intersect,
-	keys,
-	merge,
-	omit,
-	padStart as padLeft,
-	padEnd as padRight,
-	pick,
-	sample,
-	set as setAttr,
-	unset as unsetAttr,
-	values,
-	zip,
-} from 'lodash-es';
+export const concat = _.concat;
+export const every = _.every;
+export const find = _.find;
+export const intersect = _.intersection;
+export const keys = _.keys;
+export const merge = _.merge;
+export const omit = _.omit;
+export const padLeft = _.padStart;
+export const padRight = _.padEnd;
+export const pick = _.pick;
+export const sample = _.sample;
+export const setAttr = _.set;
+export const unsetAttr = _.unset;
+export const values = _.values;
+export const zip = _.zip;

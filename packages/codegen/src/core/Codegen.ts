@@ -2,6 +2,9 @@ import { ICodegenOptions, TStateDiagramMatrixIncludeNotes } from '../types/commo
 import { processFile } from './InjectFunctionsProcess.js';
 import { Modules } from './modules/index.js';
 
+/**
+ * ???
+ */
 export class CodegenCreator {
 	public constructor(
 		protected stateDiagramSyntaxTree: TStateDiagramMatrixIncludeNotes,

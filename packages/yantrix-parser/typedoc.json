@@ -1,4 +1,7 @@
 {
 	"extends": ["../../typedoc.base.json"],
-	"entryPoints": ["src/index.ts"]
+	"entryPoints": ["src/index.ts"],
+	"excludeNotDocumented": true,
+	"excludeNotDocumentedKinds": ["Property", "Interface", "TypeAlias", "Variable", "Function"],
+	"excludeInternal": true
 }
