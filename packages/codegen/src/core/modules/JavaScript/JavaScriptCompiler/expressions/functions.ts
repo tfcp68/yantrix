@@ -1,4 +1,4 @@
-import { builtInFunctions } from '@yantrix/functions';
+import { builtInFunctions, ReservedInternalFunctionNames } from '@yantrix/functions';
 import { TNullable } from '@yantrix/utils';
 import { ExpressionTypes, TDefine, TExpressionDefineMap } from '@yantrix/yantrix-parser';
 import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../../../constants';
@@ -6,7 +6,6 @@ import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict 
 import { TDictionaries } from '../dictionaries';
 import { TDependencyGraph } from '../imports';
 import { getExpressionValueDefine } from './core';
-import { ReservedInternalFunctionNames } from '@yantrix/functions';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;

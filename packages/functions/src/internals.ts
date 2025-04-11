@@ -1,5 +1,5 @@
-import { isNumber } from 'lodash-es';
 import { GenericAutomata } from '@yantrix/automata';
+import { isNumber } from 'lodash-es';
 
 // ==============================
 // Built-ins: Internals
@@ -26,7 +26,7 @@ function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T)
  * @returns A function that takes an automata instance and returns its current state name or null.
  */
 function currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null
+	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null;
 }
 /**
  * Wrapper for a function that retrieves the current(i.e last dispatched) action ID of the automata.
@@ -49,7 +49,7 @@ function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T
  * @returns A function that takes an automata instance and returns its last action name or null.
  */
 function currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null
+	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null;
 }
 /**
  * Wrapper for a function that retrieves the current reduction cycle of the FSM.
@@ -138,11 +138,11 @@ export const automataInternals = {
 	currentActionName,
 	currentCycle,
 	currentEpoch,
-}
+};
 
 export const pureInternals = {
 	currentTimestamp,
 	currentTime,
 	random,
 	weightedRandom,
-}
+};
