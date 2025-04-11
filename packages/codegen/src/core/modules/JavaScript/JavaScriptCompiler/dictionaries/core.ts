@@ -1,7 +1,7 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
-import { expressions } from '../expressions';
-import { imports, TDependencyGraph } from '../imports';
+import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
+import { functions } from '../functions';
+import { imports, TDependencyGraph, TImports } from '../imports';
 import { TDictionaries } from './types';
 
 export function getObjectKeysMap(dict: Record<any, any>) {
@@ -17,8 +17,10 @@ export function setupDictionaries(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	injectedFunctions: TUserFunctionsDict;
 	eventDictionary: BasicEventDictionary;
 	expressionRecord: TExpressionRecord;
+	imports: TImports;
 }) {
 	let dictionaries: TDictionaries = [];
 	dictionaries.push(
@@ -42,11 +44,12 @@ export function setupDictionaries(props: {
 	imports.functions.checkForCyclicDependencies({
 		dependencyGraph: props.dependencyGraph,
 	});
-	dictionaries = expressions.functions.registerCustomFunctions({
+	dictionaries = functions.functions.registerCustomFunctions({
 		diagram: props.diagram,
 		expressions: props.expressionRecord,
 		dependencyGraph: props.dependencyGraph,
 		dictionaries,
+		injectFunctions: props.injectedFunctions,
 	});
 	return dictionaries;
 }

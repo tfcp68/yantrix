@@ -1,4 +1,5 @@
-import { builtInFunctions, internalFunctions, FunctionDictionary, ModuleNames, randomInteger, randomString, TAutomataFunction } from '@yantrix/core';
+import { ModuleNames } from '@yantrix/codegen';
+import { builtInFunctions, FunctionDictionary, randomInteger, randomString, TAutomataFunction } from '@yantrix/core';
 import { SpecialCharList } from '@yantrix/yantrix-parser';
 import { afterEach, assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { generateAndSave } from './fixtures/utils.js';
@@ -47,32 +48,16 @@ describe('jS/TS Function Dictionary', async () => {
 
 	beforeEach(() => {
 		functionDictionaryTestFixture.register(builtInFunctions);
-		functionDictionaryTestFixture.register(internalFunctions);
 	});
 
 	afterEach(() => {
 		functionDictionaryTestFixture.clear();
 	});
 
-	it('dictionary is not empty', () => {
+	it('dictionary is not empty and has built-in functions inside upon creation', () => {
 		assert.isNotNull(functionDictionary);
+		assert.deepOwnInclude(functionDictionary, functionDictionaryTestFixture);
 	});
-
-	it('dictionary can register built-in functions inside', () => {
-		assert.isNotNull(functionDictionary);
-		const functionKeys = Object.keys(builtInFunctions)
-		for (const key of functionKeys) {
-			assert.isTrue(functionDictionary.has(key));
-		}
-	})
-
-	it('dictionary can register internal functions inside', () => {
-		assert.isNotNull(functionDictionary);
-		const functionKeys = Object.keys(internalFunctions)
-		for (const key of functionKeys) {
-			assert.isTrue(functionDictionary.has(key));
-		}
-	})
 
 	describe('can get functions from a dictionary', () => {
 		it('built-in functions', () => {

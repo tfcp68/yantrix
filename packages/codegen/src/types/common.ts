@@ -1,4 +1,5 @@
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
+import { TNullable } from '@yantrix/utils';
 import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
 import { ModuleNames, Modules } from '../core/modules/index.js';
 
@@ -16,7 +17,9 @@ export type TConstants = Record<string, string | number>;
 
 export interface ICodegenOptions<T = TOutLang> {
 	language: T;
-	constants: TConstants | null;
+	constants: TNullable<TConstants>;
+	functionFilePath: TNullable<string>;
+
 }
 
 /**
@@ -24,19 +27,21 @@ export interface ICodegenOptions<T = TOutLang> {
  */
 export interface IGenerateOptions {
 	/**
-	 * The name of the class Automata  to generate.
+	 * The name of the class for the generated Automata.
 	 */
 	className: string;
 
 	/**
 	 * The output language for the generated code.
+	 * You can check the supported languages and features [here](/integrations/100_language_support.html).
 	 */
 	outLang: TOutLang;
 
 	/**
-	 * Constant reference
+	 * Included constants to be used in the generated Automata.
 	 */
 	constants?: string;
+	functionFilePath?: string;
 }
 
 export interface ITypedObjectProps {
@@ -71,7 +76,17 @@ export type TGetCodeOptionsMap = {
 	[ModuleNames.Java]: IGetCodeJavaOptions;
 };
 
+/**
+ * Interface that is implemented by all code generators.
+ * @template T - The output language.
+ * @property getCode - The function that returns the generated code, following all the conventions established by the output language `T`.
+ */
 export interface ICodegen<T extends TOutLang> {
+	/**
+	 * The function that returns the generated code, following all the conventions established by the output language `T`
+	 * @param options - Options for codegen in the desired output language `T`.
+	 * @returns The generated code.
+	 */
 	getCode: (options: TGetCodeOptionsMap[T]) => string;
 }
 
@@ -79,8 +94,11 @@ export type TOutLang = keyof typeof Modules;
 
 export type TExpressionRecord = {
 	[K in TMappedKeys]: (arg: TExpression<K>) => string;
-};
 
+};
+export type TUserFunctionsDict = {
+	path: TNullable<string>;
+};
 export const TAssignTypeDict = {
 	PAYLOAD: 'payload',
 	PREV_CONTEXT: 'prevContext',
@@ -90,5 +108,6 @@ export type TAssignTypes = (typeof TAssignTypeDict)[keyof typeof TAssignTypeDict
 
 export type TModuleParams = {
 	diagram: TStateDiagramMatrixIncludeNotes;
-	constants: TConstants | null;
+	constants: TNullable<TConstants>;
+	injectedFunctions: TUserFunctionsDict;
 };

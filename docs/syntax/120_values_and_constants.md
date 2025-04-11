@@ -21,19 +21,19 @@ Yantrix internals also use numbers as a communication language, with all States,
 In produced code, integer and float values are processed as similarly as possible for a given language
 
 ### Strings
-A string is an ordered sequence of characters, i.e. numbers within a certain codepage. All strings in Yantrix are in UTF-8. 
+A string is an ordered sequence of characters, i.e. numbers within a certain codepage. All strings in Yantrix are in UTF-8.
 
 Strings are processed as immutables, i.e. every string function should return a new string rather than modify any of its arguments
 
 ### Lists (Tuples)
-A list is an ordered sequence of same-type values. Lists are used when order matters, but not the position and quantity. 
+A list is an ordered sequence of same-type values. Lists are used when order matters, but not the position and quantity.
 Most oftenly used **Lists** are [**Collections** ](#collection).
 
-A tuple is an ordered sequence of values, that could potentially be of different type, and thus the position in the list defines the semantics of value. 
+A tuple is an ordered sequence of values, that could potentially be of different type, and thus the position in the list defines the semantics of value.
 Tuples are used to store values of different nature that are "bound" together by common meaning, and they are usually of fixed length. A good example of a tuple
 would be a vector or a message in most binary protocols.
 
-While having different purpose, Lists and Tuples are pretty much identical syntactically, and are processed as similarly as possible in the produced code, assuming they are of most common iterable type for that language. 
+While having different purpose, Lists and Tuples are pretty much identical syntactically, and are processed as similarly as possible in the produced code, assuming they are of most common iterable type for that language.
 They also are immutable and can only be a read-only argument of the calling function.
 The difference only exists in semantics, i.e. if you use a mapper on a **Tuple** rather than on a **List**, the results might be unexpected.
 
@@ -60,10 +60,10 @@ A special type that is used for conditional logic. It is essentially a **Number*
 ### Collection
 
 This is essentialy a **List** of **Objects**, used to store homogenous structures without an index. This is what is typically returned by REST APIs, database queries and various data sources.
-Despite translating to the same type as **List** in the output code, in Yantrix this type is pronounced descretely, and passing a non-compliant **Tuple**/**List** (i.e., having non-homogenous members) 
+Despite translating to the same type as **List** in the output code, in Yantrix this type is pronounced descretely, and passing a non-compliant **Tuple**/**List** (i.e., having non-homogenous members)
 to a function that is explicitely designed to work with **Collections** will throw an error
 
-### Function 
+### Function
 Special type exists for [Functions](140_functions.html), when they are used as another `Function` parameter, such as in `map`- and `filter`-style iterators. This only works
 when building for languages where callables are [first-class citizens](https://en.wikipedia.org/wiki/First-class_citizen). As of now, all output languages supported by Yantrix do qualify.
 

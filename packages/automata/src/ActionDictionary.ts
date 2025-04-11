@@ -64,6 +64,9 @@ export function createActionDictionary<
 		};
 }
 
+/**
+ * Basic action dictionary class that is used in Yantrix automatas.
+ */
 export class BasicActionDictionary
 	extends createActionDictionary<TAutomataBaseActionType, Record<TAutomataBaseActionType, any>>()(AbstractBaseClass)
 	implements IActionDictionary<TAutomataBaseActionType, Record<TAutomataBaseActionType, any>> {

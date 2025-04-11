@@ -408,6 +408,9 @@ importers:
 
   packages/codegen-tests:
     dependencies:
+      '@yantrix/codegen':
+        specifier: workspace:^
+        version: link:../codegen
       '@yantrix/core':
         specifier: workspace:^
         version: link:../core
@@ -426,9 +429,6 @@ importers:
       '@yantrix/cli':
         specifier: workspace:^
         version: link:../cli
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../codegen
       '@yantrix/functions':
         specifier: workspace:^
         version: link:../functions

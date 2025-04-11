@@ -60,7 +60,7 @@ splits the responsibility of `Effects`.
 | `mod`       | **Number**, **Number**      | two numbers     | **Number**  | first number [modulo](https://en.wikipedia.org/wiki/Modulo) the second one |
 | `trunc`     | **Number**                  | a single number | **Number**  | a nearest integer less than the argument                                   |
 | `ceil`      | **Number**                  | a single number | **Number**  | a nearest integer greater than the argument                                |
-| `round`     | **Number**                  | a single number | **Number**  | mathematically rounded argument                                            |
+| `round`     | **Number**, [**Number**]    | - Number</br>- Precision = `0` | **Number**  | mathematically rounded `Number` to `Precision` digits. `Precision` must be a non-negative integer   |
 
 ## Built-Ins: Special Maths
 
@@ -99,12 +99,18 @@ splits the responsibility of `Effects`.
 | `lookup`    | **List**, **any**             | - List<br/>- search element                            | **any**     | the `search element`, if it's present in the `List`, `Null` otherwise                                                                            |
 | `left`      | **List**, **Number**          | - List<br/>- Length<br/>                               | **String**  | first `Length` items in the `List`                                                                                                                         |
 | `right`     | **List**, **Number**          | - List<br/>- Length<br/>                               | **String**  | last `Length` items in the `List`                                                                                                                          |
-| `indexOf`   | **List**, **any**             | - List<br/>- Value                                      | **any**     | the index of `Value`, if it's present in the `List`, `-1` otherwise                                                                          |
+| `first`      | **List**          | - List<br/>                               | **any**  | first element in the `List`                                                                                                                         |
+| `last`     | **List**          | - List<br/>>                               | **any**  | last element in the `List`                                                                                                                          |
+| `indexOf`   | **List**, **any**             | - List<br/>- Value                                      | **any**     | zero-based index of `Value`, if it's present in the `List`, `-1` otherwise                                                                          |
 | `concat`    | **List**, [**List**...]       | - Lists<br/>                            | **List**     | joins all passed `Lists` consequently and returns a new **List**
 | `sample`      | **List**, **Number** | - List<br/>- item count<br/> | **List**    | returns new **List**, containing `N` random items from `List`, without dublicates. `N` is `item count`, if `item count >= 1`. If `item count` is a fraction, `N` is the percentage of total quantity, rounded down |
 | `every`      | **List**, **Number**, [**Number**] | - List<br/>- N<br/>- _offset = 0_ | **List**    | returns new **List**, containing every `N`th item items from `List`, starting with `offset` |
 | `shuffle`      | **List** | - List<br/> | **List**    | a new **List** that contains the same items as the original `List` but in randomized order |
-| `repeat`      | **Number**, **any** | - Quantity<br/>- Value sample<br/> | **List** (or **Collection**)    | new **List**, containing `Quantity` replicated instances of `Value sample` |
+| `repeat`      | **Number**, **any** | - Quantity<br/>- Value sample | **List** (or **Collection**)    | new **List**, containing `Quantity` replicated instances of `Value sample` |
+| `pick`      | **List**, **List** | - Source List<br/>- Keys | **List**    | returns new **List** containing values from `Source List` with indeces in `Keys`, in order of appearance in original `List` |
+| `pick`      | **List**, **Number** | - Source List<br/>- Index | **any**    | returns a value from `Source List` at position `Index` |
+| `reverse`      | **List** | - Source List<br/> | **List**  | returns a new **List** comprised of `Source List` elements in reverse order |
+| `sort` | **List** | - Source List | **List** | returns a new **List** comprised of `Source List` elements in ascending order | 
 
 ## Built-Ins: String Transformers
 
@@ -114,12 +120,13 @@ splits the responsibility of `Effects`.
 | `len`       | **String**                            | - String                                           | **Mumber**  | quantity of symbols in the `String`                                                                                                                         |
 | `left`      | **String**, **Number**                | - String<br/>- Length<br/>                       | **String**  | first `Length` symbols of the `String`                                                                                                                             |
 | `right`     | **String**, **Number**                | - String<br/>- Length<br/>                       | **String**  | last `Length` symbols of the `String`                                                                                                                              |
-| `indexOf`   | **String**, **String**                | - String<br/>- Search substring                  | **any**     | the index of `Search substring`, if it's present in the `String`, `-1` otherwise   
+| `indexOf`   | **String**, **String**                | - String<br/>- Search substring                  | **any**     | the index of `Search substring`, if it's present in the `String`, `-1` otherwise
 | `concat`    | **String**, [**String**...]       | - Strings<br/>                            | **String**     | joins all passed `Strings` consequently and returns a new **String** |
 | `sample`      | **String**, **Number** | - String<br/>- characters count<br/> | **String**    | returns new **String**, containing `N` random symbols from `String`, while every symbol position of input `String` is used at most once. `N` is `character count`, if `character count >= 1`. If `character count` is a fraction, `N` is the percentage of total quantity, rounded down |
 | `shuffle`      | **String** | - String<br/> | **String**    | a new **String** that contains the same items as the original `String` but in randomized order |
 | `padLeft`      | **String**, **Number**, **String** | -String<br/> - target length<br/>- pattern<br/> | **String**    | prepends `String` with `pattern` repeatedly to approach `target length` as close as possible, without exceeding it. If original `String` is longer than `target length`, returns it immediately |
-| `padRight`      | **String**, **Number**, **String** | -String<br/> - target length<br/>- pattern<br/> | **String**    | appends `pattern` to `String` repeatedly to approach `target length` as close as possible, without exceeding it. If original `String` is longer than `target length`, returns it immediately |
+| `padRight`      | **String**, **Number**, **String** | -String<br/> - target length<br/>- pattern<br/> | **String**    | appends `pattern` to `String` repeatedly to approach `target length` as close as possible, without exceeding it. If original `String` is longer than `target length`, returns it immediately|
+| `reverse`      | **String** | - Source String<br/> | **String**  | returns a new **String** comprised of `Source String` characters in reverse order |
 
 ## Built-Ins: Object Transformers
 
@@ -132,6 +139,8 @@ splits the responsibility of `Effects`.
 | `unsetAttr`       | **Object**, **String**              | - Object<br/>- Key string                      | **Object**  | a clone of `Object`, but with its `Key string` property removed | 
 | `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source objectы` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority | 
 | `intersect`       | **Object**, [**Object**...]              | - Source Objects                      | **Object**  | new **Object** that contains only properties that exist in all provided `Source Objects`. Eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority | 
+| `pick`      | **Object**, **List** | - Source Object<br/>- Keys<br/> | **Object**    | returns new **Object** containing values from `Source List` with keys listed in `Keys`, in order of appearance in original `Object` |
+| `pick`      | **Object**, **String** | - Source Object<br/>- Key<br/> | **any**    | returns a single value from `Source Object` with key  `Key` |
 
 ## Built-Ins: Collection Transformers
 
@@ -143,5 +152,6 @@ splits the responsibility of `Effects`.
 | `filterBy`  | **Collection**, **String**, **any** | - Collection<br/>- property name<br/>- seek value | **Collection**    | returns new **Collection** that includes only those items from input `Collection` , which have the `property name` attribute equal to `seek value`                  |
 | `omit`  | **Collection**, **String**, **any** | - Collection<br/>- property name<br/>- seek value | **Collection**    | returns new **Collection** which excludes items from input `Collection` with `property name` attribute equal to `seek value`                  |
 | `find`      | **Collection**, **String**, **any** | - Collection<br/>- property name<br/>- seek value | **Object**    | returns new the first item from the `Collection`, which have the `property name` attribute equal to `seek value`. `Null` is returned if none is found |
-| `pick`      | **Collection**, **String** | - Collection<br/>- property name<br/> | **List**    | returns new **List**, that is comprised of all `property name` attribute values of items in the  `Collection`, in the order of appearance |
+| `pluck`      | **Collection**, **String** | - Collection<br/>- property name<br/> | **List**    | returns new **List**, that is comprised of all `property name` attribute values of items in the  `Collection`, in the order of appearance |
+| `sort` | **Collection**, [**String**], [**any**] | - Collection<br/>- Key Name = `id`<br/>- Default Value = `Null` | **Collection** | returns a new **Collection** comprised of `Collection` elements, sorted ascendingly by `Key Name` field. If the field is absent, it fallbacks to `Default Value` |
 

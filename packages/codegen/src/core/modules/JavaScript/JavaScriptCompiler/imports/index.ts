@@ -4,7 +4,10 @@ import { importsSerializer } from './serializer';
 export * from './types';
 
 export const imports = {
-	serializer: importsSerializer,
+	serializer: {
+		getImportsCode: importsSerializer.getImportsCode,
+		importAll: importsSerializer.importAll,
+	},
 	functions: {
 		checkForCyclicDependencies,
 		buildDependencyGraph,
