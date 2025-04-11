@@ -13,7 +13,7 @@ import { isNumber } from 'lodash-es';
  * @param _ - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current state ID or null.
  */
-function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
+function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null {
 	return (automata: T) => automata.state;
 }
 /**
@@ -36,7 +36,7 @@ function currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => 
  * @param _ - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its last action ID or null.
  */
-function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
+function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null {
 	return (automata: T) => automata.lastAction;
 }
 /**
@@ -59,7 +59,7 @@ function currentActionName<T extends GenericAutomata>(_: new (...args: any[]) =>
  * @param _ - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current cycle.
  */
-function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number { 
+function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number {
 	return (automata: T) => automata.currentCycle;
 }
 /**
@@ -68,7 +68,7 @@ function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): 
  * @param epochRef - The epoch reference value.
  * @returns A function that returns the epoch reference.
  */
-function currentEpoch(epochRef: number) { 
+function currentEpoch(epochRef: number) {
 	return () => epochRef;
 }
 /**
