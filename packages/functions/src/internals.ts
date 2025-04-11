@@ -1,27 +1,39 @@
 import { isNumber } from 'lodash-es';
+import { GenericAutomata } from '@yantrix/automata';
 
 // ==============================
 // Built-ins: Internals
 // ==============================
 
-// TODO
-export function _currentStateName() { }
-export function _currentStateId() { }
-export function _currentActionName() { }
-export function _currentActionId() { }
-export function currentEpoch() { }
-
-export function currentTimestamp(): number {
+function _currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>) {
+	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0]
+}
+function _currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T) { 
+	return (automata: T) => automata.state;
+}
+function _currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>) {
+	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.getActionQueue()[0]?.action)?.[0]
+}
+function _currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T) { 
+	return (automata: T) => automata.getActionQueue()[0]?.action;
+}
+function _currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T) { 
+	return (automata: T) => automata.currentCycle;
+}
+function _currentEpoch(epochRef: number) { 
+	return () => epochRef;
+}
+function currentTimestamp(): number {
 	return Date.now(); // in milliseconds, for microseconds need process.hrtime() from node.js
 }
-export function currentTime(): string {
+function currentTime(): string {
 	return new Date().toISOString();
 }
-export function random(min?: number, max?: number): number {
+function random(min?: number, max?: number): number {
 	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
 }
-export function weightedRandom(object: { [key: string]: number }): number {
+function weightedRandom(object: { [key: string]: number }): number {
 	// https://trekhleb.medium.com/weighted-random-in-javascript-4748ab3a1500
 
 	// Check if any of the object's values is NaN
@@ -45,4 +57,20 @@ export function weightedRandom(object: { [key: string]: number }): number {
 		if (cumulativeWeights[i]! >= randomNumber) return object[objectKeys[i]!]!;
 	}
 	throw new Error('Unexpected error, could not get weighted random value');
+}
+
+export const automataInternals = {
+	_currentStateId,
+	_currentStateName,
+	_currentActionId,
+	_currentActionName,
+	_currentCycle,
+	_currentEpoch,
+}
+
+export const pureInternals = {
+	currentTimestamp,
+	currentTime,
+	random,
+	weightedRandom,
 }
