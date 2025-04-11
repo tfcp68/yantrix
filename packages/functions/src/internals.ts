@@ -5,34 +5,106 @@ import { GenericAutomata } from '@yantrix/automata';
 // Built-ins: Internals
 // ==============================
 
+/**
+ * Wrapper for a function that retrieves the current state ID of the automata.
+ *
+ * @template T - The type of the automata.
+ *
+ * @param _ - The constructor of the automata.
+ * @returns A function that takes an automata instance and returns its current state ID or null.
+ */
 function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
 	return (automata: T) => automata.state;
 }
+/**
+ * Wrapper for a function that retrieves the current state name of the automata after lookup in the states dictionary.
+ *
+ * @template T - The type of the automata.
+ *
+ * @param _ - The constructor of the automata.
+ * @param statesDictionary - A dictionary mapping state names to state IDs.
+ * @returns A function that takes an automata instance and returns its current state name or null.
+ */
 function currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>): (automata: T) => string | null {
 	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null
 }
+/**
+ * Wrapper for a function that retrieves the current(i.e last dispatched) action ID of the automata.
+ *
+ * @template T - The type of the automata.
+ *
+ * @param _ - The constructor of the automata.
+ * @returns A function that takes an automata instance and returns its last action ID or null.
+ */
 function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
 	return (automata: T) => automata.lastAction;
 }
+/**
+ * Wrapper for a function that retrieves the current(i.e last dispatched) action name of the automata after lookup in actions dictionary.
+ *
+ * @template T - The type of the automata.
+ *
+ * @param _ - The constructor of the automata.
+ * @param actionsDictionary - A dictionary mapping action names to action IDs.
+ * @returns A function that takes an automata instance and returns its last action name or null.
+ */
 function currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>): (automata: T) => string | null {
 	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null
 }
+/**
+ * Wrapper for a function that retrieves the current reduction cycle of the FSM.
+ *
+ * @template T - The type of the automata.
+ *
+ * @param _ - The constructor of the automata.
+ * @returns A function that takes an automata instance and returns its current cycle.
+ */
 function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number { 
 	return (automata: T) => automata.currentCycle;
 }
+/**
+ * Wrapper for a function that retrieves the current epoch (or global reduction cycle counter for all automatas).
+ *
+ * @param epochRef - The epoch reference value.
+ * @returns A function that returns the epoch reference.
+ */
 function currentEpoch(epochRef: number) { 
 	return () => epochRef;
 }
+/**
+ * Retrieves the current timestamp in milliseconds.
+ *
+ * @returns The current timestamp in milliseconds since the Unix epoch.
+ */
 function currentTimestamp(): number {
 	return Date.now(); // in milliseconds, for microseconds need process.hrtime() from node.js
 }
+/**
+ * Retrieves the current time in ISO-8601 format.
+ *
+ * @returns The current time as a string in ISO-8601 format.
+ */
 function currentTime(): string {
 	return new Date().toISOString();
 }
+/**
+ * Generates a random number within a specified range or as a binary value.
+ *
+ * @param min - The minimum value of the range (inclusive).
+ * @param max - The maximum value of the range (exclusive).
+ * @returns A random number within the range if both min and max are provided, otherwise 0 or 1.
+ */
 function random(min?: number, max?: number): number {
 	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
 }
+/**
+ * Generates a weighted random value based on the provided object.
+ *
+ * @param object - An object where keys are items and values are their weights.
+ * @returns A randomly selected value based on the weights.
+ * @throws An error if the object contains NaN values or if no value can be selected.
+ */
 function weightedRandom(object: { [key: string]: number }): number {
 	// https://trekhleb.medium.com/weighted-random-in-javascript-4748ab3a1500
 
