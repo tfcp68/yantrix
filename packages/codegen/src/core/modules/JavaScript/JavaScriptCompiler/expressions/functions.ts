@@ -3,6 +3,7 @@ import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../
 import { TDictionaries } from '../dictionaries';
 import { TDependencyGraph } from '../imports';
 import { getExpressionValueDefine } from './core';
+import { ReservedInternalFunctionNames } from '@yantrix/functions';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;
@@ -10,6 +11,14 @@ export function getFunctionBody(props: {
 }): string {
 	if (props.expression.expressionType === ExpressionTypes.Function) {
 		const { FunctionName, Arguments } = props.expression.FunctionDeclaration;
+
+		// If function name is one of internals - the only argument will be automata itself
+		if (ReservedInternalFunctionNames.includes(FunctionName)) {
+			return `(function() {
+				const func = functionDictionary.get('${FunctionName}');
+				return func(automata);
+			})()`;
+		}
 
 		const argsList = Arguments.map((arg) => {
 			if (arg.expressionType === ExpressionTypes.Function) {

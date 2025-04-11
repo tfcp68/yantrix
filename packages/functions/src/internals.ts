@@ -5,22 +5,22 @@ import { GenericAutomata } from '@yantrix/automata';
 // Built-ins: Internals
 // ==============================
 
-function _currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>) {
-	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0]
-}
-function _currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T) { 
+function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
 	return (automata: T) => automata.state;
 }
-function _currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>) {
-	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.getActionQueue()[0]?.action)?.[0]
+function currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>): (automata: T) => string | null {
+	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null
 }
-function _currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T) { 
-	return (automata: T) => automata.getActionQueue()[0]?.action;
+function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
+	return (automata: T) => automata.lastAction;
 }
-function _currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T) { 
+function currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>): (automata: T) => string | null {
+	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null
+}
+function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number { 
 	return (automata: T) => automata.currentCycle;
 }
-function _currentEpoch(epochRef: number) { 
+function currentEpoch(epochRef: number) { 
 	return () => epochRef;
 }
 function currentTimestamp(): number {
@@ -60,12 +60,12 @@ function weightedRandom(object: { [key: string]: number }): number {
 }
 
 export const automataInternals = {
-	_currentStateId,
-	_currentStateName,
-	_currentActionId,
-	_currentActionName,
-	_currentCycle,
-	_currentEpoch,
+	currentStateId,
+	currentStateName,
+	currentActionId,
+	currentActionName,
+	currentCycle,
+	currentEpoch,
 }
 
 export const pureInternals = {

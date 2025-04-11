@@ -38,7 +38,6 @@ export function setupDictionaries(props: {
 		);
 	}
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
-	dictionaries.push(`functionDictionary.register(builtInFunctions);`);
 	dictionaries.push();
 	imports.functions.checkForCyclicDependencies({
 		dependencyGraph: props.dependencyGraph,

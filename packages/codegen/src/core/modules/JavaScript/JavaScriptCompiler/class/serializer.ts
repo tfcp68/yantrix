@@ -95,8 +95,9 @@ export function getRootReducer() {
 					${getRootReducerStateValidation()}
 					${getRootReducerActionValidation()}
 
-
 					const getNew = (action,state,context,payload) => {
+						this.lastAction = action;
+
 						const actionMove = actionToStateFromStateDict[state][action];
 						const newStateObject = { state: actionMove.state[0] }
 						const contextWithInitial = getDefaultContext(context,payload)
@@ -111,7 +112,7 @@ export function getRootReducer() {
 							throw new Error('Invalid newContextFunc')
 						}
 
-						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this)};
 
 					}
 
@@ -120,6 +121,9 @@ export function getRootReducer() {
 					while(byPassedStates.has(localCtx.state)) {
 						localCtx = getNew(actionsDictionary['${ByPassAction}'], localCtx.state, localCtx.context, {})
 					}
+
+					this.incrementCycle(); // increment automata local cycle counter
+					epoch++; // increment global epoch counter
 
 					return localCtx
 
