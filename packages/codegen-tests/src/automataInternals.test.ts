@@ -1,5 +1,6 @@
 import { afterEach, assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { builtInFunctions, internalFunctions, FunctionDictionary, ModuleNames, randomInteger, randomString, TAutomataFunction } from '@yantrix/core';
+import { ModuleNames } from '@yantrix/codegen';
+import { builtInFunctions, internalFunctions, FunctionDictionary, randomInteger, randomString, TAutomataFunction } from '@yantrix/core';
 import { generateAndSave } from './fixtures/utils.js';
 import AutomataInternalsTest from './fixtures/generated/functions_automata_internals_generated.js';
 
