@@ -1,26 +1,26 @@
-import { isNumber } from 'lodash-es';
 import { GenericAutomata } from '@yantrix/automata';
+import { isNumber } from 'lodash-es';
 
 // ==============================
 // Built-ins: Internals
 // ==============================
 
-function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
+function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null {
 	return (automata: T) => automata.state;
 }
 function currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null
+	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null;
 }
-function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
+function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null {
 	return (automata: T) => automata.lastAction;
 }
 function currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null
+	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null;
 }
-function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number { 
+function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number {
 	return (automata: T) => automata.currentCycle;
 }
-function currentEpoch(epochRef: number) { 
+function currentEpoch(epochRef: number) {
 	return () => epochRef;
 }
 function currentTimestamp(): number {
@@ -66,11 +66,11 @@ export const automataInternals = {
 	currentActionName,
 	currentCycle,
 	currentEpoch,
-}
+};
 
 export const pureInternals = {
 	currentTimestamp,
 	currentTime,
 	random,
 	weightedRandom,
-}
+};

@@ -12,11 +12,10 @@
  */
 
 import * as conditionals from './conditionals';
-import * as predicates from './predicates';
-import * as transformers from './transformers';
-
 import { automataInternals, pureInternals } from './internals';
+import * as predicates from './predicates';
 
+import * as transformers from './transformers';
 
 /**
  * @namespace

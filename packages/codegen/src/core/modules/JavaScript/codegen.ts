@@ -42,7 +42,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			'AutomataEventAdapter',
 			'BasicEventBus',
 			'builtInFunctions',
-			'internalFunctions'
+			'internalFunctions',
 		],
 	};
 
