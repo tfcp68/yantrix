@@ -1,4 +1,4 @@
-import { GenericAutomata } from '@yantrix/automata';
+import { GenericAutomata, TAbstractConstructor } from '@yantrix/automata';
 import { isNumber } from 'lodash-es';
 
 // ==============================
@@ -10,57 +10,57 @@ import { isNumber } from 'lodash-es';
  *
  * @template T - The type of the automata.
  *
- * @param _ - The constructor of the automata.
+ * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current state ID or null.
  */
-function currentStateId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
-	return (automata: T) => automata.state;
+function currentStateId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null { 
+	return (automata: T) => automata instanceof automataClass ? automata.state : null;
 }
 /**
  * Wrapper for a function that retrieves the current state name of the automata after lookup in the states dictionary.
  *
  * @template T - The type of the automata.
  *
- * @param _ - The constructor of the automata.
+ * @param automataClass - The constructor of the automata.
  * @param statesDictionary - A dictionary mapping state names to state IDs.
  * @returns A function that takes an automata instance and returns its current state name or null.
  */
-function currentStateName<T extends GenericAutomata>(_: new (...args: any[]) => T, statesDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null;
+function currentStateName<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>, statesDictionary: Record<string, number>): (automata: T) => string | null {
+	return (automata: T) => automata instanceof automataClass ? (Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null) : null;
 }
 /**
  * Wrapper for a function that retrieves the current(i.e last dispatched) action ID of the automata.
  *
  * @template T - The type of the automata.
  *
- * @param _ - The constructor of the automata.
+ * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its last action ID or null.
  */
-function currentActionId<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number | null { 
-	return (automata: T) => automata.lastAction;
+function currentActionId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null { 
+	return (automata: T) => automata instanceof automataClass ? automata.lastAction : null;
 }
 /**
  * Wrapper for a function that retrieves the current(i.e last dispatched) action name of the automata after lookup in actions dictionary.
  *
  * @template T - The type of the automata.
  *
- * @param _ - The constructor of the automata.
+ * @param automataClass - The constructor of the automata.
  * @param actionsDictionary - A dictionary mapping action names to action IDs.
  * @returns A function that takes an automata instance and returns its last action name or null.
  */
-function currentActionName<T extends GenericAutomata>(_: new (...args: any[]) => T, actionsDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null;
+function currentActionName<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>, actionsDictionary: Record<string, number>): (automata: T) => string | null {
+	return (automata: T) => automata instanceof automataClass ? (Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null) : null;
 }
 /**
  * Wrapper for a function that retrieves the current reduction cycle of the FSM.
  *
  * @template T - The type of the automata.
  *
- * @param _ - The constructor of the automata.
+ * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current cycle.
  */
-function currentCycle<T extends GenericAutomata>(_: new (...args: any[]) => T): (automata: T) => number { 
-	return (automata: T) => automata.currentCycle;
+function currentCycle<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null { 
+	return (automata: T) => automata instanceof automataClass ? automata.currentCycle : null;
 }
 /**
  * Wrapper for a function that retrieves the current epoch (or global reduction cycle counter for all automatas).
@@ -105,13 +105,18 @@ function random(min?: number, max?: number): number {
  * @returns A randomly selected value based on the weights.
  * @throws An error if the object contains NaN values or if no value can be selected.
  */
-function weightedRandom(object: { [key: string]: number }): number {
+function weightedRandom(inputObject: { [key: string]: number }): string {
 	// https://trekhleb.medium.com/weighted-random-in-javascript-4748ab3a1500
 
-	// Check if any of the object's values is NaN
-	for (const value of Object.values(object)) {
+	// Check if any of the object's values is NaN or negative
+	for (const value of Object.values(inputObject)) {
 		if (Number.isNaN(value)) throw new Error('Weighted random object contains NaN values');
+		else if (value < 0) throw new Error('Weighted random object contains negative values');
 	}
+
+	// remove items with weights of 0 from object
+	const object = Object.fromEntries(Object.entries(inputObject).filter(([_, value]) => value > 0));
+
 	const objectKeys: string[] = Object.keys(object);
 	const objectValues: number[] = Object.values(object);
 
@@ -126,7 +131,7 @@ function weightedRandom(object: { [key: string]: number }): number {
 	// find the index of the cumulative weight that is higher or equal than the random number,
 	// return the key with the index
 	for (let i = 0; i < cumulativeWeights.length; i++) {
-		if (cumulativeWeights[i]! >= randomNumber) return object[objectKeys[i]!]!;
+		if (cumulativeWeights[i]! >= randomNumber) return objectKeys[i]!;
 	}
 	throw new Error('Unexpected error, could not get weighted random value');
 }
