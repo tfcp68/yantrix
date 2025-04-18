@@ -13,7 +13,7 @@ import { isNumber } from 'lodash-es';
  * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current state ID or null.
  */
-function currentStateId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null { 
+function currentStateId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
 	return (automata: T) => automata instanceof automataClass ? automata.state : null;
 }
 /**
@@ -36,7 +36,7 @@ function currentStateName<T extends GenericAutomata>(automataClass: TAbstractCon
  * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its last action ID or null.
  */
-function currentActionId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null { 
+function currentActionId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
 	return (automata: T) => automata instanceof automataClass ? automata.lastAction : null;
 }
 /**
@@ -59,7 +59,7 @@ function currentActionName<T extends GenericAutomata>(automataClass: TAbstractCo
  * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current cycle.
  */
-function currentCycle<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null { 
+function currentCycle<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
 	return (automata: T) => automata instanceof automataClass ? automata.currentCycle : null;
 }
 /**
