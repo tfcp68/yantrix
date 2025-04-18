@@ -96,7 +96,6 @@ describe('automata internal functions tests', async () => {
 	});
 
 	describe('currentEpoch functions test', async () => {
-
 		// generating a separate bundle for the epoch test
 		await generateAndSave({ input, automataName: 'AutomataInternalsEpochTest', lang: ModuleNames.JavaScript }, 'functions_automataInternalsEpoch');
 		const { AutomataInternalsEpochTest, actionsDictionary, functionDictionary } = await import(`./fixtures/generated/functions_automataInternalsEpoch_generated.js`);
