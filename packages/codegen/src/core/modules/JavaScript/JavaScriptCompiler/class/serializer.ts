@@ -123,7 +123,7 @@ export function getRootReducer() {
 					}
 
 					this.incrementCycle(); // increment automata local cycle counter
-					epoch++; // increment global epoch counter
+					epoch.val++; // increment global epoch counter
 
 					return localCtx
 

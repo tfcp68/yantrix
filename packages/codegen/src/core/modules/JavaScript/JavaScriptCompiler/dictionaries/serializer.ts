@@ -140,7 +140,7 @@ export function getAutomataInternalsRegisterCode(props: {
 }
 
 export function getAutomataEpochCounterCode() {
-	return `export let epoch = 1;`;
+	return `const epoch = { val: 1 };`;
 }
 
 export function getFunctionDictionaryInternalRegisterCode() {

@@ -63,12 +63,12 @@ function currentCycle<T extends GenericAutomata>(automataClass: TAbstractConstru
 	return (automata: T) => automata instanceof automataClass ? automata.currentCycle : null;
 }
 /**
- * Wrapper for a function that retrieves the current epoch (or global reduction cycle counter for all automatas).
+ * Wrapper for a function that retrieves the current epoch object reference (or global reduction cycle counter for all automatas).
  *
- * @param epochRef - The epoch reference value.
+ * @param epochRef - The epoch reference object.
  * @returns A function that returns the epoch reference.
  */
-function currentEpoch(epochRef: number) { 
+function currentEpoch(epochRef: { val: number }): () => { val: number } {
 	return () => epochRef;
 }
 /**
