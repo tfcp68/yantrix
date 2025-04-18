@@ -6,7 +6,6 @@ from src.python.statistics import (
     max_, min_, avg, med, sum_, sumsq, sum_product
 )
 
-# Helper to compare potentially Decimal results accurately
 def assert_num_equal(a, b):
     if isinstance(a, Decimal) or isinstance(b, Decimal):
         assert Decimal(str(a)) == Decimal(str(b))
@@ -94,8 +93,7 @@ def test_med_varargs_odd():
     assert med(Decimal('1'), Decimal('5'), Decimal('3')) == Decimal('3')
 
 def test_med_varargs_even():
-    # statistics.median averages the two middle elements
-    assert med(1, 5, 2, 8) == pytest.approx(3.5) # (2+5)/2
+    assert med(1, 5, 2, 8) == pytest.approx(3.5)
     assert med(10.0, 2.0) == pytest.approx(6.0)
     assert med(Decimal('1'), Decimal('4')) == Decimal('2.5')
 
@@ -133,10 +131,10 @@ def test_sum_empty():
 
 # --- Test sumsq ---
 def test_sumsq_list():
-    assert sumsq([1, 2, 3]) == 14 # 1 + 4 + 9
-    assert sumsq([1.5, 2.0]) == pytest.approx(6.25) # 2.25 + 4
-    assert sumsq([Decimal('1'), Decimal('0.5')]) == Decimal('1.25') # 1 + 0.25
-    assert sumsq([1, 1.0, Decimal('2')]) == Decimal('6.0') # 1 + 1 + 4
+    assert sumsq([1, 2, 3]) == 14
+    assert sumsq([1.5, 2.0]) == pytest.approx(6.25)
+    assert sumsq([Decimal('1'), Decimal('0.5')]) == Decimal('1.25')
+    assert sumsq([1, 1.0, Decimal('2')]) == Decimal('6.0')
 
 def test_sumsq_empty():
     assert sumsq([]) == 0
@@ -145,19 +143,17 @@ def test_sumsq_empty():
 def test_sum_product_valid():
     l1 = [1, 2, 3]
     l2 = [4, 5, 6]
-    assert sum_product(l1, l2) == 32 # (1*4) + (2*5) + (3*6) = 4 + 10 + 18 = 32
+    assert sum_product(l1, l2) == 32 #
     l3 = [0.5, 1.0, 2.0]
-    assert sum_product(l1, l2, l3) == pytest.approx(48.0) # (1*4*0.5) + (2*5*1) + (3*6*2) = 2 + 10 + 36 = 48
+    assert sum_product(l1, l2, l3) == pytest.approx(48.0)
     d1 = [Decimal('1'), Decimal('2')]
     d2 = [Decimal('0.1'), Decimal('0.2')]
-    assert sum_product(d1, d2) == Decimal('0.5') # (1*0.1) + (2*0.2) = 0.1 + 0.4 = 0.5
+    assert sum_product(d1, d2) == Decimal('0.5')
 
 def test_sum_product_mixed_types():
     l1 = [1, 2]
     l2 = [1.5, 0.5]
     d3 = [Decimal('2'), Decimal('3')]
-    # Result should be Decimal because d3 is Decimal
-    # (1 * 1.5 * 2) + (2 * 0.5 * 3) = 3 + 3 = 6
     assert sum_product(l1, l2, d3) == Decimal('6.0')
 
 def test_sum_product_empty_lists_input():

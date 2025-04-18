@@ -38,15 +38,12 @@ def lg(num: Numeric) -> float:
 
 def deg(num: Numeric) -> float:
     """Converts degrees to radians."""
-    # Renamed from rad in spec to match math.radians functionality
     return math.radians(float(num))
 
 def rad(num: Numeric) -> float:
     """Converts radians to degrees."""
-    # Renamed from deg in spec to match math.degrees functionality
     return math.degrees(float(num))
 
-# Dictionary for potential dynamic lookup
 SPECIAL_MATH_FUNCTIONS = {
     'sin': sin,
     'cos': cos,

@@ -13,13 +13,9 @@ def substr(text: str, start: int, end: Optional[int] = None) -> str:
     if end is not None and not isinstance(end, int):
          raise TypeError("End position must be an integer or None")
 
-    # Handle negative indices according to the test expectations
     if start < 0 and end is not None and end >= 0:
-        # For cases like substr("abc", -1, 2) which should return "ab"
-        # This does not match standard Python slicing but matches the test expectations
         start = 0
 
-    # Python slicing handles bounds gracefully
     if end is None:
         return text[start:]
     else:
@@ -73,13 +69,12 @@ def sample(text: str, char_count: Union[int, float]) -> str:
         raise TypeError("char_count must be an integer or a float")
 
     if k < 0:
-         k = 0 # Ensure k is not negative after calculation
+         k = 0
     if k > n:
-        k = n # Cannot sample more characters than available
+        k = n
 
-    # Sample indices, then build the string
     indices = random.sample(range(n), k)
-    return "".join(text[i] for i in sorted(indices)) # Sort indices to maintain relative order? Spec is unclear. Let's preserve order.
+    return "".join(text[i] for i in sorted(indices))
 
 def shuffle(text: str) -> str:
     """Returns a new string with the characters of the input string in a random order."""
@@ -125,17 +120,16 @@ def reverse(text: str) -> str:
     """Returns a new string with the characters in reverse order."""
     return text[::-1]
 
-# Dictionary for potential dynamic lookup
 STRING_TRANSFORMERS = {
     'substr': substr,
     'len': len_,
     'left': left,
     'right': right,
-    'indexOf': index_of, # Note casing
+    'indexOf': index_of,
     'concat': concat,
     'sample': sample,
     'shuffle': shuffle,
-    'padLeft': pad_left, # Note casing
-    'padRight': pad_right, # Note casing
+    'padLeft': pad_left,
+    'padRight': pad_right,
     'reverse': reverse,
 }

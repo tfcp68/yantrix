@@ -38,7 +38,6 @@ def pluck(collection: Collection, property_name: Hashable) -> List[Any]:
     """
     if not isinstance(collection, list):
         raise TypeError("First argument must be a list (Collection)")
-    # Use get() with a default of None for items missing the key or not being dicts
     return [item.get(property_name) if isinstance(item, dict) else None for item in collection]
 
 def sort_(collection: Collection, key_name: Hashable = 'id', default_value: Any = None) -> Collection:
@@ -48,50 +47,41 @@ def sort_(collection: Collection, key_name: Hashable = 'id', default_value: Any 
     if not isinstance(collection, list):
         raise TypeError("First argument must be a list (Collection)")
 
-    # First check if all items are dicts or not
     non_dict_items = [item for item in collection if not isinstance(item, dict)]
     if non_dict_items:
         raise TypeError("All items in collection must be dictionaries for sorting by key")
 
-    # Define a sort key function that handles missing keys
     def sort_key(item):
         return item.get(key_name, default_value)
 
-    # Check if values are comparable before sorting
     values = [sort_key(item) for item in collection if item.get(key_name) is not None]
     if values and default_value is not None and any(item.get(key_name) is None for item in collection):
-        # Check if default value is comparable with actual values
         try:
             next(iter(values)) < default_value or default_value < next(iter(values))
         except (TypeError, ValueError):
             raise TypeError("Items not comparable with default value")
 
-    # Check if values are comparable with each other
     if len(values) >= 2:
         try:
-            # Try to compare first two different values
             for i in range(len(values)-1):
-                if values[i] != values[i+1]:  # Found different values
-                    values[i] < values[i+1]   # Test comparison
+                if values[i] != values[i+1]:
+                    values[i] < values[i+1]
                     break
         except (TypeError, ValueError):
             raise TypeError("Items not comparable with each other")
 
     try:
-        # Create a shallow copy before sorting
         return sorted(copy.copy(collection), key=sort_key)
     except TypeError as e:
-        # This occurs if default_value is not comparable with actual key values
         raise TypeError("Items not comparable")
 
 # Need copy for sort_
 import copy
 
-# Dictionary for potential dynamic lookup
 COLLECTION_TRANSFORMERS = {
-    'filterBy': filter_by, # Note casing
+    'filterBy': filter_by,
     'omit': omit,
     'find': find,
     'pluck': pluck,
-    'sort': sort_, # Use sort_ to avoid conflict
+    'sort': sort_,
 }

@@ -5,7 +5,6 @@ from src.python.collection_transformers import (
     filter_by, omit, find, pluck, sort_
 )
 
-# Sample collections for testing
 COLL1 = [
     {'id': 1, 'name': 'Alice', 'group': 'A', 'score': 80},
     {'id': 2, 'name': 'Bob', 'group': 'B', 'score': 95},
@@ -71,7 +70,6 @@ def test_omit_found():
     ]
 
 def test_omit_not_found():
-    # Omitting non-existent value should return the original list (content-wise)
     assert omit(COLL1, 'group', 'D') == COLL1
     assert omit(COLL1, 'score', 100) == COLL1
     assert omit(COLL1, 'non_existent_prop', 'A') == COLL1
@@ -82,7 +80,6 @@ def test_omit_empty_collection():
 def test_omit_non_dict_items():
     coll_with_non_dict = COLL1 + [1, None, 'str']
     result = omit(coll_with_non_dict, 'group', 'A')
-    # Non-dicts are not omitted unless they somehow match the condition (unlikely)
     assert result == [
         {'id': 2, 'name': 'Bob', 'group': 'B', 'score': 95},
         {'id': 4, 'name': 'David', 'group': 'C'},
@@ -98,7 +95,6 @@ def test_omit_invalid_collection_type():
 # --- Test find ---
 def test_find_found():
     assert find(COLL1, 'id', 2) == {'id': 2, 'name': 'Bob', 'group': 'B', 'score': 95}
-    # Should find the first match if multiple exist
     assert find(COLL1, 'score', 80) == {'id': 1, 'name': 'Alice', 'group': 'A', 'score': 80}
 
 def test_find_not_found():
@@ -166,7 +162,6 @@ def test_sort_by_name():
     ]
 
 def test_sort_by_score_with_default():
-    # Sort by score, missing scores use default value 0
     result = sort_(COLL1, key_name='score', default_value=0)
     assert result == [
         {'id': 4, 'name': 'David', 'group': 'C'}, # score=0 (default)
@@ -180,12 +175,9 @@ def test_sort_empty_collection():
     assert sort_([], key_name='name') == []
 
 def test_sort_non_dict_items():
-    # Sorting behavior with non-dicts depends on default_value comparability
     coll_with_non_dict = [1, {'id': 1}, None, {'id': 2}, 'str']
-    # Using default_value=None (default), should work if items are comparable to None (unlikely)
-    # Or raise TypeError if default not comparable
     with pytest.raises(TypeError):
-         sort_(coll_with_non_dict, key_name='id') # Attempting to compare None and int
+         sort_(coll_with_non_dict, key_name='id')
 
     # Using default_value=0, should work if items are comparable to 0 (int is, None/str are not)
     with pytest.raises(TypeError):

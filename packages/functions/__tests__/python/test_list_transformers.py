@@ -116,7 +116,7 @@ def test_sample_int_count():
 
 def test_sample_float_percentage():
     data = list(range(20))
-    result = sample(data, 0.25) # Should take floor(20 * 0.25) = 5 elements
+    result = sample(data, 0.25)
     assert len(result) == 5
     assert all(item in data for item in result)
     assert len(set(result)) == 5
@@ -154,10 +154,10 @@ def test_sample_invalid_count():
 # --- Test every ---
 def test_every_valid():
     data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    assert every(data, 2) == [0, 2, 4, 6, 8] # n=2, offset=0
-    assert every(data, 3) == [0, 3, 6, 9] # n=3, offset=0
-    assert every(data, 3, 1) == [1, 4, 7] # n=3, offset=1
-    assert every(data, 1, 5) == [5, 6, 7, 8, 9] # n=1, offset=5
+    assert every(data, 2) == [0, 2, 4, 6, 8]
+    assert every(data, 3) == [0, 3, 6, 9]
+    assert every(data, 3, 1) == [1, 4, 7]
+    assert every(data, 1, 5) == [5, 6, 7, 8, 9]
     assert every(data, 5, 8) == [8]
 
 def test_every_offset_equals_or_exceeds_length():
@@ -175,8 +175,6 @@ def test_every_invalid_args():
 
 # --- Test shuffle ---
 def test_shuffle():
-    # Seed random for predictability in testing (optional)
-    # random.seed(42)
     data = [1, 2, 3, 4, 5]
     shuffled = shuffle(data)
     assert len(shuffled) == len(data)
@@ -191,7 +189,7 @@ def test_shuffle_empty():
 # --- Test repeat ---
 def test_repeat_valid():
     assert repeat(3, 'a') == ['a', 'a', 'a']
-    assert repeat(2, [1, 2]) == [[1, 2], [1, 2]] # Repeats the item itself
+    assert repeat(2, [1, 2]) == [[1, 2], [1, 2]]
     assert repeat(1, None) == [None]
 
 def test_repeat_zero_quantity():
@@ -205,14 +203,14 @@ def test_repeat_invalid_quantity():
 def test_pick_list_of_indices():
     data = ['a', 'b', 'c', 'd', 'e']
     assert pick(data, [0, 2, 4]) == ['a', 'c', 'e']
-    assert pick(data, [3, 1]) == ['d', 'b'] # Order depends on input list
+    assert pick(data, [3, 1]) == ['d', 'b']
     assert pick(data, []) == []
 
 def test_pick_single_index():
     data = ['a', 'b', 'c', 'd', 'e']
     assert pick(data, 0) == 'a'
     assert pick(data, 4) == 'e'
-    assert pick(data, -1) == 'e' # Python allows negative indexing
+    assert pick(data, -1) == 'e'
     assert pick(data, -5) == 'a'
 
 def test_pick_out_of_bounds_list():

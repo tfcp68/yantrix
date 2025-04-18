@@ -2,7 +2,6 @@ import random
 import math
 from typing import List, Any, Optional, Union, Sequence, TypeVar
 
-# Generic type for list elements
 T = TypeVar('T')
 
 def len_(lst: Sequence) -> int:
@@ -70,9 +69,9 @@ def sample(lst: List[T], item_count: Union[int, float]) -> List[T]:
         raise TypeError("item_count must be an integer or a float")
 
     if k < 0:
-         k = 0 # Ensure k is not negative after calculation
+         k = 0
     if k > n:
-        k = n # Cannot sample more items than available
+        k = n
 
     # random.sample handles k=0 and k>n correctly
     return random.sample(lst, k)
@@ -112,29 +111,22 @@ def pick(source_list: List[T], keys_or_index: Union[List[int], int]) -> Union[Li
     n = len(source_list)
     if isinstance(keys_or_index, list):
         result: List[T] = []
-        # Check bounds first to avoid partial results on error
         for index in keys_or_index:
             if not isinstance(index, int):
                 raise TypeError("Second argument must be an integer index or a list of integer indices")
-            # Convert negative indices to positive (Python style)
             actual_index = index if index >= 0 else n + index
             if not (0 <= actual_index < n):
                 raise IndexError(f"Index {index} out of bounds for list of length {n}")
-        # Build result if all indices are valid
         for index in keys_or_index:
             actual_index = index if index >= 0 else n + index
             result.append(source_list[actual_index])
         return result
     elif isinstance(keys_or_index, int):
         index = keys_or_index
-        # Convert negative indices to positive (Python style)
         actual_index = index if index >= 0 else n + index
         if 0 <= actual_index < n:
             return source_list[actual_index]
         else:
-            # Spec doesn't explicitly state behavior for out-of-bounds single index pick.
-            # Returning None seems reasonable, but could raise IndexError too.
-            # Let's raise IndexError for consistency with list-based pick.
             raise IndexError(f"Index {index} out of bounds for list of length {n}")
     else:
         raise TypeError("Second argument must be an integer index or a list of integer indices")
@@ -147,11 +139,8 @@ def sort_(lst: List[Any]) -> List[Any]:
     """Returns a new list with the elements sorted in ascending order.
        Assumes elements are comparable.
     """
-    # Use try-except to handle potentially unorderable types if needed,
-    # but standard sorted() will raise TypeError which seems appropriate.
     return sorted(lst)
 
-# Dictionary for potential dynamic lookup
 LIST_TRANSFORMERS = {
     'len': len_,
     'lookup': lookup,
@@ -159,7 +148,7 @@ LIST_TRANSFORMERS = {
     'right': right,
     'first': first,
     'last': last,
-    'indexOf': index_of, # Note casing
+    'indexOf': index_of,
     'concat': concat,
     'sample': sample,
     'every': every,
@@ -167,5 +156,5 @@ LIST_TRANSFORMERS = {
     'repeat': repeat,
     'pick': pick,
     'reverse': reverse,
-    'sort': sort_, # Use sort_ to avoid conflict
+    'sort': sort_,
 }

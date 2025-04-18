@@ -9,17 +9,16 @@ from src.python.string_transformers import (
 # --- Test substr ---
 def test_substr_valid():
     assert substr("abcdef", 1, 4) == "bcd"
-    assert substr("abcdef", 3) == "def" # End omitted
+    assert substr("abcdef", 3) == "def"
     assert substr("abcdef", 0, 3) == "abc"
     assert substr("abcdef", 4, 6) == "ef"
     assert substr("abcdef", 6) == ""
 
 def test_substr_indices_out_of_bounds():
-    # Python slicing handles this gracefully
     assert substr("abc", 5) == ""
     assert substr("abc", 1, 10) == "bc"
-    assert substr("abc", -1, 2) == "ab" # Python slicing with negative start
-    assert substr("abc", 0, -1) == "ab" # Python slicing with negative end
+    assert substr("abc", -1, 2) == "ab"
+    assert substr("abc", 0, -1) == "ab"
 
 def test_substr_empty_string():
     assert substr("", 0, 1) == ""
@@ -74,10 +73,10 @@ def test_right_string_invalid_length():
 # --- Test index_of ---
 def test_index_of_string_found():
     assert index_of("hello world", "world") == 6
-    assert index_of("banana", "na") == 2 # First occurrence
+    assert index_of("banana", "na") == 2
     assert index_of("aaaa", "a") == 0
     assert index_of("test", "test") == 0
-    assert index_of("test", "") == 0 # Empty string found at start
+    assert index_of("test", "") == 0
 
 def test_index_of_string_not_found():
     assert index_of("hello", "world") == -1
@@ -109,11 +108,11 @@ def test_sample_string_int_count():
     result = sample(data, 4)
     assert len(result) == 4
     assert all(char in data for char in result)
-    assert len(set(result)) == 4 # No duplicates
+    assert len(set(result)) == 4
 
 def test_sample_string_float_percentage():
     data = "0123456789"
-    result = sample(data, 0.3) # floor(10 * 0.3) = 3 chars
+    result = sample(data, 0.3)
     assert len(result) == 3
     assert all(char in data for char in result)
     assert len(set(result)) == 3
@@ -148,7 +147,6 @@ def test_sample_string_invalid_count():
 
 # --- Test shuffle ---
 def test_shuffle_string():
-    # random.seed(42) # Optional for predictable tests
     data = "abcde"
     shuffled = shuffle(data)
     assert len(shuffled) == len(data)
@@ -164,8 +162,8 @@ def test_pad_left_valid():
     assert pad_left("abc", 5, " ") == "  abc"
     assert pad_left("abc", 7, "xo") == "xoxoabc"
     assert pad_left("abc", 6, "xo") == "xoxabc"
-    assert pad_left("abc", 3, "x") == "abc" # Length already met
-    assert pad_left("abc", 2, "x") == "abc" # Length already exceeded
+    assert pad_left("abc", 3, "x") == "abc"
+    assert pad_left("abc", 2, "x") == "abc"
     assert pad_left("", 3, "x") == "xxx"
 
 def test_pad_left_invalid():

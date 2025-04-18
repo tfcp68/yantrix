@@ -62,14 +62,12 @@ def test_coalesce_no_args():
 
 # --- Test random_ ---
 def test_random_no_args():
-    # Test if it returns a float between 0 and 1
     for _ in range(10):
         val = random_()
         assert isinstance(val, float)
         assert 0.0 <= val < 1.0
 
 def test_random_two_args_int():
-    # Test if it returns a float within the range
     min_val, max_val = 5, 10
     for _ in range(10):
         val = random_(min_val, max_val)

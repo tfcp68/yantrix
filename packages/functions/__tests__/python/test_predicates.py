@@ -31,7 +31,7 @@ def test_none_():
     assert none_(False, 0, '', []) is True
     assert none_(False, True, False) is False
     assert none_(False) is True
-    assert none_() is True # not any([]) is True
+    assert none_() is True
 
 # --- Numeric Predicates ---
 def test_is_even():
@@ -76,7 +76,7 @@ def test_is_equal():
     assert is_equal([1], [1]) is True
     assert is_equal(5, 6) is False
     assert is_equal(5, '5') is False
-    assert is_equal([1], (1,)) is False # Different types
+    assert is_equal([1], (1,)) is False
     assert is_equal(0, False) is True # Note: 0 == False in Python
     assert is_equal(1, True) is True  # Note: 1 == True in Python
 
@@ -126,7 +126,7 @@ def test_is_negative():
 
 def test_is_positive():
     assert is_positive(5) is True
-    assert is_positive(0) is True # Spec implies >= 0
+    assert is_positive(0) is True
     assert is_positive(0.0) is True
     assert is_positive(Decimal('0.1')) is True
     assert is_positive(-0.1) is False
@@ -139,8 +139,8 @@ def test_contains_string():
     assert contains("hello world", "lo w") is True
     assert contains("hello", "a") is False
     assert contains("", "a") is False
-    assert contains("abc", "") is True # Empty string is contained
-    assert contains("abc", 123) is False # Value must be string
+    assert contains("abc", "") is True
+    assert contains("abc", 123) is False
 
 def test_contains_list():
     assert contains([1, 2, 3], 2) is True
@@ -149,19 +149,17 @@ def test_contains_list():
     assert contains([], 1) is False
 
 def test_contains_dict_key_check():
-    # Spec implies key check for dicts: "value with a name of the String parameter"
     d = {'a': 1, 'b': 2, 10: 3}
     assert contains(d, 'a') is True
     assert contains(d, 10) is True
     assert contains(d, 'c') is False
-    assert contains(d, 1) is False # Checks for key, not value
+    assert contains(d, 1) is False
     assert contains(d, None) is False
     assert contains({}, 'a') is False
-    # Check non-hashable value doesn't raise error
     assert contains(d, []) is False
 
 def test_contains_other_sequence():
-    assert contains((1, 2, 3), 2) is True # Tuple
+    assert contains((1, 2, 3), 2) is True
     assert contains((1, 2, 3), 4) is False
 
 def test_contains_unsupported_container():
@@ -173,9 +171,9 @@ def test_has_list_index():
     assert has(lst, 0) is True
     assert has(lst, 2) is True
     assert has(lst, 3) is False
-    assert has(lst, -1) is False # has() checks non-negative index in bounds
+    assert has(lst, -1) is False
     assert has([], 0) is False
-    assert has(lst, 'a') is False # Index must be int
+    assert has(lst, 'a') is False
 
 def test_has_dict_key():
     d = {'a': 1, 'b': 2, 10: 3}
@@ -183,7 +181,6 @@ def test_has_dict_key():
     assert has(d, 10) is True
     assert has(d, 'c') is False
     assert has({}, 'a') is False
-    # Check non-hashable value doesn't raise error
     assert has(d, []) is False
 
 def test_has_other_sequence_index():
@@ -191,7 +188,7 @@ def test_has_other_sequence_index():
     assert has((1, 2), 2) is False
 
 def test_has_unsupported_container():
-    assert has("abc", 1) is False # String not supported by this definition of has
+    assert has("abc", 1) is False
     assert has(123, 0) is False
 
 def test_is_null():

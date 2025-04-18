@@ -39,10 +39,10 @@ def test_add_single_arg():
 
 # --- Test diff ---
 def test_diff_integers():
-    assert diff(5, 10) == 5 # 10 - 5
-    assert diff(10, 5) == -5 # 5 - 10
-    assert diff(-5, -10) == -5 # -10 - (-5)
-    assert diff(-5, 5) == 10 # 5 - (-5)
+    assert diff(5, 10) == 5
+    assert diff(10, 5) == -5
+    assert diff(-5, -10) == -5
+    assert diff(-5, 5) == 10
 
 def test_diff_floats():
     assert diff(1.5, 4.0) == 2.5
@@ -81,7 +81,7 @@ def test_mult_mixed_types():
     assert mult(2, 0.5, Decimal('3.0')) == Decimal('3.0')
 
 def test_mult_no_args():
-    assert mult() == 1 # Multiplicative identity
+    assert mult() == 1
 
 def test_mult_single_arg():
     assert mult(5) == 5
@@ -89,7 +89,7 @@ def test_mult_single_arg():
 
 # --- Test div ---
 def test_div_integers():
-    assert div(10, 2) == 5.0 # Always float unless Decimal
+    assert div(10, 2) == 5.0
     assert div(5, 2) == 2.5
     assert div(-10, 2) == -5.0
     assert div(10, -2) == -5.0
@@ -122,7 +122,7 @@ def test_pow_integers():
     assert pow_(3, 0) == 1
     assert pow_(-2, 2) == 4
     assert pow_(-2, 3) == -8
-    assert pow_(10, -1) == 0.1 # Returns float for negative exponent
+    assert pow_(10, -1) == 0.1
 
 def test_pow_floats():
     assert pow_(2.0, 3.0) == 8.0
@@ -131,7 +131,7 @@ def test_pow_floats():
 
 def test_pow_decimals():
     assert pow_(Decimal('2'), Decimal('3')) == Decimal('8')
-    assert pow_(Decimal('4'), Decimal('0.5')) == Decimal('2') # Precision may matter
+    assert pow_(Decimal('4'), Decimal('0.5')) == Decimal('2')
     assert pow_(Decimal('2.5'), Decimal('2')) == Decimal('6.25')
 
 def test_pow_mixed_types():
@@ -180,20 +180,20 @@ def test_inv_by_zero():
 # --- Test mod ---
 def test_mod_integers():
     assert mod(10, 3) == 1
-    assert mod(10, -3) == -2 # Python's % behavior
-    assert mod(-10, 3) == 2  # Python's % behavior
-    assert mod(-10, -3) == -1 # Python's % behavior
+    assert mod(10, -3) == -2
+    assert mod(-10, 3) == 2
+    assert mod(-10, -3) == -1
     assert mod(5, 5) == 0
 
 def test_mod_floats():
     assert mod(10.5, 3.0) == pytest.approx(1.5)
     assert mod(5.0, 2.5) == pytest.approx(0.0)
-    assert mod(-10.5, 3.0) == pytest.approx(1.5) # Python's % behavior
+    assert mod(-10.5, 3.0) == pytest.approx(1.5)
 
 def test_mod_decimals():
     assert mod(Decimal('10.5'), Decimal('3')) == Decimal('1.5')
     assert mod(Decimal('5.0'), Decimal('2.5')) == Decimal('0.0')
-    assert mod(Decimal('-10.5'), Decimal('3')) == Decimal('1.5') # Python's % behavior
+    assert mod(Decimal('-10.5'), Decimal('3')) == Decimal('1.5')
 
 def test_mod_by_zero():
     with pytest.raises(ValueError, match="Modulo by zero"):
@@ -219,29 +219,29 @@ def test_ceil():
 
 # --- Test round_ ---
 def test_round_default_precision():
-    assert round_(3.7) == 4 # Returns int
-    assert round_(3.2) == 3 # Returns int
-    assert round_(3.5) == 4 # Rounds .5 up (standard Python 3)
+    assert round_(3.7) == 4
+    assert round_(3.2) == 3
+    assert round_(3.5) == 4
     assert round_(-3.7) == -4
     assert round_(-3.2) == -3
-    assert round_(-3.5) == -4 # Rounds .5 away from zero
+    assert round_(-3.5) == -4
     assert isinstance(round_(3.2), int)
 
 def test_round_with_precision():
-    assert round_(3.14159, 2) == 3.14 # Returns float
-    assert round_(3.14159, 0) == 3.0 # Returns float for precision 0
+    assert round_(3.14159, 2) == 3.14
+    assert round_(3.14159, 0) == 3.0
     assert round_(3.14159, 4) == 3.1416
-    assert round_(2.5, 0) == 2.0 # round(2.5, 0) -> 2.0
-    assert round_(3.5, 0) == 4.0 # round(3.5, 0) -> 4.0
+    assert round_(2.5, 0) == 2.0
+    assert round_(3.5, 0) == 4.0
     assert isinstance(round_(3.14, 1), float)
 
 def test_round_decimal():
     assert round_(Decimal('3.14159'), 2) == Decimal('3.14')
-    assert round_(Decimal('3.14159'), 0) == Decimal('3') # Precision 0 -> integer-like Decimal
+    assert round_(Decimal('3.14159'), 0) == Decimal('3')
     assert round_(Decimal('3.14159'), 4) == Decimal('3.1416')
-    assert round_(Decimal('2.5'), 0) == Decimal('3') # Decimal rounds .5 up
-    assert round_(Decimal('3.5'), 0) == Decimal('4') # Decimal rounds .5 up
-    assert round_(Decimal('3.125'), 2) == Decimal('3.13') # Decimal rounds .5 up
+    assert round_(Decimal('2.5'), 0) == Decimal('3')
+    assert round_(Decimal('3.5'), 0) == Decimal('4')
+    assert round_(Decimal('3.125'), 2) == Decimal('3.13')
 
 def test_round_negative_precision():
      with pytest.raises(ValueError, match="Precision must be a non-negative integer"):

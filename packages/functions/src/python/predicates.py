@@ -9,12 +9,10 @@ DictObject = Dict[Hashable, Any]
 
 def and_(*conditions: Any) -> bool:
     """Returns True if all conditions are truthy, False otherwise."""
-    # Python's all() works directly on truthiness
     return all(conditions)
 
 def or_(*conditions: Any) -> bool:
     """Returns True if at least one condition is truthy, False otherwise."""
-    # Python's any() works directly on truthiness
     return any(conditions)
 
 def not_(condition: Any) -> bool:
@@ -30,16 +28,16 @@ def none_(*conditions: Any) -> bool:
 def is_even(num: Numeric) -> bool:
     """Checks if a number is even."""
     if isinstance(num, (float, decimal.Decimal)) and num % 1 != 0:
-        return False # Floats/Decimals with fractional parts are not even
+        return False
     try:
         return int(num) % 2 == 0
     except (TypeError, ValueError):
-        return False # Handle potential conversion errors
+        return False
 
 def is_odd(num: Numeric) -> bool:
     """Checks if a number is odd."""
     if isinstance(num, (float, decimal.Decimal)) and num % 1 != 0:
-        return False # Floats/Decimals with fractional parts are not odd
+        return False
     try:
         return int(num) % 2 != 0
     except (TypeError, ValueError):
@@ -50,22 +48,14 @@ def is_integer(num: Any) -> bool:
     if isinstance(num, int):
         return True
     if isinstance(num, (float, decimal.Decimal)):
-        # Check if it's numerically equal to its integer part
-        # Use try-except for potential precision issues with large floats?
-        # Or rely on modulo check:
         try:
             return num % 1 == 0
         except (TypeError, decimal.InvalidOperation):
-             # Handle cases like Decimal('Infinity') or complex numbers if needed
              return False
     return False
 
 def is_equal(val1: Any, val2: Any) -> bool:
     """Checks if two values are equal (type and value)."""
-    # Basic equality check works for most types including numeric promotion (int==float)
-    # The spec implies type check first, but Python's == often does this implicitly
-    # Let's stick to standard Python equality `==` unless specific Yantrix behavior is needed.
-    # For strict type checking: `type(val1) is type(val2) and val1 == val2`
     return val1 == val2
 
 def is_greater(num1: Numeric, num2: Numeric) -> bool:
@@ -122,19 +112,17 @@ def contains(container: Union[str, Sequence, DictObject], value: Any) -> bool:
     """
     if isinstance(container, str):
         if not isinstance(value, str):
-             return False # Can only contain strings within strings
+             return False
         return value in container
     elif isinstance(container, dict):
         # Check if value is a key
         try:
-            return value in container # `in` checks keys for dicts
+            return value in container
         except TypeError:
-            return False # value is not hashable
-    elif isinstance(container, Sequence): # Catches lists, tuples, etc. but not strings/dicts
-         # Check if value is an element
+            return False
+    elif isinstance(container, Sequence):
         return value in container
     else:
-        # Container type not supported
         return False
 
 def has(container: Union[Sequence, DictObject], key_or_index: Union[str, int, Hashable]) -> bool:
@@ -143,22 +131,18 @@ def has(container: Union[Sequence, DictObject], key_or_index: Union[str, int, Ha
        - Object/Dict: Checks if 'key_or_index' (string/hashable) is a key.
     """
     if isinstance(container, dict):
-        # Check if key_or_index is a key
         try:
-            return key_or_index in container # `in` checks keys
+            return key_or_index in container
         except TypeError:
-            return False # Not hashable
+            return False
     elif isinstance(container, Sequence) and not isinstance(container, str):
-        # Check if key_or_index is a valid integer index
         if not isinstance(key_or_index, int):
-            return False # Index must be integer
+            return False
         try:
-            # Check if index is within bounds [0, len-1]
             return 0 <= key_or_index < len(container)
         except TypeError:
-             return False # len() failed or comparison failed
+             return False
     else:
-        # Container type not supported or it's a string (indices don't fit 'has' concept well)
         return False
 
 def is_null(value: Any) -> bool:
@@ -166,13 +150,12 @@ def is_null(value: Any) -> bool:
     return value is None
 
 
-# Dictionary for potential dynamic lookup
 PREDICATE_FUNCTIONS = {
     # Binary
     'and': and_,
-    'all': and_, # Alias 'all' to 'and' as they are functionally identical here
+    'all': and_,
     'or': or_,
-    'any': or_, # Alias 'any' to 'or' as they are functionally identical here
+    'any': or_,
     'not': not_,
     'none': none_,
     # Numeric

@@ -8,13 +8,10 @@ def add(*args: Numeric) -> Numeric:
     """Calculates the sum of all arguments."""
     if not args:
         return 0
-    # Use Decimal for precision if any arg is Decimal
     if any(isinstance(arg, decimal.Decimal) for arg in args):
         return sum(decimal.Decimal(str(arg)) for arg in args)
-    # Use float if any arg is float
     if any(isinstance(arg, float) for arg in args):
         return sum(float(arg) for arg in args)
-    # Otherwise, assume int
     return sum(args)
 
 def diff(num1: Numeric, num2: Numeric) -> Numeric:
@@ -53,7 +50,6 @@ def div(num1: Numeric, num2: Numeric) -> Union[float, decimal.Decimal]:
         raise ValueError("Division by zero")
     if isinstance(num1, decimal.Decimal) or isinstance(num2, decimal.Decimal):
         return decimal.Decimal(str(num1)) / decimal.Decimal(str(num2))
-    # Always return float for division unless Decimal is involved
     return float(num1) / float(num2)
 
 def pow_(base: Numeric, exponent: Numeric) -> Numeric:
@@ -92,10 +88,7 @@ def mod(num1: Numeric, num2: Numeric) -> Numeric:
     if isinstance(num1, decimal.Decimal) or isinstance(num2, decimal.Decimal):
         d_num1 = decimal.Decimal(str(num1))
         d_num2 = decimal.Decimal(str(num2))
-        # Implement Python's modulo behavior for Decimal
         if d_num1 < 0 and d_num2 > 0:
-            # When first arg is negative and second is positive
-            # Python modulo returns a value between 0 and num2
             return ((d_num1 % d_num2) + d_num2) % d_num2
         return d_num1 % d_num2
     if isinstance(num1, float) or isinstance(num2, float):
@@ -115,22 +108,18 @@ def round_(num: Numeric, precision: int = 0) -> Numeric:
     if not isinstance(precision, int) or precision < 0:
         raise ValueError("Precision must be a non-negative integer")
     if isinstance(num, decimal.Decimal):
-        # Use ROUND_HALF_UP for standard rounding
         return num.quantize(decimal.Decimal('1e-' + str(precision)), rounding=decimal.ROUND_HALF_UP)
     if precision == 0:
-         # round() without precision returns int
         return int(round(num))
     else:
-        # round() with precision returns float
         return round(num, precision)
 
-# Dictionary to hold the functions for potential dynamic lookup
 ARITHMETIC_FUNCTIONS = {
     'add': add,
     'diff': diff,
     'mult': mult,
     'div': div,
-    'pow': pow_, # Use pow_ to avoid conflict with built-in pow
+    'pow': pow_,
     'inc': inc,
     'dec': dec,
     'neg': neg,
@@ -138,5 +127,5 @@ ARITHMETIC_FUNCTIONS = {
     'mod': mod,
     'trunc': trunc,
     'ceil': ceil,
-    'round': round_, # Use round_ to avoid conflict with built-in round
+    'round': round_,
 }

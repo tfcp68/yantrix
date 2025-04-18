@@ -9,11 +9,9 @@ def _get_numeric_list(*args: Union[Numeric, List[Numeric]]) -> List[Numeric]:
     """Helper to handle list input or variable arguments."""
     if len(args) == 1 and isinstance(args[0], list):
         data = args[0]
-        # Check that all elements are numeric
         if not all(isinstance(arg, (int, float, decimal.Decimal)) for arg in data):
             raise TypeError("All elements in the list must be numeric")
         return data
-    # Ensure all args are numeric if not a single list
     if not all(isinstance(arg, (int, float, decimal.Decimal)) for arg in args):
          raise TypeError("All arguments must be numeric or a single list of numerics")
     return list(args) # type: ignore
@@ -44,9 +42,7 @@ def avg(*args: Union[Numeric, List[Numeric]]) -> float:
     if not data:
         raise statistics.StatisticsError("avg requires at least one data point")
 
-    # Convert all values to float for consistent handling
     float_data = [float(x) for x in data]
-    # Return the mean, which will be a float
     return statistics.mean(float_data)
 
 def med(*args: Union[Numeric, List[Numeric]]) -> Numeric:
@@ -54,14 +50,12 @@ def med(*args: Union[Numeric, List[Numeric]]) -> Numeric:
     data = _get_numeric_list(*args)
     if not data:
          raise statistics.StatisticsError("median requires at least one data point")
-    # statistics.median handles different numeric types
     return statistics.median(data)
 
 def sum_(data: List[Numeric]) -> Numeric:
     """Calculates the sum of a list of numbers."""
     if not data:
         return 0
-    # Use the same logic as arithmetic.add for type handling
     if any(isinstance(arg, decimal.Decimal) for arg in data):
         return sum(decimal.Decimal(str(arg)) for arg in data)
     if any(isinstance(arg, float) for arg in data):
@@ -69,10 +63,8 @@ def sum_(data: List[Numeric]) -> Numeric:
     return sum(data)
 
 def sumsq(data: List[Numeric]) -> Numeric:
-    """Calculates the sum of the squares of a list of numbers."""
     if not data:
         return 0
-    # Use the same logic as arithmetic.add for type handling
     squares = []
     use_decimal = any(isinstance(arg, decimal.Decimal) for arg in data)
     use_float = any(isinstance(arg, float) for arg in data)
@@ -120,7 +112,6 @@ def sum_product(*lists: List[Numeric]) -> Numeric:
             for item in items_at_i:
                 product *= item
 
-        # Add product to total_sum using appropriate type
         if isinstance(total_sum, decimal.Decimal) or isinstance(product, decimal.Decimal):
             total_sum = decimal.Decimal(str(total_sum)) + decimal.Decimal(str(product))
         elif isinstance(total_sum, float) or isinstance(product, float):
@@ -131,7 +122,6 @@ def sum_product(*lists: List[Numeric]) -> Numeric:
     return total_sum
 
 
-# Dictionary for potential dynamic lookup
 STATISTICS_FUNCTIONS = {
     'max': max_,
     'min': min_,
@@ -139,5 +129,5 @@ STATISTICS_FUNCTIONS = {
     'med': med,
     'sum': sum_,
     'sumsq': sumsq,
-    'sumProduct': sum_product, # Note casing from spec
+    'sumProduct': sum_product,
 }

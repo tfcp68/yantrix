@@ -17,8 +17,6 @@ def values(obj: DictObject) -> List[Any]:
 
 def _safe_sort(items):
     """Helper to sort mixed types safely by converting everything to string first."""
-    # We need to handle the case where None and other types need to be compared
-    # by converting all items to strings first
     return sorted(items, key=lambda x: str(x) if x is not None else "")
 
 def zip_(keys_list: List[Hashable], values_list: List[Any]) -> DictObject:
@@ -27,12 +25,11 @@ def zip_(keys_list: List[Hashable], values_list: List[Any]) -> DictObject:
     """
     if len(keys_list) != len(values_list):
         raise ValueError("Key and value lists must be of equal length for zip")
-    # Using dict comprehension for efficiency
     return {keys_list[i]: values_list[i] for i in range(len(keys_list))}
 
 def set_attr(obj: DictObject, key: Hashable, value: Any) -> DictObject:
     """Returns a shallow copy of the dictionary with the specified key set to the new value."""
-    new_obj = copy.copy(obj) # Shallow copy is usually sufficient for this type of operation
+    new_obj = copy.copy(obj)
     new_obj[key] = value
     return new_obj
 
@@ -41,7 +38,7 @@ def unset_attr(obj: DictObject, key: Hashable) -> DictObject:
        If the key doesn't exist, it returns a copy without error.
     """
     new_obj = copy.copy(obj)
-    new_obj.pop(key, None) # Use pop with default to avoid KeyError
+    new_obj.pop(key, None)
     return new_obj
 
 def merge(*objects: DictObject) -> DictObject:
@@ -63,14 +60,12 @@ def intersect(*objects: DictObject) -> DictObject:
         raise TypeError("All arguments to intersect must be dictionaries")
 
     if len(objects) == 1:
-        return copy.copy(objects[0]) # Intersection with self is self
+        return copy.copy(objects[0])
 
-    # Find the intersection of all key sets
     common_keys = set(objects[0].keys())
     for obj in objects[1:]:
         common_keys.intersection_update(obj.keys())
 
-    # Build the result using values from the last object
     last_obj = objects[-1]
     intersection_result: DictObject = {key: last_obj[key] for key in common_keys}
     return intersection_result
@@ -89,20 +84,19 @@ def pick(source_object: DictObject, keys_or_key: Union[List[Hashable], Hashable]
             if key in source_object:
                 result[key] = source_object[key]
         return result
-    elif isinstance(keys_or_key, (str, int, float, bool, tuple)): # Check if it's a likely hashable key type
+    elif isinstance(keys_or_key, (str, int, float, bool, tuple)):
         key = keys_or_key
-        return source_object.get(key) # Use .get() to return None if key not found
+        return source_object.get(key)
     else:
         raise TypeError("Second argument must be a hashable key or a list of hashable keys")
 
 
-# Dictionary for potential dynamic lookup
 OBJECT_TRANSFORMERS = {
     'keys': keys,
     'values': values,
-    'zip': zip_, # Use zip_ to avoid conflict
-    'setAttr': set_attr, # Note casing
-    'unsetAttr': unset_attr, # Note casing
+    'zip': zip_,
+    'setAttr': set_attr,
+    'unsetAttr': unset_attr,
     'merge': merge,
     'intersect': intersect,
     'pick': pick,
