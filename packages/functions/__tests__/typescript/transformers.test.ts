@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { builtInFunctions } from '../src';
+import { builtInFunctions } from '../../src';
 
 describe('function Tests', () => {
 	// Arithmetic transformers
