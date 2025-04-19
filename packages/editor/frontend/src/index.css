@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+/* ... */
+ 
+@layer base {
+  :root {
+ 
+    --radius: 0.5rem}
+}
+
+.view {
+  overflow: hidden;
+  position: relative;
+}
+
+.monaco-editor {
+  --vscode-focusBorder: #000000 !important;
+}
+
+.mermaid {
+  /* max-width: 100% !important; */
+  /* width: 100% !important; */
+  cursor: grab;
+  user-select: none;
+}
+
+.mermaid:active {
+  cursor: grabbing;
+}
+

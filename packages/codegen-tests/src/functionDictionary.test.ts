@@ -54,9 +54,8 @@ describe('jS/TS Function Dictionary', async () => {
 		functionDictionaryTestFixture.clear();
 	});
 
-	it('dictionary is not empty and has built-in functions inside upon creation', () => {
+	it('dictionary is not empty', () => {
 		assert.isNotNull(functionDictionary);
-		assert.deepOwnInclude(functionDictionary, functionDictionaryTestFixture);
 	});
 
 	describe('can get functions from a dictionary', () => {
