@@ -1,0 +1,19 @@
+name: "Ubuntu latest test"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  ubuntu-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - id: run_test
+        uses: ./.github/actions/run_test

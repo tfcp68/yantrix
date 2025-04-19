@@ -16,9 +16,6 @@ export default withMermaid({
 	title: 'Yantrix',
 	appearance: 'force-dark',
 	lastUpdated: true,
-	search: {
-		provider: 'local',
-	},
 	head: [
 		['meta', { name: 'theme-color', content: '#000000' }],
 		['meta', { property: 'og:image', content: '/yantrix/logo.png' }],
@@ -59,6 +56,16 @@ export default withMermaid({
 		socialLinks: [],
 		outline: {
 			level: [2, 3],
+		},
+		search: {
+			provider: 'local',
+			options: {
+				_render: async (src, env, md) => {
+					const html = await md.render(src, env);
+					if (env.relativePath.includes('test_cases')) return '';
+					return html;
+				},
+			},
 		},
 		sidebar: getSidebarItems(path.resolve(__dirname, '../src')),
 	},

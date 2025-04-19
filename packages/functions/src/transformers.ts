@@ -4,9 +4,9 @@ import { isCollection, isIterable } from './types/guards';
 import { invalid } from './utils/errors';
 import { variadic } from './utils/utils';
 
-// ==============================
-// Arithmetic transformers
-// ==============================
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                         Arithmetic Transformers                           │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 /**
  * Adds a list of numbers together.
@@ -23,7 +23,11 @@ export const add = variadic<number, number | null>((nums) => {
 
 /**
  * Subtracts the second number from the first number.
+ *
  * @category Arithmetics
+ * @param a - The first number.
+ * @param b - The second number to subtract from the first.
+ * @returns The difference between the numbers, or null if any argument is nil.
  */
 export function diff(a: number, b: number) {
 	return _.some([a, b], _.isNil)
@@ -46,7 +50,11 @@ export const mult = variadic<number, number | null>((nums) => {
 
 /**
  * Divides the first number by the second number.
+ *
  * @category Arithmetics
+ * @param a - The dividend.
+ * @param b - The divisor.
+ * @returns The quotient of the division, or null if any argument is nil.
  */
 export function div(a: number, b: number) {
 	return _.some([a, b], _.isNil)
@@ -73,38 +81,57 @@ export function pow(n: number, exp: number) {
 			? n ** exp
 			: invalid('INVALID_NUMBER_ARGUMENTS');
 }
+
 /**
  * Increments a number by 1.
+ *
  * @category Arithmetics
+ * @param n - The number to increment.
+ * @returns The number incremented by 1, or null if the argument is nil.
  */
 export function inc(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? n + 1 : invalid('INVALID_NUMBER_ARGUMENT');
 }
+
 /**
  * Decrements a number by 1.
+ *
  * @category Arithmetics
+ * @param n - The number to decrement.
+ * @returns The number decremented by 1, or null if the argument is nil.
  */
 export function dec(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? n - 1 : invalid('INVALID_NUMBER_ARGUMENT');
 }
+
 /**
  * Negates a number.
+ *
  * @category Arithmetics
+ * @param n - The number to negate.
+ * @returns The negated number, or null if the argument is nil.
  */
 export function neg(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? -n : invalid('INVALID_NUMBER_ARGUMENT');
 }
+
 /**
  * Inverts a number.
+ *
  * @category Arithmetics
+ * @param n - The number to invert.
+ * @returns The reciprocal of the number (1/n), or null if the argument is nil.
  */
 export function inv(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? 1 / n : invalid('INVALID_NUMBER_ARGUMENT');
 }
+
 /**
  * Calculates the modulus of two numbers.
  *
  * @category Arithmetics
+ * @param a - The dividend.
+ * @param b - The divisor.
  * @returns The remainder of the modulus division of the two numbers.
  */
 export function mod(a: number, b: number) {
@@ -134,38 +161,55 @@ export function trunc(n: number) {
 export function ceil(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? Math.ceil(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
+
 /**
- * Rounds a number to the nearest integer.
+ * Rounds a number to the nearest integer or to specified precision.
  *
  * @category Arithmetics
  * @param num - The number to round.
- * @returns The nearest integer to the number.
+ * @param precision - The number of decimal places to round to (default: 0).
+ * @returns The rounded number.
  */
-export function round(n: number) {
-	return _.isNil(n) ? null : _.isNumber(n) ? Math.round(n) : invalid('INVALID_NUMBER_ARGUMENT');
+export function round(n: number, precision: number = 0) {
+	if (_.isNil(n)) return null;
+	if (!_.isNumber(n)) return invalid('INVALID_NUMBER_ARGUMENT');
+	if (!_.isNumber(precision) || precision < 0 || !_.isInteger(precision))
+		return invalid('INVALID_PRECISION_ARGUMENT');
+
+	const factor = 10 ** precision;
+	return Math.round(n * factor) / factor;
 }
 
-// ==============================
-// Special math transformers
-// ==============================
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                        Special Math Transformers                          │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 /**
  * Calculates the sine of a number.
+ *
  * @category Special Maths
+ * @param n - The number to calculate the sine of (in radians).
+ * @returns The sine of the number, or null if the argument is nil.
  */
 export function sin(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? Math.sin(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 /**
  * Calculates the cosine of a number.
+ *
  * @category Special Maths
+ * @param n - The number to calculate the cosine of (in radians).
+ * @returns The cosine of the number, or null if the argument is nil.
  */
 export function cos(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? Math.cos(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 /**
  * Calculates the square root of a number.
+ *
  * @category Special Maths
+ * @param n - The number to calculate the square root of.
+ * @returns The square root of the number, or null if the argument is nil.
  */
 export function sqrt(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? Math.sqrt(n) : invalid('INVALID_NUMBER_ARGUMENT');
@@ -187,36 +231,48 @@ export function log(a: number, b: number) {
 }
 /**
  * Calculates the natural logarithm (base e) of a number.
+ *
  * @category Special Maths
+ * @param n - The number to calculate the natural logarithm of.
+ * @returns The natural logarithm of the number, or null if the argument is nil.
  */
 export function ln(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? Math.log(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 /**
  * Calculates the base-10 logarithm of a number.
+ *
  * @category Special Maths
+ * @param n - The number to calculate the base-10 logarithm of.
+ * @returns The base-10 logarithm of the number, or null if the argument is nil.
  */
 export function lg(n: number) {
 	return _.isNil(n) ? null : _.isNumber(n) ? Math.log10(n) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 /**
  * Converts a number from radians to degrees.
+ *
  * @category Special Maths
+ * @param rads - The angle in radians to convert to degrees.
+ * @returns The angle in degrees, or null if the argument is nil.
  */
 export function deg(rads: number) {
 	return _.isNil(rads) ? null : _.isNumber(rads) ? rads * (180 / Math.PI) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 /**
  * Converts a number from degrees to radians.
+ *
  * @category Special Maths
+ * @param degs - The angle in degrees to convert to radians.
+ * @returns The angle in radians, or null if the argument is nil.
  */
 export function rad(degs: number) {
 	return _.isNil(degs) ? null : _.isNumber(degs) ? degs * (Math.PI / 180) : invalid('INVALID_NUMBER_ARGUMENT');
 }
 
-// ==============================
-// Statistics
-// ==============================
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                                Statistics                                 │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 /**
  * Returns the maximum value from a list of numbers.
@@ -248,6 +304,7 @@ export const min = variadic<number, number | null>((nums) => {
 export const avg = variadic<number, number | null>((nums) => {
 	return nums.length ? _.meanBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT')) : null;
 });
+
 /**
  * Returns the median value from a list of numbers.
  *
@@ -266,6 +323,7 @@ export const med = variadic<number, number | null>((nums) => {
 		? sorted[middle]!
 		: (sorted[middle - 1]! + sorted[middle]!) / 2;
 });
+
 /**
  * Returns the sum of a list of numbers.
  *
@@ -276,6 +334,7 @@ export const med = variadic<number, number | null>((nums) => {
 export const sum = variadic<number, number | null>((nums) => {
 	return nums.length ? _.sumBy(nums, n => _.isNumber(n) ? n : invalid('INVALID_NUMBER_ARGUMENT')) : null;
 });
+
 /**
  * Returns the sum of the squares of a list of numbers.
  *
@@ -286,6 +345,7 @@ export const sum = variadic<number, number | null>((nums) => {
 export const sumsq = variadic<number, number | null>((nums) => {
 	return nums.length ? _.sumBy(nums, n => _.isNumber(n) ? n ** 2 : invalid('INVALID_NUMBER_ARGUMENT')) : null;
 });
+
 /**
  * Returns the sum of the products of corresponding numbers in multiple lists.
  *
@@ -307,9 +367,9 @@ export const sumProduct = variadic<number[], number>((lists) => {
 	return _.sum(_.zipWith(...lists, (...values) => values.reduce((prod, num) => prod * num, 1)));
 });
 
-// ==============================
-// List & string transformers
-// ==============================
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                        List & String Transformers                         │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 /**
  * Returns the length of a string.
@@ -350,7 +410,7 @@ export function left(str: string, length: number): string;
  * @template T - The type of the elements in the array.
  * @param list - The array to evaluate.
  * @param length - The number of elements to return.
- * @returns A subarray containing the leftmost elements up to the specified length.
+ * @returns A new array containing the leftmost elements up to the specified length.
  */
 export function left<T>(list: T[], length: number): T[];
 export function left<T>(iterable: string | T[], length = 0): string | T[] {
@@ -378,7 +438,7 @@ export function right(str: string, length: number): string;
  * @template T - The type of the elements in the array.
  * @param list - The array to evaluate.
  * @param length - The number of elements to return.
- * @returns A subarray containing the rightmost elements up to the specified length.
+ * @returns A new array containing the rightmost elements up to the specified length.
  */
 export function right<T>(list: T[], length: number): T[];
 export function right<T>(iterable: string | T[], length = 0): string | T[] {
@@ -425,6 +485,7 @@ export function indexOf<T>(iterable: string | T[], value: string | T): number {
  * @returns A new string with the characters shuffled.
  */
 export function shuffle(str: string): string;
+
 /**
  * Shuffles the elements of an array.
  *
@@ -442,7 +503,89 @@ export function shuffle<T>(iterable: string | T[]): string | T[] {
 		: iterable;
 }
 
-// List transformers
+/**
+ * Reverses the characters of a string or elements of an array.
+ *
+ * @category List/String Transformers
+ * @param str - The string to reverse.
+ * @returns A new string with the characters in reverse order.
+ */
+export function reverse(str: string): string;
+
+/**
+ * Reverses the elements of an array.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to reverse.
+ * @returns A new array with the elements in reverse order.
+ */
+export function reverse<T>(list: T[]): T[];
+export function reverse<T>(iterable: string | T[]): string | T[] {
+	return isIterable(iterable)
+		? _.isString(iterable)
+			? iterable.split('').reverse().join('')
+			: iterable.slice().reverse()
+		: iterable;
+}
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                      List & Collection Transformers                       │
+// └───────────────────────────────────────────────────────────────────────────┘
+
+/**
+ * Sorts the characters of a string in ascending order.
+ *
+ * @category List/String Transformers
+ * @param str - The string to sort.
+ * @returns A new string with the characters sorted.
+ */
+export function sort(str: string): string;
+
+/**
+ * Sorts the elements of an array in ascending order.
+ *
+ * @category List/String Transformers
+ * @template T - The type of the elements in the array.
+ * @param list - The array to sort.
+ * @returns A new array with the elements sorted.
+ */
+export function sort<T>(list: T[]): T[];
+
+/**
+ * Sorts the elements of a collection by a specified property.
+ *
+ * @category Collection Transformers
+ * @param collection - The collection to sort.
+ * @param keyName - The property name to sort by (default: 'id').
+ * @param defaultValue - The default value to use if the property is absent (default: null).
+ * @returns A new collection with the elements sorted by the specified property.
+ */
+export function sort(collection: TCollection, keyName?: string, defaultValue?: any): TCollection;
+export function sort<T>(iterable: string | T[] | TCollection, keyName: string = 'id', defaultValue: any = null): string | T[] | TCollection {
+	if (!isIterable(iterable)) return iterable;
+
+	if (_.isString(iterable)) {
+		return iterable
+			.split('')
+			.sort()
+			.join('');
+	}
+
+	if (isCollection(iterable) && keyName) {
+		return _.sortBy(iterable, (item) => {
+			const value = item[keyName];
+			return value !== undefined ? value : defaultValue;
+		});
+	}
+
+	return (iterable as T[]).slice().sort();
+}
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                            List Transformers                              │
+// └───────────────────────────────────────────────────────────────────────────┘
+
 /**
  * Looks up a value in a list and returns it if found.
  *
@@ -476,7 +619,10 @@ export function repeat<T>(quantity: number, sample: T): T[] {
 	return Array.from<T>({ length: quantity < 0 ? 0 : quantity }).fill(sample);
 }
 
-// String transformers
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                           String Transformers                             │
+// └───────────────────────────────────────────────────────────────────────────┘
+
 /**
  * Returns a substring of a string.
  *
@@ -491,7 +637,10 @@ export function substr(str: string, start: number, end?: number): string {
 	return str.substring(start, end);
 }
 
-// Collection transformers
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                         Collection Transformers                           │
+// └───────────────────────────────────────────────────────────────────────────┘
+
 /**
  * Filters a collection of objects by a specified property and value.
  *
@@ -505,16 +654,31 @@ export function substr(str: string, start: number, end?: number): string {
 export function filterBy<S>(collection: TCollection, prop: string, value: S): TCollection {
 	return isCollection(collection) ? _.filter(collection, it => _.isEqual(it[prop], value)) : [];
 }
+/**
+ * Returns a list of property values from a collection of objects.
+ *
+ * @category Collection Transformers
+ * @param collection - The collection of objects to extract values from.
+ * @param prop - The property name to extract.
+ * @returns A list containing all property values from the collection items, in order of appearance.
+ */
+export function pluck(collection: TCollection, prop: string): any[] {
+	return isCollection(collection) ? _.map(collection, item => item[prop]) : [];
+}
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │                              Lodash Re-exports                            │
+// └───────────────────────────────────────────────────────────────────────────┘
 
 export const concat = _.concat;
-export const every = _.every;
 export const find = _.find;
+export const every = _.every;
 export const intersect = _.intersection;
 export const keys = _.keys;
 export const merge = _.merge;
 export const omit = _.omit;
-export const padLeft = _.padStart;
 export const padRight = _.padEnd;
+export const padLeft = _.padStart;
 export const pick = _.pick;
 export const sample = _.sample;
 export const setAttr = _.set;

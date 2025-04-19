@@ -1,11 +1,11 @@
 import { builtInFunctions } from '@yantrix/functions';
 import { TNullable } from '@yantrix/utils';
-import { ExpressionTypes, TDefine, TExpressionDefineMap } from '@yantrix/yantrix-parser';
+import { ExpressionTypes, TExpressionDefineMap, TInjectIdent } from '@yantrix/yantrix-parser';
 import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../../../constants';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
 import { TDictionaries } from '../dictionaries';
+import { getExpressionValueDefine } from '../expressions/core';
 import { TDependencyGraph } from '../imports';
-import { getExpressionValueDefine } from './core';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;
@@ -29,9 +29,9 @@ export function getFunctionBody(props: {
 		}).join(', ');
 
 		return `(function() {
-				const func = functionDictionary.get('${FunctionName}');
-				return func(${argsList});
-			})()`;
+					const func = functionDictionary.get('${FunctionName}');
+					return func(${argsList});
+				})()`;
 	} else {
 		return getExpressionValueDefine({
 			expression: props.expression,
@@ -42,19 +42,45 @@ export function getFunctionBody(props: {
 
 export function checkUserFunctionsDefined(props: {
 	injectedPath: TNullable<string>;
-	defines: TDefine[];
+	injects: TInjectIdent[];
 }) {
-	const { injectedPath, defines } = props;
-	const identifiers = defines.map(({ identifier }) => identifier);
+	const { injectedPath, injects } = props;
+	const identifiers = injects.map(inject => `'${inject.identifier}'`);
 
-	return `(function (){
-		const defines = [${identifiers.join(',')}]
-	  
-		defines.forEach((identifier) => {
-			if (!${DEFAULT_USER_FUNCTIONS_NAMESPACE}[identifier]) {
-				throw new Error(\`Function \${identifier}\ is not defined in ${injectedPath}\`);
-       }
-	})()`;
+	if (!injectedPath) return ``;
+
+	return `
+	
+	(function (){
+			const injects = [${identifiers.join(',')}]
+			const defaults = ${DEFAULT_USER_FUNCTIONS_NAMESPACE}?.default ?? null
+
+			if(defaults) {
+				switch(typeof defaults) {
+					case 'function': 
+					  if(!defaults?.name) throw new Error('Default exported user functions must have a name');
+						Object.assign(${DEFAULT_USER_FUNCTIONS_NAMESPACE}, {[defaults.name]: defaults});
+						break;
+					case 'object':
+						if(Array.isArray(defaults)) {
+							throw new Error('Default exported user functions must be an object or a function');
+						} 
+						Object.assign(${DEFAULT_USER_FUNCTIONS_NAMESPACE}, {...defaults});
+						break;
+					default:
+						throw new Error('Default exported user functions must be a function or an object from ${injectedPath}');
+				}
+			}
+
+			injects.forEach((identifier) => {
+				if (!${DEFAULT_USER_FUNCTIONS_NAMESPACE}[identifier]) {
+					throw new Error(\`Function \${identifier}\ is not defined in ${injectedPath}\`);
+				}
+				if(typeof ${DEFAULT_USER_FUNCTIONS_NAMESPACE}[identifier] !== 'function') {
+					throw new Error(\`Function \${identifier}\ is not a function in ${injectedPath}\`);
+				}
+			});
+		})()`;
 }
 
 export function registerCustomFunctions(props: {
@@ -102,8 +128,8 @@ export function registerCustomFunctions(props: {
 				expressions,
 			});
 			newDictionary.push(`functionDictionary.register('${funcName}', function(${defineFunction.Arguments.join(', ')}) {
-					return ${functionBody};
-				});`);
+						return ${functionBody};
+					});`);
 			registered.add(funcName);
 		};
 	};

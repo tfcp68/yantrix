@@ -1,4 +1,7 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { TNullable } from '@yantrix/utils';
+import { TDefine, TInjectIdent } from '@yantrix/yantrix-parser';
+import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../constants';
 import {
 	ICodegen,
 	TConstants,
@@ -19,13 +22,18 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
-	// initialContext: string;
+	defines: TDefine[];
+	injects: TInjectIdent[];
+
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
 	dependencyGraph: Map<string, Set<string>>;
 	constants: TConstants | null;
 	expressions: TExpressionRecord;
+	injectedPath: TNullable<string> = null;
+
 	dictionaries: string[];
+	protected importNamespaces: TNullable<TImports> = {};
 	protected imports: TImports = {
 		'@yantrix/core': [
 			'GenericAutomata',
@@ -37,7 +45,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		],
 	};
 
-	constructor({ diagram, constants }: TModuleParams) {
+	constructor({ diagram, constants, injectedFunctions }: TModuleParams) {
 		this.stateDictionary = new BasicStateDictionary();
 		this.actionDictionary = new BasicActionDictionary();
 		this.eventDictionary = new BasicEventDictionary();
@@ -45,6 +53,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.diagram = diagram;
 
 		this.constants = constants;
+
+		this.defines = diagram.states.flatMap(state => state.notes?.defines ?? []);
+		this.injects = diagram.states.flatMap(state => state.notes?.inject ?? []);
 
 		this.expressions = JavaScriptCompiler.expressions.functions.setupExpressions({
 			constants: this.constants,
@@ -56,12 +67,20 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			imports: this.imports,
 		});
 		this.imports = buildDependencyGraphResult.imports;
+
 		this.dependencyGraph = buildDependencyGraphResult.dependencyGraph;
 
 		this.handlersDict = [];
 		this.changeStateHandlers = [];
 		this.dictionaries = [];
 		this.initialContextKeys = [];
+
+		if (injectedFunctions.path) {
+			this.importNamespaces = {
+				[injectedFunctions.path]: [DEFAULT_USER_FUNCTIONS_NAMESPACE],
+			};
+			this.injectedPath = injectedFunctions.path;
+		}
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary, this.eventDictionary);
 
@@ -72,12 +91,15 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			actionDictionary: this.actionDictionary,
 			stateDictionary: this.stateDictionary,
 			eventDictionary: this.eventDictionary,
+			injectedFunctions,
+			imports: this.imports,
 		});
 	}
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
 		const props = {
 			imports: this.imports,
+			importNamespaces: this.importNamespaces,
 			dictionaries: this.dictionaries,
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
@@ -88,9 +110,14 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
 			classSerializer: JavaScriptCompiler.class.serializer,
 			className: options.className,
+			defines: this.defines,
+			injectedPath: this.injectedPath,
+			injects: this.injects,
 		};
 		return `
 			${JavaScriptCompiler.imports.serializer.getImportsCode(props)}
+			${JavaScriptCompiler.imports.serializer.importAll(props)}
+			${JavaScriptCompiler.functions.serializer(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
 			${JavaScriptCompiler.events.serializer.getEventAdapterCode(props)}
 			${JavaScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}

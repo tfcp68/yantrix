@@ -1,0 +1,30 @@
+name: "All os tests"
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  merge_group: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  all-os-tests:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node_version: [18.x, 20.x, lts/*]
+        include:
+          - os: macos-latest
+            node_version: lts/*
+          - os: windows-latest
+            node_version: lts/*
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+      - id: run_test
+        uses: ./.github/actions/run_test

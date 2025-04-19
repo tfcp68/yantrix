@@ -53,6 +53,9 @@ export type TDefineIdent = {
 		};
 	};
 };
+export type TInjectIdent = {
+	identifier: string;
+};
 
 export type TDefineMap = TWithout<TMapped, 'context' | 'payload' | 'function'> & TDefineIdent;
 

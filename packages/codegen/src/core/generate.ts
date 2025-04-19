@@ -35,12 +35,12 @@ async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, op
 			transitions,
 			actionChains,
 		},
-		constants,
 	);
 
-	const codegen = creator.createCodegen({
+	const codegen = await creator.createCodegen({
 		language: options.outLang ?? ModuleNames.TypeScript,
 		constants,
+		functionFilePath: options.functionFilePath ?? null,
 	});
 
 	return codegen.getCode(options);

@@ -52,11 +52,13 @@
 		"test": "vitest run --coverage  --outputFile=../../test_reports/codegen.md",
 		"lint": "eslint .",
 		"format": "eslint --fix ."
+
 	},
 	"directories": {
 		"lib": "src"
 	},
 	"dependencies": {
+		"@yantrix/codegen": "workspace:^",
 		"@yantrix/core": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/yantrix-parser": "workspace:^"

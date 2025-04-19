@@ -2,6 +2,7 @@ export const ERRORS = {
 	DIVISION_BY_ZERO: 'Division by 0 is not acceptable',
 	INVALID_NUMBER_ARGUMENT: 'Argument must be provided and be a valid number.',
 	INVALID_NUMBER_ARGUMENTS: 'Both arguments must be provided and be valid numbers.',
+	INVALID_PRECISION_ARGUMENT: 'Precision must be a valid number.',
 	AT_LEAST_ONE_NUMBER_REQUIRED: 'At least 1 parameter must be provided and be a number.',
 	ALL_ARGUMENTS_MUST_BE_NUMBERS: 'All arguments must be numbers.',
 	LISTS_MUST_BE_ARRAYS: 'All arguments provided must be lists',
