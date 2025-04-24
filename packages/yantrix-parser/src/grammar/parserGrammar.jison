@@ -20,8 +20,7 @@
 'emit/'                              return 'EMIT'
 'define/'                            return 'DEFINE'
 'inject/'                            return 'INJECT'
-'Init'                               return 'INITIAL_STATE'
-'ByPass'                             return 'BY_PASS'
+'+Init'                               return 'INITIAL_STATE'
 
 [a-zA-Z]\w{0,254}                     return 'IDENT'
 '+'                                  return 'PLUS'

@@ -15,5 +15,5 @@
  */
 
 export * from './constants/index.js';
+export * from './core/YantrixParser.js';
 export * from './types/index.js';
-export * from './yantrixParser.js';

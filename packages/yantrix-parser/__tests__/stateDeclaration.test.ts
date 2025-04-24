@@ -5,7 +5,7 @@ describe('state description', () => {
 	const parser = new YantrixParser();
 
 	it('by default  state description should be false', () => {
-		const result = parser.parse('');
+		const result = parser.parse('inject/isBoolean');
 
 		expect(result.initialState).toBe(false);
 		expect(result.byPass).toBe(false);
