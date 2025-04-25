@@ -36,29 +36,53 @@ describe('random Function', () => {
 describe('weightedRandom Function', () => {
 	const weightedRandom = internalFunctions.weightedRandom;
 
-	const iterations = 100;
+	const iterations = 10000;
 
 	it('should return a key based on its weight', () => {
+		const keys = ['a', 'b', 'c'];
+
+		const weights = Object.fromEntries(keys.map(key => [key, randomInteger(0, 10000)]));
+		const weightSum = Object.values(weights).reduce((acc, weight) => acc + weight, 0);
+
+		const expectedResultCount = Object.fromEntries(keys.map(key => [key, 0]));
+
 		for (let i = 0; i < iterations; i++) {
-			const weights = {
-				a: randomInteger(1, 100),
-				b: randomInteger(2, 100),
-				c: randomInteger(3, 100),
-			};
 			const result = weightedRandom(weights);
 			expect(['a', 'b', 'c']).toContain(result);
+			expectedResultCount[result]!++;
+		}
+
+		for (const [key, iterationCount] of Object.entries(expectedResultCount)) {
+			const expectedCountForKey = Math.floor((weights[key]! / weightSum) * iterations);
+			const tolerance = Math.floor(iterations * 0.05); // 5% tolerance
+			const countIsCorrect = expectedCountForKey >= iterationCount - tolerance
+				&& expectedCountForKey <= iterationCount + tolerance;
+			expect(countIsCorrect, `[key: '${key}']Expected ${expectedCountForKey} to be in +-5%(${tolerance} iterations) tolerance range with ${iterationCount}`).toBe(true);
 		}
 	});
 
-	it('should throw an error if any weight is NaN', () => {
-		const weights = { a: 1, b: Number.NaN, c: 3 };
-		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains NaN values');
+	it('should throw an error if the object is empty', () => {
+		const weights = {};
+		expect(() => weightedRandom(weights)).toThrow('Weighted random object is empty');
+	});
+
+	it('should throw an error if any weight is not an integer', () => {
+		const nonIntegerValues = [Number.NaN, Infinity, -Infinity, 1.5, 'string', true, false, [], {}];
+		for (const value of nonIntegerValues) {
+			const weights = { a: 1, b: value as any, c: 3 };
+			expect(() => weightedRandom(weights)).toThrow('Weighted random object contains non-integer values');
+		}
 	});
 
 	it('should throw an error if any weight is negative', () => {
 		const weights = { a: 1, b: -2, c: 3 };
-		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains negative values');
+		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
 	});
+
+	it('should throw an error if any weight is zero', () => {
+		const weights = { a: 1, b: 0, c: 3 };
+		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
+	})
 
 	it('should handle a single key with weight', () => {
 		for (let i = 0; i < iterations; i++) {
@@ -69,24 +93,28 @@ describe('weightedRandom Function', () => {
 	});
 
 	it('should handle equal weights', () => {
+		const keys = ['a', 'b', 'c'];
+
+		const weight = randomInteger(1, 10000);
+		const weights = Object.fromEntries(keys.map(key => [key, weight])); // {a: weight, b: weight, c: weight}
+		const weightSum = Object.values(weights).reduce((acc, weight) => acc + weight, 0);
+
+		const expectedResultCount = Object.fromEntries(keys.map(key => [key, 0]));
+
 		for (let i = 0; i < iterations; i++) {
-			const weight = randomInteger(1, 100);
-			const weights = { a: weight, b: weight, c: weight };
 			const result = weightedRandom(weights);
 			expect(['a', 'b', 'c']).toContain(result);
+			expectedResultCount[result]!++;
+		}
+
+		for (const [key, iterationCount] of Object.entries(expectedResultCount)) {
+			const expectedCountForKey = Math.floor((weights[key]! / weightSum) * iterations);
+			const tolerance = Math.floor(iterations * 0.05); // 5% tolerance
+			const countIsCorrect = expectedCountForKey >= iterationCount - tolerance
+				&& expectedCountForKey <= iterationCount + tolerance;
+			expect(countIsCorrect, `[key: '${key}']Expected ${expectedCountForKey} to be in +-5%(${tolerance} iterations) tolerance range with ${iterationCount}`).toBe(true);
 		}
 	});
 
-	it('should handle zero weights correctly', () => {
-		for (let i = 0; i < iterations; i++) {
-			const weights = { a: 0, b: 0, c: randomInteger(1, 100) };
-			const result = weightedRandom(weights);
-			expect(result).toBe('c');
-		}
-	});
-
-	it('should throw an error if the object is empty', () => {
-		const weights = {};
-		expect(() => weightedRandom(weights)).toThrow('Unexpected error, could not get weighted random value');
-	});
+	
 });

@@ -105,31 +105,35 @@ function random(min?: number, max?: number): number {
  * @returns A randomly selected value based on the weights.
  * @throws An error if the object contains NaN values or if no value can be selected.
  */
-function weightedRandom(inputObject: { [key: string]: number }): string {
+function weightedRandom(object: { [key: string]: number }): string {
 	// https://trekhleb.medium.com/weighted-random-in-javascript-4748ab3a1500
 
-	// Check if any of the object's values is NaN or negative
-	for (const value of Object.values(inputObject)) {
-		if (Number.isNaN(value)) throw new Error('Weighted random object contains NaN values');
-		else if (value < 0) throw new Error('Weighted random object contains negative values');
-	}
-
-	// remove items with weights of 0 from object
-	const object = Object.fromEntries(Object.entries(inputObject).filter(([_, value]) => value > 0));
-
 	const objectKeys: string[] = Object.keys(object);
-	const objectValues: number[] = Object.values(object);
+	const objectWeights: Exclude<number[], undefined> = Object.values(object);
 
-	// prepare the list of cumulative weights
-	const cumulativeWeights: number[] = [];
-	for (let i = 0; i < objectValues.length; i++) {
-		cumulativeWeights.push(objectValues[i]! + (cumulativeWeights[i - 1] || 0));
+	// Check if the object is empty
+	if (objectKeys.length === 0) throw new Error('Weighted random object is empty');
+
+	// Check if any of the object's values is not a positive integer
+	for (const value of objectWeights) {
+		if (!Number.isInteger(value)) throw new Error('Weighted random object contains non-integer values');
+		else if (value <= 0) throw new Error('Weighted random object contains values of 0 or less');
 	}
-	// random number from 0 to the highest cumulative weight value
-	const randomNumber = Math.floor(Math.random() * cumulativeWeights[cumulativeWeights.length - 1]!);
+	
+	const weightsSum = objectWeights.reduce((acc, weight) => acc + weight, 0);
+	const cumulativeWeights: number[] = [];
+	let cumulativeWeight = 0;
+	for (
+		let index = 0;
+		index < objectWeights.length;
+		index++
+	) {
+		cumulativeWeight += objectWeights[index]! / weightsSum;
+		cumulativeWeights.push(cumulativeWeight);
+	}
 
-	// find the index of the cumulative weight that is higher or equal than the random number,
-	// return the key with the index
+	const randomNumber = Math.random();
+	
 	for (let i = 0; i < cumulativeWeights.length; i++) {
 		if (cumulativeWeights[i]! >= randomNumber) return objectKeys[i]!;
 	}
