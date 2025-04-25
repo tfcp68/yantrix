@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { randomArray, randomInteger, randomValue } from '../../utils/src';
 import { builtInFunctions } from '../src';
 
 describe('function Tests', () => {
@@ -69,34 +70,44 @@ describe('function Tests', () => {
 		});
 	});
 
-	describe('random Function', () => {
-		const iterations = 1000;
+	describe('choose Function', () => {
+		const choose = builtInFunctions.choose;
 
-		it(`should return either 0 or 1 when no arguments are provided (${iterations} iterations)`, () => {
+		it('correctly returns the options at the given index: basic tests', () => {
+			expect(choose(0, 'a', 'b', 'c')).toBe('a');
+			expect(choose(2, { a: 1 }, { b: 2 }, { c: 3 })).toStrictEqual({ c: 3 });
+			expect(choose(3, [1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12])).toStrictEqual([10, 11, 12]);
+		});
+
+		it('correctly returns the options at the given index: nested arrays', () => {
+			expect(choose(1, [100, 200, 300])).toBe(200);
+			expect(choose(2, [[100], [200], [300]])).toStrictEqual([300]);
+		});
+
+		it('correctly returns the options at the given index: random mixed-type arrays', () => {
+			const iterations = 100;
+
 			for (let i = 0; i < iterations; i++) {
-				const result = builtInFunctions.random();
-				expect([0, 1]).toContain(result);
+				const randomArgs = randomArray(randomValue, randomInteger()); // array of random amount of arguments with random types
+				const expectedArgIndex = Math.floor(Math.random() * randomArgs.length);
+				const expectedArg = randomArgs[expectedArgIndex];
+				expect(choose(expectedArgIndex, ...randomArgs)).toBe(expectedArg);
+				expect(typeof choose(expectedArgIndex, ...randomArgs)).toBe(typeof expectedArg);
 			}
 		});
 
-		it(`should return a random number between min and max (inclusive of min, exclusive of max) (${iterations} iterations)`, () => {
-			const min = 5;
-			const max = 10;
-			for (let i = 0; i < iterations; i++) {
-				const result = builtInFunctions.random(min, max);
-				expect(result).toBeGreaterThanOrEqual(min);
-				expect(result).toBeLessThan(max);
-			}
+		it('should throw an error when index is out of bounds', () => {
+			const index = randomInteger(4, 100);
+			expect(() => choose(index, 'a', 'b', 'c')).toThrow('Index out of bounds');
 		});
 
-		it(`should handle edge cases with negative ranges (${iterations} iterations)`, () => {
-			const min = -10;
-			const max = -5;
-			for (let i = 0; i < iterations; i++) {
-				const result = builtInFunctions.random(min, max);
-				expect(result).toBeGreaterThanOrEqual(min);
-				expect(result).toBeLessThan(max);
-			}
+		it('should throw an error when index is negative', () => {
+			const index = -1;
+			expect(() => choose(index, 'a', 'b', 'c')).toThrow('Index out of bounds');
+		});
+
+		it('should throw an error when no options are provided', () => {
+			expect(() => choose(0)).toThrow('No options provided');
 		});
 	});
 });

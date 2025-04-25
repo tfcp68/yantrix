@@ -12,7 +12,9 @@
  */
 
 import * as conditionals from './conditionals';
+import { automataInternals, pureInternals } from './internals';
 import * as predicates from './predicates';
+
 import * as transformers from './transformers';
 
 /**
@@ -57,3 +59,12 @@ export const builtInFunctions = {
 	...predicates,
 	...transformers,
 };
+
+// internals moved to separate object
+export const internalFunctions = {
+	...automataInternals,
+	...pureInternals,
+};
+
+// only automata internals' names are reserved, codegen needs to be able to discriminate between pure & context-dependent internals
+export const ReservedInternalFunctionNames = Object.keys(automataInternals);
