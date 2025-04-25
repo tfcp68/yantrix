@@ -109,7 +109,7 @@ function weightedRandom(object: { [key: string]: number }): string {
 	// https://trekhleb.medium.com/weighted-random-in-javascript-4748ab3a1500
 
 	const objectKeys: string[] = Object.keys(object);
-	const objectWeights: Exclude<number[], undefined> = Object.values(object);
+	const objectWeights: number[] = Object.values(object);
 
 	// Check if the object is empty
 	if (objectKeys.length === 0) throw new Error('Weighted random object is empty');
