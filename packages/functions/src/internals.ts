@@ -81,10 +81,10 @@ function currentEpoch(epochRef: { val: number }): () => { val: number } {
  * @returns The current timestamp in microseconds since the Unix epoch.
  */
 function currentTimestamp(): number {
-	if (process?.hrtime?.bigint !== undefined) {
+	if (typeof process !== undefined && process.hrtime?.bigint !== undefined) {
 		return Number(process.hrtime.bigint() / BigInt(1000));
 	}
-	else if (performance?.now !== undefined) {
+	else if (typeof performance !== undefined && performance.now !== undefined) {
 		return Math.floor(performance.now() * 1000);
 	}
 	else return Date.now() * 1000; 
