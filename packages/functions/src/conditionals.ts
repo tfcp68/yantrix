@@ -1,6 +1,6 @@
 import { find, isArray, isBoolean, isNil } from 'lodash-es';
 import { TCasePair, TNestedArray } from './types/common';
-import { variadic } from './utils/utils';
+import { flattenWhileNested, variadic } from './utils/utils';
 
 /**
  * Evaluates a condition and returns one of two values based on the result.
@@ -169,8 +169,41 @@ const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {
 	return find(values, value => !isNil(value)) ?? null;
 });
 
-function choose(index: number, ...options: any[]): any {
-	return options[index];
+/**
+ * Selects the element at the specified index from a list of options. 
+ * If the only argument after the index is an array, it flattens the array before selecting the element.
+ *
+ * @template T - The type of the elements in the options.
+ *
+ * @param index - The zero-based index of the element to select.
+ * @param options - A list of options or a single array of options to choose from.
+ * @returns The element at the specified index, or undefined if the index is out of bounds.
+ *
+ * @throws {Error} If no options are provided.
+ * @throws {Error} If the index is out of bounds.
+ *
+ * @example
+ * choose(1, 'a', 'b', 'c'); // Returns 'b'
+ * choose(2, ['a', 'b', 'c', 'd']); // Returns 'c'
+ * choose(2, [['a'], ['b'], ['c'], ['d']]); // Returns ['c']
+ * choose(0); // Throws 'No options provided'
+ * choose(5, 'a', 'b', 'c'); // Throws 'Index out of bounds'
+ */
+function choose<T>(index: number, ...options: T[] | [T[]]): T | undefined {
+    if (options.length === 0) {
+        throw new Error('No options provided');
+    }
+
+    // Flatten the options if the only argument after index is an array
+    const flattenedOptions = options.length === 1 && Array.isArray(options[0])
+        ? flattenWhileNested(options[0]) as T[]
+        : options as T[];
+
+    if (index < 0 || index >= flattenedOptions.length) {
+        throw new Error(`Index out of bounds`);
+	}
+
+    return flattenedOptions[index];
 }
 
 export {

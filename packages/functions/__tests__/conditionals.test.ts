@@ -73,26 +73,43 @@ describe('function Tests', () => {
 	describe('choose Function', () => {
 		const choose = builtInFunctions.choose;
 
-		it('should return the option at the given index', () => {
-			for (let i = 0; i < 10; i++) {
+		it('correctly returns the options at the given index: basic tests', () => {
+			expect(choose(0, 'a', 'b', 'c')).toBe('a');
+			expect(choose(2, { a: 1 }, { b: 2 }, { c: 3 })).toStrictEqual({ c: 3 });
+			expect(choose(3, [1,2,3], [4,5,6], [7,8,9], [10,11,12])).toStrictEqual([10,11,12]);
+		});
+
+		it('correctly returns the options at the given index: nested arrays', () => {
+			expect(choose(1, [100, 200, 300])).toBe(200);
+			expect(choose(2, [[100], [200], [300]])).toStrictEqual([300]);
+		})
+
+		it('correctly returns the options at the given index: random mixed-type arrays', () => {
+			const iterations = 100;
+
+			for (let i = 0; i < iterations; i++) {
 				const randomArgs = randomArray(randomValue, randomInteger()); // array of random amount of arguments with random types
 				const expectedArgIndex = Math.floor(Math.random() * randomArgs.length);
 				const expectedArg = randomArgs[expectedArgIndex];
 				expect(choose(expectedArgIndex, ...randomArgs)).toBe(expectedArg);
 				expect(typeof choose(expectedArgIndex, ...randomArgs)).toBe(typeof expectedArg);
 			}
+		})
+
+		it('should throw an error when index is out of bounds', () => {
+			const index = randomInteger(4, 100);
+			expect(() => choose(index, 'a', 'b', 'c')).toThrow('Index out of bounds');
 		});
 
-		it('should return undefined when index is out of bounds', () => {
-			expect(choose(3, 'a', 'b', 'c')).toBeUndefined();
+		it('should throw an error when index is negative', () => {
+			const index = -1;
+			expect(() => choose(index, 'a', 'b', 'c')).toThrow('Index out of bounds');
 		});
 
-		it('should return undefined when no options are provided', () => {
-			expect(choose(0)).toBeUndefined();
+		it('should throw an error when no options are provided', () => {
+			expect(() => choose(0)).toThrow('No options provided');
 		});
 
-		it('should return undefined when index is negative', () => {
-			expect(choose(-1, 'a', 'b', 'c')).toBeUndefined();
-		});
+		
 	});
 });

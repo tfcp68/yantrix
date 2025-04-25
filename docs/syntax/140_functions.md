@@ -124,7 +124,7 @@ contains(var, substring = 'searchString')
 | `if`        |             (**Binary**, any, any) => any             | - Condition<br/>- Yes option<br>- No option| `Yes option`, if `Condition` is truthy, or `No option` otherwise |
 | `case`      | (**Binary**, any, [**Binary**, any], ..., any) => any | - Condition 1<br/>- Option 1<br/>- Condition 2<br/>- Option 2</br>- ...<br/>- Default  | `Option N`, if `Condition N` is truthy, or `Default` if none are |
 | `coalesce`  |                   (any, ..) => any                    | any collection of `Expressions` | first non-Null value in the list of arguments|
-| `choose`    |                   (**Number**, [any,...] => any         | - Index<br/>- Option 1<br/>- Option 2<br/>- ...   | picks `Index+1`th option from arguments, i.e. `choose(0,"a","b")` returns `"a"` |
+| `choose`    |                   (**Number**, [any,...]) => any         | - Index<br/>- Option 1<br/>- Option 2<br/>- ...   | Picks `Index+1`th option from arguments, i.e. `choose(0,"a","b")` returns `"a"`. Throws error if index is out of bounds or options are not provided |
 
 ## Built-Ins: Internals
 

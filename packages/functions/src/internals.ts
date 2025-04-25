@@ -72,12 +72,22 @@ function currentEpoch(epochRef: { val: number }): () => { val: number } {
 	return () => epochRef;
 }
 /**
- * Retrieves the current timestamp in milliseconds.
+ * Retrieves the current timestamp in microseconds.
+ * Priority of retrieval methods is as follows:
+ * 1. `process.hrtime.bigint()` (Node.js)
+ * 2. `performance.now()` (Node.js)
+ * 3. `Date.now()` (JavaScript)
  *
- * @returns The current timestamp in milliseconds since the Unix epoch.
+ * @returns The current timestamp in microseconds since the Unix epoch.
  */
 function currentTimestamp(): number {
-	return Date.now(); // in milliseconds, for microseconds need process.hrtime() from node.js
+	if (process?.hrtime?.bigint !== undefined) {
+		return Number(process.hrtime.bigint() / BigInt(1000));
+	}
+	else if (performance?.now !== undefined) {
+		return Math.floor(performance.now() * 1000);
+	}
+	else return Date.now() * 1000; 
 }
 /**
  * Retrieves the current time in ISO-8601 format.
@@ -98,6 +108,7 @@ function random(min?: number, max?: number): number {
 	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
 }
+
 /**
  * Generates a weighted random value based on the provided object.
  *
