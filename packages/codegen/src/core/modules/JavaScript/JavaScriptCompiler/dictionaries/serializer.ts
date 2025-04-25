@@ -122,6 +122,14 @@ export function getActionToStateFromState(props: {
 	}).join('\n\t')}}`;
 }
 
+export function getAutomataEpochCounterCode() {
+	const lines: string[] = [];
+	lines.push(`const epoch = { val: 1 };`);
+	lines.push(`const incrementEpoch = () => { epoch.val++ };`);
+	lines.push(`const getEpoch = () => epoch.val;`);
+	return lines.join('\n');
+}
+
 export function getAutomataInternalsRegisterCode(props: {
 	className: string;
 }) {
@@ -134,13 +142,9 @@ export function getAutomataInternalsRegisterCode(props: {
 	lines.push(`\t"currentActionId": internalFunctions.currentActionId(${className}),`);
 	lines.push(`\t"currentActionName": internalFunctions.currentActionName(${className}, actionsDictionary),`);
 	lines.push(`\t"currentCycle": internalFunctions.currentCycle(${className}),`);
-	lines.push(`\t"currentEpoch": internalFunctions.currentEpoch(epoch),`);
+	lines.push(`\t"currentEpoch": getEpoch,`);
 	lines.push(`}`);
 	return lines.join('\n');
-}
-
-export function getAutomataEpochCounterCode() {
-	return `const epoch = { val: 1 };`;
 }
 
 export function getFunctionDictionaryInternalRegisterCode() {

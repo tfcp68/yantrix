@@ -104,12 +104,12 @@ describe('automata internal functions tests', async () => {
 
 		it('initial epoch is 1', () => {
 			const currentEpoch = currentEpochFunction();
-			expect(currentEpoch.val).toBe(1);
+			expect(currentEpoch).toBe(1);
 		});
 		it('epoch is incremented after action dispatch of some automata', async () => {
 			automata.dispatch({ action: actionsDictionary.Switch, payload: {} });
 			const currentEpoch = currentEpochFunction();
-			expect(currentEpoch.val).toBe(2);
+			expect(currentEpoch).toBe(2);
 		});
 	});
 });
