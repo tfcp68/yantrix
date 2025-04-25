@@ -61,37 +61,6 @@ describe('weightedRandom Function', () => {
 		}
 	});
 
-	it('should throw an error if the object is empty', () => {
-		const weights = {};
-		expect(() => weightedRandom(weights)).toThrow('Weighted random object is empty');
-	});
-
-	it('should throw an error if any weight is not an integer', () => {
-		const nonIntegerValues = [Number.NaN, Infinity, -Infinity, 1.5, 'string', true, false, [], {}];
-		for (const value of nonIntegerValues) {
-			const weights = { a: 1, b: value as any, c: 3 };
-			expect(() => weightedRandom(weights)).toThrow('Weighted random object contains non-integer values');
-		}
-	});
-
-	it('should throw an error if any weight is negative', () => {
-		const weights = { a: 1, b: -2, c: 3 };
-		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
-	});
-
-	it('should throw an error if any weight is zero', () => {
-		const weights = { a: 1, b: 0, c: 3 };
-		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
-	})
-
-	it('should handle a single key with weight', () => {
-		for (let i = 0; i < iterations; i++) {
-			const weights = { a: randomInteger(1, 100) };
-			const result = weightedRandom(weights);
-			expect(result).toBe('a');
-		}
-	});
-
 	it('should handle equal weights', () => {
 		const keys = ['a', 'b', 'c'];
 
@@ -116,5 +85,35 @@ describe('weightedRandom Function', () => {
 		}
 	});
 
-	
+	it('should handle a single key with weight', () => {
+		for (let i = 0; i < iterations; i++) {
+			const weights = { a: randomInteger(1, 100) };
+			const result = weightedRandom(weights);
+			expect(result).toBe('a');
+		}
+	});
+
+	it('should throw an error if the object is empty', () => {
+		const weights = {};
+		expect(() => weightedRandom(weights)).toThrow('Weighted random object is empty');
+	});
+
+	it('should throw an error if any weight is not an integer', () => {
+		const nonIntegerValues = [Number.NaN, Infinity, -Infinity, 1.5, 'string', true, false, [], {}];
+		for (const value of nonIntegerValues) {
+			const weights = { a: 1, b: value as any, c: 3 };
+			expect(() => weightedRandom(weights)).toThrow('Weighted random object contains non-integer values');
+		}
+	});
+
+	it('should throw an error if any weight is negative', () => {
+		const weights = { a: 1, b: -2, c: 3 };
+		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
+	});
+
+	it('should throw an error if any weight is zero', () => {
+		const weights = { a: 1, b: 0, c: 3 };
+		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
+	})
+
 });
