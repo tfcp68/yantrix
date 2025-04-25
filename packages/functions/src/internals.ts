@@ -83,11 +83,11 @@ function currentEpoch(epochRef: { val: number }): () => { val: number } {
 function currentTimestamp(): number {
 	if (process?.hrtime?.bigint !== undefined) {
 		return Number(process.hrtime.bigint() / BigInt(1000));
-	}
-	else if (performance?.now !== undefined) {
+	} else if (performance?.now !== undefined) {
 		return Math.floor(performance.now() * 1000);
+	} else {
+		return Date.now() * 1000;
 	}
-	else return Date.now() * 1000; 
 }
 /**
  * Retrieves the current time in ISO-8601 format.
@@ -130,7 +130,7 @@ function weightedRandom(object: { [key: string]: number }): string {
 		if (!Number.isInteger(value)) throw new Error('Weighted random object contains non-integer values');
 		else if (value <= 0) throw new Error('Weighted random object contains values of 0 or less');
 	}
-	
+
 	const weightsSum = objectWeights.reduce((acc, weight) => acc + weight, 0);
 	const cumulativeWeights: number[] = [];
 	let cumulativeWeight = 0;
@@ -144,7 +144,7 @@ function weightedRandom(object: { [key: string]: number }): string {
 	}
 
 	const randomNumber = Math.random();
-	
+
 	for (let i = 0; i < cumulativeWeights.length; i++) {
 		if (cumulativeWeights[i]! >= randomNumber) return objectKeys[i]!;
 	}

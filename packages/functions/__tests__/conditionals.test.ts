@@ -76,13 +76,13 @@ describe('function Tests', () => {
 		it('correctly returns the options at the given index: basic tests', () => {
 			expect(choose(0, 'a', 'b', 'c')).toBe('a');
 			expect(choose(2, { a: 1 }, { b: 2 }, { c: 3 })).toStrictEqual({ c: 3 });
-			expect(choose(3, [1,2,3], [4,5,6], [7,8,9], [10,11,12])).toStrictEqual([10,11,12]);
+			expect(choose(3, [1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12])).toStrictEqual([10, 11, 12]);
 		});
 
 		it('correctly returns the options at the given index: nested arrays', () => {
 			expect(choose(1, [100, 200, 300])).toBe(200);
 			expect(choose(2, [[100], [200], [300]])).toStrictEqual([300]);
-		})
+		});
 
 		it('correctly returns the options at the given index: random mixed-type arrays', () => {
 			const iterations = 100;
@@ -94,7 +94,7 @@ describe('function Tests', () => {
 				expect(choose(expectedArgIndex, ...randomArgs)).toBe(expectedArg);
 				expect(typeof choose(expectedArgIndex, ...randomArgs)).toBe(typeof expectedArg);
 			}
-		})
+		});
 
 		it('should throw an error when index is out of bounds', () => {
 			const index = randomInteger(4, 100);
@@ -109,7 +109,5 @@ describe('function Tests', () => {
 		it('should throw an error when no options are provided', () => {
 			expect(() => choose(0)).toThrow('No options provided');
 		});
-
-		
 	});
 });
