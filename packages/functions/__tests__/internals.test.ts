@@ -114,6 +114,5 @@ describe('weightedRandom Function', () => {
 	it('should throw an error if any weight is zero', () => {
 		const weights = { a: 1, b: 0, c: 3 };
 		expect(() => weightedRandom(weights)).toThrow('Weighted random object contains values of 0 or less');
-	})
-
+	});
 });
