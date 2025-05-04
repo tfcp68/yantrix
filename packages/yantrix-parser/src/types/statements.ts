@@ -73,4 +73,11 @@ export type TInject = {
 	inject: TInjectIdent[];
 };
 
-export type TNotes = TInitialState & TContextDescription & TSubscribes & TEmits & TByPass & TDefines & TInject & TExpressionStatement;
+export type TNotes = TInitialState
+	& TContextDescription
+	& TSubscribes
+	& TEmits
+	& TByPass
+	& TDefines
+	& TInject
+	& TExpressionStatement;

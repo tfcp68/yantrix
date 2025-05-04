@@ -7,8 +7,8 @@ import {
 	randomValueFunction,
 } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
+import { isContextWithReducer, isKeyItemWithExpression, YantrixParser } from '../src';
 import { ReservedList, SpecialCharList } from '../src/constants/index.js';
-import { YantrixParser } from '../src/yantrixParser.js';
 import {
 	baseContext,
 	baseContextWithPrevious,
@@ -216,6 +216,14 @@ describe('base grammar declarations', () => {
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
+			if (!contextLeftDescription || !contextRightDescription) {
+				throw new Error('context description is empty');
+			}
+
+			if (!isContextWithReducer(contextLeftDescription) || !isContextWithReducer(contextRightDescription)) {
+				throw new Error('context description is not a context with reducer');
+			}
+
 			const { context: contextLeft, reducer: payloadLeft } = contextLeftDescription;
 			const { context: contextRight, reducer: payloadRight } = contextRightDescription;
 
@@ -233,6 +241,14 @@ describe('base grammar declarations', () => {
 			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= $${right2}, $${right1}`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
+
+			if (!contextLeftDescription || !contextRightDescription) {
+				throw new Error('context description is empty');
+			}
+
+			if (!isContextWithReducer(contextLeftDescription) || !isContextWithReducer(contextRightDescription)) {
+				throw new Error('context description is not a context with reducer');
+			}
 
 			const { context: contextLeft, reducer: payloadLeft } = contextLeftDescription;
 			const { context: contextRight, reducer: payloadRight } = contextRightDescription;
@@ -252,12 +268,19 @@ describe('base grammar declarations', () => {
 			const parsedRight = parser.parse(`#{     ${left1},	${left2}      ,   ${left3}   }`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
+			if (!contextLeftDescription || !contextRightDescription) {
+				throw new Error('contextLeftDescription or contextRightDescription is undefined');
+			}
 
 			const { context: contextLeft } = contextLeftDescription;
 			const { context: contextRight } = contextRightDescription;
 
-			contextLeft.forEach((el: any, index: any) => {
-				expect(el).toMatchObject(contextRight[index]);
+			contextLeft.forEach((el, index: number) => {
+				const ctxRightItem = contextRight[index];
+				if (!ctxRightItem) {
+					throw new Error('contextRight item is undefined');
+				}
+				expect(el).toMatchObject(ctxRightItem);
 			});
 		});
 	});
@@ -405,7 +428,11 @@ describe('base grammar declarations', () => {
 				const cases = generateRandomStatementsFromTemplate(validExpressionDefaultValues);
 				it.each(cases)('%s --- CORRECT', (input) => {
 					const result = parser.parse(input);
-					assert.isOk(result.contextDescription[0].context[0].keyItem.expression);
+					const k = result.contextDescription[0]?.context[0]?.keyItem;
+					if (!isKeyItemWithExpression(k)) {
+						throw new Error(`${k} is not a key item with expression`);
+					}
+					assert.isOk(k.expression);
 				});
 			});
 
@@ -422,8 +449,12 @@ describe('base grammar declarations', () => {
 				const cases = Array.from({ length: randomInteger() }, () => `#{${randomString()} = []}`);
 				it.each(cases)('%s --- CORRECT', (input) => {
 					const result = parser.parse(input);
+					const k = result.contextDescription[0]?.context[0]?.keyItem;
+					if (!isKeyItemWithExpression(k)) {
+						throw new Error(`${k} is not a key item with expression`);
+					}
 					assert.deepNestedInclude(
-						result.contextDescription[0].context[0].keyItem.expression,
+						k.expression,
 						expressionProperties.array(),
 					);
 				});
@@ -448,7 +479,11 @@ describe('base grammar declarations', () => {
 		const cases = generateExpressionCases(expressionTemplates);
 		it.each(cases)('%s', (input: string, obj) => {
 			const result = parser.parse(input);
-			assert.deepNestedInclude(result.contextDescription[0].context[0].keyItem.expression, obj);
+			const k = result.contextDescription[0]?.context[0]?.keyItem;
+			if (!isKeyItemWithExpression(k)) {
+				throw new Error(`${k} is not a key item with expression`);
+			}
+			assert.deepNestedInclude(k.expression, obj);
 		});
 	});
 

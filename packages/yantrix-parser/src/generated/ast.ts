@@ -9,13 +9,12 @@
 import * as langium from 'langium';
 
 export const YantrixLanguageTerminals = {
-    ID: /[a-zA-Z][a-zA-Z0-9\.]*|[a-zA-Z]\w{0,254}/,
-    STRING: /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/,
-    INT: /\-?[0-9]+|0x[0-9A-Fa-f]+/,
-    DECIMAL: /\-?[0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)?/,
     WS: /\s+/,
-    ML_COMMENT: /\/\*[\s\S]*?\*\//,
-    SL_COMMENT: /\/\/[^\n\r]*/,
+    FUNCTION_CALL: /[A-Za-z]{1,}[A-Za-z0-9\.]*([(])/,
+    ID: /[a-zA-Z]\w{0,254}/,
+    STRING: /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/,
+    DECIMAL: /-?(\d*\.)?\d+/,
+    INT: /-?\d+/,
 };
 
 export type YantrixLanguageTerminalNames = keyof typeof YantrixLanguageTerminals;
@@ -33,9 +32,7 @@ export type YantrixLanguageKeywordNames =
     | "="
     | "=>"
     | "?"
-    | "["
     | "[]"
-    | "]"
     | "define/"
     | "emit/"
     | "inject/"

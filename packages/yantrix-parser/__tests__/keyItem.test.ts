@@ -1,6 +1,6 @@
 import { randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
-import { YantrixParser } from '../src/yantrixParser.js';
+import { isKeyItemWithExpression, YantrixParser } from '../src';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
 	allowedExpressions,
@@ -113,13 +113,24 @@ describe('key list', () => {
 						const output = parser.parse(formatInput);
 
 						const { contextDescription } = output;
-						const context = contextDescription[0].context;
+						const ctxItem = contextDescription[0];
+						if (!ctxItem) {
+							throw new Error(`contextDescription is empty`);
+						}
+						const context = ctxItem.context;
 
 						expect(targetPropertyCount).toBe(context.length);
 
 						keyItems.forEach(({ initialValue, /* input, */ key }, index) => {
-							const { keyItem } = context[index];
-							const { identifier } = keyItem;
+							const keyItemPicked = context[index];
+							if (!keyItemPicked) {
+								throw new Error(`keyItemPicked is empty`);
+							}
+							const { identifier } = keyItemPicked.keyItem;
+
+							if (!isKeyItemWithExpression(keyItemPicked)) {
+								throw new Error(`keyItemPicked is not a keyItemWithExpression`);
+							}
 
 							const targetPropertyInput = key;
 
@@ -128,7 +139,7 @@ describe('key list', () => {
 							const expected = value.output(targetPropertyValue);
 
 							expect(targetPropertyInput).toBe(identifier);
-							expect(keyItem.expression).toStrictEqual(expected);
+							expect(keyItemPicked.expression).toStrictEqual(expected);
 						});
 					}
 				});
@@ -145,21 +156,24 @@ describe('key list', () => {
 				const formattedInput = `#{${inputArray.join(',')}}`;
 
 				const output = parser.parse(formattedInput);
-
 				const { contextDescription } = output;
-				const context = contextDescription[0].context;
+				const context = contextDescription[0]?.context;
+				if (!context) throw new Error('context is empty');
 
 				expect(keyItemsCount).toBe(context.length);
 
 				keyItems.forEach((item: any, index: any) => {
-					const { keyItem } = context[index];
-					const { identifier } = keyItem;
-					const { expression } = keyItem;
+					const key = context[index];
+					if (!key) throw new Error('key is empty');
+					const { identifier } = key.keyItem;
 
 					const targetPropertyInput = item.value.split('=')[0];
 
 					expect(targetPropertyInput).toBe(identifier);
-					expect(expression).toStrictEqual(item.output);
+					if (!isKeyItemWithExpression(key.keyItem)) {
+						throw new Error('keyItem is not with expression');
+					}
+					expect(key.keyItem.expression).toStrictEqual(item.output);
 				});
 			}
 		});
@@ -190,7 +204,9 @@ describe('key list', () => {
 					const output = parser.parse(formattedInput);
 
 					const { contextDescription } = output;
-					const context = contextDescription[0].context;
+					const ctxItem = contextDescription[0];
+					if (!ctxItem) throw new Error('ctxItem is empty');
+					const context = ctxItem.context;
 
 					const lastContextItem = context[context.length - 1];
 
@@ -212,7 +228,10 @@ describe('key list', () => {
 					const output = parser.parse(formattedInput);
 
 					const { contextDescription } = output;
-					const context = contextDescription[0].context;
+
+					const ctxItem = contextDescription[0];
+					if (!ctxItem) throw new Error('ctxItem is empty');
+					const context = ctxItem.context;
 
 					const emptyOutputElements = context.slice(generatedRandomInitial.length);
 					emptyOutputElements.forEach((el: any, index: any) => {

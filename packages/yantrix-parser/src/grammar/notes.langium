@@ -1,5 +1,12 @@
 grammar YantrixLanguage
 
+hidden terminal WS: /\s+/;
+terminal FUNCTION_CALL: /[A-Za-z]{1,}[A-Za-z0-9\.]*([(])/;
+terminal ID: /[a-zA-Z]\w{0,254}/;
+terminal STRING: /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/;
+terminal DECIMAL returns number: /-?(\d*\.)?\d+/ ;
+terminal INT returns number: /-?\d+/ ;
+
 interface Expression {
   inner?:Expression
 }
@@ -52,13 +59,13 @@ ContextStatement:
 
 EmitStatement:
     'emit/' identifier=ID
-    ('[' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ']')?
+    ('(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ')')?
     ('<=' '#' '{' (contextItems+=RawKeyItem (',' contextItems+=RawKeyItem)*)? '}')?;
 
 SubscribeStatement:
     'subscribe/' eventIdentifier=ID actionName=ID
-    ('[' (payloadItems+=KeyItem (',' payloadItems+=KeyItem)*)? ']')?
-    ('<=' '[' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ']')?;
+    ('(' (payloadItems+=KeyItem (',' payloadItems+=KeyItem)*)? ')')?
+    ('<=' '(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ')')?;
 
 DefineStatement:
     'define/' identifier=ID
@@ -97,19 +104,18 @@ DefineFunction:
     FunctionCall | Immutable | Constant;
 
 FunctionCall:
-    name=ID '(' (arguments+=Expression (',' arguments+=Expression)*)? ')';
+    name=FUNCTION_CALL (arguments+=Expression (',' arguments+=Expression)*)? ')';
 
-// Выражения
+
 Expression returns Expression:
     Immutable | DataObject | FunctionCall |
-    '(' inner=Expression ')'; // Поддержка скобок
+    '(' inner=Expression ')';
 
 Immutable returns Immutable:
     ArrayLiteral | StringLiteral | NumberLiteral;
 
 ArrayLiteral returns ArrayLiteral:
-    {ArrayLiteral} '[]' | 
-    '[' elements+=Expression (',' elements+=Expression)* ']';
+    {ArrayLiteral} '[]';
 
 StringLiteral returns StringLiteral:
     value=STRING;
@@ -117,12 +123,9 @@ StringLiteral returns StringLiteral:
 NumberLiteral returns NumberLiteral:
     value=INT | value=DECIMAL;
 
-// Терминальные правила
-terminal ID: /[a-zA-Z][a-zA-Z0-9\.]*|[a-zA-Z]\w{0,254}/;
-terminal STRING: /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/;
-terminal INT returns number: /\-?[0-9]+|0x[0-9A-Fa-f]+/;
-terminal DECIMAL returns number: /\-?[0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)?/;
 
-hidden terminal WS: /\s+/;
-hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
-hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
+
+
+
+
+
