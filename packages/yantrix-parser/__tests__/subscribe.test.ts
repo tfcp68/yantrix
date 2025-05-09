@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { YantrixParser } from '../src';
+import { YantrixParser } from '../src/core/yantrixParser';
 
 describe('subscribe', () => {
 	it('should be throw error without event name ', async () => {

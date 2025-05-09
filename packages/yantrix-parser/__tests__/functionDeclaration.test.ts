@@ -1,6 +1,7 @@
 import { randomArray, randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
-import { YantrixParser } from '../src';
+
+import { YantrixParser } from '../src/index.js';
 import { functionsFixtures } from './fixtures/keyItem.js';
 
 type TCaseFunction = [

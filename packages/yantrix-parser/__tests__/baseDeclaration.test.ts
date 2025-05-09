@@ -7,8 +7,9 @@ import {
 	randomValueFunction,
 } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
-import { isContextWithReducer, isKeyItemWithExpression, YantrixParser } from '../src';
 import { ReservedList, SpecialCharList } from '../src/constants/index.js';
+import { YantrixParser } from '../src/core/yantrixParser.js';
+import { isContextWithReducer, isKeyItemWithExpression } from '../src/index.js';
 import {
 	baseContext,
 	baseContextWithPrevious,
