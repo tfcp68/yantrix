@@ -1,7 +1,7 @@
 import { randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
 
-import { YantrixParser } from '../src/core/yantrixParser.js';
+import { YantrixParser } from '../src/index.js';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
 	allowedExpressions,
