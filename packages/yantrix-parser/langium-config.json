@@ -1,0 +1,15 @@
+{
+	"projectName": "YantrixLanguage",
+	"languages": [
+		{
+			"caseInsensitive": true,
+			"id": "yantrix",
+			"grammar": "src/grammar/notes.langium",
+			"fileExtensions": [".ytx"],
+			"textMate": {
+				"out": "syntaxes/yantrix.tmLanguage.json"
+			}
+		}
+	],
+	"out": "src/generated"
+}
