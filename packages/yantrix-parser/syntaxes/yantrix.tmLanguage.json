@@ -1,42 +1,42 @@
 {
-  "name": "yantrix",
-  "scopeName": "source.yantrix",
-  "fileTypes": [
-    ".ytx"
-  ],
-  "patterns": [
-    {
-      "include": "#comments"
-    },
-    {
-      "name": "keyword.control.yantrix",
-      "match": "(?i)\\B(\\+ByPass|\\+Init)\\b|\\b(define/|emit/|inject/|subscribe/)\\B"
-    },
-    {
-      "name": "string.quoted.double.yantrix",
-      "begin": "\"",
-      "end": "\"",
-      "patterns": [
-        {
-          "include": "#string-character-escape"
-        }
-      ]
-    },
-    {
-      "name": "string.quoted.single.yantrix",
-      "begin": "'",
-      "end": "'",
-      "patterns": [
-        {
-          "include": "#string-character-escape"
-        }
-      ]
-    }
-  ],
-  "repository": {
-    "string-character-escape": {
-      "name": "constant.character.escape.yantrix",
-      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
-    }
-  }
+	"name": "yantrix",
+	"scopeName": "source.yantrix",
+	"fileTypes": [
+		".ytx"
+	],
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"name": "keyword.control.yantrix",
+			"match": "(?i)\\B(\\+ByPass|\\+Init)\\b|\\b(define/|emit/|inject/|subscribe/)\\B"
+		},
+		{
+			"name": "string.quoted.double.yantrix",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"include": "#string-character-escape"
+				}
+			]
+		},
+		{
+			"name": "string.quoted.single.yantrix",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"include": "#string-character-escape"
+				}
+			]
+		}
+	],
+	"repository": {
+		"string-character-escape": {
+			"name": "constant.character.escape.yantrix",
+			"match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+		}
+	}
 }

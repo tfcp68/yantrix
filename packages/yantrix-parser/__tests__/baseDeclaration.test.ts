@@ -200,19 +200,19 @@ describe('base grammar declarations', () => {
 			['subscribe/event action (#m) <= (#k)', baseSubscribe],
 			['emit/event (#t) <= #{ab}', baseEmitEvent],
 		] as const;
-		it.each(base)('%s', (input: any, res: any) => {
-			const result = parser.parse(input as string);
+		it.each(base)('%s', async (input: any, res: any) => {
+			const result = await parser.parse(input as string);
 			assert.deepOwnInclude(result, res);
 		});
 	});
 	describe('identical output with ', () => {
-		it('#{Left1, Left2} <= #Right1, #Right2 is #{Left2, Left1} <= #Right2, #Right1', () => {
+		it('#{Left1, Left2} <= #Right1, #Right2 is #{Left2, Left1} <= #Right2, #Right1', async () => {
 			const parser = new YantrixParser();
 
 			const [left1, left2, right1, right2] = Array.from(Array.from({ length: 4 }), () => randomString());
 
-			const parsedLeft = parser.parse(`#{${left1}, ${left2}} <= $${right1}, $${right2}`);
-			const parsedRight = parser.parse(`#{${left2}, ${left1}} <= $${right2}, $${right1}`);
+			const parsedLeft = await parser.parse(`#{${left1}, ${left2}} <= $${right1}, $${right2}`);
+			const parsedRight = await parser.parse(`#{${left2}, ${left1}} <= $${right2}, $${right1}`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -234,11 +234,11 @@ describe('base grammar declarations', () => {
 			expect(payloadLeft[1]).toStrictEqual(payloadRight[0]);
 		});
 
-		it('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', () => {
+		it('#{Left1, Left2, Left3} <= (Right1, Right2) = #{Left2, Left1, Left3} <= (Right2, Right1)', async () => {
 			const parser = new YantrixParser();
 			const [left1, left2, left3, right1, right2] = Array.from(Array.from({ length: 4 }), () => randomString());
-			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}} <= $${right1}, $${right2}`);
-			const parsedRight = parser.parse(`#{${left2}, ${left1}, ${left3}} <= $${right2}, $${right1}`);
+			const parsedLeft = await parser.parse(`#{${left1}, ${left2}, ${left3}} <= $${right1}, $${right2}`);
+			const parsedRight = await parser.parse(`#{${left2}, ${left1}, ${left3}} <= $${right2}, $${right1}`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 
@@ -261,11 +261,11 @@ describe('base grammar declarations', () => {
 			expect(payloadLeft[1]).toStrictEqual(payloadRight[0]);
 			expect(payloadLeft[2]).toStrictEqual(payloadRight[2]);
 		});
-		it('#{Left1, Left2, Left3} = #{     Left1,	Left2      ,   Left3  }', () => {
+		it('#{Left1, Left2, Left3} = #{     Left1,	Left2      ,   Left3  }', async () => {
 			const parser = new YantrixParser();
 			const [left1, left2, left3] = Array.from({ length: 3 }).map(() => randomString());
-			const parsedLeft = parser.parse(`#{${left1}, ${left2}, ${left3}}`);
-			const parsedRight = parser.parse(`#{     ${left1},	${left2}      ,   ${left3}   }`);
+			const parsedLeft = await parser.parse(`#{${left1}, ${left2}, ${left3}}`);
+			const parsedRight = await parser.parse(`#{     ${left1},	${left2}      ,   ${left3}   }`);
 			const contextLeftDescription = parsedLeft.contextDescription[0];
 			const contextRightDescription = parsedRight.contextDescription[0];
 			if (!contextLeftDescription || !contextRightDescription) {
@@ -290,16 +290,15 @@ describe('base grammar declarations', () => {
 
 		describe('correct statements', () => {
 			const cases = generateRandomStatementsFromTemplate(validContextStatements);
-			it.each(cases)('%s --- CORRECT', (input) => {
-				const result = parser.parse(input);
-				assert.isOk(result);
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
 		describe('incorrect statements', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidContextStatements);
-			it.each(cases)('%s -- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s -- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrowError();
 			});
 		});
 	});
@@ -312,15 +311,15 @@ describe('base grammar declarations', () => {
 				...SpecialCharList.map((char: string) => `#{${char}${randomString()}}`),
 				...SpecialCharList.map((char: string) => `#{${randomString()}${char}}`),
 			];
-			it.each(cases)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s --- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrowError();
 			});
 		});
 
 		describe('key item descriptor cannot start with a number', () => {
 			const cases = [...Array.from({ length: 10 }).keys()].map(number => `#{${number}${randomString()}}`);
-			it.each(cases)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s --- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrowError();
 			});
 		});
 
@@ -331,17 +330,16 @@ describe('base grammar declarations', () => {
 			const cases = [...Array.from({ length: 10 }).keys()].map(
 				number => `#{${stringBeforeNumber}${number}${stringAfterNumber}}`,
 			);
-			it.each(cases)('%s --- CORRECT', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
 		describe('key item descriptor can start with lowercase and uppercase letters', () => {
 			const cases = Array.from({ length: randomInteger() }, () =>
 				Math.random() < 0.5 ? `#{${randomString().toUpperCase()}}` : `#{${randomString().toLowerCase()}}`);
-			it.each(cases)('%s --- CORRECT', (input) => {
-				const result = parser.parse(input);
-				assert.isOk(result);
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 	});
@@ -359,8 +357,8 @@ describe('base grammar declarations', () => {
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
-			it.each(cases)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s --- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrowError();
 			});
 		});
 
@@ -376,8 +374,8 @@ describe('base grammar declarations', () => {
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
-			it.each(cases)('%s --- CORRECT', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
@@ -395,8 +393,8 @@ describe('base grammar declarations', () => {
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
-			it.each(cases)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s --- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrowError();
 			});
 		});
 
@@ -414,8 +412,8 @@ describe('base grammar declarations', () => {
 				return stringToParse;
 			};
 			const cases = Array.from({ length: randomInteger() }, () => generateCase(randomInteger()));
-			it.each(cases)('%s --- CORRECT', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 	});
@@ -426,8 +424,8 @@ describe('base grammar declarations', () => {
 		describe('normal expressions', () => {
 			describe('correct expressions', () => {
 				const cases = generateRandomStatementsFromTemplate(validExpressionDefaultValues);
-				it.each(cases)('%s --- CORRECT', (input) => {
-					const result = parser.parse(input);
+				it.each(cases)('%s --- CORRECT', async (input) => {
+					const result = await parser.parse(input);
 					const k = result.contextDescription[0]?.context[0]?.keyItem;
 					if (!isKeyItemWithExpression(k)) {
 						throw new Error(`${k} is not a key item with expression`);
@@ -438,8 +436,8 @@ describe('base grammar declarations', () => {
 
 			describe('incorrect expressions', () => {
 				const cases = generateRandomStatementsFromTemplate(invalidExpressionDefaultValues);
-				it.each(cases)(`%s --- ERROR`, (input) => {
-					expect(() => parser.parse(input)).toThrowError();
+				it.each(cases)(`%s --- ERROR`, async (input) => {
+					await expect(async () => await parser.parse(input)).rejects.toThrow();
 				});
 			});
 		});
@@ -447,8 +445,8 @@ describe('base grammar declarations', () => {
 		describe('array expressions', () => {
 			describe('empty array expression can be created', () => {
 				const cases = Array.from({ length: randomInteger() }, () => `#{${randomString()} = []}`);
-				it.each(cases)('%s --- CORRECT', (input) => {
-					const result = parser.parse(input);
+				it.each(cases)('%s --- CORRECT', async (input) => {
+					const result = await parser.parse(input);
 					const k = result.contextDescription[0]?.context[0]?.keyItem;
 					if (!isKeyItemWithExpression(k)) {
 						throw new Error(`${k} is not a key item with expression`);
@@ -466,8 +464,8 @@ describe('base grammar declarations', () => {
 					{ length: 1000 },
 					() => `#{${randomString()} = [${createTuple(randomValueFunction()).toString()}]}`,
 				);
-				it.each(cases)('%s --- ERROR', (input) => {
-					expect(() => parser.parse(input)).toThrowError();
+				it.each(cases)('%s --- ERROR', async (input) => {
+					await expect(async () => await parser.parse(input)).rejects.toThrow();
 				});
 			});
 		});
@@ -477,8 +475,8 @@ describe('base grammar declarations', () => {
 		const parser = new YantrixParser();
 
 		const cases = generateExpressionCases(expressionTemplates);
-		it.each(cases)('%s', (input: string, obj) => {
-			const result = parser.parse(input);
+		it.each(cases)('%s', async (input: string, obj) => {
+			const result = await parser.parse(input);
 			const k = result.contextDescription[0]?.context[0]?.keyItem;
 			if (!isKeyItemWithExpression(k)) {
 				throw new Error(`${k} is not a key item with expression`);
@@ -492,15 +490,15 @@ describe('base grammar declarations', () => {
 
 		describe('correct expressions', () => {
 			const cases = generateRandomStatementsFromTemplate(validStateTransformerStatements);
-			it.each(cases)('%s --- CORRECT', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
 		describe('incorrect expressions', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidStateTransformerStatements);
-			it.each(cases)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s --- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrow();
 			});
 		});
 	});
@@ -510,15 +508,15 @@ describe('base grammar declarations', () => {
 
 		describe('correct expressions', () => {
 			const cases = generateRandomStatementsFromTemplate(validSubscribeStatements);
-			it.each(cases)('%s --- CORRECT', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s --- CORRECT', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
 		describe('incorrect expressions', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidSubscribeStatements);
-			it.each(cases)('%s --- ERROR', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s --- ERROR', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrow();
 			});
 		});
 	});
@@ -528,12 +526,12 @@ describe('base grammar declarations', () => {
 
 		describe('correct statements', () => {
 			const cases = generateRandomStatementsFromTemplate(validEmitStatements);
-			it.each(cases)('%s --- CORRECT', str => assert.isOk(parser.parse(str)));
+			it.each(cases)('%s --- CORRECT', async str => await expect(parser.parse(str)).resolves.toBeDefined());
 		});
 
 		describe('incorrect statements', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidEmitStatements);
-			it.each(cases)(`%s --- ERROR`, str => expect(() => parser.parse(str)).toThrowError());
+			it.each(cases)(`%s --- ERROR`, async str => await expect(async () => await parser.parse(str)).rejects.toThrow());
 		});
 	});
 
@@ -542,12 +540,12 @@ describe('base grammar declarations', () => {
 
 		describe('correct statements', () => {
 			const cases = generateRandomStatementsFromTemplate(validExpressionStatements, 1);
-			it.each(cases)('%s --- CORRECT', str => assert.isOk(parser.parse(str)));
+			it.each(cases)('%s --- CORRECT', async str => await expect(parser.parse(str)).resolves.toBeDefined());
 		});
 
 		describe('incorrect statements', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidExpressionStatements, 1);
-			it.each(cases)(`%s --- ERROR`, str => expect(() => parser.parse(str)).toThrowError());
+			it.each(cases)(`%s --- ERROR`, async str => await expect(async () => await parser.parse(str)).rejects.toThrow());
 		});
 	});
 });

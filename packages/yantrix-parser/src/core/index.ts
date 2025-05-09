@@ -1,16 +1,29 @@
 import { EmptyFileSystem } from 'langium';
-import { ExpressionTypes } from '../constants';
+import { parseHelper } from 'langium/test';
+import { ExpressionTypes, maxNestedFuncLevel } from '../constants';
 import {
+	ArgumentReference,
+	ArrayLiteral,
 	KeyItem as AstKeyItem,
 	Constant,
 	ContextReference,
 	ContextStatement,
+	DataObject,
 	DataObjectReference,
 	DefineStatement,
 	EmitStatement,
 	Expression,
 	FunctionCall,
 	InjectStatement,
+	isByPassStatement,
+	isContextStatement,
+	isDefineStatement,
+	isEmitStatement,
+	isExpressionStatement,
+	isFunctionCall,
+	isInitialStateStatement,
+	isInjectStatement,
+	isSubscribeStatement,
 	Model,
 	NumberLiteral,
 	PayloadReference,
@@ -56,15 +69,20 @@ export class YantrixLangiumParser {
 		this.services = createYantrixServices({ fileSystemProvider: EmptyFileSystem.fileSystemProvider });
 	}
 
-	parse(text: string): TNotes {
-		const document = this.services.yantrix.parser.LangiumParser.parse(text);
+	async parse(text: string): Promise<TNotes> {
+		const doParse = parseHelper(this.services.yantrix);
+		const { parseResult, diagnostics } = await doParse(text, { validation: true });
+		const ast = parseResult.value as Model;
 
-		const ast = document.value as Model;
-		const diagnostics = document.parserErrors || [];
-		const lexerErrors = document.lexerErrors || [];
+		const parseErrors = parseResult.parserErrors || [];
+		const lexerErrors = parseResult.lexerErrors || [];
 
-		if (diagnostics.length > 0 || lexerErrors.length > 0) {
-			throw new Error(`Parsing errors: ${diagnostics.map(d => d.message).join(', ')}`);
+		if (diagnostics && diagnostics.length > 0) {
+			throw diagnostics.pop();
+		}
+
+		if (parseErrors.length > 0 || lexerErrors.length > 0) {
+			throw new Error(`Parsing errors: ${parseErrors.map(d => d.message).join(', ')}`);
 		}
 
 		return this.transformToYantrixFormat(ast);
@@ -80,13 +98,12 @@ export class YantrixLangiumParser {
 			byPass: this.hasByPass(ast),
 			inject: this.transformInject(ast),
 			expression: this.transformExpressionStatement(ast),
-
 		};
 	}
 
 	private transformDefines(ast: Model): TDefine[] {
 		return ast.statements
-			.filter((stmt): stmt is DefineStatement => stmt.$type === 'DefineStatement')
+			.filter((stmt): stmt is DefineStatement => isDefineStatement(stmt))
 			.map(stmt => ({
 				identifier: stmt.identifier,
 				Arguments: stmt.arguments || [],
@@ -96,7 +113,7 @@ export class YantrixLangiumParser {
 
 	private transformContextDescription(ast: Model): TContextItem[] {
 		return ast.statements
-			.filter((stmt): stmt is ContextStatement => stmt.$type === 'ContextStatement')
+			.filter((stmt): stmt is ContextStatement => isContextStatement(stmt))
 			.map((stmt) => {
 				const contextKeyItems = this.transformKeyItems(stmt.keyItems);
 
@@ -123,20 +140,23 @@ export class YantrixLangiumParser {
 	}
 
 	private transformExpressionStatement(ast: Model) {
-		const res = ast.statements.filter(stmt => stmt.$type === 'ExpressionStatement').map((stmt) => {
-			return this.transformExpression(stmt.expression) as TExpressionMap;
-		})[0];
+		const expressionStatements = ast.statements.filter(stmt => isExpressionStatement(stmt));
+		if (expressionStatements.length === 0) {
+			return;
+		}
 
-		return res;
+		const stmt = expressionStatements[0];
+		return this.transformExpression(stmt?.expression) as TExpressionMap;
 	}
 
 	private transformEmit(ast: Model): TEventEmit[] {
 		return ast.statements
-			.filter((stmt): stmt is EmitStatement => stmt.$type === 'EmitStatement')
+			.filter((stmt): stmt is EmitStatement => isEmitStatement(stmt))
 			.map((stmt) => {
 				const baseEmit: TEventEmitStatement = {
 					identifier: stmt.identifier,
 				};
+
 				if (stmt.metaItems?.length > 0 && stmt.contextItems?.length > 0) {
 					const metaItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
 						stmt.metaItems,
@@ -156,7 +176,6 @@ export class YantrixLangiumParser {
 					return result;
 				}
 
-				// If we only have meta items
 				if (stmt.metaItems?.length > 0) {
 					const metaItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
 						stmt.metaItems,
@@ -189,14 +208,13 @@ export class YantrixLangiumParser {
 
 	private transformSubscribe(ast: Model): TEventSubscribe[] {
 		return ast.statements
-			.filter((stmt): stmt is SubscribeStatement => stmt.$type === 'SubscribeStatement')
+			.filter((stmt): stmt is SubscribeStatement => isSubscribeStatement(stmt))
 			.map((stmt) => {
 				const baseSubscribe: TSubscribeStatement = {
 					identifier: stmt.eventIdentifier,
 					actionName: stmt.actionName,
 				};
 
-				// If we have both payload and meta items
 				if (stmt.payloadItems?.length > 0 && stmt.metaItems?.length > 0) {
 					const payloadItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
 						stmt.payloadItems,
@@ -216,7 +234,6 @@ export class YantrixLangiumParser {
 					return result;
 				}
 
-				// If we only have payload items
 				if (stmt.payloadItems?.length > 0) {
 					const payloadItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
 						stmt.payloadItems,
@@ -236,74 +253,109 @@ export class YantrixLangiumParser {
 	}
 
 	private hasInitialState(ast: Model): boolean {
-		return ast.statements.some((stmt) => {
-			return stmt.$type === 'InitialStateStatement';
-		});
+		return ast.statements.some(stmt =>
+			isInitialStateStatement(stmt),
+		);
 	}
 
 	private hasByPass(ast: Model): boolean {
 		return ast.statements.some(stmt =>
-			stmt.$type === 'ByPassStatement',
+			isByPassStatement(stmt),
 		);
 	}
 
 	private transformInject(ast: Model): TInjectIdent[] {
 		return ast.statements
-			.filter((stmt): stmt is InjectStatement => stmt.$type === 'InjectStatement')
+			.filter((stmt): stmt is InjectStatement => isInjectStatement(stmt))
 			.map(stmt => ({
 				identifier: stmt.identifier,
 			}));
 	}
 
 	private transformKeyItems<X extends (typeof KeyItemType)[keyof typeof KeyItemType] = typeof KeyItemType.RAW>(
-		items: RawKeyItem[] | AstKeyItem[],
-        isReducer: boolean = false,
+		items: RawKeyItem[] | AstKeyItem[] | any[],
+		isReducer: boolean = false,
 	): TKeyItems<X> {
-		return items.map(item => ({
-			keyItem: this.transformKeyItem(item, isReducer) as (
-				X extends typeof KeyItemType.REDUCER
-					? TKeyItemReducerOrExpression
-					: TKeyItemWithExpression
-			),
-		})) as TKeyItems<X>;
+		return items.map((item) => {
+			if (isReducer && (
+				item.$type === NumberLiteral
+				|| item.$type === StringLiteral
+				|| item.$type === ArrayLiteral
+				|| item.$type === FunctionCall
+				|| item.$type === ContextReference
+				|| item.$type === PayloadReference
+				|| item.$type === ContextReference
+			)) {
+				return {
+					keyItem: {
+						expression: this.transformExpression(item),
+					} as TKeyItemReducerOrExpression,
+				};
+			}
+
+			return {
+				keyItem: this.transformKeyItem(item, isReducer) as (
+					X extends typeof KeyItemType.REDUCER
+						? TKeyItemReducerOrExpression
+						: TKeyItemWithExpression
+				),
+			};
+		}) as TKeyItems<X>;
 	}
 
 	private transformKeyItem(
-		item: RawKeyItem | AstKeyItem,
-        isReducer: boolean = false,
+		item: RawKeyItem | AstKeyItem | any,
+		isReducer: boolean = false,
 	): TKeyItemWithExpression | TKeyItemReducerOrExpression {
+		if (isFunctionCall(item)) {
+			return {
+				expression: this.transformExpression(item),
+			};
+		}
+
 		if (isReducer) {
-			// For DataObject with reference (context, payload, constant)
 			if ('reference' in item && item.reference) {
 				const expressionType = this.getReferenceType(item.reference);
-				const baseItem: TKeyItemBase = {
-					identifier: 'identifier' in item ? item.identifier as string : '',
-				};
 
-				// If it has an expression
-				if ('expression' in item && item.expression) {
-					const result: TKeyItemReducer = {
-						...baseItem,
-						expressionType,
-						expression: this.transformExpression(item.expression),
-					};
-					return result;
+				// Extract identifier from reference
+				let identifier = '';
+				if (item.reference.$type === ContextReference) {
+					identifier = (item.reference as ContextReference).identifier;
+				} else if (item.reference.$type === PayloadReference) {
+					identifier = (item.reference as PayloadReference).identifier;
+				} else if (item.reference.$type === Constant) {
+					identifier = (item.reference as Constant).identifier;
 				}
 
-				// If it doesn't have an expression
-				const result: TKeyItemReducer = {
-					...baseItem,
+				const baseItem: TKeyItemReducer = {
+					identifier,
 					expressionType,
 				};
-				return result;
+
+				if ('expression' in item && item.expression) {
+					return {
+						...baseItem,
+						expression: this.transformExpression(item.expression),
+					};
+				}
+
+				return baseItem;
 			}
 
-			// For FunctionCall or other expressions without reference
+			// For expressions without reference
 			if ('expression' in item && item.expression) {
 				return {
 					expression: this.transformExpression(item.expression),
 				};
 			}
+
+			// For RawKeyItem
+			if ('identifier' in item) {
+				return {
+					identifier: item.identifier,
+				} as TKeyItemWithExpression;
+			}
+			throw new Error(`Invalid item type: ${item.$type || 'unknown'}`);
 		}
 
 		// For raw key items
@@ -311,76 +363,136 @@ export class YantrixLangiumParser {
 			identifier: 'identifier' in item ? item.identifier : '',
 		};
 
-		// If it has an expression
+		// If there's an expression
 		if ('expression' in item && item.expression) {
-			const result: TKeyItemWithExpression = {
+			return {
 				...baseItem,
 				expression: this.transformExpression(item.expression),
 			};
-			return result;
 		}
 
-		throw new Error('Unknown key item type');
+		// If no expression, return baseItem
+		return baseItem as TKeyItemWithExpression;
 	}
 
 	private getReferenceType(reference: DataObjectReference): TRefereneceType {
 		switch (reference.$type) {
-			case 'ContextReference':
+			case ContextReference:
 				return ExpressionTypes.Context;
-			case 'PayloadReference':
+			case PayloadReference:
 				return ExpressionTypes.Payload;
-			case 'Constant':
+			case Constant:
 				return ExpressionTypes.Constant;
 			default:
 				throw new Error(`Unknown reference type: ${reference.$type}`);
 		}
 	}
 
-	private transformExpression(expr: Expression | undefined): TExpressionMap {
-		if (!expr) return null as any;
+	private transformExpression(expr: Expression | undefined, nestingLevel: number = 0): TExpressionMap {
+		if (!expr) throw new Error('Expression is undefined');
+
+		if (nestingLevel > maxNestedFuncLevel) {
+			throw new Error(`Function nesting level (${nestingLevel}) exceeds maximum allowed level (${maxNestedFuncLevel})`);
+		}
+
+		if (expr.inner) {
+			return this.transformExpression(expr.inner, nestingLevel);
+		}
 
 		switch (expr.$type) {
-			case 'StringLiteral':
+			case StringLiteral:
 				return {
 					expressionType: ExpressionTypes.StringDeclaration,
 					StringDeclaration: (expr as StringLiteral).value,
 				};
-			case 'NumberLiteral':
+			case NumberLiteral:
+			{ const numLiteral = expr as NumberLiteral;
+				const numValue = Number(numLiteral.value);
 				return {
-					expressionType: ExpressionTypes.IntegerDeclaration,
-					NumberDeclaration: Number((expr as NumberLiteral).value),
-				};
-			case 'ArrayLiteral':
+					expressionType: Number.isInteger(numValue)
+						? ExpressionTypes.IntegerDeclaration
+						: ExpressionTypes.DecimalDeclaration,
+					NumberDeclaration: numValue,
+				}; }
+			case ArrayLiteral:
 				return {
 					expressionType: ExpressionTypes.ArrayDeclaration,
 					ArrayDeclaration: [],
 				};
-			case 'FunctionCall':
+			case FunctionCall:
+			{ const funcCall = expr as FunctionCall;
+
+				const functionName = funcCall.name.replace(/\($/, '');
+				const nextNestingLevel = nestingLevel + 1;
+
+				if (nextNestingLevel > maxNestedFuncLevel) {
+					throw new Error(`Function nesting level (${nextNestingLevel}) exceeds maximum allowed level (${maxNestedFuncLevel})`);
+				}
+
+				const args = funcCall.arguments?.map((arg) => {
+					if (arg.$type === FunctionCall) {
+						return this.transformExpression(arg, nextNestingLevel);
+					}
+					return this.transformExpression(arg, nestingLevel);
+				}) || [];
+
 				return {
 					expressionType: ExpressionTypes.Function,
 					FunctionDeclaration: {
-						FunctionName: (expr as FunctionCall).name,
-						Arguments: (expr as FunctionCall).arguments.map(arg => this.transformExpression(arg)),
+						FunctionName: functionName,
+						Arguments: args,
 					},
-				};
-			case 'ContextReference':
+				}; }
+			case ContextReference:
 				return {
 					expressionType: ExpressionTypes.Context,
 					identifier: (expr as ContextReference).identifier,
 				};
-			case 'PayloadReference':
+			case PayloadReference:
 				return {
 					expressionType: ExpressionTypes.Payload,
 					identifier: (expr as PayloadReference).identifier,
 				};
-			case 'Constant':
+			case Constant:
 				return {
 					expressionType: ExpressionTypes.Constant,
 					identifier: (expr as Constant).identifier,
 				};
+			case DataObject:
+				if ('reference' in expr && expr.reference) {
+					const reference = expr.reference as DataObjectReference;
+					const expressionType = this.getReferenceType(reference);
+
+					let identifier = '';
+					if (reference.$type === ContextReference) {
+						identifier = (reference as ContextReference).identifier;
+					} else if (reference.$type === PayloadReference) {
+						identifier = (reference as PayloadReference).identifier;
+					} else if (reference.$type === Constant) {
+						identifier = (reference as Constant).identifier;
+					}
+
+					const result = {
+						expressionType,
+						identifier,
+					} as any;
+
+					if ('expression' in expr && expr.expression) {
+						result.expression = this.transformExpression(expr.expression as any, nestingLevel);
+					}
+
+					return result;
+				}
+				break;
+			case ArgumentReference:
+				return {
+					expressionType: ExpressionTypes.Identifier as any,
+					identifier: (expr as ArgumentReference).name,
+				};
 			default:
-				console.warn(`Unknown expression type: ${expr.$type}`);
-				return null as any;
+				throw new Error(`Unknown expression type: ${expr.$type}`);
 		}
+
+		throw new Error(`Unhandled expression: ${expr.$type}`);
 	}
 }

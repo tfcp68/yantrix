@@ -7,7 +7,7 @@ export class YantrixParser {
 		this.langiumParser = new YantrixLangiumParser();
 	}
 
-	parse(text: string) {
-		return this.langiumParser.parse(text);
+	async parse(text: string) {
+		return await this.langiumParser.parse(text);
 	}
 }

@@ -176,7 +176,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		return content.join('\n');
 	}
 
-	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]) {
+	public async getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]) {
 		return `
 ${this.getImports()}
 ${this.getDictionaries()}

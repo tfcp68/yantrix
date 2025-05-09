@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { YantrixParser } from '../src';
 
 describe('inject', () => {
-	it('grammar support inject', () => {
+	it('grammar support inject', async () => {
 		const parser = new YantrixParser();
 		const input = `inject/isBoolean`;
-		const output = parser.parse(input);
+		const output = await parser.parse(input);
 
 		expect(output.inject.length).equal(1);
 		expect(output.inject[0]).toStrictEqual({
@@ -13,17 +13,16 @@ describe('inject', () => {
 		});
 	});
 
-	it('should reject invalid inject directive syntax', () => {
+	it('should reject invalid inject directive syntax', async () => {
 		const parser = new YantrixParser();
 		const input = `inject isBoolean`;
-
-		expect(() => parser.parse(input)).toThrow();
+		await expect(parser.parse(input)).rejects.toThrow();
 	});
 
-	it('should reject inject directive with empty identifier', () => {
+	it('should reject inject directive with empty identifier', async () => {
 		const parser = new YantrixParser();
 		const input = `inject/`;
 
-		expect(() => parser.parse(input)).toThrow();
+		await expect(parser.parse(input)).rejects.toThrow();
 	});
 });

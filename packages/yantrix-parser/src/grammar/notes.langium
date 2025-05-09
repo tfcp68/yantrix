@@ -13,7 +13,9 @@ interface Expression {
 interface StatementI {}
 interface Immutable extends Expression {}
 interface DataObjectReference extends Expression {}
-
+interface ArgumentReference extends Expression {
+    name: string;
+}
 interface ByPassStatement extends StatementI {
     byPass: boolean;
 }
@@ -54,17 +56,17 @@ InitialState returns InitialStateStatement:
     {InitialStateStatement} '+Init';
 
 ContextStatement:
-    '#' '{' (keyItems+=RawKeyItem (',' keyItems+=RawKeyItem)*)? '}'
+    '#' '{' (keyItems+=RawKeyItem (',' keyItems+=RawKeyItem)*) '}'
     ('<=' reducerItems+=KeyItem (',' reducerItems+=KeyItem)*)?;
 
 EmitStatement:
     'emit/' identifier=ID
-    ('(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ')')?
+    ('(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*) ')')?
     ('<=' '#' '{' (contextItems+=RawKeyItem (',' contextItems+=RawKeyItem)*)? '}')?;
 
 SubscribeStatement:
     'subscribe/' eventIdentifier=ID actionName=ID
-    ('(' (payloadItems+=KeyItem (',' payloadItems+=KeyItem)*)? ')')?
+    ('(' (payloadItems+=KeyItem (',' payloadItems+=KeyItem)*) ')')?
     ('<=' '(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ')')?;
 
 DefineStatement:
@@ -78,7 +80,6 @@ InjectStatement:
 ExpressionStatement:
     '=' expression=Expression '?';
 
-// Элементы
 RawKeyItem:
     identifier=ID ('=' expression=Expression)?;
 
@@ -88,7 +89,7 @@ KeyItem:
 DataObject:
     reference=DataObjectReference ('=' expression=Expression)?;
 
-DataObjectReference returns DataObjectReference:
+DataObjectReference  returns DataObjectReference:
     Constant | PayloadReference | ContextReference;
 
 Constant:
@@ -101,15 +102,17 @@ ContextReference:
     '#' identifier=ID;
 
 DefineFunction:
-    FunctionCall | Immutable | Constant;
+    FunctionCall | Immutable | Constant | ArgumentReference;
+
+ArgumentReference returns ArgumentReference:
+    name=ID;
 
 FunctionCall:
     name=FUNCTION_CALL (arguments+=Expression (',' arguments+=Expression)*)? ')';
 
 
 Expression returns Expression:
-    Immutable | DataObject | FunctionCall |
-    '(' inner=Expression ')';
+    Immutable | DataObject | FunctionCall | ArgumentReference;
 
 Immutable returns Immutable:
     ArrayLiteral | StringLiteral | NumberLiteral;

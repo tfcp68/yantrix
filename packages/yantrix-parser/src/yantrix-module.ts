@@ -1,6 +1,6 @@
 import { inject, Module } from 'langium';
 import { createDefaultModule, createDefaultSharedModule, DefaultSharedModuleContext, LangiumServices, LangiumSharedServices, PartialLangiumServices } from 'langium/lsp';
-import { YantrixLanguageValidator } from './core/validators.js';
+import { YantrixLanguageValidationRegistry, YantrixLanguageValidator } from './core/validators.js';
 import { YantrixLanguageGeneratedModule, YantrixLanguageGeneratedSharedModule } from './generated/module.js';
 
 export type TYantrixServices = {
@@ -14,6 +14,7 @@ export type TDomainModelServices = LangiumServices & TYantrixServices;
 export const DomainModelModule: Module<TDomainModelServices, PartialLangiumServices & TYantrixServices> = {
 	validation: {
 		YantrixLanguageValidator: () => new YantrixLanguageValidator(),
+		ValidationRegistry: service => new YantrixLanguageValidationRegistry(service),
 	},
 
 };
