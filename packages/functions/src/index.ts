@@ -11,6 +11,7 @@
  * @module BuiltInFunctions
  */
 
+import { automataInternals, pureInternals } from './internals';
 import * as conditionals from './typescript/conditionals';
 import * as predicates from './typescript/predicates';
 import * as transformers from './typescript/transformers';
@@ -57,3 +58,12 @@ export const builtInFunctions = {
 	...predicates,
 	...transformers,
 };
+
+// internals moved to separate object
+export const internalFunctions = {
+	...automataInternals,
+	...pureInternals,
+};
+
+// only automata internals' names are reserved, codegen needs to be able to discriminate between pure & context-dependent internals
+export const ReservedInternalFunctionNames = Object.keys(automataInternals);

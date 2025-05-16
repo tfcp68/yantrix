@@ -36,11 +36,14 @@ export function createAutomata<
 
 			#state: StateType | null = null;
 			#context: ContextType[StateType] | null = null;
+			#lastAction: ActionType | null = null;
 			#actionQueue: TAutomataQueue<ActionType, PayloadType> = [];
 			#enabled = true;
 			#paused = false;
 			#rootReducer: TAutomataReducer<StateType, ActionType, ContextType, PayloadType> | null = null;
 			#functionRegistry: IAutomataFunctionRegistry | null = null;
+
+			#currentCycle: number = 1;
 
 			constructor(
 				eventAdapter: IAutomataEventAdapter<
@@ -64,6 +67,23 @@ export function createAutomata<
 
 			get context(): ContextType[StateType] | null {
 				return this.#context;
+			}
+
+			get lastAction(): ActionType | null {
+				return this.#lastAction;
+			}
+
+			set lastAction(action: ActionType | null) {
+				this.#lastAction = action;
+			}
+
+			get currentCycle(): number {
+				return this.#currentCycle;
+			}
+
+			incrementCycle(): this {
+				this.#currentCycle++;
+				return this;
 			}
 
 			clearActionQueue(): this {

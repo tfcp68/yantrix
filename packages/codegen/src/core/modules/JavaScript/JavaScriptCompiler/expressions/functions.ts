@@ -1,4 +1,4 @@
-import { builtInFunctions } from '@yantrix/functions';
+import { builtInFunctions, ReservedInternalFunctionNames } from '@yantrix/functions';
 import { TNullable } from '@yantrix/utils';
 import { ExpressionTypes, TDefine, TExpressionDefineMap } from '@yantrix/yantrix-parser';
 import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../../../constants';
@@ -13,6 +13,14 @@ export function getFunctionBody(props: {
 }): string {
 	if (props.expression.expressionType === ExpressionTypes.Function) {
 		const { FunctionName, Arguments } = props.expression.FunctionDeclaration;
+
+		// If function name is one of internals - the only argument will be automata itself
+		if (ReservedInternalFunctionNames.includes(FunctionName)) {
+			return `(function() {
+				const func = functionDictionary.get('${FunctionName}');
+				return func(automata);
+			})()`;
+		}
 
 		const argsList = Arguments.map((arg) => {
 			if (arg.expressionType === ExpressionTypes.Function) {
