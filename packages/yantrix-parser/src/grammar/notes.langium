@@ -56,18 +56,23 @@ InitialState returns InitialStateStatement:
     {InitialStateStatement} '+Init';
 
 ContextStatement:
-    '#' '{' (keyItems+=RawKeyItem (',' keyItems+=RawKeyItem)*) '}'
-    ('<=' reducerItems+=KeyItem (',' reducerItems+=KeyItem)*)?;
+    '#' '{' (keyItems=RawKeyItemsList) '}'
+    ('<=' reducerItems=KeyItemsList)?;
 
 EmitStatement:
     'emit/' identifier=ID
-    ('(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*) ')')?
-    ('<=' '#' '{' (contextItems+=RawKeyItem (',' contextItems+=RawKeyItem)*)? '}')?;
+    ('(' (metaItems=KeyItemsList) ')')?
+    ('<=' '#' '{' (contextItems=RawKeyItemsList)? '}')?;
 
 SubscribeStatement:
     'subscribe/' eventIdentifier=ID actionName=ID
-    ('(' (payloadItems+=KeyItem (',' payloadItems+=KeyItem)*) ')')?
-    ('<=' '(' (metaItems+=KeyItem (',' metaItems+=KeyItem)*)? ')')?;
+    ('(' (payloadItems=KeyItemsList) ')')?
+    ('<=' '(' (metaItems=KeyItemsList)? ')')?;
+
+RawKeyItemsList:
+    (keyItemsRaw+=RawKeyItem (',' keyItemsRaw+=RawKeyItem)*);
+KeyItemsList:
+    (keyItems+=KeyItem (',' keyItems+=KeyItem)*);
 
 DefineStatement:
     'define/' identifier=ID

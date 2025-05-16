@@ -20,10 +20,13 @@ export class YantrixLanguageValidationRegistry extends ValidationRegistry {
 
 export class YantrixLanguageValidator {
 	contextStatement(statement: ContextStatement, accept: ValidationAcceptor): void {
-		if (statement?.keyItems.length < statement?.reducerItems.length) {
-			accept('error', 'Context statement must have at least as many key items as reducer items', {
-				node: statement,
-			});
+		if (statement.reducerItems) {
+			const leftLen = statement.keyItems.keyItemsRaw.length;
+			if (leftLen < statement.reducerItems.keyItems.length) {
+				accept('error', 'Context statement must have at least as many key items as reducer items', {
+					node: statement,
+				});
+			}
 		}
 	}
 

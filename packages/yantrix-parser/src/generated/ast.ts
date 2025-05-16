@@ -67,8 +67,8 @@ export function isStatement(item: unknown): item is Statement {
 export interface ContextStatement extends langium.AstNode {
     readonly $container: Model;
     readonly $type: 'ContextStatement';
-    keyItems: Array<RawKeyItem>;
-    reducerItems: Array<KeyItem>;
+    keyItems: RawKeyItemsList;
+    reducerItems?: KeyItemsList;
 }
 
 export const ContextStatement = 'ContextStatement';
@@ -94,9 +94,9 @@ export function isDefineStatement(item: unknown): item is DefineStatement {
 export interface EmitStatement extends langium.AstNode {
     readonly $container: Model;
     readonly $type: 'EmitStatement';
-    contextItems: Array<RawKeyItem>;
+    contextItems?: RawKeyItemsList;
     identifier: string;
-    metaItems: Array<KeyItem>;
+    metaItems?: KeyItemsList;
 }
 
 export const EmitStatement = 'EmitStatement';
@@ -140,6 +140,18 @@ export function isInjectStatement(item: unknown): item is InjectStatement {
     return reflection.isInstance(item, InjectStatement);
 }
 
+export interface KeyItemsList extends langium.AstNode {
+    readonly $container: ContextStatement | EmitStatement | SubscribeStatement;
+    readonly $type: 'KeyItemsList';
+    keyItems: Array<KeyItem>;
+}
+
+export const KeyItemsList = 'KeyItemsList';
+
+export function isKeyItemsList(item: unknown): item is KeyItemsList {
+    return reflection.isInstance(item, KeyItemsList);
+}
+
 export interface Model extends langium.AstNode {
     readonly $type: 'Model';
     statements: Array<Statement>;
@@ -152,7 +164,7 @@ export function isModel(item: unknown): item is Model {
 }
 
 export interface RawKeyItem extends langium.AstNode {
-    readonly $container: ContextStatement | EmitStatement;
+    readonly $container: RawKeyItemsList;
     readonly $type: 'RawKeyItem';
     expression?: Expression;
     identifier: string;
@@ -162,6 +174,18 @@ export const RawKeyItem = 'RawKeyItem';
 
 export function isRawKeyItem(item: unknown): item is RawKeyItem {
     return reflection.isInstance(item, RawKeyItem);
+}
+
+export interface RawKeyItemsList extends langium.AstNode {
+    readonly $container: ContextStatement | EmitStatement;
+    readonly $type: 'RawKeyItemsList';
+    keyItemsRaw: Array<RawKeyItem>;
+}
+
+export const RawKeyItemsList = 'RawKeyItemsList';
+
+export function isRawKeyItemsList(item: unknown): item is RawKeyItemsList {
+    return reflection.isInstance(item, RawKeyItemsList);
 }
 
 export interface StatementI extends langium.AstNode {
@@ -180,8 +204,8 @@ export interface SubscribeStatement extends langium.AstNode {
     readonly $type: 'SubscribeStatement';
     actionName: string;
     eventIdentifier: string;
-    metaItems: Array<KeyItem>;
-    payloadItems: Array<KeyItem>;
+    metaItems?: KeyItemsList;
+    payloadItems?: KeyItemsList;
 }
 
 export const SubscribeStatement = 'SubscribeStatement';
@@ -203,7 +227,7 @@ export function isArgumentReference(item: unknown): item is ArgumentReference {
 }
 
 export interface DataObject extends Expression {
-    readonly $container: ContextStatement | EmitStatement | SubscribeStatement;
+    readonly $container: KeyItemsList;
     readonly $type: 'DataObject';
     expression?: Expression;
     reference: DataObjectReference;
@@ -226,7 +250,7 @@ export function isDataObjectReference(item: unknown): item is DataObjectReferenc
 }
 
 export interface FunctionCall extends Expression {
-    readonly $container: ContextStatement | DefineStatement | EmitStatement | SubscribeStatement;
+    readonly $container: DefineStatement | KeyItemsList;
     readonly $type: 'FunctionCall';
     arguments: Array<Expression>;
     name: string;
@@ -358,10 +382,12 @@ export type YantrixLanguageAstType = {
     InitialStateStatement: InitialStateStatement
     InjectStatement: InjectStatement
     KeyItem: KeyItem
+    KeyItemsList: KeyItemsList
     Model: Model
     NumberLiteral: NumberLiteral
     PayloadReference: PayloadReference
     RawKeyItem: RawKeyItem
+    RawKeyItemsList: RawKeyItemsList
     Statement: Statement
     StatementI: StatementI
     StringLiteral: StringLiteral
@@ -371,7 +397,7 @@ export type YantrixLanguageAstType = {
 export class YantrixLanguageAstReflection extends langium.AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return [ArgumentReference, ArrayLiteral, ByPassStatement, Constant, ContextReference, ContextStatement, DataObject, DataObjectReference, DefineFunction, DefineStatement, EmitStatement, Expression, ExpressionStatement, FunctionCall, Immutable, InitialStateStatement, InjectStatement, KeyItem, Model, NumberLiteral, PayloadReference, RawKeyItem, Statement, StatementI, StringLiteral, SubscribeStatement];
+        return [ArgumentReference, ArrayLiteral, ByPassStatement, Constant, ContextReference, ContextStatement, DataObject, DataObjectReference, DefineFunction, DefineStatement, EmitStatement, Expression, ExpressionStatement, FunctionCall, Immutable, InitialStateStatement, InjectStatement, KeyItem, KeyItemsList, Model, NumberLiteral, PayloadReference, RawKeyItem, RawKeyItemsList, Statement, StatementI, StringLiteral, SubscribeStatement];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -434,8 +460,8 @@ export class YantrixLanguageAstReflection extends langium.AbstractAstReflection 
                 return {
                     name: ContextStatement,
                     properties: [
-                        { name: 'keyItems', defaultValue: [] },
-                        { name: 'reducerItems', defaultValue: [] }
+                        { name: 'keyItems' },
+                        { name: 'reducerItems' }
                     ]
                 };
             }
@@ -453,9 +479,9 @@ export class YantrixLanguageAstReflection extends langium.AbstractAstReflection 
                 return {
                     name: EmitStatement,
                     properties: [
-                        { name: 'contextItems', defaultValue: [] },
+                        { name: 'contextItems' },
                         { name: 'identifier' },
-                        { name: 'metaItems', defaultValue: [] }
+                        { name: 'metaItems' }
                     ]
                 };
             }
@@ -483,6 +509,14 @@ export class YantrixLanguageAstReflection extends langium.AbstractAstReflection 
                     ]
                 };
             }
+            case KeyItemsList: {
+                return {
+                    name: KeyItemsList,
+                    properties: [
+                        { name: 'keyItems', defaultValue: [] }
+                    ]
+                };
+            }
             case Model: {
                 return {
                     name: Model,
@@ -500,14 +534,22 @@ export class YantrixLanguageAstReflection extends langium.AbstractAstReflection 
                     ]
                 };
             }
+            case RawKeyItemsList: {
+                return {
+                    name: RawKeyItemsList,
+                    properties: [
+                        { name: 'keyItemsRaw', defaultValue: [] }
+                    ]
+                };
+            }
             case SubscribeStatement: {
                 return {
                     name: SubscribeStatement,
                     properties: [
                         { name: 'actionName' },
                         { name: 'eventIdentifier' },
-                        { name: 'metaItems', defaultValue: [] },
-                        { name: 'payloadItems', defaultValue: [] }
+                        { name: 'metaItems' },
+                        { name: 'payloadItems' }
                     ]
                 };
             }

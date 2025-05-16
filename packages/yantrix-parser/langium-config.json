@@ -8,6 +8,9 @@
 			"fileExtensions": [".ytx"],
 			"textMate": {
 				"out": "syntaxes/yantrix.tmLanguage.json"
+			},
+			"railroad": {
+				"out": "docs/syntax-diagram.html"
 			}
 		}
 	],

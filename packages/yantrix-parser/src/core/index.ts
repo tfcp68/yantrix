@@ -81,8 +81,11 @@ export class YantrixLangiumParser {
 			throw diagnostics.pop();
 		}
 
-		if (parseErrors.length > 0 || lexerErrors.length > 0) {
+		if (parseErrors.length > 0) {
 			throw new Error(`Parsing errors: ${parseErrors.map(d => d.message).join(', ')}`);
+		}
+		if (lexerErrors.length > 0) {
+			throw new Error(`Lexer errors: ${parseErrors.map(d => d.message).join(', ')}`);
 		}
 
 		return this.transformToYantrixFormat(ast);
@@ -115,11 +118,11 @@ export class YantrixLangiumParser {
 		return ast.statements
 			.filter((stmt): stmt is ContextStatement => isContextStatement(stmt))
 			.map((stmt) => {
-				const contextKeyItems = this.transformKeyItems(stmt.keyItems);
+				const contextKeyItems = this.transformKeyItems(stmt.keyItems.keyItemsRaw);
 
-				if (stmt.reducerItems && stmt.reducerItems.length > 0) {
+				if (stmt.reducerItems && stmt.reducerItems.keyItems.length > 0) {
 					const reducerKeyItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.reducerItems,
+						stmt.reducerItems.keyItems,
 						true,
 					);
 
@@ -156,14 +159,13 @@ export class YantrixLangiumParser {
 				const baseEmit: TEventEmitStatement = {
 					identifier: stmt.identifier,
 				};
-
-				if (stmt.metaItems?.length > 0 && stmt.contextItems?.length > 0) {
+				if (stmt.metaItems?.keyItems && stmt.contextItems?.keyItemsRaw) {
 					const metaItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.metaItems,
+						stmt.metaItems.keyItems,
 						true,
 					);
 					const contextItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.contextItems,
+						stmt.contextItems.keyItemsRaw,
 						true,
 					);
 
@@ -176,9 +178,9 @@ export class YantrixLangiumParser {
 					return result;
 				}
 
-				if (stmt.metaItems?.length > 0) {
+				if (stmt.metaItems?.keyItems) {
 					const metaItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.metaItems,
+						stmt.metaItems.keyItems,
 						true,
 					);
 
@@ -190,9 +192,9 @@ export class YantrixLangiumParser {
 					return result;
 				}
 
-				if (stmt.contextItems?.length > 0) {
+				if (stmt.contextItems?.keyItemsRaw) {
 					const contextItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.contextItems,
+						stmt.contextItems.keyItemsRaw,
 						true,
 					);
 
@@ -215,13 +217,13 @@ export class YantrixLangiumParser {
 					actionName: stmt.actionName,
 				};
 
-				if (stmt.payloadItems?.length > 0 && stmt.metaItems?.length > 0) {
+				if (stmt.payloadItems?.keyItems && stmt.metaItems) {
 					const payloadItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.payloadItems,
+						stmt.payloadItems.keyItems,
 						true,
 					);
 					const metaItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.metaItems,
+						stmt.metaItems.keyItems,
 						true,
 					);
 
@@ -234,9 +236,9 @@ export class YantrixLangiumParser {
 					return result;
 				}
 
-				if (stmt.payloadItems?.length > 0) {
+				if (stmt.payloadItems?.keyItems) {
 					const payloadItems = this.transformKeyItems<typeof KeyItemType.REDUCER>(
-						stmt.payloadItems,
+						stmt.payloadItems.keyItems,
 						true,
 					);
 
