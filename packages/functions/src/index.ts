@@ -11,11 +11,10 @@
  * @module BuiltInFunctions
  */
 
-import * as conditionals from './conditionals';
 import { automataInternals, pureInternals } from './internals';
-import * as predicates from './predicates';
-
-import * as transformers from './transformers';
+import * as conditionals from './typescript/conditionals';
+import * as predicates from './typescript/predicates';
+import * as transformers from './typescript/transformers';
 
 /**
  * @namespace

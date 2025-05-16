@@ -28,3 +28,4 @@ coverage
 
 # Generated files
 *_generated.ts
+**/__pycache__

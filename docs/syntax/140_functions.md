@@ -41,7 +41,7 @@ define/sq (x) => mult(x,x)
 define/sumSq (x,y) => add(sq(x), sq(y))
 define/hypot (x,y) => sqrt(sumSq(x, y))
 ```
-Regardless of whether it's a `Transformer` or a `Predicate`, this function can be used anywhere in the same diagram or a `Slice`, including "before" the definition in the source code 
+Regardless of whether it's a `Transformer` or a `Predicate`, this function can be used anywhere in the same diagram or a `Slice`, including "before" the definition in the source code
 
 Custom function can reference any type of functions, including itself, other inline functions, built-ins and injected functions. They are calculated just-in-time and exhibit little difference to built-ins
 
