@@ -5,6 +5,6 @@ description = "Python built-ins for Yantrix framework"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
- "pydash>=8.0.5",
- "pytest>=8.3.5",
+  "pydash>=8.0.5",
+  "pytest>=8.3.5",
 ]
