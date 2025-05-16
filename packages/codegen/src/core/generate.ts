@@ -1,6 +1,6 @@
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
-import { IGenerateOptions, TStateIncludingNotes } from '../types/common';
+import { IGenerateOptions } from '../types/common';
 import { CodegenCreator } from './Codegen';
 import { ModuleNames } from './modules';
 
@@ -8,12 +8,14 @@ async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, op
 	const { states, transitions, actionChains } = diagram;
 	const parserInstance = new YantrixParser();
 
-	const statesIncludingNotes = states.map((state) => {
+	const statePromises = states.map(async (state) => {
 		const input = state.notes.flatMap(e => e.join('\n')).join(' ');
 		if (input === '')
 			return { ...state, notes: null };
-		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
+		return { ...state, notes: await parserInstance.parse(input) };
 	});
+
+	const statesIncludingNotes = await Promise.all(statePromises);
 
 	let constants: Record<string, any> | null = null;
 

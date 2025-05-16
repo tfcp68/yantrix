@@ -36,7 +36,7 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 		this.setupDictionaries();
 	}
 
-	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Java]): string {
+	public async getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Java]) {
 		return `
 			${this.getImports()}
 			${this.getClassTemplate(options.className)}

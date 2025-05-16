@@ -12,7 +12,7 @@ const parser = new YantrixParser();
 	from context/payload during root reducer operations.
 	Resulting value is the new state of the automata, exact state value depends on which conditions resolve to TRUE inside
 */
-export function getPredicates(props: {
+export async function getPredicates(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
@@ -22,15 +22,16 @@ export function getPredicates(props: {
 
 	const entries = Object
 		.entries(diagram.actionChains)
-		.map(([stateName, stateActions]) => stateToPredicates(stateName, stateActions, props))
-		.filter(val => val !== null);
+		.map(async ([stateName, stateActions]) => await stateToPredicates(stateName, stateActions, props));
 
-	const automataPredicates = Object.fromEntries(entries);
+	const entriesFiltered = await Promise.all(entries);
+
+	const automataPredicates = Object.fromEntries(entriesFiltered.filter(v => v !== null));
 
 	return automataPredicates;
 }
 
-function stateToPredicates(
+async function stateToPredicates(
 	stateName: string,
 	stateActions: Record<string, TActionChainParams>,
 	props: {
@@ -38,7 +39,7 @@ function stateToPredicates(
 		stateDictionary: BasicStateDictionary;
 		expressions: TExpressionRecord;
 	},
-): [number, { [k: string]: string }] | null {
+): Promise<[number, { [k: string]: string }] | null> {
 	const { stateDictionary } = props;
 	const originalStateId = stateDictionary.getDictionary()[stateName];
 	if (!originalStateId) {
@@ -46,16 +47,16 @@ function stateToPredicates(
 	}
 	const statePredicateEntries = Object
 		.entries(stateActions)
-		.map(([actionName, actionParams]) => actionToPredicate(actionName, actionParams.chains, props))
-		.filter(val => val !== null);
+		.map(async ([actionName, actionParams]) => await actionToPredicate(actionName, actionParams.chains, props));
 
-	if (!statePredicateEntries || statePredicateEntries.length === 0) return null;
+	const statePredicateEntriesAll = (await Promise.all(statePredicateEntries)).filter(val => val !== null);
+	if (!statePredicateEntriesAll || statePredicateEntriesAll.length === 0) return null;
 
-	const statePredicates = Object.fromEntries(statePredicateEntries);
+	const statePredicates = Object.fromEntries(statePredicateEntriesAll);
 	return [originalStateId, statePredicates];
 }
 
-function actionToPredicate(
+async function actionToPredicate(
 	action: string,
 	chains: TActionChain[],
 	props: {
@@ -63,16 +64,18 @@ function actionToPredicate(
 		stateDictionary: BasicStateDictionary;
 		expressions: TExpressionRecord;
 	},
-): [number, string] | null {
+): Promise<[number, string] | null> {
 	const { actionDictionary } = props;
 	const actionId = actionDictionary.getDictionary()[action];
 	if (!actionId) {
 		throw new Error(`Incorrect action: ${action}`);
 	}
 	const stateTransitionConditions = chains
-		.map(actionChain => getStateTransitionConditions(actionChain, props))
-		.filter(val => val != null);
-	const predicate = getPredicateContent(stateTransitionConditions);
+		.map(async actionChain => await getStateTransitionConditions(actionChain, props));
+
+	const stateTransitionConditionsAll = await Promise.all(stateTransitionConditions);
+
+	const predicate = getPredicateContent(stateTransitionConditionsAll.filter(val => val != null));
 
 	if (!predicate) return null;
 
@@ -94,7 +97,7 @@ function getPredicateContent(stateTransitionConditions: string[] | null) {
 	}`;
 }
 
-function getStateTransitionConditions(
+async function getStateTransitionConditions(
 	actionChain: TActionChain,
 	props: {
 		stateDictionary: BasicStateDictionary;
@@ -108,18 +111,20 @@ function getStateTransitionConditions(
 	}
 
 	const conditions = chain
-		.map(segment => resolveChainSegment(segment, { expressionRecord: props.expressions }))
-		.map((cond, index) => `const cond${index + 1} = ${cond};`);
+		.map(async segment => await resolveChainSegment(segment, { expressionRecord: props.expressions }));
 
-	if (conditions.length === 0) return null;
+	const res = await Promise.all(conditions);
+	const cnd = res.map((cond, index) => `const cond${index + 1} = ${cond};`);
 
-	conditions.push(`
-		if(${conditions.map((_, index) => `cond${index + 1} === true`).join(' && ')}) {
+	if (cnd.length === 0) return null;
+
+	cnd.push(`
+		if(${res.map((_, index) => `cond${index + 1} === true`).join(' && ')}) {
 			return ${transitionStateId};
 		}
 		else return undefined;`,
 	);
-	return conditions.join('\n');
+	return cnd.join('\n');
 }
 
 /*
@@ -129,13 +134,13 @@ function getStateTransitionConditions(
 	if they cant be processed (i.e they are internal ids or unrelated names),
 	assume the segment resolves to TRUE and move on
 */
-function resolveChainSegment(segment: string, props: {
+async function resolveChainSegment(segment: string, props: {
 	expressionRecord: TExpressionRecord;
 }) {
 	const { expressionRecord } = props;
 	try {
 		const wrappedSegment = `=${segment}?`;
-		const processedExpression = parser.parse(wrappedSegment);
+		const processedExpression = await parser.parse(wrappedSegment);
 		// check the expression property at the top-level of the parsed object
 		if (!processedExpression.expression || !isFunctionExpression(processedExpression.expression)) {
 			throw new Error('Incorrect expression');
