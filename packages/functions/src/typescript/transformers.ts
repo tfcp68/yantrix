@@ -393,195 +393,6 @@ export function len<T>(iterable: string | T[]): number {
 	return isIterable(iterable) ? iterable.length : 0;
 }
 
-/**
- * Returns the leftmost characters of a string up to a specified length.
- *
- * @category List/String Transformers
- * @param str - The string to evaluate.
- * @param length - The number of characters to return.
- * @returns A substring containing the leftmost characters up to the specified length.
- */
-export function left(str: string, length: number): string;
-
-/**
- * Returns the leftmost elements of an array up to a specified length.
- *
- * @category List/String Transformers
- * @template T - The type of the elements in the array.
- * @param list - The array to evaluate.
- * @param length - The number of elements to return.
- * @returns A new array containing the leftmost elements up to the specified length.
- */
-export function left<T>(list: T[], length: number): T[];
-export function left<T>(iterable: string | T[], length = 0): string | T[] {
-	return isIterable(iterable) && _.isLength(length)
-		? _.isString(iterable)
-			? iterable.substring(0, length)
-			: iterable.slice(0, length)
-		: iterable;
-}
-
-/**
- * Returns the rightmost characters of a string up to a specified length.
- *
- * @category List/String Transformers
- * @param str - The string to evaluate.
- * @param length - The number of characters to return.
- * @returns A substring containing the rightmost characters up to the specified length.
- */
-export function right(str: string, length: number): string;
-
-/**
- * Returns the rightmost elements of an array up to a specified length.
- *
- * @category List/String Transformers
- * @template T - The type of the elements in the array.
- * @param list - The array to evaluate.
- * @param length - The number of elements to return.
- * @returns A new array containing the rightmost elements up to the specified length.
- */
-export function right<T>(list: T[], length: number): T[];
-export function right<T>(iterable: string | T[], length = 0): string | T[] {
-	return isIterable(iterable) && _.isLength(length)
-		? _.isString(iterable)
-			? iterable.substring(Math.max(0, iterable.length - length))
-			: iterable.slice(-length)
-		: iterable;
-}
-
-/**
- * Returns the index of a value in a string.
- *
- * @category List/String Transformers
- * @param str - The string to search.
- * @param search - The value to look for.
- * @returns The index of the value in the string, or -1 if not found.
- */
-export function indexOf(str: string, search: string): number;
-
-/**
- * Returns the index of a value in an array.
- *
- * @category List/String Transformers
- * @template T - The type of the elements in the array.
- * @param list - The array to search.
- * @param value - The value to look for.
- * @returns The index of the value in the array, or -1 if not found.
- */
-export function indexOf<T>(list: T[], value: T): number;
-export function indexOf<T>(iterable: string | T[], value: string | T): number {
-	return isIterable(iterable)
-		? _.isString(iterable) && _.isString(value)
-			? iterable.indexOf(value)
-			: _.findIndex(iterable as ArrayLike<T>, it => _.isEqual(it, value))
-		: -1;
-}
-
-/**
- * Shuffles the characters of a string.
- *
- * @category List/String Transformers
- * @param str - The string to shuffle.
- * @returns A new string with the characters shuffled.
- */
-export function shuffle(str: string): string;
-
-/**
- * Shuffles the elements of an array.
- *
- * @category List/String Transformers
- * @template T - The type of the elements in the array.
- * @param list - The array to shuffle.
- * @returns A new array with the elements shuffled.
- */
-export function shuffle<T>(list: T[]): T[];
-export function shuffle<T>(iterable: string | T[]): string | T[] {
-	return isIterable(iterable)
-		? _.isString(iterable)
-			? _.shuffle(iterable).join('')
-			: _.shuffle(iterable)
-		: iterable;
-}
-
-/**
- * Reverses the characters of a string or elements of an array.
- *
- * @category List/String Transformers
- * @param str - The string to reverse.
- * @returns A new string with the characters in reverse order.
- */
-export function reverse(str: string): string;
-
-/**
- * Reverses the elements of an array.
- *
- * @category List/String Transformers
- * @template T - The type of the elements in the array.
- * @param list - The array to reverse.
- * @returns A new array with the elements in reverse order.
- */
-export function reverse<T>(list: T[]): T[];
-export function reverse<T>(iterable: string | T[]): string | T[] {
-	return isIterable(iterable)
-		? _.isString(iterable)
-			? iterable.split('').reverse().join('')
-			: iterable.slice().reverse()
-		: iterable;
-}
-
-// ┌───────────────────────────────────────────────────────────────────────────┐
-// │                      List & Collection Transformers                       │
-// └───────────────────────────────────────────────────────────────────────────┘
-
-/**
- * Sorts the characters of a string in ascending order.
- *
- * @category List/String Transformers
- * @param str - The string to sort.
- * @returns A new string with the characters sorted.
- */
-export function sort(str: string): string;
-
-/**
- * Sorts the elements of an array in ascending order.
- *
- * @category List/String Transformers
- * @template T - The type of the elements in the array.
- * @param list - The array to sort.
- * @returns A new array with the elements sorted.
- */
-export function sort<T>(list: T[]): T[];
-
-/**
- * Sorts the elements of a collection by a specified property.
- *
- * @category Collection Transformers
- * @param collection - The collection to sort.
- * @param keyName - The property name to sort by (default: 'id').
- * @param defaultValue - The default value to use if the property is absent (default: null).
- * @returns A new collection with the elements sorted by the specified property.
- */
-export function sort(collection: TCollection, keyName?: string, defaultValue?: any): TCollection;
-export function sort<T>(iterable: string | T[] | TCollection, keyName: string = 'id', defaultValue: any = null): string | T[] | TCollection {
-	if (!isIterable(iterable)) return iterable;
-
-	if (_.isString(iterable)) {
-		return iterable
-			.split('')
-			.sort()
-			.join('');
-	}
-
-	if (isCollection(iterable) && keyName) {
-		return _.sortBy(iterable, (item) => {
-			const value = item[keyName];
-			return value !== undefined ? value : defaultValue;
-		});
-	}
-
-	return (iterable as T[]).slice().sort();
-}
-
 // ┌───────────────────────────────────────────────────────────────────────────┐
 // │                            List Transformers                              │
 // └───────────────────────────────────────────────────────────────────────────┘
@@ -614,10 +425,6 @@ export function lookup<T>(list: T[], value: T): TNullable<T> {
  * @param valueSample - The value to repeat.
  * @returns An array containing the repeated values.
  */
-export function repeat<T>(quantity: number, sample: T): T[] {
-	if (!_.isNumber(quantity)) return [];
-	return Array.from<T>({ length: quantity < 0 ? 0 : quantity }).fill(sample);
-}
 
 // ┌───────────────────────────────────────────────────────────────────────────┐
 // │                           String Transformers                             │
@@ -642,19 +449,6 @@ export function substr(str: string, start: number, end?: number): string {
 // └───────────────────────────────────────────────────────────────────────────┘
 
 /**
- * Filters a collection of objects by a specified property and value.
- *
- * @category Collection Transformers
- * @template S - The type of the value to filter by.
- * @param collection - The collection of objects to filter.
- * @param prop - The property name to filter by.
- * @param value - The value to filter by.
- * @returns A collection of objects that match the specified property and value.
- */
-export function filterBy<S>(collection: TCollection, prop: string, value: S): TCollection {
-	return isCollection(collection) ? _.filter(collection, it => _.isEqual(it[prop], value)) : [];
-}
-/**
  * Returns a list of property values from a collection of objects.
  *
  * @category Collection Transformers
@@ -670,6 +464,14 @@ export function pluck(collection: TCollection, prop: string): any[] {
 // │                              Lodash Re-exports                            │
 // └───────────────────────────────────────────────────────────────────────────┘
 
+export const left = _.take;
+export const right = _.takeRight;
+export const reverse = _.reverse;
+export const indexOf = _.indexOf;
+export const repeat = _.repeat;
+export const filterBy = _.filter;
+export const sort = _.sortBy;
+export const shuffle = _.shuffle;
 export const concat = _.concat;
 export const find = _.find;
 export const every = _.every;
