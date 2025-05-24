@@ -850,13 +850,13 @@ export interface IAgnosticDataSource<
  *
  * @template EventType The base type of events that can be emitted
  * @template EventMetaType The type mapping from EventType to metadata shapes
- * @template DataPacket The source data type (defaults to Record<string, any>)
+ * @template DataPacketType The source data type (defaults to Record<string, any>)
  */
 export interface IDataSource<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-	DataPacket extends any = unknown
-> extends IAgnosticDataSource<DataPacket> {
+	DataPacketType extends any = unknown
+> extends IAgnosticDataSource<DataPacketType> {
 
 	/**
 	 * Add a data listener that emits events, one per each data package
@@ -868,7 +868,7 @@ export interface IDataSource<
 	 */
 	addListener(
 		id: string,
-		transform: (data: DataPacket) => TAutomataEventStack<EventType, EventMetaType>,
+		transform: (data: DataPacketType) => TAutomataEventStack<EventType, EventMetaType>,
 		dispatch?: (...events: TAutomataEventStack<EventType, EventMetaType>) => any
 	): this;
 
@@ -887,7 +887,7 @@ export interface IDataSource<
 	 * @returns Map of listener ids to their transform and dispatch functions
 	 */
 	getEventListeners(): Partial<{ [id: string]: [
-		(data: DataPacket) => TAutomataEventStack<EventType, EventMetaType>,
+		(data: DataPacketType) => TAutomataEventStack<EventType, EventMetaType>,
 		null | ((...events: TAutomataEventStack<EventType, EventMetaType>) => any)
 	] }>;
 
@@ -896,7 +896,7 @@ export interface IDataSource<
 	 *
 	 * @returns Array of dispatched event stacks
 	 */
-	eventEmitter(): IterableIterator<TAutomataEventStack<EventType, EventMetaType>>
+	dataEmitter(): IterableIterator<DataPacketType | null>
 }
 
 /**
@@ -999,5 +999,7 @@ export interface IDataDestination<
 	 * @returns Mapping of event types to their selector functions
 	 */
 	getTriggers(): TDataBoundEventDictionary<EventType, EventMetaType, DataPacketType, DataModel>;
+
+	getBoundEvents():EventType[];
 }
 

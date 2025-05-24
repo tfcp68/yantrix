@@ -8,7 +8,7 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
     #active = false;
     #currentCycle = 0;
     #totalCycles = 0;
-    #epoch = 0;
+    #epoch = 1;
     #id: string;
 
     public get currentCycle(): number {
@@ -41,10 +41,10 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 
     public constructor(opts: TDataSourceConstructorOpts<T>) {
         super();
+        console.log('AbstractAgnosticData Source options:', opts);
         if (!this._isValidId(opts?.id))
             throw new TypeError("Invalid ID")
         this.#id = opts.id || this.correlationId;
-        this.start();
         if (typeof opts?.afterInit === 'function')
             opts.afterInit(this.id, (data: T) => this._addDataPacket(data));
         else if (opts?.afterInit)
@@ -99,7 +99,8 @@ type TIntervalTimerDataSourceDataPacket = {
     startTimestamp: number;
 } & TCycleIteratorInfo;
 export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TIntervalTimerDataSourceDataPacket> {
-    #interval: any = null;
+    #intervalLink: any = null;
+    #interval: number = 0;
     #startTimestamp = 0;
 
     protected _isValidInterval(interval: any): interval is number {
@@ -111,16 +112,15 @@ export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TInterva
         if (!this._isValidInterval(opts.interval))
             throw new RangeError(`Invalid timer interval for Data Source #${this.id}`);
         this.#interval = opts.interval;
-        this.start();
     }
 
 
     override start(): this {
         super.start();
         this.#startTimestamp = Date.now();
-        if (this.#interval != null)
-            clearInterval(this.#interval);
-        this.#interval = setInterval(() => this._addDataPacket({
+        if (this.#intervalLink != null)
+            clearInterval(this.#intervalLink);
+        this.#intervalLink = setInterval(() => this._addDataPacket({
             id: this.id,
             startTimestamp: this.#startTimestamp,
             timestamp: Date.now(),
@@ -131,9 +131,9 @@ export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TInterva
 
     override stop(): this {
         super.stop();
-        if (this.#interval != null) {
-            clearInterval(this.#interval);
-            this.#interval = null;
+        if (this.#intervalLink != null) {
+            clearInterval(this.#intervalLink);
+            this.#intervalLink = null;
         }
         return this;
     }
@@ -142,6 +142,11 @@ export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TInterva
 export class NamedDataSource<T> extends AbstractAgnosticDataSource<T> {
     protected override _addDataPacket(dataPacket: T): void {
         super._addDataPacket(Object.assign({}, dataPacket, { id: this.id }));
+    }
+
+    constructor(opts: TDataSourceConstructorOpts<T>) {
+        super(opts);
+        console.warn('Named Data Source Args:', opts);
     }
 }
 
@@ -187,8 +192,8 @@ export function createDataSourceAdapter<
                 return this.#eventListeners;
             }
 
-            protected getBoundEvents() {
-                return Object.keys(this.#eventListeners) as string[];
+            protected getListenerKeys() {
+                return Object.keys(this.#eventListeners);
             }
 
             *eventEmitter(): IterableIterator<TAutomataEventStack<EventType, EventMetaType>> {
@@ -197,9 +202,11 @@ export function createDataSourceAdapter<
                 for (const dataPacket of dataEmitter) {
                     allEvents = [];
                     if (dataPacket) {
-                        for (const id of this.getBoundEvents()) {
+                        for (const id of this.getListenerKeys()) {
                             const [transform, dispatch] = this.#eventListeners[id]!;
                             const events = transform(dataPacket);
+                            if (!events.some(this.validateEventMeta))
+                                throw new Error(`Got invalid event stack from transformer: ${events}`)
                             allEvents = allEvents.concat(events);
                             if (dispatch) {
                                 dispatch(...events);

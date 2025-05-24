@@ -12,9 +12,6 @@ describe('BasicDataSource', () => {
         expect(id).toBe(sampleId);
         setterLink = setter
         setter(samplePacket);
-        expect(sampleInstance.currentCycle).toBe(1);
-        expect(sampleInstance.totalCycles).toBe(1);
-        expect(sampleInstance.currentEpoch).toBe(1);
     })
     beforeEach(() => {
         vitest.restoreAllMocks();
@@ -23,14 +20,17 @@ describe('BasicDataSource', () => {
             id: sampleId,
             afterInit: afterInitSpy
         });
-        expect(sampleInstance.currentCycle).toBe(0);
-        expect(sampleInstance.totalCycles).toBe(0);
-        expect(sampleInstance.currentEpoch).toBe(1);
     });
 
     describe('constructor', () => {
         it ('passes a fixture id', () => {
             expect(sampleInstance.id).toBe(sampleId);
+        })
+
+        it ('has proper starting values',()=>{
+            expect(sampleInstance.currentCycle).toBe(1);
+            expect(sampleInstance.totalCycles).toBe(1);
+            expect(sampleInstance.currentEpoch).toBe(1);
         })
 
         it('returns an instance of BasicDataSource', () => {
@@ -49,8 +49,8 @@ describe('BasicDataSource', () => {
             expect(testInstance.id).toBeTruthy();
         });
 
-        it('instance is active by default', () => {
-            expect(sampleInstance.isActive()).toBe(true);
+        it('instance is disabled by default', () => {
+            expect(sampleInstance.isActive()).toBe(false);
         });
 
         it('calls afterInit synchronously', () => {
@@ -72,7 +72,7 @@ describe('BasicDataSource', () => {
             expect(sampleInstance.totalCycles).toBeGreaterThan(0);
         });
 
-        it('start/stop should change is active', () => {
+        it('start/stop should change isActive', () => {
             sampleInstance.start();
             expect(sampleInstance.isActive()).toBe(true);
             sampleInstance.stop();

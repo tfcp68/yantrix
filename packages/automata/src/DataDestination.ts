@@ -170,7 +170,7 @@ export function createDataDestinationAdapter<
 
             #eventTriggers: TDataBoundEventDictionary<EventType, EventMetaType, DataPacketType, DataModel> = {};
 
-            protected getBoundEvents() {
+            getBoundEvents() {
                 return Object.keys(this.#eventTriggers) as unknown as EventType[];
             }
 
@@ -214,6 +214,7 @@ export function createDataDestinationAdapter<
             getTriggers() {
                 return this.#eventTriggers;
             }
+
 
             update(event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) {
                 if (!this.validateEventMeta(event))
