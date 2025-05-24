@@ -78,7 +78,7 @@ export function sampleArray<T = number, N extends number = number>(item: null | 
  * @return {string}
  */
 export function uniqId(length = 10) {
-	const keys = [...microtime().toString(36)];
+	const keys = [...microtime().toString(36)].reverse().slice(0, Math.floor(length / 2));
 	while (keys.length < length) keys.push(...sampleRange(0, 35).toString(36));
 	return keys
 		.slice(0, length)
