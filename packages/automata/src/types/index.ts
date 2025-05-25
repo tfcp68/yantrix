@@ -29,8 +29,8 @@ export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;
 export type TMergeClassTrait<TTrait extends TAbstractConstructor, TTarget extends TAbstractConstructor> = (new (
 	...a: ConstructorParameters<TTarget>
 ) => InstanceType<TTrait> & InstanceType<TTarget>) &
-	Pick<TTarget, keyof TTarget> &
-	Pick<TTrait, keyof TTrait>;
+Pick<TTarget, keyof TTarget> &
+Pick<TTrait, keyof TTrait>;
 
 /**
  * Container for automata state.
@@ -186,8 +186,8 @@ export type TSubscriptionCancelFunction = () => void;
  */
 export type TDefinedValues<T> = T extends object
 	? {
-		[P in keyof T]: NonNullable<T[P]>;
-	}
+			[P in keyof T]: NonNullable<T[P]>;
+		}
 	: NonNullable<T>;
 
 /**
@@ -320,32 +320,44 @@ export type TCycleIteratorInfo = {
 	currentCycle: number;
 	totalCycles: number;
 	currentEpoch: number;
-}
+};
 
 export type TDataSourceConstructorOpts<T> = {
-	id?: string,
-	afterInit?: (id: string, setter: (data: T) => any) => void
-}
+	id?: string;
+	afterInit?: (
+		id: string,
+		publishMethod?: (data: T) => any,
+		resetMethod?: () => T[]
+	) => void;
+};
 
 export type TDataDestinationConstructorOpts<DataPacketType, ResolveResultType> = {
-	id?: string,
-	resolver?: ((data: DataPacketType) => Promise<ResolveResultType>) | null,
-	afterInit?: (id: string) => void
-}
+	id?: string;
+	resolver?: ((data: DataPacketType) => Promise<ResolveResultType>) | null;
+	afterInit?: (id: string) => void;
+};
 
 export type TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType> =
 	{
-		data: DataPacketType,
-		result: ResolveResultType | null,
-		error?: ErrorType
-	}
+		data: DataPacketType;
+		result: ResolveResultType | null;
+		error?: ErrorType;
+	};
 
 export const WILDCARD_EVENT = Symbol('wildcard_event');
 export type TDataBoundSelector<
-	EventType extends TAutomataBaseEventType, EventMetaType extends Record<EventType, any>, DataPacketType, DataModel
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends Record<EventType, any>,
+	DataPacketType,
+	DataModel,
 > = (event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) => DataPacketType | null;
-export type TDataBoundEventDictionary<EventType extends TAutomataBaseEventType, EventMetaType extends Record<EventType, any>, DataPacketType, DataModel> = {
+export type TDataBoundEventDictionary<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends Record<EventType, any>,
+	DataPacketType,
+	DataModel,
+> = {
 	[T in EventType]?: TDataBoundSelector<T, EventMetaType, DataPacketType, DataModel>
 } & {
-	[WILDCARD_EVENT]?: TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>
-}
+	[WILDCARD_EVENT]?: TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>;
+};

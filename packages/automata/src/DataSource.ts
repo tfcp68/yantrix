@@ -39,15 +39,28 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 		return id === undefined || id === null || (typeof id === 'string' && id?.length > 0);
 	}
 
+	protected clearQueue() {
+		const d = this.#_dataPacketQueue.slice();
+		this.#_dataPacketQueue = [];
+		this.#currentCycle = 0;
+		this.#epoch++;
+		return d;
+	}
+
 	public constructor(opts: TDataSourceConstructorOpts<T>) {
 		super();
 		if (!this._isValidId(opts?.id))
 			throw new TypeError('Invalid ID');
 		this.#id = opts.id || this.correlationId;
-		if (typeof opts?.afterInit === 'function')
-			opts.afterInit(this.id, (data: T) => this._addDataPacket(data));
-		else if (opts?.afterInit)
+		if (typeof opts?.afterInit === 'function') {
+			opts.afterInit(
+				this.id,
+				(data: T) => this._addDataPacket(data),
+				this.clearQueue.bind(this),
+			);
+		} else if (opts?.afterInit) {
 			throw new TypeError(`Invalid afterInit function for Data Source #${this.id}`);
+		}
 	}
 
 	public start(): this {
@@ -80,14 +93,11 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 
 	public *dataEmitter() {
 		while (true) {
-			if (!this.isActive()) {
+			if (this.isActive() && this.#_dataPacketQueue.length) {
+				yield this._getDataPacket();
+			} else {
 				yield null;
-			} else
-				if (this.#_dataPacketQueue.length) {
-					yield this._getDataPacket();
-				} else {
-					yield null;
-				}
+			}
 		}
 	}
 }
@@ -141,10 +151,6 @@ export class NamedDataSource<T> extends AbstractAgnosticDataSource<T> {
 	protected override _addDataPacket(dataPacket: T): void {
 		super._addDataPacket(Object.assign({}, dataPacket, { id: this.id }));
 	}
-
-	constructor(opts: TDataSourceConstructorOpts<T>) {
-		super(opts);
-	}
 }
 
 export function createDataSourceAdapter<
@@ -196,15 +202,41 @@ export function createDataSourceAdapter<
 				return Object.keys(this.#eventListeners);
 			}
 
-			*eventEmitter(): IterableIterator<TAutomataEventStack<EventType, EventMetaType>> {
-				const dataEmitter = this.dataEmitter();
-				let allEvents: TAutomataEventStack<EventType, EventMetaType> = [];
-				for (const dataPacket of dataEmitter) {
-					allEvents = [];
-					if (dataPacket) {
+			override *dataEmitter() {
+				const dataEmitter = super.dataEmitter();
+				while (true) {
+					const dataPacket = dataEmitter.next();
+					if (dataPacket.value) {
 						for (const id of this.getListenerKeys()) {
 							const [transform, dispatch] = this.#eventListeners[id]!;
-							const events = transform(dataPacket);
+							const events = transform(dataPacket.value) || [];
+							if (!events.length)
+								continue;
+							if (!events.some(this.validateEventMeta))
+								throw new Error(`Got invalid event stack from transformer: ${JSON.stringify(events)}`);
+							if (dispatch) {
+								dispatch(...events);
+							}
+						}
+						yield dataPacket.value;
+					} else {
+						yield null;
+					}
+				}
+			}
+
+			*eventEmitter(): IterableIterator<TAutomataEventStack<EventType, EventMetaType>> {
+				const dataEmitter = super.dataEmitter();
+				let allEvents: TAutomataEventStack<EventType, EventMetaType> = [];
+				while (true) {
+					const dataPacket = dataEmitter.next();
+					allEvents = [];
+					if (dataPacket.value) {
+						for (const id of this.getListenerKeys()) {
+							const [transform, dispatch] = this.#eventListeners[id]!;
+							const events = transform(dataPacket.value) || [];
+							if (!events.length)
+								continue;
 							if (!events.some(this.validateEventMeta))
 								throw new Error(`Got invalid event stack from transformer: ${events}`);
 							allEvents = allEvents.concat(events);
@@ -212,9 +244,8 @@ export function createDataSourceAdapter<
 								dispatch(...events);
 							}
 						}
-						yield allEvents;
 					}
-					continue;
+					yield allEvents;
 				}
 			}
 		};
