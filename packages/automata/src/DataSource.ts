@@ -225,7 +225,7 @@ export function createDataSourceAdapter<
 				}
 			}
 
-			*eventEmitter(): IterableIterator<TAutomataEventStack<EventType, EventMetaType>> {
+			*eventEmitter() {
 				const dataEmitter = super.dataEmitter();
 				let allEvents: TAutomataEventStack<EventType, EventMetaType> = [];
 				while (true) {

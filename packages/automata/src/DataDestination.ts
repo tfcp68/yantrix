@@ -1,6 +1,6 @@
 import { AbstractBaseClass } from './mixins/BaseClass';
 import ExtendedEventContainer from './mixins/ExtendedEventContainer';
-import { TAbstractConstructor, TAutomataBaseEventType, TAutomataEventMetaType, TDataBoundEventDictionary, TDataBoundSelector, TDataDestinationConstructorOpts, TDataDestinationOutput, WILDCARD_EVENT } from './types';
+import { TAbstractConstructor, TAutomataBaseEventType, TAutomataEventMetaType, TDataBoundEventDictionary, TDataBoundSelector, TDataDestinationConstructorOpts, TDataDestinationOutput, TDataDestinationResolver, WILDCARD_EVENT } from './types';
 import { IAgnosticDataDestination, IDataDestination } from './types/interfaces';
 
 export abstract class AbstractAgnosticDataDestination<
@@ -10,7 +10,7 @@ export abstract class AbstractAgnosticDataDestination<
 > extends AbstractBaseClass implements IAgnosticDataDestination<
 	DataPacketType,
 	ResolveResultType,
-	Error
+	ErrorType
 > {
 	#_dataPacketQueue: Array<TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType>> = [];
 	#_requestQueue: Array<DataPacketType> = [];
@@ -19,7 +19,11 @@ export abstract class AbstractAgnosticDataDestination<
 	#totalCycles = 0;
 	#epoch = 0;
 	#id: string;
-	protected _resolver: null | ((data: DataPacketType) => Promise<ResolveResultType>) = null;
+	protected _resolver: null | TDataDestinationResolver<DataPacketType, ResolveResultType, IAgnosticDataDestination<
+		DataPacketType,
+		ResolveResultType,
+		ErrorType
+	>> = null;
 
 	public get currentCycle(): number {
 		return this.#currentCycle;
@@ -48,7 +52,15 @@ export abstract class AbstractAgnosticDataDestination<
 	 * @throws {TypeError} Throws if the resolver is not a function.
 	 */
 
-	public constructor(opts: TDataDestinationConstructorOpts<DataPacketType, ResolveResultType>) {
+	public constructor(opts: TDataDestinationConstructorOpts<
+		DataPacketType,
+		ResolveResultType,
+		IAgnosticDataDestination<
+			DataPacketType,
+			ResolveResultType,
+			ErrorType
+		>
+	>) {
 		super();
 		if (!this._isValidId(opts?.id))
 			throw new TypeError('Invalid ID');
@@ -58,25 +70,31 @@ export abstract class AbstractAgnosticDataDestination<
 		if (opts.resolver)
 			this._resolver = opts.resolver;
 		this.#id = opts.id ?? this.correlationId;
-		this.start();
-		if (typeof opts?.afterInit === 'function')
-			opts.afterInit(this.#id);
+		if (typeof opts?.afterInit === 'function') {
+			opts.afterInit(this.#id, (resolver: typeof opts.resolver) => {
+				if (typeof resolver !== 'function') {
+					throw new TypeError(`Invalid resolver function for Destination #${this.#id}`);
+				}
+				this._resolver = resolver;
+				return this;
+			});
+		}
 	}
 
 	protected _addDataPacket(dataPacket: DataPacketType) {
 		if (!this._resolver)
 			return Promise.resolve(null);
 		this.#_requestQueue.push(dataPacket);
-		if (!this.isActive)
+		if (!this.#active)
 			return Promise.resolve(null);
-		return this._getDataPacket();
+		return this._sendDataPacket();
 	}
 
-	protected _getDataPacket(): Promise<null | ResolveResultType> {
-		const dataPacket = this.#_requestQueue.shift();
-		if (!this._resolver || !dataPacket)
+	protected _sendDataPacket(): Promise<null | ResolveResultType> {
+		if (!this._resolver || !this.#_requestQueue.length)
 			return Promise.resolve(null);
-		return this._resolver(dataPacket)
+		const dataPacket = this.#_requestQueue.shift()!;
+		return this._resolver(dataPacket, this)
 			.then(
 				(result) => {
 					this.#_dataPacketQueue.push({ data: dataPacket, result });
@@ -100,6 +118,18 @@ export abstract class AbstractAgnosticDataDestination<
 	}
 
 	/**
+	 * Consumes the next request in the queue when the current cycle completes
+	 * @returns This destination instance
+	 */
+	protected async _consumeNextRequest() {
+		if (this.#_requestQueue.length && this.isActive()) {
+			await this._sendDataPacket();
+			this._consumeNextRequest();
+		}
+		return this;
+	}
+
+	/**
 	 * Start/resume data processing
 	 * @returns This destination instance
 	 */
@@ -107,17 +137,7 @@ export abstract class AbstractAgnosticDataDestination<
 		this.#active = true;
 		this.#currentCycle = 0;
 		this.#epoch++;
-		if (this.#_requestQueue.length) {
-			this.#_requestQueue.reduce(
-				promise => promise
-					.then(
-						() => this._getDataPacket(),
-					),
-				Promise.resolve(null) as Promise<null | ResolveResultType>,
-			).finally(
-				() => this.#_requestQueue.length ? this.start() : undefined,
-			);
-		}
+		this._consumeNextRequest();
 		return this;
 	}
 
@@ -146,10 +166,9 @@ export abstract class AbstractAgnosticDataDestination<
 
 	public *requestEmitter() {
 		while (true) {
-			if (!this.isActive() || !this._resolver)
-				continue;
 			if (this.#_dataPacketQueue.length) {
-				return this.#_dataPacketQueue.shift();
+				const c = this.#_dataPacketQueue.shift();
+				yield (c === undefined) ? null : c;
 			} else {
 				yield null;
 			}
@@ -255,8 +274,6 @@ export class BasicDataDestination extends createDataDestinationAdapter<
 	TAutomataBaseEventType,
 	Record<TAutomataBaseEventType, any>,
 object,
-Record<string, any>,
-any,
-any
+Record<string, any>
 >()(NamedDataDestination<Record<string, any>, any>) { }
 export default BasicDataDestination;

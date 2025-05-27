@@ -331,10 +331,18 @@ export type TDataSourceConstructorOpts<T> = {
 	) => void;
 };
 
-export type TDataDestinationConstructorOpts<DataPacketType, ResolveResultType> = {
+export type TDataDestinationResolver<
+	DataPacketType,
+	ResolveResultType,
+	ObjectType,
+> = (data: DataPacketType, self?: ObjectType) => Promise<ResolveResultType>;
+export type TDataDestinationConstructorOpts<DataPacketType, ResolveResultType, ObjectType> = {
 	id?: string;
-	resolver?: ((data: DataPacketType) => Promise<ResolveResultType>) | null;
-	afterInit?: (id: string) => void;
+	resolver?: TDataDestinationResolver<DataPacketType, ResolveResultType, ObjectType> | null;
+	afterInit?: (
+		id?: string,
+		setResolver?: (resolver: TDataDestinationResolver<DataPacketType, ResolveResultType, ObjectType>) => any
+	) => void;
 };
 
 export type TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType> =

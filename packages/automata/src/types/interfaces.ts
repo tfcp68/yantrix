@@ -899,7 +899,7 @@ export interface IDataSource<
 	 *
 	 * @returns Array of dispatched event stacks
 	 */
-	dataEmitter: () => IterableIterator<DataPacketType | null>;
+	eventEmitter: () => Generator<TAutomataEventStack<EventType, EventMetaType>>;
 }
 
 /**
@@ -943,7 +943,7 @@ export interface IAgnosticDataDestination<
 	 * Returns an iterator over the data packets actually dispatched to the destination.
 	 * @returns An iterator over data packets and dispatch results
 	 */
-	requestEmitter: () => IterableIterator<TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType> | null>;
+	requestEmitter: () => Generator<TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType> | null>;
 }
 
 /**
