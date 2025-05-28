@@ -365,7 +365,7 @@ export type TDataBoundEventDictionary<
 	DataPacketType,
 	DataModel,
 > = {
-	[T in EventType]?: TDataBoundSelector<T, EventMetaType, DataPacketType, DataModel>
+	[T in EventType]?: Array<TDataBoundSelector<T, EventMetaType, DataPacketType, DataModel>>
 } & {
-	[WILDCARD_EVENT]?: TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>;
+	[WILDCARD_EVENT]?: Array<TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>>;
 };

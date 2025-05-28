@@ -215,8 +215,25 @@ export function createDataDestinationAdapter<
 			#eventTriggers: TDataBoundEventDictionary<EventType, EventMetaType, DataPacketType, DataModel> = {};
 
 			getBoundEvents() {
-				return Object.keys(this.#eventTriggers) as unknown as EventType[];
+				return Object.keys(this.#eventTriggers).map(t => Number.parseInt(t)) as unknown as EventType[];
 			}
+
+			/**
+			 * Creates a trigger by associating a set of events with a selector function.
+			 * The selector function is called when the specified events occur, and it
+			 * determines the data packet that should be sent for those events.
+			 *
+			 * @param events - An array of event types that should trigger the selector.
+			 *                 If null, the selector applies to all events.
+			 * @param selector - A function that selects a data packet based on the event
+			 *                   metadata and optional model. Must be a pure function.
+			 *
+			 * @returns The current instance, allowing for method chaining.
+			 *
+			 * @throws {TypeError} Throws if the selector is not a function.
+			 * @throws {TypeError} Throws if events is not an array or null.
+			 * @throws {TypeError} Throws if any event name is invalid.
+			 */
 
 			createTrigger(
 				events: EventType[] | null,
@@ -229,25 +246,35 @@ export function createDataDestinationAdapter<
 				if (events) {
 					for (const eventName of events) {
 						if (!this.validateEvent(eventName))
-							throw new TypeError(`Invalid event name for Data Destination #${this.id}`);
-						this.#eventTriggers = Object.assign({}, this.#eventTriggers, { [eventName]: selector });
+							throw new TypeError(`Invalid event name in createTrigger ofData Destination #${this.id}`);
+						this.#eventTriggers = Object.assign({}, this.#eventTriggers, {
+							[eventName]: [selector].concat(this.#eventTriggers[eventName] || []),
+						});
 					}
 				} else {
-					this.#eventTriggers[WILDCARD_EVENT] = selector;
+					this.#eventTriggers[WILDCARD_EVENT] = [selector].concat(this.#eventTriggers[WILDCARD_EVENT] || []);
 				}
 				return this;
 			}
 
-			removeTrigger(events: EventType[] | null): this {
+			removeTrigger(
+				events: EventType[] | null,
+				selector?: TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>,
+			): this {
 				if (events && !Array.isArray(events))
 					throw new TypeError(`Invalid event types provided in trigger for Data Destination #${this.id}`);
 				if (events) {
 					for (const eventName of events) {
-						if (typeof eventName !== 'string')
-							throw new TypeError(`Invalid event name provided in trigger for Data Destination #${this.id}`);
 						if (!this.validateEvent(eventName))
-							throw new TypeError(`Invalid event name for Data Destination #${this.id}`);
-						delete this.#eventTriggers[eventName];
+							throw new TypeError(`Invalid event name in removeTrigger of Data Destination #${this.id}`);
+						if (!this.#eventTriggers[eventName])
+							continue;
+						if (!selector) {
+							delete this.#eventTriggers[eventName];
+						} else {
+							const triggers = this.#eventTriggers[eventName].filter(t => t !== selector);
+							this.#eventTriggers = Object.assign({}, this.#eventTriggers, { [eventName]: triggers });
+						}
 					}
 				} else {
 					delete this.#eventTriggers[WILDCARD_EVENT];
@@ -262,10 +289,18 @@ export function createDataDestinationAdapter<
 			update(event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) {
 				if (!this.validateEventMeta(event))
 					throw new TypeError(`Invalid event passed to Data Destination #${this.id}`);
-				const selector = this.#eventTriggers[event.event] || this.#eventTriggers[WILDCARD_EVENT];
-				if (!selector)
+				const selectors = this.#eventTriggers[event.event] || this.#eventTriggers[WILDCARD_EVENT];
+				const packets: DataPacketType[] = [];
+				if (!selectors?.length || !this.isActive())
 					return null;
-				return selector(event, model);
+				for (const selector of selectors) {
+					const packet = selector(event, model);
+					if (packet) {
+						this.send(packet);
+						packets.push(packet);
+					}
+				};
+				return packets;
 			}
 		};
 }

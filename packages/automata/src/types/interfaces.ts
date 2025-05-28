@@ -994,7 +994,7 @@ export interface IDataDestination<
 	 * @param model New data model to process
 	 * @returns This sent data packet
 	 */
-	update: (event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) => DataPacketType | null;
+	update: (event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) => DataPacketType[] | null;
 
 	/**
 	 * Get all registered triggers
