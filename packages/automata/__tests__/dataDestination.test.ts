@@ -59,7 +59,7 @@ describe('dataDestination', () => {
 		});
 	});
 
-	describe('start/stop', () => {
+	describe('/start, /stop', () => {
 		it('should be disabled by default', () => {
 			expect(sampleInstance.isActive()).toBe(false);
 		});
@@ -135,7 +135,7 @@ describe('dataDestination', () => {
 		});
 	});
 
-	describe('send', () => {
+	describe('/send', () => {
 		it('should resolve with correct value when send is called', async () => {
 			const data = { key: 'value' };
 			const result = await sampleInstance.start().send(data);
@@ -183,7 +183,7 @@ describe('dataDestination', () => {
 			expect(result).toBeNull();
 		});
 	});
-	describe('requestEmitter', () => {
+	describe('/requestEmitter', () => {
 		it('should return null when created and not started', () => {
 			const instance = new BasicDataDestination({ id: uniqId(), resolver: sampleResolver });
 			expect(instance.requestEmitter().next().value).toBe(null);
@@ -247,7 +247,7 @@ describe('dataDestination', () => {
 			});
 		});
 	});
-	describe('getBoundEvents', () => {
+	describe('/getBoundEvents', () => {
 		it('should return an empty array by default', () => {
 			expect(sampleInstance.getBoundEvents()).toEqual([]);
 		});
@@ -265,6 +265,12 @@ describe('dataDestination', () => {
 				.createTrigger(events1, () => null)
 				.createTrigger(events2, () => null);
 			expect(sampleInstance.getBoundEvents()).toEqual([1, 2, 3, 4]);
+		});
+		it('returns an array containing null when instance have wildcard listeners attached', () => {
+			const events = [2, 3, 4];
+			sampleInstance.createTrigger(events, () => null);
+			sampleInstance.createTrigger(null, () => null);
+			expect(sampleInstance.getBoundEvents()).toEqual([...events, null]);
 		});
 	});
 	describe('triggers', () => {
@@ -394,6 +400,28 @@ describe('dataDestination', () => {
 			});
 			expect(selector).toHaveBeenCalledTimes(events.length);
 			expect(sampleResolver).toHaveBeenCalledTimes(events.length);
+		});
+		it('calls multiple selectors and resolver for every sent event when a wildcard and a specific trigger is used', async () => {
+			const selector1 = vitest.fn((event, model) => ({ result: event?.meta?.t + model?.value }));
+			const selector2 = vitest.fn((event, model) => ({ result: event?.meta?.t + model?.value * 2 }));
+			const events = [1, 2, 3] as [number, number, number];
+			sampleInstance.createTrigger(null, selector1).createTrigger(events, selector2).start();
+			const model = { value: 2 };
+			const testEvent = { event: events[1], meta: { t: Math.random() } };
+			const dataPackets = sampleInstance.update(testEvent, model);
+			expect(selector1).toHaveBeenCalledWith(testEvent, model);
+			expect(selector2).toHaveBeenCalledWith(testEvent, model);
+			expect(dataPackets).toHaveLength(2);
+			expect(sampleResolver).toHaveBeenCalledWith({
+				result: dataPackets?.[0]?.result,
+				id: sampleInstance.id,
+			}, sampleInstance);
+			expect(sampleResolver).toHaveBeenCalledWith({
+				result: dataPackets?.[1]?.result,
+				id: sampleInstance.id,
+			}, sampleInstance);
+			expect(dataPackets?.[0]).toEqual({ result: testEvent.meta.t + model.value });
+			expect(dataPackets?.[1]).toEqual({ result: testEvent.meta.t + model.value * 2 });
 		});
 	});
 });

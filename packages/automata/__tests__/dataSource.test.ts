@@ -59,7 +59,7 @@ describe('constructor', () => {
 	});
 });
 
-describe('start/stop', () => {
+describe('/start, /stop', () => {
 	it('start increases epoch and resets cycles', () => {
 		const initialEpoch = sampleInstance.currentEpoch;
 		// console.warn(sampleInstance, sampleInstance.currentEpoch, sampleInstance.currentCycle, sampleInstance.totalCycles)
@@ -78,7 +78,7 @@ describe('start/stop', () => {
 	});
 });
 
-describe('emitter', () => {
+describe('/dataEmitter, /eventEmitter', () => {
 	it('doesn\'t emit a packet when disabled', () => {
 		sampleInstance.stop();
 		const packet = sampleInstance.dataEmitter().next();
@@ -257,7 +257,7 @@ describe('emitter', () => {
 		expect(listener).toHaveBeenCalledTimes(packets.length);
 	});
 });
-describe('listeners', () => {
+describe('/addListener, /removeListener', () => {
 	it('can add a listener', () => {
 		const id = uniqId();
 		const listener = vitest.fn();
@@ -278,7 +278,7 @@ describe('listeners', () => {
 		expect(() => sampleInstance.addListener(uniqId(), vitest.fn(), 'not a function' as any)).toThrow();
 	});
 });
-describe('multiple listeners', () => {
+describe('multiple listeners cases', () => {
 	it('invokes all listeners with dispatch when consuming dataemitter', () => {
 		const id1 = uniqId();
 		const id2 = uniqId();

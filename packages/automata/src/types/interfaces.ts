@@ -1003,5 +1003,10 @@ export interface IDataDestination<
 	 */
 	getTriggers: () => TDataBoundEventDictionary<EventType, EventMetaType, DataPacketType, DataModel>;
 
-	getBoundEvents: () => EventType[];
+	/**
+	 * Get all events that have triggers bound to them.
+	 *
+	 * @returns Array of event types that have triggers bound to them. Null means all events.
+	 */
+	getBoundEvents: () => Array<EventType | null>;
 }

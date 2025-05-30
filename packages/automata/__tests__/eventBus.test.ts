@@ -12,7 +12,13 @@ class EventBusTest extends createEventBus<
 }
 
 const createEventWithCallback:
-(e?: number, fn?: TEventBusHandler<number, TTestEventMeta<number>>) => [TTestEvent, TEventBusHandler<number, TTestEventMeta<number>>] = (event?: number, fn?: TEventBusHandler<number, TTestEventMeta<number>>) => {
+(
+	e?: number,
+	fn?: TEventBusHandler<number, TTestEventMeta<number>>
+) => [
+	TTestEvent,
+	TEventBusHandler<number, TTestEventMeta<number>>,
+] = (event?: number, fn?: TEventBusHandler<number, TTestEventMeta<number>>) => {
 	let eventToReturn = randomInteger(1, 10000);
 	let callback: TEventBusHandler<number, TTestEventMeta<number>> = ({ event, meta }) => {
 		return {

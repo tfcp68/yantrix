@@ -215,7 +215,12 @@ export function createDataDestinationAdapter<
 			#eventTriggers: TDataBoundEventDictionary<EventType, EventMetaType, DataPacketType, DataModel> = {};
 
 			getBoundEvents() {
-				return Object.keys(this.#eventTriggers).map(t => Number.parseInt(t)) as unknown as EventType[];
+				const keys = Object
+					.keys(this.#eventTriggers)
+					.map(t => Number.parseInt(t)) as unknown as Array<null | EventType>;
+				if (this.#eventTriggers[WILDCARD_EVENT]?.length)
+					keys.push(null);
+				return keys;
 			}
 
 			/**
@@ -289,7 +294,8 @@ export function createDataDestinationAdapter<
 			update(event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) {
 				if (!this.validateEventMeta(event))
 					throw new TypeError(`Invalid event passed to Data Destination #${this.id}`);
-				const selectors = this.#eventTriggers[event.event] || this.#eventTriggers[WILDCARD_EVENT];
+				const selectors = (this.#eventTriggers[WILDCARD_EVENT] || [])
+					.concat(this.#eventTriggers[event.event] || []);
 				const packets: DataPacketType[] = [];
 				if (!selectors?.length || !this.isActive())
 					return null;

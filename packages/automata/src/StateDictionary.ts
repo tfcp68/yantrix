@@ -102,7 +102,11 @@ export function createStateDictionary<
 				namespace?: string,
 			): string {
 				const id = this.#getTransformerKey(state, namespace);
+				if (Object.values(this.#transformers[state] ?? {}).map(t => t.transformer).includes(transformer)) {
+					throw new EvalError('Context transformer already was added to State Dictionary');
+				}
 				this.#transformersIndex[id] = state;
+
 				this.#transformers[state] = Object.assign(this.#transformers[state] ?? {}, {
 					[id]: { namespace, transformer },
 				});
@@ -125,7 +129,7 @@ export function createStateDictionary<
 			removeContextTransformer<T extends StateType>(
 				state: T,
 				transformer: TContextTransformer<T, ContextType>,
-				namespace: string | undefined,
+				namespace?: string,
 			): this {
 				Object.keys(this.#transformers[state] ?? {}).find((id) => {
 					const item = this.#transformers[state]?.[id];
@@ -138,7 +142,10 @@ export function createStateDictionary<
 				return this;
 			}
 
-			getContextTransformers(namespace?: string): Record<string, Record<string, TContextTransformer<StateType, ContextType>>> {
+			getContextTransformers(namespace?: string): Record<
+				string,
+				Record<string, TContextTransformer<StateType, ContextType>>
+			> {
 				return Object.keys(this.#transformers).reduce(
 					(obj, state) => ({
 						...obj,

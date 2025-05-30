@@ -17,8 +17,8 @@ export type TStateValuesCollection<StateType extends TAutomataBaseStateType> = {
 	namespace?: string;
 };
 
-export type TStateLookupParams<StateType extends TAutomataBaseStateType> = TStateKeysCollection<StateType> &
-	TStateValuesCollection<StateType>;
+export type TStateLookupParams<StateType extends TAutomataBaseStateType> = Partial<TStateKeysCollection<StateType> &
+	TStateValuesCollection<StateType>>;
 
 export type TActionKeysCollection<ActionType extends TAutomataBaseActionType> = {
 	keys: Array<null | string>;
