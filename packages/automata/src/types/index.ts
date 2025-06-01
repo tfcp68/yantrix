@@ -285,7 +285,8 @@ export type THighOrderPredicate = (...predicates: Array<(...args: any[]) => bool
 
 /**
  * Represents a task that will be processed by the event bus after emitting a certain `Event`.
- * Contains the ID of this task, as well as next events to be emitted once this task is completed.
+ * Contains the ID of this task, as well as Promise for next events to be processed.
+ * Returning null as a result of handler makes it synchronous.
  *
  * @template EventType - The type of the automata event.
  * @template EventMetaType - The type of the metadata associated with each event.
@@ -295,11 +296,13 @@ export type TEventBusTask<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = TAutomataEventMetaType<EventType, EventMetaType> & {
 	task_id: string;
-	result: Promise<TAutomataEventStack<EventType, EventMetaType>>;
+	result: Promise<TAutomataEventStack<EventType, EventMetaType>> | null;
 };
 
 /**
  * Handler function for the event bus that transforms emitted events to event bus tasks.
+ * Contains the ID of this task, as well as Promise for next events to be processed.
+ * Returning null as a result of handler makes it synchronous.
  *
  * @template EventType - The type of the automata event.
  * @template EventMetaType - The type of the metadata associated with each event.

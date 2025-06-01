@@ -752,12 +752,6 @@ export interface IAutomataEventBus<
 	 * @returns True if the event bus is running, false otherwise.
 	 */
 	isRunning: () => boolean;
-
-	/**
-	 * Process the events in the event stack.
-	 * @returns The processed event stack.
-	 */
-	processEvents: () => TAutomataEventStack<EventType, EventMetaType>;
 }
 
 /**
