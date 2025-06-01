@@ -31,6 +31,8 @@ a [Mealy Machine](https://en.wikipedia.org/wiki/Mealy_machine)), which is built 
 
 `Actions`/`Payloads` and `States`/`Contexts` are enumerable values that can be combined from various Dictionaries, and also can be reused independently on each other. For instance, it's perfectly fine to create several `FSMs` that operate either on the same set of `Actions` or `States`, or both.
 
+For more details [follow here](./200_FSM.html)
+
 ### Slices
 
 `Slices` are independent parts of business logic layer, each having its own `Effect Matrix` and a set
@@ -63,11 +65,11 @@ not limited to:
 
 Every particular kind of `Source` or `Destination` is represented by a corresponding class:
 
--   `ISourceEmitter` for `Source` channels, which allows to declare rules of publishing `Events` from `Source`. That could
+-   `IDataSource` for `Source` channels, which allows to declare rules of publishing `Events` from `Source`. That could
     be done via subscription, long and short polling or by exposing hook methods to be used directly throughout the App,
     notably in frontend `UI Components` and/or webserver routes.
--   `IDestinationGateway` for `Destination` channels, which observes the `Data Model` and propagates the required changes
-    into the target endpoint
+-   `IDataDestionation` for `Destination` channels, which receives chosen `Events` and `Data Model` and propagates the required changes
+    into the target endpoint based on them.
 
 ### Storage
 
