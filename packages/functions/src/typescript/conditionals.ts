@@ -1,37 +1,16 @@
-import { find, isArray, isBoolean, isNil } from 'lodash-es';
-import { TCasePair, TNestedArray } from './types/common';
-import { flattenWhileNested, variadic } from './utils/utils';
+import { invalid } from './utils/errors';
 
 /**
- * Evaluates a condition and returns one of two values based on the result.
+ * Evaluates a condition and returns the corresponding value.
  *
- * @template T - The type of the values to return.
- *
- * @param condition - The condition to evaluate.
- * @param true_value - The value to return if the condition is true.
- * @param false_value - The value to return if the condition is false.
- * @returns The true_value if the condition is true, otherwise the false_value.
+ * @template T - The type of the return value if the condition is true.
+ * @param condition - The condition that needs to be checked.
+ * @param trueValue - The return value if the condition is true. Defaults to the condition value if not provided.
+ * @param falseValue - The return value if the condition is false. Defaults to null if not provided.
+ * @returns The return value if the condition is true, otherwise the alternative value.
  */
-function _if<T>(condition: boolean, trueValue: T, falseValue: T): T {
-	return (condition ? trueValue : falseValue);
-}
-
-function isValidPair<T = any>(pair: unknown): pair is TCasePair<T> {
-	return isArray(pair) && pair.length === 2 && isBoolean(pair[0]);
-}
-
-function flattenPairs<T = any>(input: unknown): TCasePair<T>[] {
-	if (!isArray(input)) return [];
-
-	const result: TCasePair<T>[] = [];
-	for (const item of input) {
-		if (isValidPair(item)) {
-			result.push(item);
-		} else if (isArray(item)) {
-			result.push(...flattenPairs(item));
-		}
-	}
-	return result;
+function _if<T>(condition: any, trueValue?: T, falseValue?: T): T | null {
+	return (condition ? trueValue ?? condition : falseValue ?? null);
 }
 
 /**
@@ -44,130 +23,40 @@ function flattenPairs<T = any>(input: unknown): TCasePair<T>[] {
  * @param alt - The return value if the condition is false.
  * @returns The return value if the condition is true, otherwise the alternative value.
  */
-function _case<T, A = T>(condition: boolean, expression: T, alt?: A): T | A | null;
-
-/**
- * Evaluates a series of conditions and returns the corresponding value for the first true condition.
- *
- * @template T - The type of the return value if the condition is true.
- * @template A - The type of the return value if the condition is false.
- * @param condition - The condition for the first case.
- * @param expression - The return value for the first case if the condition is true.
- * @param rest - Additional conditions and return values.
- * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
- */
-function _case<T, A = T>(condition: boolean, expression: T, ...rest: any[]): T | A | null;
-
-/**
- * Evaluates a series of conditions and returns the corresponding value for the first true condition.
- *
- * @template T - The type of the return value if the condition is true.
- * @template A - The type of the return value if the condition is false.
- * @param pair - A tuple containing a condition and a return value.
- * @param alt - The return value if no conditions are true.
- * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
- */
-function _case<T, A = T>(pair: TCasePair<T>, alt?: A): T | A | null;
-
-/**
- * Evaluates a series of conditions and returns the corresponding value for the first true condition.
- *
- * @template T - The type of the return value if the condition is true.
- * @template A - The type of the return value if the condition is false.
- * @param pairs - An array of tuples where each tuple contains a condition and a return value.
- * @param alt - The return value if no conditions are true.
- * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
- */
-function _case<T, A = T>(pairs: TCasePair<T>[], alt?: A): T | A | null;
-
-/**
- * Evaluates a series of conditions and returns the corresponding value for the first true condition.
- *
- * @template T - The type of the return value if the condition is true.
- * @template A - The type of the return value if the condition is false.
- * @param pairs - A nested array of tuples where each tuple contains a condition and a return value.
- * @param alt - The return value if no conditions are true.
- * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
- */
-function _case<T, A = T>(pairs: TNestedArray<TCasePair<T>>, alt?: A): T | A | null;
-
-/**
- * Evaluates a series of conditions and returns the corresponding value for the first true condition.
- *
- * @template T - The type of the return value if the condition is true.
- * @template A - The type of the return value if the condition is false.
- * @param pairsAndAlt - A nested array of tuples where each tuple contains a condition and a return value, followed by an optional alternative value.
- * @returns The return value of the first true condition, or the return value of the last case if no conditions are true.
- */
-function _case<T, A = T>(...pairsAndAlt: [...TNestedArray<TCasePair<T>>[], A]): T | A | null;
-
-function _case<T, A = T>(...args: unknown[]): T | A | null {
-	if (args.length >= 2 && typeof args[0] === 'boolean') {
-		if (args.length > 3 || (args.length === 3 && typeof args[2] === 'boolean')) {
-			const pairs: TCasePair<T>[] = [];
-			let alt: A | undefined;
-
-			for (let i = 0; i < args.length - 1; i += 2) {
-				if (typeof args[i] === 'boolean') {
-					pairs.push([args[i] as boolean, args[i + 1] as T]);
-				}
-			}
-
-			if (args.length % 2 === 1 && typeof args[args.length - 1] !== 'boolean') {
-				alt = args[args.length - 1] as A;
-			}
-
-			const matchingPair = pairs.find(([condition]) => condition);
-			return matchingPair ? matchingPair[1] : (alt ?? null);
+const _case = <T = any>(...args: [...Array<boolean | T>, T]): T => {
+	if (!args?.length || args.length % 2 === 0)
+		return invalid('INVALID_ARGUMENTS');
+	const defaultValue = args[args.length - 1] ?? null;
+	// Validate argument structure at runtime
+	for (let i = 0; i < args.length - 1; i++) {
+		if (i % 2 === 0 && typeof args[i] !== 'boolean') {
+			return invalid('INVALID_BINARY_ARGUMENT');
 		}
-
-		const [condition, value, alt] = args as [boolean, T, A | undefined];
-		return condition ? value : (alt ?? null);
-	}
-
-	if (args.length === 1) {
-		const [firstArg] = args;
-
-		if (isValidPair(firstArg)) {
-			const [condition, value] = firstArg;
-			return condition ? value : null;
-		}
-
-		if (isArray(firstArg)) {
-			const pairs = flattenPairs(firstArg);
-			const matchingPair = pairs.find(([condition]) => condition);
-			return matchingPair ? matchingPair[1] : null;
+		if (args[i] === true) {
+			if (typeof args[i + 1] === 'undefined')
+				return invalid('INDEX_OUT_OF_RANGE');
+			return args[i + 1] as T;
 		}
 	}
-
-	if (args.length === 2) {
-		const [pairs, alt] = args;
-
-		if (isValidPair(pairs)) {
-			const [condition, value] = pairs;
-			return condition ? value : (alt as A ?? null);
-		}
-
-		if (isArray(pairs)) {
-			const flatPairs = flattenPairs(pairs);
-			const matchingPair = flatPairs.find(([condition]) => condition);
-			return matchingPair ? matchingPair[1] : (alt as A ?? null);
-		}
-	}
-
-	return null;
-}
+	return defaultValue as T;
+};
 
 /**
- * Returns the first non-null expression from the provided list of expressions.
+ * Returns the first non-empty and non-null expression from the provided list of expressions.
  *
- * @template T - The type of the expressions.
- * @param values - An array of expressions to evaluate.
+ * @template T - The type of the expressions, defaults to any.
+ * @param values - A list of expressions to evaluate.
  * @returns The first non-null expression, or null if all expressions are null.
  */
-const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {
-	return find(values, value => !isNil(value)) ?? null;
-});
+const coalesce = <T = any>(...values: (T | null | undefined)[]): T | null => {
+	if (!values?.length) return invalid('INVALID_ARGUMENTS');
+	for (const value of values) {
+		if (value !== null && value !== undefined) {
+			return value;
+		}
+	}
+	return null;
+};
 
 /**
  * Selects the element at the specified index from a list of options.
@@ -176,7 +65,7 @@ const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {
  * @template T - The type of the elements in the options.
  *
  * @param index - The zero-based index of the element to select.
- * @param options - A list of options or a single array of options to choose from.
+ * @param options - A list of options to choose from, one by one.
  * @returns The element at the specified index, or undefined if the index is out of bounds.
  *
  * @throws {Error} If no options are provided.
@@ -184,25 +73,14 @@ const coalesce = variadic(<T>(values: (T | null | undefined)[]): T | null => {
  *
  * @example
  * choose(1, 'a', 'b', 'c'); // Returns 'b'
- * choose(2, ['a', 'b', 'c', 'd']); // Returns 'c'
- * choose(2, [['a'], ['b'], ['c'], ['d']]); // Returns ['c']
- * choose(0); // Throws 'No options provided'
- * choose(5, 'a', 'b', 'c'); // Throws 'Index out of bounds'
+ * choose(2, ['a', 'b', 'c', 'd']); // throws error
+ * choose(0); // Throws error
+ * choose(5, 'a', 'b', 'c'); // Throws error
  */
-function choose<T>(index: number, ...options: T[] | [T[]]): T | undefined {
-	if (options.length === 0) {
-		throw new Error('No options provided');
-	}
-
-	// Flatten the options if the only argument after index is an array
-	const flattenedOptions = options.length === 1 && Array.isArray(options[0])
-		? flattenWhileNested(options[0]) as T[]
-		: options as T[];
-
-	if (index < 0 || index >= flattenedOptions.length) {
-		throw new Error(`Index out of bounds`);
-	}
-
+function choose<T>(index: number, ...options: T[]): T | undefined {
+	if (options.length === 0) return invalid('INVALID_NUMBER_OF_ARGUMENTS');
+	const flattenedOptions = [...(options || [])] as T[];
+	if (index < 0 || index >= flattenedOptions.length) return invalid('INDEX_OUT_OF_RANGE');
 	return flattenedOptions[index];
 }
 

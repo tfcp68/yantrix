@@ -57,7 +57,7 @@ export function flattenWhileNested<T>(input: TNestedArray<T>): TNestedArray<T> {
  * 2. Flatten the arguments using flattenWhileNested
  * 3. Pass the flattened array to the original function
  */
-export function variadic<T, R = T>(fn: (conditions: T[]) => R) {
+export function variadic<T, R = T>(fn: (conditions: T[]) => R): (...rest: TNestedArray<T>[]) => R {
 	return function (...args: TNestedArray<T>): R {
 		const conditions = flattenWhileNested(args);
 		return fn(conditions as T[]);
