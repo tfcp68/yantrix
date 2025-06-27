@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 
-			import { GenericAutomata, FunctionDictionary, EventDictionary as GlobalEventDictionary, AutomataEventAdapter, BasicEventBus, builtInFunctions, TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/core';
+			import { GenericAutomata, FunctionDictionary, EventDictionary as GlobalEventDictionary, AutomataEventAdapter, BasicEventBus, builtInFunctions, internalFunctions, TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/core';
 
 			export const statesDictionary = {
   "~~~START~~~": 74979334,
@@ -17,7 +17,6 @@ export const actionsDictionary = {
   "Switch": 1805606060
 }
 export const functionDictionary = new FunctionDictionary();
-functionDictionary.register(builtInFunctions);
 			const eventAdapter = new AutomataEventAdapter();
 
 
@@ -120,7 +119,7 @@ return [EventBus, automatas];
 			}
 			
 			const reducer = {
-		74979334: (prevContext, payload, functionDictionary) => {
+		74979334: (prevContext, payload, functionDictionary, automata) => {
 
 				return {counter: (function(){
 			const boundValue = (function(){
@@ -149,23 +148,23 @@ return [EventBus, automatas];
 
 		}())}
 			},
-	79183: (prevContext, payload, functionDictionary) => {
+	79183: (prevContext, payload, functionDictionary, automata) => {
 
 				return prevContext
 			},
-	82033: (prevContext, payload, functionDictionary) => {
+	82033: (prevContext, payload, functionDictionary, automata) => {
 
 				return prevContext
 			},
-	1051543483: (prevContext, payload, functionDictionary) => {
+	1051543483: (prevContext, payload, functionDictionary, automata) => {
 
 				return prevContext
 			},
-	69066467: (prevContext, payload, functionDictionary) => {
+	69066467: (prevContext, payload, functionDictionary, automata) => {
 
 				return prevContext
 			},
-	1650372460: (prevContext, payload, functionDictionary) => {
+	1650372460: (prevContext, payload, functionDictionary, automata) => {
 
 				return prevContext
 			}
@@ -235,7 +234,7 @@ return [EventBus, automatas];
 			
 export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata_1739524890085';
+    static id = 'TrafficLightAutomata_1751001515258';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
@@ -260,8 +259,9 @@ export class TrafficLightAutomata extends GenericAutomata {
 					if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.")
 					if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
 
-
 					const getNew = (action,state,context,payload) => {
+						this.lastAction = action;
+
 						const actionMove = actionToStateFromStateDict[state][action];
 						const newStateObject = { state: actionMove.state[0] }
 						const contextWithInitial = getDefaultContext(context,payload)
@@ -283,7 +283,7 @@ export class TrafficLightAutomata extends GenericAutomata {
 							throw new Error('Invalid newContextFunc')
 						}
 
-						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry())};
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this)};
 
 					}
 
@@ -292,6 +292,9 @@ export class TrafficLightAutomata extends GenericAutomata {
 					while(byPassedStates.has(localCtx.state)) {
 						localCtx = getNew(actionsDictionary['[-]'], localCtx.state, localCtx.context, {})
 					}
+
+					this.incrementCycle(); // increment automata local cycle counter
+					incrementEpoch(); // increment global epoch counter
 
 					return localCtx
 
@@ -306,4 +309,18 @@ export class TrafficLightAutomata extends GenericAutomata {
 }
 
 export default TrafficLightAutomata;
+			const epoch = { val: 1 };
+const incrementEpoch = () => { epoch.val++ };
+const getEpoch = () => epoch.val;
+			const internals = {
+	...internalFunctions,
+	"currentStateId": internalFunctions.currentStateId(TrafficLightAutomata),
+	"currentStateName": internalFunctions.currentStateName(TrafficLightAutomata, statesDictionary),
+	"currentActionId": internalFunctions.currentActionId(TrafficLightAutomata),
+	"currentActionName": internalFunctions.currentActionName(TrafficLightAutomata, actionsDictionary),
+	"currentCycle": internalFunctions.currentCycle(TrafficLightAutomata),
+	"currentEpoch": getEpoch,
+}
+			functionDictionary.register(internals);
+			functionDictionary.register(builtInFunctions);
 		

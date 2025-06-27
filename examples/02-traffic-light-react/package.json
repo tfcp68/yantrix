@@ -5,11 +5,11 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc -b && vite build",
+		"build": "npm run generate && tsc -b && vite build",
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"preview": "vite preview",
-		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
+		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l typescript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.1.0",
