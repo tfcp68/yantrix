@@ -30,11 +30,11 @@
 	],
 	"scripts": {
 		"dev": "npm run build && node dist/index.js",
-		"build": "tsc --noEmit && tsup",
+		"build": "npm run create_test_automata && tsc --noEmit && tsup",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
-		"test": "vitest run --outputFile=../../test_reports/redux.md",
-		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
+		"test": "npm run create_test_automata && vitest run --outputFile=../../test_reports/redux.md",
+		"create_test_automata": "yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
 	},
 	"directories": {
 		"lib": "src",

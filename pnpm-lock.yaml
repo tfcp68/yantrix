@@ -469,9 +469,15 @@ importers:
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../cli
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../core
       '@yantrix/functions':
         specifier: workspace:^
         version: link:../functions
