@@ -38,27 +38,10 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
 			${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
+			${TypeScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getFunctionDictionaryInternalRegisterCode()}
+			${TypeScriptCompiler.dictionaries.serializer.getFunctionDictionaryBuiltInRegisterCode()}
 		`;
-
-		/*
-			правильный порядок
-
-			return `
-				${TypeScriptCompiler.imports.serializer.getImportsCode(props)}
-				${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
-				${TypeScriptCompiler.events.serializer.getEventAdapterCode(props)}
-				${TypeScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}
-				${TypeScriptCompiler.dictionaries.serializer.getActionsMap(props)}
-				${TypeScriptCompiler.dictionaries.serializer.getStatesMap(props)}
-				${TypeScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
-				export type TActions${options.className} = keyof typeof actionsMap;
-				${TypeScriptCompiler.dictionaries.serializer.getStatesMap(props)}
-				${TypeScriptCompiler.context.serializer.getDefaultContext(props)}
-				${TypeScriptCompiler.context.serializer.getStateReducerCode(props)}
-				${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
-				${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
-				${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
-			`;
-		*/
 	}
 }
