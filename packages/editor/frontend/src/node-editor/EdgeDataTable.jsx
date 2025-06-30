@@ -1,6 +1,6 @@
 import { useReactFlow } from "@xyflow/react";
-import { Button } from "../ui/button";
-import { Table, TableBody, TableCaption, TableRow, TableCell } from "../ui/table"
+import { Button } from "../components/ui/button";
+import { Table, TableBody, TableCaption, TableRow, TableCell } from "../components/ui/table"
 import { useState } from "react";
 
 export const EdgeDataTable = ({ edge, onDelete:deleteEdge }) => {

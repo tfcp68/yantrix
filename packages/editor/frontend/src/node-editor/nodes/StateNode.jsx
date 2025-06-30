@@ -1,7 +1,7 @@
 import { Handle, Position, useNodeConnections, useReactFlow } from "@xyflow/react";
 import { useEffect, useState } from "react"
 
-export const StateNode = ({ id, data = {name: 'New State', bypass: false, initial: false}, selected, outline, ...props }) => {
+export const StateNode = ({ id, data = {name: 'New State', bypass: false, initial: false, editModeEnabled: false}, selected, outline, ...props }) => {
 
     const { setNodes } = useReactFlow();
     const [stateName, setStateName] = useState(data.name || '[blank state]');
@@ -14,7 +14,7 @@ export const StateNode = ({ id, data = {name: 'New State', bypass: false, initia
     }
 
     const updateName = () => {
-        setNameEditEnabled(false);
+        toggleEditMode(false);
         if (!stateName) {
             setStateName('[blank state]')
         }
@@ -36,6 +36,25 @@ export const StateNode = ({ id, data = {name: 'New State', bypass: false, initia
         ))
     }
 
+    const toggleEditMode = (flag) => {
+        setNodes((nodes) => (
+            nodes.map(node => {
+                if (node.id === id) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            editModeEnabled: flag || !node.data.editModeEnabled
+                        }
+                    }
+                }
+                return node;
+            })
+        ));
+        setNameEditEnabled(flag || !nameEditEnabled);
+    }
+
+
     return (
         <div
             className={
@@ -50,7 +69,7 @@ export const StateNode = ({ id, data = {name: 'New State', bypass: false, initia
                 `
             }
             style={{ width: `${stateName.length * 12}px` }}
-            onDoubleClick={() => setNameEditEnabled(true)}
+            onDoubleClick={() => toggleEditMode(true)}
             {...props}
             draggable={false}
         >

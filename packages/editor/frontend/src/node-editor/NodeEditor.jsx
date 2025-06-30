@@ -15,108 +15,40 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AddNodePanel } from './AddNodePanel';
-import { InitialNode } from './InitialNode';
-import { ForkNode } from './ForkNode';
-import { StateNode } from './StateNode';
-import CustomActionEdge from './CustomActionEdge';
 import { NodeDataTable } from './NodeDataTable';
 import { EdgeDataTable } from './EdgeDataTable';
 
-import { useDnD } from '../../context/DnDContext';
+import { useDnD } from '../context/DnDContext';
+
+// import { initialNodes, initialEdges } from './examples';
+import nodeTypes from './nodes/types';
+import edgeTypes from './edges/types';
+import { data } from 'autoprefixer';
 
 const initialNodes = [
-    // { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-    // { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-    { id: '3', type: 'state', position: { x: 700, y: 300 }, data: { name: 'New State', bypass: false, initial: false } },
-    { id: '4', type: 'initial', position: { x: 700, y: 400 } },
-    { id: '5', type: 'fork', position: { x: 700, y: 500 } },
-    { id: 'example-initial', type: 'initial', position: { x: 300, y: 300 } },
-    { id: 'example-state-off', type: 'state', position: { x: 230, y: 380 }, data: { name: 'Off', bypass: false, initial: false } },
-    { id: 'example-state-red', type: 'state', position: { x: 230, y: 480 }, data: { name: 'Red', bypass: false, initial: false } },
-    { id: 'example-state-redyellow', type: 'state', position: { x: 180, y: 580 }, data: { name: 'RedYellow', bypass: false, initial: false } },
-    { id: 'example-state-green', type: 'state', position: { x: 180, y: 680 }, data: { name: 'Green', bypass: false, initial: false } },
-    { id: 'example-state-yellow', type: 'state', position: { x: 230, y: 780 }, data: { name: 'Yellow', bypass: false, initial: false } },
+    { id: 'test-state-1', type: 'state', position: { x: 700, y: 300 }, data: { name: 'New State', bypass: false, initial: false, editModeEnabled: false } },
 ];
-const initialEdges = [
-    {
-        id: 'e1-2',
-        type: 'action',
-        source: 'example-initial',
-        target: 'example-state-off',
-        label: 'Reset',
-        data:  { name: 'Reset' },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }
-    },
-    {
-        id: 'e2-3',
-        type: 'action',
-        source: 'example-state-off',
-        target: 'example-state-red',
-        label: 'Switch',
-        data:  { name: 'Switch' },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }
-    },
-    {
-        id: 'e3-4',
-        type: 'action',
-        source: 'example-state-red',
-        target: 'example-state-redyellow',
-        label: 'Switch',
-        data:  { name: 'Switch' },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }
-    },
-    {
-        id: 'e4-5',
-        type: 'action',
-        source: 'example-state-redyellow',
-        target: 'example-state-green',
-        label: 'Switch',
-        data:  { name: 'Switch' },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }
-    },
-    {
-        id: 'e5-6',
-        type: 'action',
-        source: 'example-state-green',
-        target: 'example-state-yellow',
-        label: 'Switch',
-        data:  { name: 'Switch' },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }
-    },
-    {
-        id: 'e6-7',
-        type: 'action',
-        source: 'example-state-yellow',
-        target: 'example-state-red',
-        label: 'Switch',
-        data:  { name: 'Switch' },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }
-    },
-    // { 
-    //     id: 'e1-2',
-    //     source: '1',
-    //     target: '2',
-    //     label: 'allo?',
-    //     markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 },
-    //     name: 'kek'
-    // }
-];
-
-const nodeTypes = {
-    initial: InitialNode,
-    fork: ForkNode,
-    state: StateNode
-
-};
-
-const edgeTypes = {
-    action: CustomActionEdge
-}
+const initialEdges = [];
 
 let state_id = 10;
 let edge_id = 10;
 const getStateId = () => `state_${state_id++}`;
 const getEdgeId = () => `edge_${edge_id++}`;
+
+const createNewNode = (type, position, name) => { 
+    return {
+        id: getStateId(),
+        type,
+        position,
+        data: { 
+            name,
+            bypass: false,
+            initial: false,
+            editModeEnabled: false
+         },
+        selected: true,
+    }
+}
 
 export const NodeEditor = () => {
 
@@ -199,6 +131,27 @@ export const NodeEditor = () => {
     }, []);
     useOnSelectionChange({ onChange });
 
+    // add event listener to 'delete' key to remove selected node or edge
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            console.log('key down: ', event.key);
+            if (event.key === 'Delete') {
+                if (selectedNode && !selectedNode.data.editModeEnabled) {
+                    console.log('deleting selected node');
+                    removeNodeHandler(selectedNode);
+                } else if (selectedEdge) {
+                    console.log('deleting selected edge');
+                    removeEdgeHandler(selectedEdge);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [selectedNode, selectedEdge]);
+
+
     // when updating some nodes, refresh selected ones
     useEffect(() => {
         console.log('nodes in use effect: ', nodes);
@@ -280,12 +233,7 @@ export const NodeEditor = () => {
                 x: event.clientX,
                 y: event.clientY,
             });
-            const newNode = {
-                id: getStateId(),
-                type,
-                position,
-                data: { name: 'New State' },
-            };
+            const newNode = createNewNode(type, position, 'New State');
         
             setNodes((nds) => nds.concat(newNode));
             setType(null);

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
+import { Button } from '../components/ui/button';
+import { Popover, PopoverTrigger, PopoverContent } from '../components/ui/popover';
 import { FaPlus } from "react-icons/fa";
-import { useDnD } from '../../context/DnDContext';
+import { useDnD } from '../context/DnDContext';
 
 export const AddNodePanel = ({ onNodeSelect:createNodeOutline }) => {
 

@@ -1,4 +1,4 @@
-import { NodeEditor } from '../components/node-editor/NodeEditor';
+import { NodeEditor } from '../node-editor/NodeEditor';
 import {
     ReactFlowProvider
 } from '@xyflow/react';
