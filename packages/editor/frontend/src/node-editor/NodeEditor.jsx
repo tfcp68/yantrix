@@ -24,9 +24,26 @@ import { useDnD } from '../context/DnDContext';
 import nodeTypes from './nodes/types';
 import edgeTypes from './edges/types';
 import { data } from 'autoprefixer';
+import { StateDirectivePanel } from './StateDirectivePanel';
+
+const getNewNodeData = (name) => ({
+    name: name || 'New State',
+    bypass: false,
+    intiial: false,
+    directives: [],
+    editModeEnabled: false,
+    options: {
+        selectedTab: undefined
+    }
+})
 
 const initialNodes = [
-    { id: 'test-state-1', type: 'state', position: { x: 700, y: 300 }, data: { name: 'New State', bypass: false, initial: false, editModeEnabled: false } },
+    { 
+        id: 'test-state-1',
+        type: 'state',
+        position: { x: 700, y: 300 },
+        data: getNewNodeData()
+    },
 ];
 const initialEdges = [];
 
@@ -40,12 +57,7 @@ const createNewNode = (type, position, name) => {
         id: getStateId(),
         type,
         position,
-        data: { 
-            name,
-            bypass: false,
-            initial: false,
-            editModeEnabled: false
-         },
+        data: getNewNodeData(name),
         selected: true,
     }
 }
@@ -81,7 +93,7 @@ export const NodeEditor = () => {
             const edge = { ...connection, selected: true, markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 }, type: 'action' };
             console.log('edge: ', edge);
             setEdges((edges) => addEdge(edge, edges));
-            setSelectedEdge(edge);
+            // setSelectedEdge(edge);
         },
         [setEdges],
     );
@@ -102,7 +114,7 @@ export const NodeEditor = () => {
                         y: clientY,
                     }),
                     selected: true,
-                    data: { name: 'New State' },
+                    data: getNewNodeData(),
                     origin: [0.5, 0.0],
                 };
                 const newEdgeId = getEdgeId();
@@ -113,7 +125,7 @@ export const NodeEditor = () => {
                         source: connectionState.fromHandle.type === 'target' ? id : connectionState.fromNode.id,
                         target: connectionState.fromHandle.type === 'target' ? connectionState.fromNode.id : id,
                         type: 'action',
-                        name: 'New Action',
+                        data: { name: 'New Action' },
                         // selected: true,
                         markerEnd: { type: MarkerType.Arrow }
                      }),
@@ -125,7 +137,19 @@ export const NodeEditor = () => {
 
     // capture selection of nodes or edges to open corresponding panel
     const onChange = useCallback(({ nodes, edges }) => {
-        console.log('on change activated, ', nodes);
+        console.log('selected nodes change activated, ', nodes);
+
+       setNodes((nds) => nds.map((node) => ({
+            ...node,
+            data: {
+                ...node.data,
+                options: {
+                    ...node.data.options,
+                    selectedTab: undefined // reset selected tab
+                }
+            }
+        })));
+
         setSelectedNode(nodes?.[0]);
         setSelectedEdge(edges?.[0]);
     }, []);
@@ -264,9 +288,9 @@ export const NodeEditor = () => {
                     <Panel position="bottom-center">
                         <AddNodePanel onNodeSelect={setGhostNodeOutline} />
                     </Panel>
-                    <Panel position='top-left' className="flex flex-col gap-5">
-                        {selectedNode && (
-                            <NodeDataTable node={selectedNode} onDelete={() => removeNodeHandler(selectedNode)} />
+                    <Panel position='top-left' className="flex flex-col">
+                        {selectedNode && selectedNode.data.options.selectedTab && (
+                            <NodeDataTable node={selectedNode} openOnTab={selectedNode.data.options.selectedTab} onDelete={() => removeNodeHandler(selectedNode)} />
                         )}
                         {selectedEdge && (
                             <EdgeDataTable edge={selectedEdge} onDelete={() => removeEdgeHandler(selectedEdge)} />
