@@ -9,15 +9,16 @@ import { invalid } from './utils/errors';
  * Returns the maximum value from a list of numbers.
  *
  * @category Statistics
- * @param nums - An array of numbers to evaluate.
- * @returns The maximum value found in the array.
+ * @param nums - Numbers or arrays of numbers to evaluate.
+ * @returns The maximum value found.
  */
-export const max = (...nums: number[]) => {
+export const max = (...nums: (number | number[])[]) => {
 	if (!nums?.length) return null;
+	const flatNums = nums.flat();
 	let mx = -Infinity;
-	for (let i = 0; i < nums.length; i++) {
-		if (!Number.isFinite(nums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
-		if (nums[i]! > mx) mx = nums[i]!;
+	for (let i = 0; i < flatNums.length; i++) {
+		if (!Number.isFinite(flatNums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
+		if (flatNums[i]! > mx) mx = flatNums[i]!;
 	}
 	return mx;
 };
@@ -26,15 +27,16 @@ export const max = (...nums: number[]) => {
  * Returns the minimum value from a list of numbers.
  *
  * @category Statistics
- * @param nums - An array of numbers to evaluate.
- * @returns The minimum value found in the array.
+ * @param nums - Numbers or arrays of numbers to evaluate.
+ * @returns The minimum value found.
  */
-export const min = (...nums: number[]) => {
+export const min = (...nums: (number | number[])[]) => {
 	if (!nums?.length) return null;
+	const flatNums = nums.flat();
 	let mn = Infinity;
-	for (let i = 0; i < nums.length; i++) {
-		if (!Number.isFinite(nums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
-		if (nums[i]! < mn) mn = nums[i]!;
+	for (let i = 0; i < flatNums.length; i++) {
+		if (!Number.isFinite(flatNums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
+		if (flatNums[i]! < mn) mn = flatNums[i]!;
 	}
 	return mn;
 };
@@ -43,37 +45,41 @@ export const min = (...nums: number[]) => {
  * Returns the sum of a list of numbers.
  *
  * @category Statistics
- * @param nums - An array of numbers to evaluate.
- * @returns The sum of the numbers in the array.
+ * @param nums - Numbers or arrays of numbers to evaluate.
+ * @returns The sum of the numbers.
  */
-export const sum = (list: number[]) => {
-	if (!list?.length) return null;
-	return list.reduce((sum, num) => sum + num, 0);
+export const sum = (...nums: (number | number[])[]) => {
+	if (!nums?.length) return null;
+	const flatNums = nums.flat();
+	return flatNums.reduce((sum, num) => sum + num, 0);
 };
 
 /**
  * Returns the average value from a list of numbers.
  *
  * @category Statistics
- * @param nums - An array of numbers to evaluate.
- * @returns The average of all values of the array.
+ * @param nums - Numbers or array of numbers to evaluate.
+ * @returns The average of all values.
  */
-export const avg = (...nums: number[]) => {
-	return nums.length ? (sum(nums) ?? invalid('INVALID_NUMERIC_ARGUMENT')) / nums.length : null;
+export const avg = (...nums: (number | number[])[]) => {
+	if (!nums?.length) return null;
+	const flatNums = nums.flat();
+	return (sum(...flatNums) ?? invalid('INVALID_NUMERIC_ARGUMENT')) / flatNums.length;
 };
 
 /**
  * Returns the median value from a list of numbers.
  *
  * @category Statistics
- * @param nums - An array of numbers to evaluate.
- * @returns The median value of the array.
+ * @param nums - Numbers or arrays of numbers to evaluate.
+ * @returns The median value.
  */
-export const med = (...nums: number[]) => {
+export const med = (...nums: (number | number[])[]) => {
 	if (!nums.length) return null;
-	if (!nums.every(t => Number.isFinite(t))) return invalid('INVALID_NUMERIC_ARGUMENT');
+	const flatNums = nums.flat();
+	if (!flatNums.every(t => Number.isFinite(t))) return invalid('INVALID_NUMERIC_ARGUMENT');
 
-	const sorted = nums.sort();
+	const sorted = flatNums.sort();
 	const middle = Math.floor(sorted.length / 2);
 
 	return sorted.length % 2
@@ -85,12 +91,13 @@ export const med = (...nums: number[]) => {
  * Returns the sum of the squares of a list of numbers.
  *
  * @category Statistics
- * @param nums - An array of numbers to evaluate.
- * @returns The sum of the squares of the numbers in the array.
+ * @param nums - Numbers or arrays of numbers to evaluate.
+ * @returns The sum of the squares of the numbers.
  */
-export const sumsq = (...nums: number[]) => {
+export const sumsq = (...nums: (number | number[])[]) => {
 	if (!nums.length) return null;
-	return nums.reduce((acc, num) => acc + num * num, 0);
+	const flatNums = nums.flat();
+	return flatNums.reduce((acc, num) => acc + num * num, 0);
 };
 
 /**

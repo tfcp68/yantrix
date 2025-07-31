@@ -55,11 +55,13 @@
 		"test": "vitest run",
 		"lint": "eslint .",
 		"format": "eslint --fix .",
-		"prepack": "pnpm run build && pnpm run lint"
+		"prepack": "pnpm run build && pnpm run lint",
+		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
 	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
+		"@yantrix/core": "workspace:^",
 		"@yantrix/functions": "workspace:^",
 		"@yantrix/utils": "workspace:^",
 		"react": "^18.3.1"

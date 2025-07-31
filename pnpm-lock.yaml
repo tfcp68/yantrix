@@ -472,6 +472,9 @@ importers:
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../core
       '@yantrix/functions':
         specifier: workspace:^
         version: link:../functions
@@ -512,6 +515,9 @@ importers:
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../core
       '@yantrix/functions':
         specifier: workspace:^
         version: link:../functions

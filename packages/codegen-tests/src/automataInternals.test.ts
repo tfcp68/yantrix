@@ -12,7 +12,7 @@ const input = `stateDiagram-v2
 	Green --> Yellow: Switch
 	Yellow --> Red: Switch
 note right of [*]
-#{ counter = 0 } <= coalesce($initialCounter, inc(#counter))
+#{ counter = 0 } <= coalesce($initialCounter, inc(#counter = 0))
 end note
 note left of Off
 +Init
@@ -103,13 +103,13 @@ describe('automata internal functions tests', async () => {
 		const currentEpochFunction = functionDictionary.get('currentEpoch')!;
 
 		it('initial epoch is 1', () => {
-			const currentEpoch = currentEpochFunction();
-			expect(currentEpoch).toBe(1);
+			const currentEpoch = currentEpochFunction;
+			expect(currentEpoch()).toBe(1);
 		});
 		it('epoch is incremented after action dispatch of some automata', async () => {
 			automata.dispatch({ action: actionsDictionary.Switch, payload: {} });
-			const currentEpoch = currentEpochFunction();
-			expect(currentEpoch).toBe(2);
+			const currentEpoch = currentEpochFunction;
+			expect(currentEpoch()).toBe(2);
 		});
 	});
 });

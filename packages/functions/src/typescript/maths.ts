@@ -10,15 +10,16 @@ import { invalid } from './utils/errors';
  * Adds a list of numbers together.
  *
  * @category Arithmetics
- * @param nums - An array of numbers.
+ * @param nums - Numbers or arrays of numbers.
  * @returns The sum of the numbers.
  */
-export const add = (...nums: number[]) => {
+export const add = (...nums: (number | number[])[]) => {
 	if (!nums?.length) return null;
+	const flatNums = nums.flat();
 	let sum = 0;
-	for (let i = 0; i < nums.length; i++) {
-		if (!Number.isFinite(nums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
-		sum += nums[i]!;
+	for (let i = 0; i < flatNums.length; i++) {
+		if (!Number.isFinite(flatNums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
+		sum += flatNums[i]!;
 	}
 	return sum;
 };
@@ -39,15 +40,16 @@ export function diff(a: number, b: number) {
  * Multiplies a list of numbers.
  *
  * @category Arithmetics
- * @param nums - An array of numbers to multiply.
+ * @param nums - Numbers or arrays of numbers to multiply.
  * @returns The product of the numbers.
  */
-export const mult = (...nums: number[]) => {
+export const mult = (...nums: (number | number[])[]) => {
 	if (!nums?.length) return null;
-	let product = 0;
-	for (let i = 0; i < nums.length; i++) {
-		if (!Number.isFinite(nums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
-		product *= nums[i]!;
+	const flatNums = nums.flat();
+	let product = 1;
+	for (let i = 0; i < flatNums.length; i++) {
+		if (!Number.isFinite(flatNums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
+		product *= flatNums[i]!;
 	}
 	return product;
 };
@@ -171,7 +173,7 @@ export function ceil(n: number) {
 export function round(n: number, precision: number = 0) {
 	if (_.isNil(n)) return null;
 	if (!Number.isFinite(n)) return invalid('INVALID_NUMERIC_ARGUMENT');
-	if (!isPositiveInteger(n) && n !== 0)
+	if (!isPositiveInteger(precision) && precision !== 0)
 		return invalid('INVALID_PRECISION_ARGUMENT');
 
 	const factor = 10 ** precision;
