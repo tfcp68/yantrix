@@ -1,21 +1,14 @@
-<template>
-	<div>
-		<CopySVG fill="none" @click="copy" v-if="!isCopied" />
-		<CopyCopiedSVG v-if="isCopied" />
-	</div>
-</template>
-
 <script setup>
 import { ref } from 'vue';
-import CopySVG from '../../svgs/CopySVG.vue';
 import CopyCopiedSVG from '../../svgs/CopyCopiedSVG.vue';
+import CopySVG from '../../svgs/CopySVG.vue';
 
 const props = defineProps({
 	textToCopy: String,
 });
 
 const isCopied = ref(false);
-const copy = () => {
+function copy() {
 	navigator.clipboard.writeText(props.textToCopy);
 
 	isCopied.value = true;
@@ -23,5 +16,12 @@ const copy = () => {
 	setTimeout(() => {
 		isCopied.value = false;
 	}, 2000);
-};
+}
 </script>
+
+<template>
+	<div>
+		<CopySVG v-if="!isCopied" fill="none" @click="copy" />
+		<CopyCopiedSVG v-if="isCopied" />
+	</div>
+</template>
