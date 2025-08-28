@@ -12,9 +12,11 @@ import { invalid } from './utils/errors';
  * @param nums - Numbers or arrays of numbers to evaluate.
  * @returns The maximum value found.
  */
-export const max = (...nums: (number | number[])[]) => {
-	if (!nums?.length) return null;
+export function max(...nums: number[]): number | null;
+export function max(nums: number[]): number | null;
+export function max(...nums: [number[]] | number[]): number | null {
 	const flatNums = nums.flat();
+	if (!flatNums.length) return null;
 	let mx = -Infinity;
 	for (let i = 0; i < flatNums.length; i++) {
 		if (!Number.isFinite(flatNums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
@@ -30,9 +32,11 @@ export const max = (...nums: (number | number[])[]) => {
  * @param nums - Numbers or arrays of numbers to evaluate.
  * @returns The minimum value found.
  */
-export const min = (...nums: (number | number[])[]) => {
-	if (!nums?.length) return null;
+export function min(...nums: number[]): number | null;
+export function min(nums: number[]): number | null;
+export function min(...nums: [number[]] | number[]): number | null {
 	const flatNums = nums.flat();
+	if (!flatNums?.length) return null;
 	let mn = Infinity;
 	for (let i = 0; i < flatNums.length; i++) {
 		if (!Number.isFinite(flatNums[i])) return invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
@@ -48,11 +52,15 @@ export const min = (...nums: (number | number[])[]) => {
  * @param nums - Numbers or arrays of numbers to evaluate.
  * @returns The sum of the numbers.
  */
-export const sum = (...nums: (number | number[])[]) => {
-	if (!nums?.length) return null;
+export function sum(...nums: number[]): number | null;
+export function sum(nums: number[]): number | null;
+export function sum(...nums: [number[]] | number[]): number | null {
 	const flatNums = nums.flat();
-	return flatNums.reduce((sum, num) => sum + num, 0);
-};
+	if (!flatNums?.length) return null;
+	return flatNums.reduce((sum, num) => (!Number.isFinite(num))
+		? invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS')
+		: sum + num, 0);
+}
 
 /**
  * Returns the average value from a list of numbers.
@@ -61,9 +69,11 @@ export const sum = (...nums: (number | number[])[]) => {
  * @param nums - Numbers or array of numbers to evaluate.
  * @returns The average of all values.
  */
-export const avg = (...nums: (number | number[])[]) => {
-	if (!nums?.length) return null;
+export function avg(...nums: number[]): number | null;
+export function avg(nums: number[]): number | null;
+export function avg(...nums: [number[]] | number[]): number | null {
 	const flatNums = nums.flat();
+	if (!flatNums?.length) return null;
 	return (sum(...flatNums) ?? invalid('INVALID_NUMERIC_ARGUMENT')) / flatNums.length;
 };
 
@@ -74,9 +84,11 @@ export const avg = (...nums: (number | number[])[]) => {
  * @param nums - Numbers or arrays of numbers to evaluate.
  * @returns The median value.
  */
-export const med = (...nums: (number | number[])[]) => {
-	if (!nums.length) return null;
+export function med(...nums: number[]): number | null;
+export function med(nums: number[]): number | null;
+export function med(...nums: [number[]] | number[]): number | null {
 	const flatNums = nums.flat();
+	if (!flatNums.length) return null;
 	if (!flatNums.every(t => Number.isFinite(t))) return invalid('INVALID_NUMERIC_ARGUMENT');
 
 	const sorted = flatNums.sort();
@@ -94,9 +106,11 @@ export const med = (...nums: (number | number[])[]) => {
  * @param nums - Numbers or arrays of numbers to evaluate.
  * @returns The sum of the squares of the numbers.
  */
-export const sumsq = (...nums: (number | number[])[]) => {
-	if (!nums.length) return null;
+export function sumsq(...nums: number[]): number | null;
+export function sumsq(nums: number[]): number | null;
+export function sumsq(...nums: [number[]] | number[]): number | null {
 	const flatNums = nums.flat();
+	if (!flatNums.length) return null;
 	return flatNums.reduce((acc, num) => acc + num * num, 0);
 };
 

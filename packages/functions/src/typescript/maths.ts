@@ -13,7 +13,9 @@ import { invalid } from './utils/errors';
  * @param nums - Numbers or arrays of numbers.
  * @returns The sum of the numbers.
  */
-export const add = (...nums: (number | number[])[]) => {
+export function add(nums: number[]): number | null;
+export function add(...nums: number[]): number | null;
+export function add(...nums: (number | number[])[]) {
 	if (!nums?.length) return null;
 	const flatNums = nums.flat();
 	let sum = 0;
