@@ -15,7 +15,7 @@ import { invalid } from './utils/errors';
  */
 export function add(nums: number[]): number | null;
 export function add(...nums: number[]): number | null;
-export function add(...nums: (number | number[])[]) {
+export function add(...nums: [number[]] | number[]): number | null {
 	if (!nums?.length) return null;
 	const flatNums = nums.flat();
 	let sum = 0;
@@ -45,7 +45,9 @@ export function diff(a: number, b: number) {
  * @param nums - Numbers or arrays of numbers to multiply.
  * @returns The product of the numbers.
  */
-export const mult = (...nums: (number | number[])[]) => {
+export function mult(...nums: number[]): number | null;
+export function mult(nums: number[]): number | null;
+export function mult(...nums: [number[]] | number[]): number | null {
 	if (!nums?.length) return null;
 	const flatNums = nums.flat();
 	let product = 1;
