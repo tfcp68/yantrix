@@ -78,9 +78,9 @@ export function div(a: number, b: number) {
  * Raises the first number to the power of the second number.
  *
  * @category Arithmetics
- * @param num1 - The base number.
- * @param num2 - The exponent.
  * @returns The result of raising the base to the exponent.
+ * @param n
+ * @param exp
  */
 export function pow(n: number, exp: number) {
 	return (Number.isFinite(n) && Number.isFinite(exp))
@@ -159,8 +159,8 @@ export function trunc(n: number) {
  * Rounds a number up to the nearest integer.
  *
  * @category Arithmetics
- * @param num - The number to round up.
  * @returns The smallest integer greater than or equal to the number.
+ * @param n
  */
 export function ceil(n: number) {
 	return Number.isFinite(n) ? Math.ceil(n) : invalid('INVALID_NUMERIC_ARGUMENT');
@@ -170,7 +170,7 @@ export function ceil(n: number) {
  * Rounds a number to the nearest integer or to specified precision.
  *
  * @category Arithmetics
- * @param num - The number to round.
+ * @param n
  * @param precision - The number of decimal places to round to (default: 0).
  * @returns The rounded number.
  */
