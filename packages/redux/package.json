@@ -1,7 +1,7 @@
 {
 	"name": "@yantrix/redux",
 	"type": "module",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"description": "Redux integration for Yantrix framework",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"license": "MIT",
