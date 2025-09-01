@@ -97,14 +97,14 @@ function getFolderItem(folderDir: string, link: string): DefaultTheme.SidebarIte
 			text: frontmatter.data.title || name,
 			collapsed: true,
 			items: [],
-			rel: getSortIndex(folderDir),
+			rel: String(getSortIndex(folderDir)),
 			link: frontmatter.content.length > 0 ? link : undefined,
 		};
 	} else {
 		return {
 			text: path.basename(folderDir),
 			collapsed: true,
-			rel: getSortIndex(folderDir),
+			rel: String(getSortIndex(folderDir)),
 			items: [],
 		};
 	}
@@ -115,7 +115,7 @@ function getFileItem(filePath: string, link: string): DefaultTheme.SidebarItem {
 	const name = path.basename(filePath).replace('.md', '');
 	return {
 		text: frontmatter.data.title || name,
-		rel: getSortIndex(filePath),
+		rel: String(getSortIndex(filePath)),
 		link,
 	};
 }
@@ -165,5 +165,8 @@ function getSidebarItems(startDir: string, baseDir = '') {
 
 	const root = getFolderItem(startDir, '/');
 
-	return [root, ..._getSidebarItems().sort((a, b) => Number.parseInt(a.rel) - Number.parseInt(b.rel))];
+	return [
+		root,
+		..._getSidebarItems().sort((a, b) => Number.parseInt(String(a.rel)) - Number.parseInt(String(b.rel))),
+	];
 }
