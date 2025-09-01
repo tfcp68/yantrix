@@ -12,7 +12,7 @@ import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
 import { CodegenCreator } from './core/Codegen.js';
 import { ModuleNames } from './core/modules/index.js';
-import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
+import { IGenerateOptions } from './types/common.js';
 
 export * from './core/modules/index.js';
 export * from './types/common.js';
@@ -27,13 +27,14 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 	const { states, transitions, actionChains } = diagram;
 	const parserInstance = new YantrixParser();
 
-	const statesIncludingNotes = states.map((state) => {
+	const statePromises = states.map(async (state) => {
 		const input = state.notes.flatMap(e => e.join('\n')).join(' ');
 		if (input === '')
 			return { ...state, notes: null };
-		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
+		return { ...state, notes: await parserInstance.parse(input) };
 	});
 
+	const statesIncludingNotes = await Promise.all(statePromises);
 	let constants: Record<string, any> | null = null;
 
 	if (options?.constants) {

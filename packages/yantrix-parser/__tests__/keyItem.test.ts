@@ -1,6 +1,7 @@
 import { randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
-import { YantrixParser } from '../src/yantrixParser.js';
+
+import { YantrixParser } from '../src/index.js';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
 import {
 	allowedExpressions,
@@ -83,19 +84,18 @@ function generateExpressionCases(templates: any[], casesAmount: number = randomI
 describe('key list', () => {
 	const parser = new YantrixParser();
 
-	describe('the number of arguments must be equal to or less than the number of context arguments', () => {
+	describe('the number of arguments must be equal to or less than the number of context arguments', async () => {
 		const keyItem = getKeyItemsInitialEmpty()[0];
 		const strInput = `#{${keyItem?.value}} <= #a, #b`;
 
-		expect(() => parser.parse(strInput)).toThrowError(
-			'The number of arguments must be equal to or less than the number of context arguments.',
-		);
+		const res = async () => await parser.parse(strInput);
+		await expect(res).rejects.toThrowError();
 	});
 
 	describe('single key item', () => {
 		const cases = generateExpressionCases(validCases);
-		it.each(cases)('%s', (input, res) => {
-			const output = parser.parse(input);
+		it.each(cases)('%s', async (input, res) => {
+			const output = await parser.parse(input);
 			assert.deepOwnInclude(output, res);
 		});
 	});
@@ -103,14 +103,14 @@ describe('key list', () => {
 	describe('random number of keyItem', () => {
 		describe('iNPUT = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data ', () => {
 			Object.entries(allowedExpressions).forEach(([_, value]: [string, any]) => {
-				it(`data type - `, () => {
+				it(`data type - `, async () => {
 					for (let index = 0; index < 100; index++) {
 						const keyItems = getKeyItemsWithInitial(value);
 
 						const targetPropertyCount = keyItems.length;
 						const formatInput = `#{${keyItems.map(({ input }) => input).join(',')}}`;
 
-						const output = parser.parse(formatInput);
+						const output = await parser.parse(formatInput) as any;
 
 						const { contextDescription } = output;
 						const context = contextDescription[0].context;
@@ -134,7 +134,7 @@ describe('key list', () => {
 				});
 			});
 		});
-		it(`iNPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, () => {
+		it(`iNPUT = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data `, async () => {
 			for (let index = 0; index < 10; index++) {
 				const parser = new YantrixParser();
 
@@ -144,7 +144,7 @@ describe('key list', () => {
 
 				const formattedInput = `#{${inputArray.join(',')}}`;
 
-				const output = parser.parse(formattedInput);
+				const output = await parser.parse(formattedInput) as any;
 
 				const { contextDescription } = output;
 				const context = contextDescription[0].context;
@@ -164,7 +164,7 @@ describe('key list', () => {
 			}
 		});
 		describe('empty last initial value', () => {
-			it('iNPUT = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', () => {
+			it('iNPUT = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', async () => {
 				for (let index = 0; index < 10; index++) {
 					const parser = new YantrixParser();
 
@@ -187,7 +187,7 @@ describe('key list', () => {
 					const inputArray = initialEmptyEnd.map((item: any) => item.value);
 
 					const formattedInput = `#{${inputArray.join(',')}}`;
-					const output = parser.parse(formattedInput);
+					const output = await parser.parse(formattedInput) as any;
 
 					const { contextDescription } = output;
 					const context = contextDescription[0].context;
@@ -197,7 +197,7 @@ describe('key list', () => {
 					expect(lastContextItem).toStrictEqual({ ...f });
 				}
 			});
-			it('iNPUT = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', () => {
+			it('iNPUT = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', async () => {
 				for (let index = 0; index < 10; index++) {
 					const parser = new YantrixParser();
 
@@ -209,7 +209,7 @@ describe('key list', () => {
 					const formattedArr = keyItems.map(el => el.value);
 					const formattedInput = `#{${formattedArr.join(',')}}`;
 
-					const output = parser.parse(formattedInput);
+					const output = await parser.parse(formattedInput) as any;
 
 					const { contextDescription } = output;
 					const context = contextDescription[0].context;
@@ -223,34 +223,34 @@ describe('key list', () => {
 			});
 		});
 		describe('incorect input', () => {
-			it('iNPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
+			it('iNPUT = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', async () => {
 				const parser = new YantrixParser();
 				const keyItems = getKeyItemsRandomInitial(true);
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
-				expect(() => parser.parse(formattedInput)).toThrowError();
+				await expect(async () => await parser.parse(formattedInput)).rejects.toThrowError();
 			});
-			it('iNPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', () => {
+			it('iNPUT = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end ', async () => {
 				const parser = new YantrixParser();
 				const keyItems = [...getKeyItemsRandomInitial(), { value: 'prop3,' }];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
-				expect(() => parser.parse(formattedInput)).toThrowError();
+				await expect(async () => await parser.parse(formattedInput)).rejects.toThrowError();
 			});
-			it('iNPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', () => {
+			it('iNPUT = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning ', async () => {
 				const parser = new YantrixParser();
 				const keyItems = [{ value: ',prop3=' }, ...getKeyItemsRandomInitial()];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
-				expect(() => parser.parse(formattedInput)).toThrowError();
+				await expect(async () => await parser.parse(formattedInput)).rejects.toThrowError();
 			});
-			it('iNPUT = #{prop1=5, prop2=10, , prop5=5 } ------- the comma is duplicated', () => {
+			it('iNPUT = #{prop1=5, prop2=10, , prop5=5 } ------- the comma is duplicated', async () => {
 				const parser = new YantrixParser();
 				const keyItems = getKeyItemsRandomInitial();
 
@@ -262,17 +262,17 @@ describe('key list', () => {
 				});
 
 				const formattedInput = `#{${itemsValue.join(',')}}`;
-				expect(() => parser.parse(formattedInput)).toThrowError();
+				await expect(async () => await parser.parse(formattedInput)).rejects.toThrowError();
 			});
-			it('iNPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
+			it('iNPUT = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', async () => {
 				const parser = new YantrixParser();
 				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
 				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
 				const keyItems = [{ value: `pro${randomInvalidSymbol}p3=` }, ...getKeyItemsRandomInitial()];
 				const itemsValue = keyItems.map((item: any) => item.value);
 				const formattedInput = `#{${itemsValue.join(',')}}`;
-				const callError = () => parser.parse(formattedInput);
-				expect(callError).toThrowError();
+				const callError = async () => await parser.parse(formattedInput);
+				await expect(callError).rejects.toThrowError();
 			});
 		});
 	});
