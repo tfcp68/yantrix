@@ -6,14 +6,16 @@ import { isNumber } from 'lodash-es';
 // ==============================
 
 /**
- * Wrapper for a function that retrieves the current state ID of the automata.
+ * Wrapper for a function that retrieves the current state ID of the auto mata.
  *
  * @template T - The type of the automata.
  *
  * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current state ID or null.
  */
-function currentStateId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
+function currentStateId<
+	T extends GenericAutomata,
+>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
 	return (automata: T) => automata instanceof automataClass ? automata.state : null;
 }
 /**
@@ -25,8 +27,12 @@ function currentStateId<T extends GenericAutomata>(automataClass: TAbstractConst
  * @param statesDictionary - A dictionary mapping state names to state IDs.
  * @returns A function that takes an automata instance and returns its current state name or null.
  */
-function currentStateName<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>, statesDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => automata instanceof automataClass ? (Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null) : null;
+function currentStateName<
+	T extends GenericAutomata,
+>(automataClass: TAbstractConstructor<T>, statesDictionary: Record<string, number>): (automata: T) => string | null {
+	return (automata: T) => automata instanceof automataClass
+		? (Object.entries(statesDictionary).find(([_, id]) => id === automata.state)?.[0] ?? null)
+		: null;
 }
 /**
  * Wrapper for a function that retrieves the current(i.e last dispatched) action ID of the automata.
@@ -36,7 +42,9 @@ function currentStateName<T extends GenericAutomata>(automataClass: TAbstractCon
  * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its last action ID or null.
  */
-function currentActionId<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
+function currentActionId<
+	T extends GenericAutomata,
+>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
 	return (automata: T) => automata instanceof automataClass ? automata.lastAction : null;
 }
 /**
@@ -48,8 +56,12 @@ function currentActionId<T extends GenericAutomata>(automataClass: TAbstractCons
  * @param actionsDictionary - A dictionary mapping action names to action IDs.
  * @returns A function that takes an automata instance and returns its last action name or null.
  */
-function currentActionName<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>, actionsDictionary: Record<string, number>): (automata: T) => string | null {
-	return (automata: T) => automata instanceof automataClass ? (Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null) : null;
+function currentActionName<
+	T extends GenericAutomata,
+>(automataClass: TAbstractConstructor<T>, actionsDictionary: Record<string, number>): (automata: T) => string | null {
+	return (automata: T) => automata instanceof automataClass
+		? (Object.entries(actionsDictionary).find(([_, id]) => id === automata.lastAction)?.[0] ?? null)
+		: null;
 }
 /**
  * Wrapper for a function that retrieves the current reduction cycle of the FSM.
@@ -59,7 +71,9 @@ function currentActionName<T extends GenericAutomata>(automataClass: TAbstractCo
  * @param automataClass - The constructor of the automata.
  * @returns A function that takes an automata instance and returns its current cycle.
  */
-function currentCycle<T extends GenericAutomata>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
+function currentCycle<
+	T extends GenericAutomata,
+>(automataClass: TAbstractConstructor<T>): (automata: T) => number | null {
 	return (automata: T) => automata instanceof automataClass ? automata.currentCycle : null;
 }
 /**

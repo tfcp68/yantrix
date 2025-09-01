@@ -9,7 +9,7 @@ describe('createFSMSlice test', () => {
 		name: TrafficLightAutomata.id,
 		Fsm: TrafficLightAutomata,
 	});
-	const { states, getState } = TrafficLightAutomata;
+	const { getState } = TrafficLightAutomata;
 
 	const store = configureStore({
 		reducer: combineReducers({
@@ -21,12 +21,12 @@ describe('createFSMSlice test', () => {
 		store.dispatch(actions.Switch({}));
 		const currState = store.getState()[TrafficLightAutomata.id];
 
-		expect(currState?.state).equal(getState(states.Red));
+		expect(currState?.state).equal(getState('Red'));
 	});
 
 	it('validate state', () => {
-		const { validateState } = new TrafficLightAutomata();
+		const automata = new TrafficLightAutomata();
 		const currState = store.getState()[TrafficLightAutomata.id]?.state;
-		expect(validateState(currState)).toBeTruthy();
+		expect(automata.validateState(currState)).toBeTruthy();
 	});
 });

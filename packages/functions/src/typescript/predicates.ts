@@ -6,8 +6,8 @@
  * Functions that compare numerical values and return either 'true' or 'false'.
  */
 
-import { every, isArray, isEqual, isNull, isNumber, isObject, isString, some, values } from 'lodash-es';
-import { variadic } from './utils/utils';
+import { every, isEqual, isNil, isNull, some } from 'lodash-es';
+import { invalid } from './utils/errors';
 
 // ==============================
 // Logical (binary) predicates
@@ -20,7 +20,7 @@ import { variadic } from './utils/utils';
  * @param conditions - An array of boolean conditions to evaluate.
  * @returns True if all conditions are true, otherwise false.
  */
-export const and = variadic((conditions: boolean[]): boolean => every(conditions, Boolean));
+export const and = (...conditions: any[]): boolean => every((conditions || []), Boolean) ?? false;
 /**
  * {@inheritDoc and}
  * @category Binary Predicates
@@ -34,7 +34,7 @@ export const all = and;
  * @param conditions - An array of boolean conditions to evaluate.
  * @returns True if at least one condition is true, otherwise false.
  */
-export const or = variadic((conditions: boolean[]): boolean => some(conditions, Boolean));
+export const or = (...conditions: any[]): boolean => some((conditions || []), Boolean) ?? false;
 /**
  * {@inheritDoc or}
  * @category Binary Predicates
@@ -48,7 +48,7 @@ export const any = or;
  * @param condition - The condition to negate.
  * @returns The negated condition.
  */
-export const not = (condition: boolean): boolean => !condition;
+export const not = (condition: any): boolean => isNil(condition) ? invalid('INVALID_BINARY_ARGUMENT') : !condition;
 
 /**
  * Evaluates a series of conditions and returns true if none of the conditions are true.
@@ -57,7 +57,7 @@ export const not = (condition: boolean): boolean => !condition;
  * @param conditions - An array of boolean conditions to evaluate.
  * @returns True if none of the conditions are true, otherwise false.
  */
-export const none = variadic((conditions: boolean[]): boolean => not(and(conditions)));
+export const none = (...conditions: any[]): boolean => every((conditions || []), t => !t) ?? false;
 
 // ==============================
 // Numeric predicates
@@ -68,10 +68,11 @@ export const none = variadic((conditions: boolean[]): boolean => not(and(conditi
  *
  * @category Numeric Predicates
  * @param n - The number to check.
- * @returns True if the number is even, otherwise false. Returns null if the argument is not a number.
+ * @returns True if the number is even, otherwise false. Throws if the argument is not a number.
  */
 export function isEven(n: number): boolean | null {
-	return isNumber(n) ? n % 2 === 0 : null;
+	if (!Number.isFinite(n)) return invalid('INVALID_NUMERIC_ARGUMENT');
+	return n % 2 === 0;
 }
 
 /**
@@ -79,10 +80,10 @@ export function isEven(n: number): boolean | null {
  *
  * @category Numeric Predicates
  * @param n - The number to check.
- * @returns True if the number is odd, otherwise false. Returns null if the argument is not a number.
+ * @returns True if the number is odd, otherwise false. Throws if the argument is not a number.
  */
 export function isOdd(n: number): boolean | null {
-	return isNumber(n) ? Math.abs(n % 2) === 1 : null;
+	return !isEven(n);
 }
 
 /**
@@ -90,10 +91,11 @@ export function isOdd(n: number): boolean | null {
  *
  * @category Numeric Predicates
  * @param value - The value to check.
- * @returns True if the value is an integer, otherwise false. Returns null if the argument is not a number.
+ * @returns True if the value is an integer, otherwise false. Throws if the argument is not a number.
  */
 export function isInteger(value: number): boolean | null {
-	if (!isNumber(value)) return null;
+	if (!Number.isFinite(value))
+		return invalid('INVALID_NUMERIC_ARGUMENT');
 	return Number.isInteger(value);
 }
 /**
@@ -102,11 +104,10 @@ export function isInteger(value: number): boolean | null {
  * @category Numeric Predicates
  * @param a - The first number to compare.
  * @param b - The second number to compare.
- * @returns True if the first number is greater, otherwise false. Returns null if either argument is not a number.
+ * @returns True if the first number is greater, otherwise false. Throws if either argument is not a number.
  */
-export function isGreater(a: number, b: number): boolean | null {
-	if (!isNumber(a) || !isNumber(b)) return null;
-	return a > b;
+export function isGreater(a: number, b: number): boolean {
+	return (Number.isFinite(a) && Number.isFinite(b)) ? a > b : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
 }
 
 /**
@@ -115,11 +116,10 @@ export function isGreater(a: number, b: number): boolean | null {
  * @category Numeric Predicates
  * @param a - The first number to compare.
  * @param b - The second number to compare.
- * @returns True if the first number is greater than or equal, otherwise false. Returns null if either argument is not a number.
+ * @returns True if the first number is greater than or equal, otherwise false. Throws if either argument is not a number.
  */
-export function isGreaterOrEqual(a: number, b: number): boolean | null {
-	if (!isNumber(a) || !isNumber(b)) return null;
-	return a >= b;
+export function isGreaterOrEqual(a: number, b: number): boolean {
+	return (Number.isFinite(a) && Number.isFinite(b)) ? a >= b : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
 }
 
 /**
@@ -128,11 +128,10 @@ export function isGreaterOrEqual(a: number, b: number): boolean | null {
  * @category Numeric Predicates
  * @param a - The first number to compare.
  * @param b - The second number to compare.
- * @returns True if the first number is less, otherwise false. Returns null if either argument is not a number.
+ * @returns True if the first number is less, otherwise false. Throws if either argument is not a number.
  */
-export function isLess(a: number, b: number): boolean | null {
-	if (!isNumber(a) || !isNumber(b)) return null;
-	return a < b;
+export function isLess(a: number, b: number): boolean {
+	return (Number.isFinite(a) && Number.isFinite(b)) ? a < b : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
 }
 
 /**
@@ -141,11 +140,10 @@ export function isLess(a: number, b: number): boolean | null {
  * @category Numeric Predicates
  * @param a - The first number to compare.
  * @param b - The second number to compare.
- * @returns True if the first number is less than or equal, otherwise false. Returns null if either argument is not a number.
+ * @returns True if the first number is less than or equal, otherwise false. Throws if either argument is not a number.
  */
-export function isLessOrEqual(a: number, b: number): boolean | null {
-	if (!isNumber(a) || !isNumber(b)) return null;
-	return a <= b;
+export function isLessOrEqual(a: number, b: number): boolean {
+	return (Number.isFinite(a) && Number.isFinite(b)) ? a <= b : invalid('ALL_ARGUMENTS_MUST_BE_NUMBERS');
 }
 
 /**
@@ -153,10 +151,10 @@ export function isLessOrEqual(a: number, b: number): boolean | null {
  *
  * @category Numeric Predicates
  * @param value - The number to check.
- * @returns True if the number is negative, otherwise false. Returns null if the argument is not a number.
+ * @returns True if the number is negative, otherwise false. Throws if the argument is not a number.
  */
-export function isNegative(value: number): boolean | null {
-	if (!isNumber(value)) return null;
+export function isNegative(value: number): boolean {
+	if (!Number.isFinite(value)) return invalid('INVALID_NUMERIC_ARGUMENT');
 	return value < 0;
 }
 
@@ -165,11 +163,11 @@ export function isNegative(value: number): boolean | null {
  *
  * @category Numeric Predicates
  * @param value - The number to check.
- * @returns True if the number is positive, otherwise false. Returns null if the argument is not a number.
+ * @returns True if the number is positive, otherwise false. Throws if the argument is not a number.
  */
-export function isPositive(value: number): boolean | null {
-	if (!isNumber(value)) return null;
-	return value >= 0;
+export function isPositive(value: number): boolean {
+	if (!Number.isFinite(value)) return invalid('INVALID_NUMERIC_ARGUMENT');
+	return value > 0;
 }
 
 // ==============================
@@ -184,7 +182,7 @@ export function isPositive(value: number): boolean | null {
  * @param substr - The substring to check for.
  * @returns True if the substring is found, otherwise false.
  */
-export function contains(str: string, substr: string): boolean | null;
+export function contains(str: string, substr: string): boolean;
 
 /**
  * Checks if an object contains a specified value.
@@ -195,7 +193,7 @@ export function contains(str: string, substr: string): boolean | null;
  * @param value - The value to check for.
  * @returns True if the value is found, otherwise false.
  */
-export function contains<T extends object>(obj: T, value: T[keyof T]): boolean | null;
+export function contains<T extends object>(obj: T, value: any): boolean;
 
 /**
  * Checks if an array contains a specified value.
@@ -207,13 +205,22 @@ export function contains<T extends object>(obj: T, value: T[keyof T]): boolean |
  * @param value - The value to check for.
  * @returns True if the value is found, otherwise false.
  */
-export function contains<T, V>(list: ArrayLike<T>, value: V): boolean | null;
+export function contains<T, V>(list: ArrayLike<T>, value: V): boolean;
 
-export function contains(container: string | object | any[], value: any): boolean | null {
-	if (isString(container) && isString(value)) return container.includes(value);
-	if (isArray(container)) return some(container, item => isEqual(item, value));
-	if (isObject(container) && !isNull(container)) return values(container).some(item => isEqual(item, value));
-	return null;
+export function contains(container: string | object | any[], value: any): boolean {
+	switch (true) {
+		case typeof container === 'string':
+			if (typeof value === 'string') return container.includes(value);
+			return invalid('INVALID_ARGUMENTS');
+		case Array.isArray(container):
+			return container.includes(value);
+		case !container:
+			return false;
+		case typeof container !== 'object':
+			return invalid('INVALID_ARGUMENTS');
+		default:
+			return Object.values(container).includes(value);
+	}
 }
 
 /**
@@ -225,7 +232,7 @@ export function contains(container: string | object | any[], value: any): boolea
  * @param index - The index to check for.
  * @returns True if the index is found, otherwise false.
  */
-export function has<T>(list: T[], index: number): boolean | null;
+export function has<T>(list: T[], index: number): boolean;
 
 /**
  * Checks if an object has a specified key.
@@ -236,12 +243,17 @@ export function has<T>(list: T[], index: number): boolean | null;
  * @param key - The key to check for.
  * @returns True if the key is found, otherwise false.
  */
-export function has<T extends object>(obj: T, key: keyof T): boolean | null;
+export function has<T extends object>(obj: T, key: any): key is keyof T;
 
-export function has(container: any[] | object, keyOrIndex: number | keyof any): boolean | null {
-	if (isArray(container) && isNumber(keyOrIndex)) return !!container[keyOrIndex];
-	if (isObject(container) && !isNull(container) && isString(keyOrIndex)) return keyOrIndex in container;
-	return null;
+export function has(container: object | any[], key: any): boolean {
+	if (!container) return false;
+	if (isNil(key))
+		return invalid('INVALID_ARGUMENTS');
+	try {
+		return Object.keys(container).includes(String(key));
+	} catch (error) {
+		return invalid('INVALID_ARGUMENTS', (error as Error).message);
+	}
 }
 
 export { isEqual, isNull };

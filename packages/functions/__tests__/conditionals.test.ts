@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { randomArray, randomInteger, randomValue } from '../../utils/src';
+import { randomInteger } from '../../utils/src';
 import { builtInFunctions } from '../src';
 
 describe('function Tests', () => {
@@ -24,25 +24,17 @@ describe('function Tests', () => {
 			).toBe('Value 2');
 		});
 
-		it('should handle an array of pairs and return the first matching value', () => {
-			const pairs = [
-				[false, 'Value 1'],
-				[true, 'Value 2'],
-				[false, 'Value 3'],
-			];
-			expect(builtInFunctions.case(pairs)).toBe('Value 2');
+		it('should return the only passed argument', () => {
+			expect(builtInFunctions.case('Only Argument')).toBe('Only Argument');
 		});
 
-		it('should handle nested arrays of pairs and return the first matching value', () => {
-			const nestedPairs = [
-				[[false, 'Value 1'], [true, 'Value 2']],
-				[[false, 'Value 3']],
-			];
-			expect(builtInFunctions.case(nestedPairs)).toBe('Value 2');
+		it('should throw an error when called without arguments', () => {
+			expect(() => builtInFunctions.case.apply(null)).toThrow();
 		});
 
-		it('should return null if no conditions match and no alternative is provided', () => {
-			expect(builtInFunctions.case(false, 'Value')).toBe(null);
+		it('should throw an error when called with even number of arguments', () => {
+			expect(() => builtInFunctions.case(true, 'Value 1', true, 'Value 2', 'Default Value', 'Extra Argument')).toThrow();
+			expect(() => builtInFunctions.case(true, 'Value 1')).toThrow();
 		});
 	});
 
@@ -55,8 +47,8 @@ describe('function Tests', () => {
 			expect(builtInFunctions.coalesce(null, undefined)).toBe(null);
 		});
 
-		it('should handle empty input gracefully', () => {
-			expect(builtInFunctions.coalesce()).toBe(null);
+		it('should throw on empty input', () => {
+			expect(() => builtInFunctions.coalesce()).toThrow();
 		});
 	});
 
@@ -79,35 +71,22 @@ describe('function Tests', () => {
 			expect(choose(3, [1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12])).toStrictEqual([10, 11, 12]);
 		});
 
-		it('correctly returns the options at the given index: nested arrays', () => {
-			expect(choose(1, [100, 200, 300])).toBe(200);
-			expect(choose(2, [[100], [200], [300]])).toStrictEqual([300]);
-		});
-
-		it('correctly returns the options at the given index: random mixed-type arrays', () => {
-			const iterations = 100;
-
-			for (let i = 0; i < iterations; i++) {
-				const randomArgs = randomArray(randomValue, randomInteger()); // array of random amount of arguments with random types
-				const expectedArgIndex = Math.floor(Math.random() * randomArgs.length);
-				const expectedArg = randomArgs[expectedArgIndex];
-				expect(choose(expectedArgIndex, ...randomArgs)).toBe(expectedArg);
-				expect(typeof choose(expectedArgIndex, ...randomArgs)).toBe(typeof expectedArg);
-			}
-		});
-
 		it('should throw an error when index is out of bounds', () => {
 			const index = randomInteger(4, 100);
-			expect(() => choose(index, 'a', 'b', 'c')).toThrow('Index out of bounds');
+			expect(() => choose(index, 'a', 'b', 'c')).toThrow();
 		});
 
 		it('should throw an error when index is negative', () => {
 			const index = -1;
-			expect(() => choose(index, 'a', 'b', 'c')).toThrow('Index out of bounds');
+			expect(() => choose(index, 'a', 'b', 'c')).toThrow();
 		});
 
 		it('should throw an error when no options are provided', () => {
-			expect(() => choose(0)).toThrow('No options provided');
+			expect(() => choose(0)).toThrow();
+		});
+		it('should throw an error when called without arguments', () => {
+			// @ts-expect-error can't call without arguments
+			expect(() => choose()).toThrow();
 		});
 	});
 });

@@ -581,7 +581,7 @@ describe('default context', () => {
 
 describe('functions', () => {
 	it('nested call, mult(avg($list),$count)', async () => {
-		const input = `#{a} <= mult(avg($list),$count)`;
+		const input = `#{a} <= mult(avg($list = []),$count = 0)`;
 		await generateAndSave(
 			{
 				input: getTemplateInput(input),
@@ -631,7 +631,7 @@ describe('functions', () => {
 		const input = `stateDiagram-v2
     [*] --> A: toA
     note left of A
-      #{result} <= round(mult(add($a, $b), div($c, $d)))
+      #{result} <= round(mult(add($a, $b), div($c, $d)), 2)
     end note`;
 
 		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'chainedFunctionCalls');
@@ -643,16 +643,16 @@ describe('functions', () => {
 			payload: { a: 2, b: 3, c: 10, d: 3 },
 		});
 
-		expect(automata.context).toStrictEqual({ result: 17 }); // round((2 + 3) * (10 / 3)) ≈ 17
+		expect(automata.context).toStrictEqual({ result: 16.67 });
 	});
 
 	it('function calls with array operations', async () => {
 		const input = `stateDiagram-v2
     [*] --> A: toA
     note left of A
-      #{sum} <= sum($numbers)
-      #{average} <= avg($numbers)
-      #{maxValue} <= max($numbers)
+      #{sum} <= sum($numbers=[])
+      #{average} <= avg($numbers=[])
+      #{maxValue} <= max($numbers=[])
     end note`;
 
 		await generateAndSave({ input, automataName: 'Test', lang: ModuleNames.JavaScript }, 'arrayOperations');

@@ -45,7 +45,9 @@
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/cli": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
+		"@yantrix/core": "workspace:^",
 		"@yantrix/functions": "workspace:^",
 		"@yantrix/utils": "workspace:^"
+
 	}
 }
