@@ -56,11 +56,13 @@ jobs:
       - name: Build packages, examples and comparisons
         run: pnpm build
 
+      - name: Set NPM config for provenance and auth
+        run: |
+          pnpm config set provenance true
+          pnpm config set //registry.npmjs.org/:_authToken ${{secrets.NPM_CI_TOKEN}}
+
       - name: Publish to NPM
         run: pnpm -r publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_CI_TOKEN}}
-          NPM_CONFIG_PROVENANCE: true
 
       - name: push changes
         run: git push --follow-tags origin release --force
