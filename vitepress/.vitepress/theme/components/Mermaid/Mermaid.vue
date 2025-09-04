@@ -1,43 +1,11 @@
-<template>
-	<div class="diagram-holder">
-		<div v-html="svg" :class="props.class" ref="diagram" v-if="!showCode" />
-		<div class="toolbar">
-			<Resize ref="resizeBtn" @click="openInFullscreen" />
-			<Code @click="showCode = !showCode" />
-			<CopyButton :text-to-copy="codeToCopy" />
-		</div>
-		<div v-if="showCode">
-			<div v-html="svgCodeDisplay" />
-		</div>
-	</div>
-	<Teleport to="body">
-		<div class="diagram-full-size" ref="fullSizeDiagramHolderRef">
-			<div v-html="svg" :class="[props.class, 'diagram']" ref="fullSizeDiagramRef" />
-			<div class="toolbar">
-				<Resize ref="resizeBtn" @click="closeFullscreen" />
-			</div>
-		</div>
-	</Teleport>
-</template>
-
 <script setup>
-import { onMounted, onUnmounted, ref, toRaw } from 'vue';
-import { render, init } from './mermaid';
 import { codeToHtml } from 'shiki';
 import { useData } from 'vitepress';
-import Resize from '../../svgs/Resize.vue';
-import { debounce } from '../../helpers/debounce';
+import { onMounted, onUnmounted, reactive, ref, toRaw } from 'vue';
 import Code from '../../svgs/code.vue';
+import Resize from '../../svgs/Resize.vue';
 import CopyButton from './CopyButton.vue';
-
-const pluginSettings = ref({
-	securityLevel: 'loose',
-	startOnLoad: false,
-	externalDiagrams: [],
-});
-const { page } = useData();
-const { frontmatter } = toRaw(page.value);
-const mermaidPageTheme = frontmatter.mermaidTheme || '';
+import { init, render } from './mermaid';
 
 const props = defineProps({
 	graph: {
@@ -54,34 +22,52 @@ const props = defineProps({
 		default: 'mermaid',
 	},
 });
+const pluginSettings = ref({
+	securityLevel: 'loose',
+	startOnLoad: false,
+	externalDiagrams: [],
+});
+const { page } = useData();
+const { frontmatter } = toRaw(page.value);
+const mermaidPageTheme = frontmatter.mermaidTheme || '';
 
 const svg = ref(null);
 const svgCodeDisplay = ref(null);
-let showCode = ref(false);
+const showCode = ref(false);
 let mut = null;
 const codeToCopy = ref(null);
+const fullSizeDiagramHolderRef = ref(null);
+const fullSizeDiagramRef = ref(null);
+
+const position = reactive({ x: 0, y: 0 });
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+const fullSizeIsOpen = ref(false);
+let scale = 1;
 
 onMounted(async () => {
 	await init(pluginSettings.value.externalDiagrams);
-	let settings = await import('virtual:mermaid-config');
-	if (settings?.default) pluginSettings.value = settings.default;
+	const settings = await import('virtual:mermaid-config');
+	if (settings?.default)
+		pluginSettings.value = settings.default;
 
 	mut = new MutationObserver(async () => await renderChart());
 	mut.observe(document.documentElement, { attributes: true });
 	await renderChart();
 
-	//refresh images on first render
-	const hasImages = /<img([\w\W]+?)>/.exec(decodeURIComponent(props.graph))?.length > 0;
-	if (hasImages)
+	// refresh images on first render
+	const hasImages = /<img([\s\S]+?)>/.exec(decodeURIComponent(props.graph))?.length > 0;
+	if (hasImages) {
 		setTimeout(() => {
-			let imgElements = document.getElementsByTagName('img');
-			let imgs = Array.from(imgElements);
+			const imgElements = document.getElementsByTagName('img');
+			const imgs = Array.from(imgElements);
 			if (imgs.length) {
 				Promise.all(
 					imgs
-						.filter((img) => !img.complete)
+						.filter(img => !img.complete)
 						.map(
-							(img) =>
+							img =>
 								new Promise((resolve) => {
 									img.onload = img.onerror = resolve;
 								}),
@@ -91,22 +77,25 @@ onMounted(async () => {
 				});
 			}
 		}, 100);
+	}
 });
 
 onUnmounted(() => mut.disconnect());
 
-const renderChart = async () => {
+async function renderChart() {
 	const hasDarkClass = document.documentElement.classList.contains('dark');
-	let mermaidConfig = {
+	const mermaidConfig = {
 		...pluginSettings.value,
 	};
 
-	if (mermaidPageTheme) mermaidConfig.theme = mermaidPageTheme;
-	if (hasDarkClass) mermaidConfig.theme = 'dark';
+	if (mermaidPageTheme)
+		mermaidConfig.theme = mermaidPageTheme;
+	if (hasDarkClass)
+		mermaidConfig.theme = 'dark';
 
 	const decodedGraph = decodeURIComponent(props.graph);
 
-	let svgCode = await render(props.id, decodedGraph, mermaidConfig);
+	const svgCode = await render(props.id, decodedGraph, mermaidConfig);
 	// This is a hack to force v-html to re-render, otherwise the diagram disappears
 	// when **switching themes** or **reloading the page**.
 	// The cause is that the diagram is deleted during rendering (out of Vue's knowledge).
@@ -124,39 +113,106 @@ const renderChart = async () => {
 		.replaceAll('style="background-color:#24292e;color:#e1e4e8"', '');
 	svgCodeDisplay.value = htmlCode;
 	svg.value = `${svgCode} <span style="display: none">${salt}</span>`;
-};
+}
 
-const fullSizeDiagramHolderRef = ref(null);
-const fullSizeDiagramRef = ref(null);
-const openInFullscreen = () => {
-	fullSizeDiagramHolderRef.value.classList.add('active');
+function openInFullscreen() {
+	fullSizeIsOpen.value = true;
+	fullSizeDiagramHolderRef.value && fullSizeDiagramHolderRef.value.classList.add('active');
 	document.body.style.overflow = 'hidden';
-	flexResize();
-};
+}
 
-const closeFullscreen = () => {
-	fullSizeDiagramHolderRef.value.classList.remove('active');
+function closeFullscreen() {
+	fullSizeIsOpen.value = false;
+	fullSizeDiagramHolderRef.value && fullSizeDiagramHolderRef.value.classList.remove('active');
 	document.body.style.overflow = '';
-};
+}
 
-const flexResize = () => {
-	if (fullSizeDiagramRef.value.getBoundingClientRect().height > window.innerHeight) {
-		fullSizeDiagramHolderRef.value.classList.remove('flex');
-	} else {
-		fullSizeDiagramHolderRef.value.classList.add('flex');
+function onZoom(e) {
+	if (!fullSizeIsOpen.value)
+		return;
+	e.preventDefault();
+
+	const currentScale = scale || 1;
+	const scaleMultiplier = 1.2;
+
+	if (e.deltaY > 0 && currentScale > 0.1) {
+		scale = Math.max(0.1, currentScale / scaleMultiplier);
 	}
-};
+	else if (e.deltaY < 0 && currentScale < 3) {
+		scale = Math.min(3, currentScale * scaleMultiplier);
+	}
 
-const debouncedFlexResize = debounce(flexResize, 200);
+	updateTransform();
+}
+
+function onMouseDown(e) {
+	if (!fullSizeIsOpen.value || e.button !== 0)
+		return;
+	isDragging = true;
+	startX = e.clientX - position.x;
+	startY = e.clientY - position.y;
+	document.body.style.cursor = 'grabbing';
+	e.preventDefault();
+}
+
+function onMouseMove(e) {
+	if (!isDragging || !fullSizeIsOpen.value)
+		return;
+	position.x = e.clientX - startX;
+	position.y = e.clientY - startY;
+	updateTransform();
+}
+
+function onMouseUp() {
+	if (!fullSizeIsOpen.value)
+		return;
+	isDragging = false;
+	document.body.style.cursor = '';
+}
+
+function updateTransform() {
+	if (fullSizeDiagramRef.value && fullSizeIsOpen.value) {
+		fullSizeDiagramRef.value.style.transform = `translate(${position.x}px, ${position.y}px) scale(${scale})`;
+	}
+}
 
 onMounted(() => {
-	window.addEventListener('resize', debouncedFlexResize);
+	window.addEventListener('wheel', onZoom, { passive: false });
+	document.addEventListener('mousedown', onMouseDown);
+	document.addEventListener('mousemove', onMouseMove);
+	document.addEventListener('mouseup', onMouseUp);
 });
 
 onUnmounted(() => {
-	window.removeEventListener('resize', debouncedFlexResize);
+	window.removeEventListener('wheel', onZoom);
+	document.removeEventListener('mousedown', onMouseDown);
+	document.removeEventListener('mousemove', onMouseMove);
+	document.removeEventListener('mouseup', onMouseUp);
+	closeFullscreen();
 });
 </script>
+
+<template>
+	<div class="diagram-holder">
+		<div v-if="!showCode" :class="props.class" v-html="svg" />
+		<div class="toolbar">
+			<Resize @click="openInFullscreen" />
+			<Code @click="showCode = !showCode" />
+			<CopyButton :text-to-copy="codeToCopy" />
+		</div>
+		<div v-if="showCode">
+			<div v-html="svgCodeDisplay" />
+		</div>
+	</div>
+	<Teleport to="body">
+		<div ref="fullSizeDiagramHolderRef" class="diagram-full-size">
+			<div ref="fullSizeDiagramRef" class="diagram" :class="[props.class]" v-html="svg" />
+			<div class="toolbar">
+				<Resize @click="closeFullscreen" />
+			</div>
+		</div>
+	</Teleport>
+</template>
 
 <style scoped>
 .toolbar {
@@ -210,12 +266,14 @@ onUnmounted(() => {
 	z-index: 9999;
 
 	display: none;
-	overflow: auto;
+	overflow: hidden;
 
 	.diagram {
 		width: 100%;
-
+		height: 100%;
+		margin:auto;
 		&:deep(svg) {
+			height: 100%;
 			max-width: none !important;
 		}
 	}
@@ -225,12 +283,6 @@ onUnmounted(() => {
 
 	&.active {
 		display: block;
-
-		&.flex {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-		}
 	}
 }
 </style>
