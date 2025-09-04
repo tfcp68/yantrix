@@ -124,8 +124,11 @@ export function createHTTPRequestAdapter<
 	return createPromiseDataAdapter<EventType, EventMetaType, THTTPRequestAdapterInput, THTTPRequestAdapterOutput>({
 		id,
 		resolver: async (data: THTTPRequestAdapterInput) => {
-			const request = new Request(id, data.request);
-			const response = await fetch(request);
+			const req = data.request as RequestInit & { url: string };
+			const request = new Request(req.url, {
+				method: data.request.method,
+			});
+			const response = await fetch(request)
 			return { response, event_id: data.event_id };
 		},
 		requestEvents,

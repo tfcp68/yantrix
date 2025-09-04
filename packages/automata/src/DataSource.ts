@@ -27,7 +27,7 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 		return this.#id;
 	}
 
-	protected _getCycleIteratorInfo(): TCycleIteratorInfo {
+	_getCycleIteratorInfo(): TCycleIteratorInfo {
 		return {
 			currentCycle: this.currentCycle,
 			totalCycles: this.totalCycles,
@@ -35,11 +35,11 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 		};
 	}
 
-	protected _isValidId(id: any): id is string {
+	_isValidId(id: any): id is string {
 		return id === undefined || id === null || (typeof id === 'string' && id?.length > 0);
 	}
 
-	protected clearQueue() {
+	clearQueue() {
 		const d = this.#_dataPacketQueue.slice();
 		this.#_dataPacketQueue = [];
 		this.#currentCycle = 0;
@@ -79,13 +79,13 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 		return this.#active;
 	}
 
-	protected _addDataPacket(dataPacket: T): void {
+	_addDataPacket(dataPacket: T): void {
 		this.#currentCycle++;
 		this.#totalCycles++;
 		this.#_dataPacketQueue.push(dataPacket);
 	}
 
-	protected _getDataPacket(): T | null {
+	_getDataPacket(): T | null {
 		const t = this.#_dataPacketQueue.shift();
 		if (t === undefined) return null;
 		return t;
@@ -112,7 +112,7 @@ export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TInterva
 	#interval: number = 0;
 	#startTimestamp = 0;
 
-	protected _isValidInterval(interval: any): interval is number {
+	_isValidInterval(interval: any): interval is number {
 		return Number.isFinite(interval) && Number.isInteger(interval) && interval > 0;
 	}
 
@@ -148,7 +148,7 @@ export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TInterva
 }
 
 export class NamedDataSource<T> extends AbstractAgnosticDataSource<T> {
-	protected override _addDataPacket(dataPacket: T): void {
+	override _addDataPacket(dataPacket: T): void {
 		super._addDataPacket(Object.assign({}, dataPacket, { id: this.id }));
 	}
 }
@@ -198,7 +198,7 @@ export function createDataSourceAdapter<
 				return this.#eventListeners;
 			}
 
-			protected getListenerKeys() {
+			getListenerKeys() {
 				return Object.keys(this.#eventListeners);
 			}
 

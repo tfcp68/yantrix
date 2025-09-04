@@ -19,7 +19,7 @@ export abstract class AbstractAgnosticDataDestination<
 	#totalCycles = 0;
 	#epoch = 0;
 	#id: string;
-	protected _resolver: null | TDataDestinationResolver<DataPacketType, ResolveResultType, IAgnosticDataDestination<
+	_resolver: null | TDataDestinationResolver<DataPacketType, ResolveResultType, IAgnosticDataDestination<
 		DataPacketType,
 		ResolveResultType,
 		ErrorType
@@ -81,7 +81,7 @@ export abstract class AbstractAgnosticDataDestination<
 		}
 	}
 
-	protected _addDataPacket(dataPacket: DataPacketType) {
+	_addDataPacket(dataPacket: DataPacketType) {
 		if (!this._resolver)
 			return Promise.resolve(null);
 		this.#_requestQueue.push(dataPacket);
@@ -90,7 +90,7 @@ export abstract class AbstractAgnosticDataDestination<
 		return this._sendDataPacket();
 	}
 
-	protected _sendDataPacket(): Promise<null | ResolveResultType> {
+	_sendDataPacket(): Promise<null | ResolveResultType> {
 		if (!this._resolver || !this.#_requestQueue.length)
 			return Promise.resolve(null);
 		const dataPacket = this.#_requestQueue.shift()!;
@@ -113,7 +113,7 @@ export abstract class AbstractAgnosticDataDestination<
 			});
 	}
 
-	protected _isValidId(id: any): id is string {
+	_isValidId(id: any): id is string {
 		return typeof id === 'string' && id?.length > 0;
 	}
 
@@ -121,7 +121,7 @@ export abstract class AbstractAgnosticDataDestination<
 	 * Consumes the next request in the queue when the current cycle completes
 	 * @returns This destination instance
 	 */
-	protected async _consumeNextRequest() {
+	async _consumeNextRequest() {
 		if (this.#_requestQueue.length && this.isActive()) {
 			await this._sendDataPacket();
 			this._consumeNextRequest();
@@ -183,7 +183,7 @@ export class NamedDataDestination<
 		DataPacketType,
 		ResolveResultType
 	> {
-	protected override _addDataPacket(dataPacket: DataPacketType): Promise<null | ResolveResultType> {
+	override _addDataPacket(dataPacket: DataPacketType): Promise<null | ResolveResultType> {
 		return super._addDataPacket(Object.assign({}, dataPacket, { id: this.id }));
 	}
 }
