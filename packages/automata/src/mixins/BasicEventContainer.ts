@@ -7,10 +7,6 @@ export default function BasicEventContainer<EventType extends TAutomataBaseEvent
 			#_defaultEventValidator = isPositiveInteger as TValidator<EventType>;
 			#_eventValidator: TValidator<EventType> | undefined;
 
-			constructor(...args: any[]) {
-				super(args);
-			}
-
 			public get validateEvent(): TValidator<EventType> {
 				return this.#_eventValidator ?? this.#_defaultEventValidator;
 			}
