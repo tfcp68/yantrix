@@ -128,7 +128,7 @@ export function createHTTPRequestAdapter<
 			const request = new Request(req.url, {
 				method: data.request.method,
 			});
-			const response = await fetch(request)
+			const response = await fetch(request);
 			return { response, event_id: data.event_id };
 		},
 		requestEvents,

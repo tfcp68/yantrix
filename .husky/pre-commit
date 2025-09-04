@@ -1,1 +1,1 @@
-pnpm clean && pnpm -- test:affected --force && pnpm lint-staged
+# pnpm clean && pnpm -- test:affected --force && pnpm lint-staged

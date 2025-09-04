@@ -1,22 +1,24 @@
 {
-  "name": "04-api-weather-report",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "ts-node index.ts",
-    "test": "ts-node test.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^22.7.3",
-    "@types/node-fetch": "^2.6.13",
-    "@yantrix/automata": "workspace:^",
-    "@yantrix/utils": "workspace:^",
-    "node-fetch": "^3.3.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
-  }
+	"name": "04-api-weather-report",
+	"version": "1.0.0",
+	"description": "",
+	"author": "",
+	"license": "ISC",
+	"keywords": [],
+	"main": "index.js",
+	"scripts": {
+		"start": "ts-node index.ts",
+		"test": "ts-node test.ts",
+		"lint": "eslint .",
+		"format": "eslint --fix ."
+	},
+	"devDependencies": {
+		"@types/node": "^22.7.3",
+		"@types/node-fetch": "^2.6.13",
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/utils": "workspace:^",
+		"node-fetch": "^3.3.2",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.9.2"
+	}
 }
