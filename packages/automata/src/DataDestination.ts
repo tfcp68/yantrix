@@ -246,16 +246,20 @@ export function createDataDestinationAdapter<
 			): this {
 				if (typeof selector !== 'function')
 					throw new TypeError(`Invalid selector function provided in trigger for Data Destination #${this.id}`);
+
 				if (events && !Array.isArray(events))
 					throw new TypeError(`Invalid event types provided in trigger for Data Destination #${this.id}`);
+
 				if (events) {
 					for (const eventName of events) {
 						if (!this.validateEvent(eventName))
 							throw new TypeError(`Invalid event name in createTrigger ofData Destination #${this.id}`);
+
 						this.#eventTriggers = Object.assign({}, this.#eventTriggers, {
 							[eventName]: [selector].concat(this.#eventTriggers[eventName] || []),
 						});
 					}
+
 				} else {
 					this.#eventTriggers[WILDCARD_EVENT] = [selector].concat(this.#eventTriggers[WILDCARD_EVENT] || []);
 				}
@@ -294,11 +298,14 @@ export function createDataDestinationAdapter<
 			update(event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) {
 				if (!this.validateEventMeta(event))
 					throw new TypeError(`Invalid event passed to Data Destination #${this.id}`);
+				
 				const selectors = (this.#eventTriggers[WILDCARD_EVENT] || [])
 					.concat(this.#eventTriggers[event.event] || []);
+
 				const packets: DataPacketType[] = [];
 				if (!selectors?.length || !this.isActive())
 					return null;
+
 				for (const selector of selectors) {
 					const packet = selector(event, model);
 					if (packet) {

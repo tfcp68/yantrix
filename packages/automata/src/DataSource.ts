@@ -181,8 +181,10 @@ export function createDataSourceAdapter<
 			): this {
 				if (typeof transform !== 'function')
 					throw new TypeError(`Invalid transformer provided in event listener for Data Source #${this.id}`);
+
 				if (dispatch && typeof dispatch !== 'function')
 					throw new TypeError(`Invalid dispatcher provided in event listener for Data Source #${this.id}`);
+
 				this.#eventListeners[id] = [transform, dispatch || null];
 				return this;
 			}
@@ -204,25 +206,30 @@ export function createDataSourceAdapter<
 
 			override *dataEmitter() {
 				const dataEmitter = super.dataEmitter();
-				while (true) {
+				while (this.isActive()) {
 					const dataPacket = dataEmitter.next();
 					if (dataPacket.value) {
 						for (const id of this.getListenerKeys()) {
 							const [transform, dispatch] = this.#eventListeners[id]!;
 							const events = transform(dataPacket.value) || [];
+
 							if (!events.length)
 								continue;
+
 							if (!events.some(this.validateEventMeta))
 								throw new Error(`Got invalid event stack from transformer: ${JSON.stringify(events)}`);
+
 							if (dispatch) {
 								dispatch(...events);
 							}
 						}
+
 						yield dataPacket.value;
 					} else {
 						yield null;
 					}
 				}
+				yield null;
 			}
 
 			*eventEmitter() {

@@ -35,12 +35,15 @@ function createPromiseDataAdapter<
 		IDataDestination<EventType, EventMetaType, null, InputData, OutputData>,
 	] {
 	const { id, resolver, requestEvents, requestMapper, responseMapper } = opts;
+
 	let setterFunction: (data: OutputData) => any;
+
 	const SourceConstructor = createDataSourceAdapter<
 		EventType,
 		EventMetaType,
 		OutputData
 	>()(NamedDataSource<OutputData>);
+
 	const dataSource = new SourceConstructor({
 		id,
 		afterInit: (_id, setter) => {
@@ -48,6 +51,7 @@ function createPromiseDataAdapter<
 				setterFunction = setter;
 		},
 	});
+
 	const DestinationConstructor = createDataDestinationAdapter<
 		EventType,
 		EventMetaType,
@@ -55,23 +59,26 @@ function createPromiseDataAdapter<
 		InputData,
 		OutputData
 	>()(NamedDataDestination<InputData, OutputData>);
+
 	const dataDestination = new DestinationConstructor({
 		id,
-		resolver: (data: InputData) => resolver(data).then((result) => {
+		resolver: (data: InputData) => resolver(data).then((result: OutputData) => {
 			setterFunction(result);
 			return result;
 		}),
 	});
 	dataDestination.createTrigger(requestEvents, requestMapper);
 	dataSource.addListener(uniqId(), responseMapper);
+
 	return [dataSource, dataDestination];
 }
 
-type THTTPRequestAdapterInput = {
+export type THTTPRequestAdapterInput = {
 	request: RequestInit;
 	event_id: TAutomataBaseEventType;
 };
-type THTTPRequestAdapterOutput = {
+
+export type THTTPRequestAdapterOutput = {
 	response: Response;
 	event_id: TAutomataBaseEventType;
 };
@@ -98,7 +105,9 @@ export function createHTTPRequestAdapter<
 		IDataDestination<EventType, EventMetaType, null, THTTPRequestAdapterInput, THTTPRequestAdapterOutput>,
 	] {
 	const { id = uniqId(), routes } = opts;
+
 	const requestEvents = Object.keys(routes).map(x => Number.parseInt(x)) as EventType[];
+	
 	const reqHandler = (event: TAutomataEventMetaType<EventType, EventMetaType>): THTTPRequestAdapterInput | null => {
 		if (!event?.event)
 			return null;
@@ -112,6 +121,7 @@ export function createHTTPRequestAdapter<
 			event_id: event.event,
 		};
 	};
+
 	const rspHandler = (data: THTTPRequestAdapterOutput): TAutomataEventStack<EventType, EventMetaType> => {
 		const eId = data?.event_id as EventType;
 		if (!eId)
@@ -121,6 +131,7 @@ export function createHTTPRequestAdapter<
 			return [];
 		return opts[1](data.response);
 	};
+
 	return createPromiseDataAdapter<EventType, EventMetaType, THTTPRequestAdapterInput, THTTPRequestAdapterOutput>({
 		id,
 		resolver: async (data: THTTPRequestAdapterInput) => {
