@@ -25,7 +25,7 @@ export type TWeatherMeta = {
 		data: { temp: number | null; place: string; time: string; lat: number; lon: number };
 	};
 	[WeatherEvents.WEATHER_REJECTED]: { error: string };
-	[WeatherEvents.UI_RENDER]: {};
+	[WeatherEvents.UI_RENDER]: object;
 };
 
 export type TWeatherEvent = TAutomataEventMetaType<WeatherEvents, TWeatherMeta>;
