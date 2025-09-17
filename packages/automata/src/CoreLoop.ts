@@ -107,6 +107,10 @@ export class CoreLoop<
 				// 2) Actions -> FSM -> Transition -> Emitted Events
 				for (const a of actions) {
 					machine.dispatch(a as any);
+					const emitted = bridge.handleTransition(machine.getContext()) ?? [];
+					if (emitted?.length) {
+						nextEventsToProcess.push(...emitted as TAutomataEventStack<EventType, EventMetaType>);
+					}
 				}
 
 				// 3) Re-dispatch emitted events back to the Bus
@@ -201,9 +205,6 @@ export class CoreLoop<
 		if (this.started) return this;
 		this.started = true;
 		this.bus.resume();
-
-		// Источники, добавленные после старта, будут запущены немедленно в registerSource.
-		// Для уже зарегистрированных источников можно предусмотреть явный перезапуск извне.
 
 		return this;
 	}
