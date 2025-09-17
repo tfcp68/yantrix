@@ -259,7 +259,6 @@ export function createDataDestinationAdapter<
 							[eventName]: [selector].concat(this.#eventTriggers[eventName] || []),
 						});
 					}
-
 				} else {
 					this.#eventTriggers[WILDCARD_EVENT] = [selector].concat(this.#eventTriggers[WILDCARD_EVENT] || []);
 				}
