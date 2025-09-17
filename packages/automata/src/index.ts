@@ -16,7 +16,6 @@ export * from './Automata.js';
 export * from './CoreLoop.js';
 export * from './EventAdapter.js';
 export * from './EventBus.js';
-export * from './EventBusAwareEventAdapter.js';
 export * from './EventDictionary.js';
 export * from './FunctionDictionary.js';
 export * from './IOPromiseAdapter.js';
