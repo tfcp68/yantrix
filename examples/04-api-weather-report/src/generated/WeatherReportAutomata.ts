@@ -8,7 +8,6 @@
   "~~~START~~~": 74979334,
   "Idle": 2274292,
   "Filling": 809871199,
-  "Ready": 78834051,
   "Pending": 982065527,
   "Success": 202516509,
   "Error": 67232232,
@@ -17,10 +16,8 @@
 export const actionsDictionary = {
   "Init": 2283824,
   "FocusInput": 931411442,
-  "SelectCity": 337002663,
-  "InputsValid": 2045153421,
-  "UpdateInput": 1073933409,
   "UpdateSelect": 789957819,
+  "UpdateInput": 1073933409,
   "Submit": 1807668168,
   "Resolve": 1532945972,
   "Reject": 1850843201,
@@ -29,8 +26,6 @@ export const actionsDictionary = {
 }
 export const functionDictionary = new FunctionDictionary();
 			const eventAdapter = new AutomataEventAdapter();
-
-
 
 
 
@@ -92,10 +87,8 @@ return [EventBus, automatas];
 			const actionsMap = {
   "Init": "Init",
   "FocusInput": "FocusInput",
-  "SelectCity": "SelectCity",
-  "InputsValid": "InputsValid",
-  "UpdateInput": "UpdateInput",
   "UpdateSelect": "UpdateSelect",
+  "UpdateInput": "UpdateInput",
   "Submit": "Submit",
   "Resolve": "Resolve",
   "Reject": "Reject",
@@ -106,7 +99,6 @@ return [EventBus, automatas];
   "~~~START~~~": "~~~START~~~",
   "Idle": "Idle",
   "Filling": "Filling",
-  "Ready": "Ready",
   "Pending": "Pending",
   "Success": "Success",
   "Error": "Error",
@@ -146,11 +138,8 @@ return [EventBus, automatas];
 	809871199: (prevContext, payload, functionDictionary, automata) => {
 
 				return {coords: (function(){
-						if(prevContext !== null && prevContext['coords'] !== undefined && prevContext['coords'] !== null) {
-							return prevContext['coords']
-						}
-							else {
-								return functionDictionary.get('coalesce')((function(){
+			const boundValue = (function(){
+						return functionDictionary.get('coalesce')((function(){
 						if(payload !== null && payload['coords'] !== undefined && payload['coords'] !== null) {
 							return payload['coords']
 						}
@@ -165,14 +154,14 @@ return [EventBus, automatas];
 								return null
 							}
 					}()))
-							}
-					}()),
+					}())
+
+			return boundValue
+
+		}()),
 	city: (function(){
-						if(prevContext !== null && prevContext['city'] !== undefined && prevContext['city'] !== null) {
-							return prevContext['city']
-						}
-							else {
-								return functionDictionary.get('coalesce')((function(){
+			const boundValue = (function(){
+						return functionDictionary.get('coalesce')((function(){
 						if(payload !== null && payload['city'] !== undefined && payload['city'] !== null) {
 							return payload['city']
 						}
@@ -187,23 +176,87 @@ return [EventBus, automatas];
 								return null
 							}
 					}()))
+					}())
+
+			return boundValue
+
+		}()),
+	result: (function(){
+						if(prevContext !== null && prevContext['result'] !== undefined && prevContext['result'] !== null) {
+							return prevContext['result']
+						}
+							else {
+								return 0
+							}
+					}()),
+	error: (function(){
+						if(prevContext !== null && prevContext['error'] !== undefined && prevContext['error'] !== null) {
+							return prevContext['error']
+						}
+							else {
+								return 0
 							}
 					}())}
-			},
-	78834051: (prevContext, payload, functionDictionary, automata) => {
-
-				return prevContext
 			},
 	982065527: (prevContext, payload, functionDictionary, automata) => {
 
 				return {loading: (function(){
+			const boundValue = (function(){
 						if(prevContext !== null && prevContext['loading'] !== undefined && prevContext['loading'] !== null) {
 							return prevContext['loading']
 						}
 							else {
 								return null
 							}
-					}())}
+					}())
+
+			return boundValue
+
+		}()),
+	coords: (function(){
+			const boundValue = (function(){
+						return functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['coords'] !== undefined && payload['coords'] !== null) {
+							return payload['coords']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['coords'] !== undefined && prevContext['coords'] !== null) {
+							return prevContext['coords']
+						}
+							else {
+								return null
+							}
+					}()))
+					}())
+
+			return boundValue
+
+		}()),
+	city: (function(){
+			const boundValue = (function(){
+						return functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['city'] !== undefined && payload['city'] !== null) {
+							return payload['city']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['city'] !== undefined && prevContext['city'] !== null) {
+							return prevContext['city']
+						}
+							else {
+								return null
+							}
+					}()))
+					}())
+
+			return boundValue
+
+		}())}
 			},
 	202516509: (prevContext, payload, functionDictionary, automata) => {
 
@@ -221,6 +274,22 @@ return [EventBus, automatas];
 						}
 							else {
 								return payload === null || (payload === undefined  || payload['data'] === undefined) ? null : payload['data']
+							}
+					}()),
+	coords: (function(){
+						if(prevContext !== null && prevContext['coords'] !== undefined && prevContext['coords'] !== null) {
+							return prevContext['coords']
+						}
+							else {
+								return null
+							}
+					}()),
+	city: (function(){
+						if(prevContext !== null && prevContext['city'] !== undefined && prevContext['city'] !== null) {
+							return prevContext['city']
+						}
+							else {
+								return null
 							}
 					}())}
 			},
@@ -240,6 +309,22 @@ return [EventBus, automatas];
 						}
 							else {
 								return payload === null || (payload === undefined  || payload['error'] === undefined) ? null : payload['error']
+							}
+					}()),
+	coords: (function(){
+						if(prevContext !== null && prevContext['coords'] !== undefined && prevContext['coords'] !== null) {
+							return prevContext['coords']
+						}
+							else {
+								return null
+							}
+					}()),
+	city: (function(){
+						if(prevContext !== null && prevContext['city'] !== undefined && prevContext['city'] !== null) {
+							return prevContext['city']
+						}
+							else {
+								return null
 							}
 					}())}
 			},
@@ -261,7 +346,7 @@ return [EventBus, automatas];
 				}
 			,
 
-				337002663: {
+				789957819: {
 					state: [809871199]
 				}
 			,
@@ -284,17 +369,6 @@ return [EventBus, automatas];
 
 				1073933409: {
 					state: [809871199]
-				}
-			,
-
-				2045153421: {
-					state: [78834051]
-				}
-
-	},
-	78834051: {
-				2283824: {
-					state: [2274292]
 				}
 			,
 
@@ -354,7 +428,7 @@ return [EventBus, automatas];
 
 export class WeatherReportAutomata extends GenericAutomata {
 
-    static id = 'WeatherReportAutomata_1757986654150';
+    static id = 'WeatherReportAutomata_1758095357072';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];

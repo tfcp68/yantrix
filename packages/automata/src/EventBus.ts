@@ -38,26 +38,33 @@ export function createEventBus<
 			public subscribe(event: EventType, callback: TEventBusHandler<EventType, EventMetaType>): this {
 				if (!this.validateEvent(event))
 					throw new TypeError(`Invalid event passed for subscription}`);
+
 				if (typeof (callback) !== 'function')
 					throw new TypeError('Invalid callback passed for subscription');
+
 				let eventCallbacks = this.#eventSubscriptions.get(event);
+
 				if (!eventCallbacks) {
 					eventCallbacks = new Set();
 					this.#eventSubscriptions.set(event, eventCallbacks);
 				}
+
 				eventCallbacks.add(callback);
+
 				return this;
 			}
 
 			public unsubscribe(event: EventType, callback: null | TEventBusHandler<EventType, EventMetaType>): this {
 				if (!this.validateEvent(event))
 					throw new TypeError(`Invalid event passed for subscription}`);
+
 				const eventCallbacks = this.#eventSubscriptions.get(event);
 				if (eventCallbacks && callback) {
 					eventCallbacks.delete(callback);
 				} else if (!callback) {
 					this.#eventSubscriptions.delete(event);
 				}
+
 				return this;
 			}
 
@@ -131,12 +138,18 @@ export function createEventBus<
 					const eventObject = this.#eventStack.shift();
 					if (!eventObject)
 						continue;
+
 					if (!this.validateEventMeta(eventObject)) throw new TypeError('Invalid Event in the queue');
+
 					const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
+
 					if (!eventCallbacks?.size) continue;
+
 					eventCallbacks.forEach((callback) => {
 						const eventResult = callback(eventObject);
+
 						if (!eventResult?.result) return;
+
 						promiseStack.push(eventResult.result);
 					});
 					if (
@@ -148,19 +161,25 @@ export function createEventBus<
 						);
 					}
 				}
+
 				if (!promiseStack.length) {
 					this.#isProcessing = false;
 					return Promise.resolve([]);
 				}
+
 				const returnValue = Promise.all(promiseStack).then(events => events.flat());
+
 				returnValue.then((events) => {
 					if (events.some(event => !this.validateEventMeta(event)))
 						throw new TypeError('Invalid event received from promise');
+
 					this.#eventStack.push(...events);
 					this.#isProcessing = false;
+
 					if (this.#eventStack.length)
 						this._processEvents();
 				});
+
 				return returnValue;
 			}
 		};

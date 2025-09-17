@@ -107,7 +107,7 @@ export function createHTTPRequestAdapter<
 	const { id = uniqId(), routes } = opts;
 
 	const requestEvents = Object.keys(routes).map(x => Number.parseInt(x)) as EventType[];
-	
+
 	const reqHandler = (event: TAutomataEventMetaType<EventType, EventMetaType>): THTTPRequestAdapterInput | null => {
 		if (!event?.event)
 			return null;

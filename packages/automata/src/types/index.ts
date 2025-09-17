@@ -1,4 +1,4 @@
-import { IAutomataFunctionRegistry } from './interfaces';
+import { IAutomataEventBus, IAutomataFunctionRegistry } from './interfaces';
 
 /**
  * Represents the base state type for the automata.
@@ -372,3 +372,34 @@ export type TDataBoundEventDictionary<
 } & {
 	[WILDCARD_EVENT]?: Array<TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>>;
 };
+
+export interface IEventSource<
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> {
+	id?: string;
+	/**
+	 * Запуск источника. В колбэк publish следует отправлять готовые события для EventBus.
+	 */
+	start: (publish: (event: TAutomataEventMetaType<EventType, EventMetaType>) => void) => void;
+	/**
+	 * Остановка источника и очистка своих ресурсов.
+	 */
+	stop: () => void;
+	/**
+	 * (Необязательно) Набор типов событий, которые источник может публиковать.
+	 */
+	getObservedEvents?: () => EventType[];
+}
+
+export interface IEventDestination<
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> {
+	id?: string;
+	/**
+	 * Привязка приемника к шине. Должна вернуть функцию отписки.
+	 * Внутри можно подписаться на нужные события через bus.subscribe(...)
+	 */
+	bind: (bus: IAutomataEventBus<EventType, EventMetaType>) => TSubscriptionCancelFunction;
+}

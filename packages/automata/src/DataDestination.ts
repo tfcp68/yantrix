@@ -298,7 +298,7 @@ export function createDataDestinationAdapter<
 			update(event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) {
 				if (!this.validateEventMeta(event))
 					throw new TypeError(`Invalid event passed to Data Destination #${this.id}`);
-				
+
 				const selectors = (this.#eventTriggers[WILDCARD_EVENT] || [])
 					.concat(this.#eventTriggers[event.event] || []);
 
