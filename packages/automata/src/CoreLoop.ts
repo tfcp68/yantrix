@@ -1,5 +1,5 @@
+import AutomataEventAdapter from './EventAdapter';
 import BasicEventBus from './EventBus';
-import EventBusAwareEventAdapter from './EventBusAwareEventAdapter';
 import {
 	IEventDestination,
 	IEventSource,
@@ -76,12 +76,12 @@ export class CoreLoop<
 	>(
 		id: string,
 		machine: IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
-		adapter?: EventBusAwareEventAdapter,
+		adapter?: AutomataEventAdapter,
 	): this {
 		if (this.automata.has(id)) throw new Error(`Automata with id "${id}" already registered`);
 		const bridge
 			= adapter
-			?? new EventBusAwareEventAdapter(this.bus as unknown as IAutomataEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>);
+			?? new AutomataEventAdapter();
 
 		// Подключаем адаптер к автомату:
 		machine.eventAdapter = bridge as unknown as IAutomataEventAdapter<
