@@ -1,9 +1,6 @@
-import { EventDictionary as GlobalEventDictionary, TAutomataEventMetaType, TAutomataEventStack } from '@yantrix/automata';
+import { EventDictionary as GlobalEventDictionary } from '@yantrix/automata';
 
-/**
- * Тестовые события для примера с погодой.
- * Нумерация условная. В реальном проекте ключи лучше регистрировать через EventDictionary.
- */
+// Тестовые события для примера с погодой.
 export enum WeatherEvents {
 	UI_INPUT_CHANGED = 1,
 	UI_SELECT_CITY = 2,
@@ -27,9 +24,6 @@ export type TWeatherMeta = {
 	[WeatherEvents.WEATHER_REJECTED]: { error: string };
 	[WeatherEvents.UI_RENDER]: object;
 };
-
-export type TWeatherEvent = TAutomataEventMetaType<WeatherEvents, TWeatherMeta>;
-export type TWeatherEventStack = TAutomataEventStack<WeatherEvents, TWeatherMeta>;
 
 export function registerWeatherEvents(): void {
 	GlobalEventDictionary.addEvents({

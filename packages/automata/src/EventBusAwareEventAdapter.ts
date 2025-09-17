@@ -7,13 +7,6 @@ import {
 } from './types';
 import { IAutomataEventBus } from './types/interfaces';
 
-/**
- * Адаптер событий автомата, который не только собирает события из переходов,
- * но и немедленно диспатчит их в EventBus.
- *
- * Важно: AutomataEventAdapter не является дженериком, поэтому этот класс
- * также работает на базовых типах Yantrix.
- */
 export class EventBusAwareEventAdapter extends AutomataEventAdapter {
 	constructor(
 		private readonly bus: IAutomataEventBus<

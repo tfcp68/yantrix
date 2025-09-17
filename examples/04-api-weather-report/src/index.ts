@@ -1,8 +1,10 @@
 import {
 	CoreLoop,
+	createHTTPRequestAdapter,
 	EventBusAwareEventAdapter,
 	IAutomataEventBus,
 	TAutomataEventMetaType,
+	THTTPRequestAdapterOutput,
 } from '@yantrix/automata';
 import {
 	registerWeatherEvents,
@@ -12,135 +14,27 @@ import {
 } from './events/weatherEvents';
 import WeatherReportAutomata, { actionsDictionary, statesDictionary } from './generated/WeatherReportAutomata';
 
-/**
- * Query an element from DOM by id and cast it to the expected type.
- * Throws if element is not found to fail fast during integration.
- * @param id Element id
- * @returns HTMLElement of requested type
- */
-function $(id: string): HTMLElement {
-	const el = document.getElementById(id);
-	if (!el) throw new Error(`Element with id="${id}" not found`);
-	return el;
-}
+const $ = <T extends HTMLElement>(id: string): T =>
+	document.getElementById(id) as T;
 
-/**
- * Get a human-readable state name based on numeric state id using FSM dictionary.
- * @param id Numeric state id or null
- * @returns Matching state name or the id converted to string
- */
-function getStateName(id: number | null): string {
-	const dict = statesDictionary as Record<string, number>;
-	return Object.keys(statesDictionary).find(k => dict[k] === id) || String(id);
-}
+const latInput = $<HTMLInputElement>('lat');
+const lonInput = $<HTMLInputElement>('lon');
+const citySelect = $<HTMLSelectElement>('city');
+const submitBtn = $<HTMLButtonElement>('submitBtn');
+const fillBtn = $<HTMLButtonElement>('fillBtn');
+const firstPlaceholder = $<HTMLDivElement>('firstPlaceholder');
+const loadingPanel = $<HTMLDivElement>('loadingPanel');
+const resultPanel = $<HTMLDivElement>('resultPanel');
+const errorEl = $<HTMLDivElement>('error');
 
-/**
- * Set display style for an element.
- * @param el HTML element
- * @param display CSS display value
- */
-function setDisplay(el: HTMLElement, display: '' | 'block' | 'flex' | 'none'): void {
-	el.style.display = display;
-}
+const tempStr = $<HTMLDivElement>('tempStr');
+const locStr = $<HTMLDivElement>('locStr');
+const timeStr = $<HTMLDivElement>('timeStr');
+const latStr = $<HTMLDivElement>('latStr');
+const lonStr = $<HTMLDivElement>('lonStr');
 
-/**
- * Parse a coordinate string to a valid number in [-180; 180]. Returns null when invalid.
- * @param v Coordinate string
- * @returns Parsed number or null
- */
-function parseCoord(v: string): number | null {
-	const n = Number(String(v).trim());
-	if (!Number.isFinite(n)) return null;
-	if (Math.abs(n) > 180) return null;
-	return n;
-}
+const stateLabel = $<HTMLDivElement>('stateLabel');
 
-/**
- * Build Open-Meteo API URL for current weather.
- * @param lat Latitude
- * @param lon Longitude
- * @returns Request URL
- */
-function buildWeatherUrl(lat: number | string, lon: number | string): string {
-	return `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(
-		lat,
-	)}&longitude=${encodeURIComponent(lon)}&current_weather=true&timezone=UTC`;
-}
-
-/**
- * Determine if current FSM context contains a valid city and coordinates.
- * @param ctx FSM context object
- * @returns True when coordinates and city are present
- */
-function isFormValid(ctx: any): boolean {
-	return ctx?.coords?.lat != null && ctx?.coords?.lon != null && ctx?.city != null;
-}
-
-/**
- * Find a city name by approximate coordinates match (within ~0.01 degree).
- * @param cities Map of city name -> coords
- * @param lat Latitude to find
- * @param lon Longitude to find
- * @returns City label or null if not found
- */
-function findCityLabelByCoords(cities: Record<string, TCityCoords>, lat: number, lon: number): string | null {
-	const found = Object.entries(cities).find(
-		([, c]) => Math.abs(c.lat - lat) < 0.01 && Math.abs(c.lon - lon) < 0.01,
-	);
-	return found ? found[0] : null;
-}
-
-/**
- * Fill a select element with given option labels, skipping already present values.
- * @param select Select element
- * @param labels Option values to ensure present
- */
-function ensureSelectOptions(select: HTMLSelectElement, labels: string[]): void {
-	const existing = new Set([...select.options].map(o => o.value));
-	labels.forEach((name) => {
-		if (existing.has(name)) return;
-		const option = document.createElement('option');
-		option.value = name;
-		option.textContent = name;
-		select.appendChild(option);
-	});
-}
-
-/**
- * Create a helper for adding DOM listeners and tracking unsubscribe functions.
- * @param listeners Collector for unsubscribe callbacks
- * @returns Typed addEventListener wrapper
- */
-function createBinder(listeners: Array<() => void>) {
-	return function on<K extends keyof HTMLElementEventMap>(
-		el: HTMLElement,
-		type: K,
-		cb: (ev: HTMLElementEventMap[K]) => void,
-	): void {
-		el.addEventListener(type, cb as any);
-		listeners.push(() => el.removeEventListener(type, cb as any));
-	};
-}
-
-const latInput = $(`lat`) as HTMLInputElement;
-const lonInput = $(`lon`) as HTMLInputElement;
-const citySelect = $(`city`) as HTMLSelectElement;
-const submitBtn = $(`submitBtn`) as HTMLButtonElement;
-const fillBtn = $(`fillBtn`) as HTMLButtonElement;
-const firstPlaceholder = $(`firstPlaceholder`) as HTMLDivElement;
-const loadingPanel = $(`loadingPanel`) as HTMLDivElement;
-const resultPanel = $(`resultPanel`) as HTMLDivElement;
-const errorEl = $(`error`) as HTMLDivElement;
-const tempStr = $(`tempStr`) as HTMLDivElement;
-const locStr = $(`locStr`) as HTMLDivElement;
-const timeStr = $(`timeStr`) as HTMLDivElement;
-const latStr = $(`latStr`) as HTMLDivElement;
-const lonStr = $(`lonStr`) as HTMLDivElement;
-const stateLabel = $(`stateLabel`) as HTMLDivElement;
-
-/**
- * Demo city list with coordinates.
- */
 const CITIES: Record<string, TCityCoords> = {
 	'Bucharest': { lat: 44.4268, lon: 26.1025 },
 	'London': { lat: 51.5074, lon: -0.1278 },
@@ -150,100 +44,63 @@ const CITIES: Record<string, TCityCoords> = {
 	'Sydney': { lat: -33.8688, lon: 151.2093 },
 };
 
-/**
- * Render UI based on the current FSM state and its context.
- * Updates panels visibility, result text and submit button state.
- * Avoids writing to form inputs to not fight with the user typing.
- * @param automata Weather FSM instance
- */
+function getStateName(id: number | null): string {
+	return (
+		Object.keys(statesDictionary).find(
+			k => (statesDictionary as Record<string, number>)[k] === id,
+		) || String(id)
+	);
+}
+
 function render(automata: WeatherReportAutomata): void {
 	const stateName = getStateName(automata.state);
 	const ctx: any = (typeof automata.getContext === 'function') ? automata.getContext() : {};
-	const c = ctx?.context ?? {};
 
-	stateLabel.textContent = `State: ${stateName}`;
+	if (stateLabel) stateLabel.textContent = `State: ${stateName}`;
 
-	// Reset UI
+	errorEl.style.display = 'none';
 	errorEl.textContent = '';
-	setDisplay(errorEl, 'none');
-	setDisplay(firstPlaceholder, 'none');
-	setDisplay(loadingPanel, 'none');
-	setDisplay(resultPanel, 'none');
 
-	// Panels
+	firstPlaceholder.style.display = 'none';
+	loadingPanel.style.display = 'none';
+	resultPanel.style.display = 'none';
+
 	switch (automata.state) {
 		case statesDictionary.Idle:
+			firstPlaceholder.style.display = 'block';
+			break;
 		case statesDictionary.Filling:
-			setDisplay(firstPlaceholder, 'block');
+			firstPlaceholder.style.display = 'block';
 			break;
 		case statesDictionary.Pending:
-			setDisplay(loadingPanel, 'flex');
+			loadingPanel.style.display = 'flex';
 			break;
-		case statesDictionary.Success:
-			setDisplay(resultPanel, 'block');
+		case statesDictionary.Success: {
+			resultPanel.style.display = 'block';
+			const { context: c } = automata.getContext?.() ?? {};
 			tempStr.textContent = c?.result?.temp !== undefined ? `${c.result.temp} °C` : '— °C';
 			locStr.textContent = c?.result?.place ?? (c?.coords ? `${c.coords.lat}, ${c.coords.lon}` : '—');
 			timeStr.textContent = c?.result?.time ?? '—';
 			latStr.textContent = c?.result?.lat ?? '—';
 			lonStr.textContent = c?.result?.lon ?? '—';
 			break;
+		}
 		case statesDictionary.Error:
-			errorEl.textContent = c?.error ?? 'Unknown error';
-			setDisplay(errorEl, '');
-			setDisplay(firstPlaceholder, 'block');
+			errorEl.style.display = '';
+			errorEl.textContent = automata.getContext()?.context?.error ?? 'Unknown error';
+			firstPlaceholder.style.display = 'block';
 			break;
 		default:
-			setDisplay(firstPlaceholder, 'block');
+			firstPlaceholder.style.display = 'block';
 	}
 
-	// Submit button available only in Filling with valid data
-	submitBtn.disabled = !(automata.state === statesDictionary.Filling && isFormValid(c));
+	const c = ctx?.context ?? {};
+	const isValid = c?.coords?.lat != null && c?.coords?.lon != null && c?.city != null;
+	submitBtn.disabled = !(automata.state === statesDictionary.Filling && isValid);
 }
 
 /**
- * Bind HTTP gateway that listens for FETCH_WEATHER events, performs API calls and dispatches RESOLVED/REJECTED.
- * Guarantees a minimum Pending duration to make loader visible.
- * @param bus Event bus instance
- * @returns Unsubscribe function
- */
-function bindHttpWeatherGateway(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>): () => void {
-	const handler = async ({ meta }: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>) => {
-		try {
-			const { lat, lon } = meta!.coords!;
-			const city = meta!.city;
-			const resp = await fetch(buildWeatherUrl(lat, lon));
-			if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-			const data = await resp.json();
-
-			bus.dispatch({
-				event: WeatherEvents.WEATHER_RESOLVED,
-				meta: {
-					data: {
-						temp: data?.current_weather?.temperature ?? null,
-						place: city || `${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)}`,
-						time: data?.current_weather?.time ?? new Date().toISOString(),
-						lat: Number(lat),
-						lon: Number(lon),
-					},
-				},
-			});
-		} catch (e: any) {
-			bus.dispatch({
-				event: WeatherEvents.WEATHER_REJECTED,
-				meta: { error: String(e?.message ?? e) },
-			});
-		}
-	};
-
-	bus.subscribe(WeatherEvents.FETCH_WEATHER, handler as any);
-	return () => bus.unsubscribe(WeatherEvents.FETCH_WEATHER, handler as any);
-}
-
-/**
- * Bind UI-render destination to render after state transitions or I/O completion.
- * @param bus Event bus
- * @param automata Weather FSM instance
- * @returns Unsubscribe function
+ * Дестинейшн для обновления UI: слушает ключевые события и дергает render().
  */
 function bindUiRenderer(
 	bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>,
@@ -253,6 +110,7 @@ function bindUiRenderer(
 		WeatherEvents.WEATHER_RESOLVED,
 		WeatherEvents.WEATHER_REJECTED,
 		WeatherEvents.UI_RENDER,
+		WeatherEvents.UI_SELECT_CITY,
 	] as const;
 
 	const handlers = renderOn.map((evt) => {
@@ -269,22 +127,39 @@ function bindUiRenderer(
 }
 
 /**
- * Create a DOM Source that converts user actions into Events for EventBus.
- * - Populates city options
- * - Syncs select change into lat/lon inputs
- * - Emits UI events for changes and submission
- * @returns Object with start/stop to attach/detach listeners
+ * Источник DOM: преобразует пользовательские действия в события для EventBus.
  */
 function createDomSource(): {
 	start: (publish: (e: TAutomataEventMetaType<WeatherEvents, TWeatherMeta>) => void) => void;
 	stop: () => void;
 } {
 	const listeners: Array<() => void> = [];
-	const on = createBinder(listeners);
+
+	function parseCoord(v: string): number | null {
+		const n = Number(String(v).trim());
+		if (!Number.isFinite(n)) return null;
+		if (Math.abs(n) > 180) return null;
+		return n;
+	}
+
+	function on<K extends keyof HTMLElementEventMap>(
+		el: HTMLElement,
+		type: K,
+		cb: (ev: HTMLElementEventMap[K]) => void,
+	) {
+		el.addEventListener(type, cb as any);
+		listeners.push(() => el.removeEventListener(type, cb as any));
+	}
 
 	return {
 		start(publish) {
-			ensureSelectOptions(citySelect, Object.keys(CITIES));
+			Object.keys(CITIES).forEach((name) => {
+				if ([...citySelect.options].some(o => o.value === name)) return;
+				const option = document.createElement('option');
+				option.value = name;
+				option.textContent = name;
+				citySelect.appendChild(option);
+			});
 
 			on(citySelect, 'change', () => {
 				const name = citySelect.value || null;
@@ -301,14 +176,14 @@ function createDomSource(): {
 			on(latInput, 'input', () => {
 				const latVal = latInput.value.trim();
 				const lonVal = lonInput.value.trim();
-				const coords = latVal === '' || lonVal === '' ? null : { lat: latVal, lon: lonVal };
+				const coords = (latVal === '' || lonVal === '') ? null : { lat: latVal, lon: lonVal };
 				publish({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords } });
 			});
 
 			on(lonInput, 'input', () => {
-				const latVal = latInput.value.trim();
+				const latVal = lonInput.value.trim();
 				const lonVal = lonInput.value.trim();
-				const coords = latVal === '' || lonVal === '' ? null : { lat: latVal, lon: lonVal };
+				const coords = (latVal === '' || lonVal === '') ? null : { lat: latVal, lon: lonVal };
 				publish({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords } });
 			});
 
@@ -324,16 +199,18 @@ function createDomSource(): {
 				const lon = Number.parseFloat(lonInput.value);
 				let label: string | null = null;
 				if (Number.isFinite(lat) && Number.isFinite(lon)) {
-					label = findCityLabelByCoords(CITIES, lat, lon);
+					const found = Object.entries(CITIES)
+						.find(([_, c]) => Math.abs(c.lat - lat) < 0.01 && Math.abs(c.lon - lon) < 0.01);
+					label = found ? found[0] : null;
 					citySelect.value = label ?? '';
 				} else {
 					citySelect.value = '';
 					label = null;
 				}
-				publish({
-					event: WeatherEvents.UI_SELECT_CITY,
-					meta: { city: label, coords: label ? CITIES[label] : null },
-				});
+				publish({ event: WeatherEvents.UI_SELECT_CITY, meta: {
+					city: label,
+					coords: label ? CITIES[label] : null,
+				} });
 			});
 
 			on(submitBtn, 'click', () => {
@@ -351,18 +228,11 @@ function createDomSource(): {
 }
 
 /**
- * Build Event Adapter that:
- * - maps Events (UI and I/O) to FSM Actions
- * - emits Events when FSM enters certain States
- * @param bus Event bus
- * @returns Configured adapter instance
+ * Конфигурируем адаптер: подписки Event -> Action и эмиттеры State -> Event
  */
 function buildAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>) {
-	const adapter = new EventBusAwareEventAdapter(
-		bus as unknown as IAutomataEventBus<number, Record<number, any>>,
-	);
+	const adapter = new EventBusAwareEventAdapter(bus as unknown as IAutomataEventBus<number, Record<number, any>>);
 
-	// Incoming: Event -> Action
 	adapter.addEventListener(WeatherEvents.UI_INPUT_CHANGED, ({ meta }) => ({
 		action: actionsDictionary.UpdateInput,
 		payload: { coords: meta?.coords ?? null },
@@ -388,7 +258,6 @@ function buildAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>) {
 		payload: { error: meta?.error },
 	}));
 
-	// Outgoing: State -> Event
 	adapter.addEventEmitter(statesDictionary.Pending, (state) => {
 		const ctx: any = state?.context ?? {};
 		return {
@@ -409,12 +278,157 @@ function buildAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>) {
 	return adapter;
 }
 
+/* ======================= */
+/* HTTP ADAPTER INTEGRATION */
+/* ======================= */
+
 /**
- * Entry point: assemble and start the CoreLoop for the weather demo.
- * - Registers events
- * - Builds FSM and Adapter
- * - Wires DOM source, HTTP gateway and UI renderer
+ * Sleep helper
  */
+function sleep(ms: number) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+function nowMs(): number {
+	return typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now();
+}
+async function ensureMinDuration(startTs: number, minMs: number) {
+	const elapsed = nowMs() - startTs;
+	if (elapsed < minMs) await sleep(minMs - elapsed);
+}
+
+/**
+ * Маппер запросов для createHTTPRequestAdapter:
+ */
+function mapFetchWeatherRequest(
+	event: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>,
+): (RequestInit & { url: string }) | null {
+	const lat = event?.meta?.coords?.lat;
+	const lon = event?.meta?.coords?.lon;
+	if (lat == null || lon == null) return null;
+	return {
+		method: 'GET',
+		url: `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(
+			lat,
+		)}&longitude=${encodeURIComponent(lon)}&current_weather=true&timezone=UTC`,
+	};
+}
+
+/**
+ * Подключает DataSource/DataDestination HTTP-адаптеры к EventBus:
+ */
+function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>): () => void {
+	const MIN_PENDING_MS = 1000;
+
+	const [source, destination] = createHTTPRequestAdapter<WeatherEvents, TWeatherMeta>({
+		routes: {
+			[WeatherEvents.FETCH_WEATHER]: [mapFetchWeatherRequest as any, () => []],
+		},
+	});
+
+	// Подписка шины на запросы: пробрасываем событие в Destination
+	const fetchHandler = (ev: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>) => {
+		destination.update(ev, null);
+	};
+
+	// Запуск адаптеров
+	source.start();
+	destination.start();
+	bus.subscribe(WeatherEvents.FETCH_WEATHER, fetchHandler as any);
+
+	let canceled = false;
+
+	// Единый цикл обработки результатов/ошибок
+	(async () => {
+		const emitter = destination.requestEmitter();
+		for (;;) {
+			if (canceled) break;
+			const next = emitter.next();
+			const packet = next.value as
+				| {
+					data:
+					{
+						request: RequestInit & {
+							url: string;
+						};
+						event_id: WeatherEvents;
+					};
+					result: THTTPRequestAdapterOutput | null;
+					error?: any;
+				}
+				| null;
+
+			if (!packet) {
+				await sleep(10);
+				continue;
+			}
+
+			const started = nowMs();
+
+			// Ошибка запроса
+			if (packet?.error) {
+				await ensureMinDuration(started, MIN_PENDING_MS);
+				bus.dispatch({
+					event: WeatherEvents.WEATHER_REJECTED,
+					meta: { error: String(packet.error?.message ?? packet.error ?? 'Request failed') },
+				});
+				continue;
+			}
+
+			try {
+				const resp = packet?.result?.response;
+				if (!resp) {
+					await ensureMinDuration(started, MIN_PENDING_MS);
+					bus.dispatch({
+						event: WeatherEvents.WEATHER_REJECTED,
+						meta: { error: 'Empty response' },
+					});
+					continue;
+				}
+				const data = await resp.json();
+
+				const lat = Number(data?.latitude ?? Number.NaN);
+				const lon = Number(data?.longitude ?? Number.NaN);
+				const temp = data?.current_weather?.temperature ?? null;
+				const time = data?.current_weather?.time ?? new Date().toISOString();
+
+				const place
+					= Number.isFinite(lat) && Number.isFinite(lon)
+						? `${lat.toFixed(4)}, ${lon.toFixed(4)}`
+						: '—';
+
+				await ensureMinDuration(started, MIN_PENDING_MS);
+
+				bus.dispatch({
+					event: WeatherEvents.WEATHER_RESOLVED,
+					meta: {
+						data: {
+							temp,
+							place,
+							time,
+							lat: Number.isFinite(lat) ? lat : null,
+							lon: Number.isFinite(lon) ? lon : null,
+						},
+					},
+				});
+			} catch (e: any) {
+				await ensureMinDuration(started, MIN_PENDING_MS);
+				bus.dispatch({
+					event: WeatherEvents.WEATHER_REJECTED,
+					meta: { error: String(e?.message ?? e) },
+				});
+			}
+		}
+	})().catch(console.error);
+
+	return () => {
+		canceled = true;
+		bus.unsubscribe(WeatherEvents.FETCH_WEATHER, fetchHandler as any);
+		source.stop();
+		destination.stop();
+	};
+}
+
+// Точка входа: собираем CoreLoop для примера с погодой.
 export function startWeatherCoreLoop(): void {
 	registerWeatherEvents();
 
@@ -426,7 +440,8 @@ export function startWeatherCoreLoop(): void {
 
 	loop.registerAutomata('weather', automata, adapter);
 
-	const unbindHttp = bindHttpWeatherGateway(bus);
+	const unbindHttp = bindHttpWeatherAdapter(bus);
+
 	const unbindUi = bindUiRenderer(bus, automata);
 
 	const domSource = createDomSource();
