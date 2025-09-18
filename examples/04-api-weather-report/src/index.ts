@@ -1,7 +1,7 @@
 import {
+	AutomataEventAdapter,
 	CoreLoop,
 	createHTTPRequestAdapter,
-	EventBusAwareEventAdapter,
 	IAutomataEventBus,
 	TAutomataEventMetaType,
 	THTTPRequestAdapterOutput,
@@ -230,8 +230,8 @@ function createDomSource(): {
 /**
  * Конфигурируем адаптер: подписки Event -> Action и эмиттеры State -> Event
  */
-function buildAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>) {
-	const adapter = new EventBusAwareEventAdapter(bus as unknown as IAutomataEventBus<number, Record<number, any>>);
+function buildAdapter() {
+	const adapter = new AutomataEventAdapter();
 
 	adapter.addEventListener(WeatherEvents.UI_INPUT_CHANGED, ({ meta }) => ({
 		action: actionsDictionary.UpdateInput,
@@ -436,7 +436,7 @@ export function startWeatherCoreLoop(): void {
 	const bus = loop.getBus();
 
 	const automata = new WeatherReportAutomata();
-	const adapter = buildAdapter(bus);
+	const adapter = buildAdapter();
 
 	loop.registerAutomata('weather', automata, adapter);
 
