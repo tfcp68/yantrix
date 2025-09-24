@@ -339,6 +339,7 @@ export type TDataDestinationResolver<
 	ResolveResultType,
 	ObjectType,
 > = (data: DataPacketType, self?: ObjectType) => Promise<ResolveResultType>;
+
 export type TDataDestinationConstructorOpts<DataPacketType, ResolveResultType, ObjectType> = {
 	id?: string;
 	resolver?: TDataDestinationResolver<DataPacketType, ResolveResultType, ObjectType> | null;
@@ -356,6 +357,7 @@ export type TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType>
 	};
 
 export const WILDCARD_EVENT = Symbol('wildcard_event');
+
 export type TDataBoundSelector<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends Record<EventType, any>,
@@ -377,17 +379,17 @@ export interface IEventSource<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > {
-	id?: string;
+	id: string;
 	/**
-	 * Запуск источника. В колбэк publish следует отправлять готовые события для EventBus.
+	 * Starts the source. Use the provided publish callback to push ready-to-dispatch events into the EventBus.
 	 */
 	start: (publish: (event: TAutomataEventMetaType<EventType, EventMetaType>) => void) => void;
 	/**
-	 * Остановка источника и очистка своих ресурсов.
+	 * Stops the source and releases its resources.
 	 */
 	stop: () => void;
 	/**
-	 * (Необязательно) Набор типов событий, которые источник может публиковать.
+	 * (Optional) A set of event types that this source may publish.
 	 */
 	getObservedEvents?: () => EventType[];
 }
@@ -396,10 +398,10 @@ export interface IEventDestination<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > {
-	id?: string;
+	id: string;
 	/**
-	 * Привязка приемника к шине. Должна вернуть функцию отписки.
-	 * Внутри можно подписаться на нужные события через bus.subscribe(...)
+	 * Binds the destination to the event bus. Must return an unsubscribe function.
+	 * Inside, subscribe to the required events via bus.subscribe(...).
 	 */
 	bind: (bus: IAutomataEventBus<EventType, EventMetaType>) => TSubscriptionCancelFunction;
 }

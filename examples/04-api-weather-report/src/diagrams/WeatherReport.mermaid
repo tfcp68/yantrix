@@ -11,7 +11,8 @@ stateDiagram-v2
 	Pending --> Success: Resolve
 	Pending --> Error: Reject
 
-	Error --> Filling: EditForm
+	Error --> Filling: UpdateInput
+	Error --> Filling: UpdateSelect
 
 	Success --> [*]: Reset
 	Success --> Filling: UpdateInput

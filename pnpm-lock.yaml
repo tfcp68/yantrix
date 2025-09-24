@@ -349,15 +349,9 @@ importers:
       '@types/node':
         specifier: ^22.7.3
         version: 22.10.1
-      '@yantrix/automata':
-        specifier: workspace:^
-        version: link:../../packages/automata
       '@yantrix/core':
         specifier: workspace:^
         version: link:../../packages/core
-      '@yantrix/utils':
-        specifier: workspace:^
-        version: link:../../packages/utils
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.9.3)(@types/node@22.10.1)(typescript@5.9.2)
@@ -380,6 +374,15 @@ importers:
       '@types/underscore':
         specifier: ^1.11.15
         version: 1.13.0
+
+  packages/automata-tests:
+    dependencies:
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../cli
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../core
 
   packages/cli:
     dependencies:
@@ -7185,7 +7188,7 @@ snapshots:
       '@vue/shared': 3.5.13
       estree-walker: 2.0.2
       magic-string: 0.30.14
-      postcss: 8.4.49
+      postcss: 8.5.6
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.13':

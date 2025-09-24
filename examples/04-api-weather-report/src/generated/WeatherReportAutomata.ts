@@ -21,8 +21,7 @@ export const actionsDictionary = {
   "Submit": 1807668168,
   "Resolve": 1532945972,
   "Reject": 1850843201,
-  "Reset": 78851375,
-  "EditForm": 1666268686
+  "Reset": 78851375
 }
 export const functionDictionary = new FunctionDictionary();
 			const eventAdapter = new AutomataEventAdapter();
@@ -50,7 +49,7 @@ const automatas = Object.fromEntries(
 	);
 Object.entries(GlobalEventDictionary.getDictionary())
 	.forEach(([eventName, eventId]) => {
-
+	
 		EventBus.subscribe(eventId, ({ event, meta }) => {
 
 			const nextEventsToProcess = [];
@@ -65,7 +64,7 @@ Object.entries(GlobalEventDictionary.getDictionary())
 			})
 
 			EventBus.dispatch(...nextEventsToProcess);
-
+	
 			return {
 				event,
 				meta,
@@ -92,8 +91,7 @@ return [EventBus, automatas];
   "Submit": "Submit",
   "Resolve": "Resolve",
   "Reject": "Reject",
-  "Reset": "Reset",
-  "EditForm": "EditForm"
+  "Reset": "Reset"
 }
 			const statesMap = {
   "~~~START~~~": "~~~START~~~",
@@ -110,7 +108,7 @@ return [EventBus, automatas];
 				const ctx = prevContext
 				return  Object.assign({}, prevContext, ctx);
 			}
-
+			
 			const reducer = {
 		74979334: (prevContext, payload, functionDictionary, automata) => {
 
@@ -333,12 +331,12 @@ return [EventBus, automatas];
 				return prevContext
 			}
 	}
-
+			
 			const actionToStateFromStateDict = {74979334: {
 				2283824: {
 					state: [2274292]
 				}
-
+			
 	},
 	2274292: {
 				2283824: {
@@ -354,7 +352,7 @@ return [EventBus, automatas];
 				931411442: {
 					state: [809871199]
 				}
-
+			
 	},
 	809871199: {
 				2283824: {
@@ -375,7 +373,7 @@ return [EventBus, automatas];
 				1807668168: {
 					state: [982065527]
 				}
-
+			
 	},
 	982065527: {
 				2283824: {
@@ -391,7 +389,7 @@ return [EventBus, automatas];
 				1850843201: {
 					state: [67232232]
 				}
-
+			
 	},
 	67232232: {
 				2283824: {
@@ -399,10 +397,15 @@ return [EventBus, automatas];
 				}
 			,
 
-				1666268686: {
+				789957819: {
 					state: [809871199]
 				}
+			,
 
+				1073933409: {
+					state: [809871199]
+				}
+			
 	},
 	202516509: {
 				2283824: {
@@ -423,12 +426,12 @@ return [EventBus, automatas];
 				1073933409: {
 					state: [809871199]
 				}
-
+			
 	},}
-
+			
 export class WeatherReportAutomata extends GenericAutomata {
 
-    static id = 'WeatherReportAutomata_1758095357072';
+    static id = 'WeatherReportAutomata_1758270001866';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
@@ -461,14 +464,14 @@ export class WeatherReportAutomata extends GenericAutomata {
 						const contextWithInitial = getDefaultContext(context,payload)
 
 
-
+						
 			if(actionMove.state.length > 1 && actionMove.predicate != null) {
 				// determine new state from predicate
 				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
 				if(resolvedPredicateValue == null) return { state, context };
 				newStateObject.state = resolvedPredicateValue;
 			}
-
+		
 
 						const newState = newStateObject.state;
 						const newContextFunc = reducer[newState]
@@ -503,8 +506,18 @@ export class WeatherReportAutomata extends GenericAutomata {
 }
 
 export default WeatherReportAutomata;
-			// functionDictionary.register(internals);
-			functionDictionary.register(builtInFunctions);
 			const epoch = { val: 1 };
 const incrementEpoch = () => { epoch.val++ };
 const getEpoch = () => epoch.val;
+			const internals = {
+	...internalFunctions,
+	"currentStateId": internalFunctions.currentStateId(WeatherReportAutomata),
+	"currentStateName": internalFunctions.currentStateName(WeatherReportAutomata, statesDictionary),
+	"currentActionId": internalFunctions.currentActionId(WeatherReportAutomata),
+	"currentActionName": internalFunctions.currentActionName(WeatherReportAutomata, actionsDictionary),
+	"currentCycle": internalFunctions.currentCycle(WeatherReportAutomata),
+	"currentEpoch": getEpoch,
+}
+			functionDictionary.register(internals);
+			functionDictionary.register(builtInFunctions);
+		

@@ -16,9 +16,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^22.7.3",
-		"@yantrix/automata": "workspace:^",
 		"@yantrix/core": "workspace:^",
-		"@yantrix/utils": "workspace:^",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.2",
 		"vite": "^7.1.5"

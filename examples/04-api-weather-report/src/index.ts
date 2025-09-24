@@ -5,7 +5,8 @@ import {
 	IAutomataEventBus,
 	TAutomataEventMetaType,
 	THTTPRequestAdapterOutput,
-} from '@yantrix/automata';
+	uniqId,
+} from '@yantrix/core';
 import {
 	registerWeatherEvents,
 	TCityCoords,
@@ -100,7 +101,7 @@ function render(automata: WeatherReportAutomata): void {
 }
 
 /**
- * Дестинейшн для обновления UI: слушает ключевые события и дергает render().
+ * UI destination: listens to key events and triggers render().
  */
 function bindUiRenderer(
 	bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>,
@@ -127,7 +128,7 @@ function bindUiRenderer(
 }
 
 /**
- * Источник DOM: преобразует пользовательские действия в события для EventBus.
+ * DOM source: converts user interactions into EventBus events.
  */
 function createDomSource(): {
 	start: (publish: (e: TAutomataEventMetaType<WeatherEvents, TWeatherMeta>) => void) => void;
@@ -228,32 +229,32 @@ function createDomSource(): {
 }
 
 /**
- * Конфигурируем адаптер: подписки Event -> Action и эмиттеры State -> Event
+ * Configure adapter: Event -> Action subscriptions and State -> Event emitters
  */
 function buildAdapter() {
 	const adapter = new AutomataEventAdapter();
 
-	adapter.addEventListener(WeatherEvents.UI_INPUT_CHANGED, ({ meta }) => ({
+	adapter.addEventListener(WeatherEvents.UI_INPUT_CHANGED, ({ meta }: TAutomataEventMetaType<WeatherEvents>) => ({
 		action: actionsDictionary.UpdateInput,
 		payload: { coords: meta?.coords ?? null },
 	}));
 
-	adapter.addEventListener(WeatherEvents.UI_SELECT_CITY, ({ meta }) => ({
+	adapter.addEventListener(WeatherEvents.UI_SELECT_CITY, ({ meta }: TAutomataEventMetaType<WeatherEvents>) => ({
 		action: actionsDictionary.UpdateSelect,
 		payload: { city: meta?.city ?? null, coords: meta?.coords ?? null },
 	}));
 
-	adapter.addEventListener(WeatherEvents.UI_SUBMIT, ({ meta }) => ({
+	adapter.addEventListener(WeatherEvents.UI_SUBMIT, ({ meta }: TAutomataEventMetaType<WeatherEvents>) => ({
 		action: actionsDictionary.Submit,
 		payload: { coords: meta?.coords, city: meta?.city ?? null },
 	}));
 
-	adapter.addEventListener(WeatherEvents.WEATHER_RESOLVED, ({ meta }) => ({
+	adapter.addEventListener(WeatherEvents.WEATHER_RESOLVED, ({ meta }: TAutomataEventMetaType<WeatherEvents>) => ({
 		action: actionsDictionary.Resolve,
 		payload: { data: meta?.data },
 	}));
 
-	adapter.addEventListener(WeatherEvents.WEATHER_REJECTED, ({ meta }) => ({
+	adapter.addEventListener(WeatherEvents.WEATHER_REJECTED, ({ meta }: TAutomataEventMetaType<WeatherEvents>) => ({
 		action: actionsDictionary.Reject,
 		payload: { error: meta?.error },
 	}));
@@ -297,7 +298,7 @@ async function ensureMinDuration(startTs: number, minMs: number) {
 }
 
 /**
- * Маппер запросов для createHTTPRequestAdapter:
+ * Request mapper for createHTTPRequestAdapter:
  */
 function mapFetchWeatherRequest(
 	event: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>,
@@ -314,7 +315,7 @@ function mapFetchWeatherRequest(
 }
 
 /**
- * Подключает DataSource/DataDestination HTTP-адаптеры к EventBus:
+ * Binds HTTP DataSource/DataDestination adapters to the EventBus:
  */
 function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>): () => void {
 	const MIN_PENDING_MS = 1000;
@@ -325,19 +326,19 @@ function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMe
 		},
 	});
 
-	// Подписка шины на запросы: пробрасываем событие в Destination
+	// Bus subscription to requests: forward the event to Destination
 	const fetchHandler = (ev: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>) => {
 		destination.update(ev, null);
 	};
 
-	// Запуск адаптеров
+	// Start adapters
 	source.start();
 	destination.start();
 	bus.subscribe(WeatherEvents.FETCH_WEATHER, fetchHandler as any);
 
 	let canceled = false;
 
-	// Единый цикл обработки результатов/ошибок
+	// Unified loop for processing results/errors
 	(async () => {
 		const emitter = destination.requestEmitter();
 		for (;;) {
@@ -364,7 +365,7 @@ function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMe
 
 			const started = nowMs();
 
-			// Ошибка запроса
+			// Request error
 			if (packet?.error) {
 				await ensureMinDuration(started, MIN_PENDING_MS);
 				bus.dispatch({
@@ -381,6 +382,14 @@ function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMe
 					bus.dispatch({
 						event: WeatherEvents.WEATHER_REJECTED,
 						meta: { error: 'Empty response' },
+					});
+					continue;
+				}
+				if (resp.status !== 200) {
+					await ensureMinDuration(started, MIN_PENDING_MS);
+					bus.dispatch({
+						event: WeatherEvents.WEATHER_REJECTED,
+						meta: { error: `HTTP Error ${resp.status}: ${resp.statusText}` },
 					});
 					continue;
 				}
@@ -428,7 +437,6 @@ function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMe
 	};
 }
 
-// Точка входа: собираем CoreLoop для примера с погодой.
 export function startWeatherCoreLoop(): void {
 	registerWeatherEvents();
 
@@ -448,7 +456,7 @@ export function startWeatherCoreLoop(): void {
 	loop.start();
 
 	loop.registerSource({
-		id: 'dom',
+		id: uniqId(),
 		start: publish => domSource.start(publish),
 		stop: () => domSource.stop(),
 	});

@@ -1,4 +1,4 @@
-import { EventDictionary as GlobalEventDictionary } from '@yantrix/automata';
+import { EventDictionary as GlobalEventDictionary } from '@yantrix/core';
 
 // Тестовые события для примера с погодой.
 export enum WeatherEvents {

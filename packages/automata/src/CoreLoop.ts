@@ -53,6 +53,12 @@ export class CoreLoop<
 	private readonly sources: Map<string, TRegisteredSource> = new Map();
 	private started = false;
 
+	protected readonly publishToBus = (
+		event: TAutomataEventMetaType<EventType, EventMetaType>,
+	): void => {
+		this.bus.dispatch(event);
+	};
+
 	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>) {
 		this.bus = (bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
 	}
@@ -62,11 +68,22 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Регистрирует автомат и прокладывает маршруты:
-	 * - события из шины -> адаптер автомата -> Actions -> dispatch в автомат
-	 * - переходы автомата -> адаптер -> события -> шина (через EventBusAwareEventAdapter)
+	 * Registers an automata and wires data flow:
+	 * - Event Bus -> Event Adapter -> Actions -> dispatch to the Automata
+	 * - FSM transitions -> Event Adapter -> Events -> Event Bus (via EventBus-aware adapter)
 	 *
-	 * Ожидается, что у адаптера уже настроены маппинги addEventListener(...) и addEventEmitter(...).
+	 * Assumptions:
+	 * - The adapter is already configured with addEventListener(...) and addEventEmitter(...) mappings.
+	 *
+	 * @template StateType Automata state enum (number)
+	 * @template ActionType Automata action enum (number)
+	 * @template ContextType State -> Context mapping
+	 * @template PayloadType Action -> Payload mapping
+	 * @param id Unique identifier for the automata within this CoreLoop
+	 * @param machine Automata instance to register
+	 * @param adapter Optional AutomataEventAdapter; created if not provided
+	 * @throws Error when an automata with the same id is already registered
+	 * @returns This CoreLoop instance (for chaining)
 	 */
 	public registerAutomata<
 		StateType extends TAutomataBaseStateType,
@@ -79,11 +96,12 @@ export class CoreLoop<
 		adapter?: AutomataEventAdapter,
 	): this {
 		if (this.automata.has(id)) throw new Error(`Automata with id "${id}" already registered`);
+
 		const bridge
 			= adapter
 			?? new AutomataEventAdapter();
 
-		// Подключаем адаптер к автомату:
+		// Attach adapter to the automata:
 		machine.eventAdapter = bridge as unknown as IAutomataEventAdapter<
 			StateType,
 			ActionType,
@@ -93,7 +111,7 @@ export class CoreLoop<
 			EventMetaType
 		>;
 
-		// Подписываемся на события шины, которые интересуют адаптер
+		// Subscribe to the Event Bus for events observed by the adapter
 		const observed = bridge.getObservedEvents();
 		const unsubs: TUnsub[] = [];
 
@@ -109,14 +127,7 @@ export class CoreLoop<
 					machine.dispatch(a as any);
 					const emitted = bridge.handleTransition(machine.getContext()) ?? [];
 					if (emitted?.length) {
-						nextEventsToProcess.push(...emitted as TAutomataEventStack<EventType, EventMetaType>);
-					}
-				}
-
-				// 3) Re-dispatch emitted events back to the Bus
-				if (nextEventsToProcess.length) {
-					for (const e of nextEventsToProcess) {
-						this.bus.dispatch(e);
+						nextEventsToProcess.push(...(emitted as TAutomataEventStack<EventType, EventMetaType>));
 					}
 				}
 
@@ -136,6 +147,16 @@ export class CoreLoop<
 		return this;
 	}
 
+	/**
+	 * Unregisters a previously registered automata by id.
+	 *
+	 * Behavior:
+	 * - Safely unsubscribes all event bus subscriptions created during registration.
+	 * - Removes automata entry from the registry. No-op if not found.
+	 *
+	 * @param id Automata identifier passed during registration.
+	 * @returns This CoreLoop instance for chaining.
+	 */
 	public unregisterAutomata(id: string): this {
 		const reg = this.automata.get(id);
 		if (reg) {
@@ -146,29 +167,42 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Регистрирует источник: он стартует с publish, который диспатчит события в шину
+	 * Registers a Source. The Source is started immediately if the loop is already running.
+	 * Note: This method treats the passed-in object as immutable and does NOT mutate src.id.
+	 * Non-empty src. Id is required.
 	 */
 	public registerSource(src: IEventSource<EventType, EventMetaType>): this {
-		if (!src.id) {
-			src.id = crypto?.randomUUID?.() ?? `src_${Math.random().toString(36).slice(2)}`;
+		if (!src.id || src.id.length === 0) {
+			throw new Error('Source must provide a non-empty string id');
 		}
-		if (this.sources.has(src.id)) throw new Error(`Source with id "${src.id}" already registered`);
+		const id = src.id;
 
-		const publish = (event: TAutomataEventMetaType<EventType, EventMetaType>) => {
-			this.bus.dispatch(event);
-		};
+		if (this.sources.has(id)) {
+			throw new Error(`Source with id "${id}" already registered`);
+		}
 
 		if (this.started) {
-			src.start(publish);
+			src.start(this.publishToBus);
 		}
 
-		this.sources.set(src.id, {
-			id: src.id,
+		this.sources.set(id, {
+			id,
 			stop: () => src.stop(),
 		});
+
 		return this;
 	}
 
+	/**
+	 * Unregisters a previously registered Source by id.
+	 *
+	 * Behavior:
+	 * - Calls Source.stop() if present.
+	 * - Removes the source from the registry. No-op if not found.
+	 *
+	 * @param id Source identifier assigned on registration.
+	 * @returns This CoreLoop instance for chaining.
+	 */
 	public unregisterSource(id: string): this {
 		const reg = this.sources.get(id);
 		if (reg) {
@@ -179,19 +213,35 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Регистрирует приемник: он сам подписывается на нужные события в bind()
+	 * Registers a Destination. Destination is responsible for its own subscriptions via bind().
+	 *
+	 * @param dst Destination to register
+	 * @throws Error if a Destination with the same id is already registered
+	 * @returns This CoreLoop instance for chaining.
 	 */
 	public registerDestination(dst: IEventDestination<EventType, EventMetaType>): this {
-		if (!dst.id) {
-			dst.id = crypto?.randomUUID?.() ?? `dst_${Math.random().toString(36).slice(2)}`;
+		if (!dst.id || dst.id.length === 0) {
+			throw new Error('Destination must provide a non-empty string id');
 		}
-		if (this.destinations.has(dst.id)) throw new Error(`Destination with id "${dst.id}" already registered`);
+		const id = dst.id;
+
+		if (this.destinations.has(id)) throw new Error(`Destination with id "${id}" already registered`);
 
 		const unsub = dst.bind(this.bus);
-		this.destinations.set(dst.id, { id: dst.id, unsub });
+		this.destinations.set(id, { id, unsub });
 		return this;
 	}
 
+	/**
+	 * Unregisters a previously registered Destination by id.
+	 *
+	 * Behavior:
+	 * - Invokes the unsubscription function returned by Destination.bind().
+	 * - Removes the destination from the registry. No-op if not found.
+	 *
+	 * @param id Destination identifier assigned on registration.
+	 * @returns This CoreLoop instance for chaining.
+	 */
 	public unregisterDestination(id: string): this {
 		const reg = this.destinations.get(id);
 		if (reg) {
@@ -214,10 +264,10 @@ export class CoreLoop<
 		this.started = false;
 		this.bus.pause();
 
-		// Останавливаем источники
+		// Stop all sources
 		this.sources.forEach(s => s.stop());
 
-		// Отписываем приемники
+		// Unsubscribe all destinations
 		this.destinations.forEach(d => d.unsub());
 
 		return this;
