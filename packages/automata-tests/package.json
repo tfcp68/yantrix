@@ -55,8 +55,8 @@
 
 	},
 	"dependencies": {
-		"@yantrix/core": "workspace:^",
-		"@yantrix/cli": "workspace:^"
+		"@yantrix/cli": "workspace:^",
+		"@yantrix/core": "workspace:^"
 	},
 	"directories": {
 		"lib": "src",
