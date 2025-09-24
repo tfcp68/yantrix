@@ -1,0 +1,69 @@
+{
+	"$schema": "https://json.schemastore.org/package.json",
+	"name": "@yantrix/automata-tests",
+	"type": "module",
+	"version": "0.0.1",
+	"description": "tests automata",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"funding": "https://github.com/tfcp68/yantrix?sponsor",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/automata-tests"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [],
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"buildAndTest": "cd ../automata && pnpm build && cd ../automata-tests && pnpm i && pnpm test",
+		"test": "vitest run",
+		"lint": "eslint .",
+		"format": "eslint --fix .",
+		"generate": "yantrix codegen ./src/fixtures/diagrams/WeatherReport.mermaid -l TypeScript -o src/fixtures/generated/WeatherReportAutomata.ts -c WeatherReportAutomata"
+
+	},
+	"dependencies": {
+		"@yantrix/core": "workspace:^",
+		"@yantrix/cli": "workspace:^"
+	},
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}
