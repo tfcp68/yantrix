@@ -1,7 +1,7 @@
 import { ModuleNames } from '@yantrix/codegen';
 import { internalFunctions } from '@yantrix/core';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
-import AutomataInternalsTest from './fixtures/generated/functions_automata_internals_generated.js';
+import AutomataInternalsTest from './fixtures/generated/functions_automataInternals_generated.js';
 import { generateAndSave } from './fixtures/utils.js';
 
 const input = `stateDiagram-v2
