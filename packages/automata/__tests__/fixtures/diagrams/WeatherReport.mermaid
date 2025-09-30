@@ -18,31 +18,26 @@ stateDiagram-v2
 	Success --> Filling: UpdateInput
 	Success --> Filling: UpdateSelect
 
-%% Инициализация
 	note left of Idle
 		+Init
 		#{ coords = 0, city = 0 }
 	end note
 
-%% Filling — всегда обновляем coords/city из payload с fallback на контекст, чистим прошлые result/error
 	note right of Filling
 		#{ coords } <= coalesce($coords, #coords)
 		#{ city } <= coalesce($city, #city)
 		#{ result = 0, error = 0 }
 	end note
 
-%% Pending — протаскиваем coords/city из Submit payload (если пришли), иначе берем из контекста
 	note right of Pending
 		#{ coords } <= coalesce($coords, #coords)
 		#{ city } <= coalesce($city, #city)
 	end note
 
-%% Success — пишем result и сохраняем coords/city
 	note right of Success
 		#{ result = $data, coords, city }
 	end note
 
-%% Error — пишем error и сохраняем coords/city
 	note right of Error
 		#{ error = $error, coords, city }
 	end note

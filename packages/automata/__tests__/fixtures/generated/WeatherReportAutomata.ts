@@ -2,7 +2,8 @@
 // @ts-nocheck
 
 
-			import { GenericAutomata, FunctionDictionary, EventDictionary as GlobalEventDictionary, AutomataEventAdapter, BasicEventBus, builtInFunctions, internalFunctions, TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '@yantrix/core';
+			import { GenericAutomata, FunctionDictionary, EventDictionary as GlobalEventDictionary, AutomataEventAdapter, BasicEventBus, TAutomataBaseActionType, TAutomataBaseStateType, TValidator } from '../../../src';
+			import {builtInFunctions, internalFunctions} from "@yantrix/functions"
 
 			export const statesDictionary = {
   "~~~START~~~": 74979334,
@@ -49,7 +50,7 @@ const automatas = Object.fromEntries(
 	);
 Object.entries(GlobalEventDictionary.getDictionary())
 	.forEach(([eventName, eventId]) => {
-	
+
 		EventBus.subscribe(eventId, ({ event, meta }) => {
 
 			const nextEventsToProcess = [];
@@ -64,7 +65,7 @@ Object.entries(GlobalEventDictionary.getDictionary())
 			})
 
 			EventBus.dispatch(...nextEventsToProcess);
-	
+
 			return {
 				event,
 				meta,
@@ -108,7 +109,7 @@ return [EventBus, automatas];
 				const ctx = prevContext
 				return  Object.assign({}, prevContext, ctx);
 			}
-			
+
 			const reducer = {
 		74979334: (prevContext, payload, functionDictionary, automata) => {
 
@@ -302,12 +303,12 @@ return [EventBus, automatas];
 				return prevContext
 			}
 	}
-			
+
 			const actionToStateFromStateDict = {74979334: {
 				2283824: {
 					state: [2274292]
 				}
-			
+
 	},
 	2274292: {
 				2283824: {
@@ -323,7 +324,7 @@ return [EventBus, automatas];
 				931411442: {
 					state: [809871199]
 				}
-			
+
 	},
 	809871199: {
 				2283824: {
@@ -344,7 +345,7 @@ return [EventBus, automatas];
 				1807668168: {
 					state: [982065527]
 				}
-			
+
 	},
 	982065527: {
 				2283824: {
@@ -360,7 +361,7 @@ return [EventBus, automatas];
 				1850843201: {
 					state: [67232232]
 				}
-			
+
 	},
 	67232232: {
 				2283824: {
@@ -376,7 +377,7 @@ return [EventBus, automatas];
 				1073933409: {
 					state: [809871199]
 				}
-			
+
 	},
 	202516509: {
 				2283824: {
@@ -397,9 +398,9 @@ return [EventBus, automatas];
 				1073933409: {
 					state: [809871199]
 				}
-			
+
 	},}
-			
+
 export class WeatherReportAutomata extends GenericAutomata {
 
     static id = 'WeatherReportAutomata_1758564684741';
@@ -435,14 +436,14 @@ export class WeatherReportAutomata extends GenericAutomata {
 						const contextWithInitial = getDefaultContext(context,payload)
 
 
-						
+
 			if(actionMove.state.length > 1 && actionMove.predicate != null) {
 				// determine new state from predicate
 				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
 				if(resolvedPredicateValue == null) return { state, context };
 				newStateObject.state = resolvedPredicateValue;
 			}
-		
+
 
 						const newState = newStateObject.state;
 						const newContextFunc = reducer[newState]
@@ -491,4 +492,3 @@ const getEpoch = () => epoch.val;
 }
 			functionDictionary.register(internals);
 			functionDictionary.register(builtInFunctions);
-		

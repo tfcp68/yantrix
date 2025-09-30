@@ -352,6 +352,9 @@ importers:
       '@yantrix/core':
         specifier: workspace:^
         version: link:../../packages/core
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.9.3)(@types/node@22.10.1)(typescript@5.9.2)
@@ -374,15 +377,6 @@ importers:
       '@types/underscore':
         specifier: ^1.11.15
         version: 1.13.0
-
-  packages/automata-tests:
-    dependencies:
-      '@yantrix/cli':
-        specifier: workspace:^
-        version: link:../cli
-      '@yantrix/core':
-        specifier: workspace:^
-        version: link:../core
 
   packages/cli:
     dependencies:

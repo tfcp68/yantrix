@@ -1,15 +1,21 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { ModuleNames } from '@yantrix/codegen';
 import {
+	AutomataEventAdapter,
+	CoreLoop,
 	IAutomataEventBus,
+	IEventDestination,
+	IEventSource,
 	TAutomataEventMetaType,
+	TEventBusTask,
 	uniqId,
+	waitForEventOnce,
+	waitForState,
 } from '@yantrix/core';
 import { beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
-import { CoreLoop, IEventDestination, IEventSource, TAutomataBaseEventType, TEventBusTask } from '../../automata/src';
-import AutomataEventAdapter from '../../automata/src/EventAdapter';
-import WeatherReportAutomata, {
-	actionsDictionary,
-	statesDictionary,
-} from './fixtures/generated/WeatherReportAutomata';
+
+import { generateAndSave } from './fixtures/utils';
 
 enum TestEvents {
 	UI_SELECT_CITY = 1,
@@ -70,156 +76,6 @@ function toEvent<E extends TestEvents>(
 }
 
 /**
- * Waits for the next occurrence of a specific event on the EventBus and resolves with that event.
- *
- * How it works:
- * - Subscribes a one-shot handler to the given event on the provided EventBus.
- * - If the event arrives before the timeout, the handler:
- *   - unsubscribes itself (idempotently),
- *   - clears the timeout,
- *   - resolves the Promise with the received event.
- * - If the timeout elapses first, the timeout callback:
- *   - unsubscribes the handler (idempotently),
- *   - rejects the Promise with a Timeout Error.
- *
- * Notes:
- * - Works with both sync and async EventBus implementations.
- * - Unsubscription is idempotent and performed without silent catch blocks.
- * - If your bus throws on invalid unsubscribe (it shouldn't), we guard against double calls via a local flag.
- *
- * @template E - Event enum type.
- * @template M - Event meta map type.
- * @param bus - Event bus instance (IAutomataEventBus).
- * @param event - Target event to wait for (single occurrence).
- * @param timeoutMs - Timeout in milliseconds, after which the promise rejects. Default: 500ms.
- * @returns Promise that resolves with TAutomataEventMetaType when the event fires once; rejects on timeout.
- */
-function waitForEventOnce<E extends TAutomataBaseEventType, M extends { [K in E]: any }>(
-	bus: IAutomataEventBus<E, M>,
-	event: E,
-	timeoutMs = 500,
-): Promise<TAutomataEventMetaType<E, M>> {
-	return new Promise((resolve, reject) => {
-		let done = false;
-		let timeoutId: NodeJS.Timeout;
-
-		const cleanup = () => {
-			if (done) return;
-			done = true;
-			// idempotent cleanup; EventBus.unsubscribe should be tolerant to unknown handlers
-			// eslint-disable-next-line ts/no-use-before-define
-			bus.unsubscribe(event, handler);
-			clearTimeout(timeoutId);
-		};
-
-		const handler = (e: TAutomataEventMetaType<E, M>): TEventBusTask<E, M> => {
-			cleanup();
-			resolve(e);
-			return {
-				event: e.event,
-				meta: e.meta,
-				task_id: `event_${String(e.event)}`,
-				result: null,
-			};
-		};
-
-		timeoutId = setTimeout(() => {
-			cleanup();
-			const err = new Error(`Timed out waiting for event ${String(event)} after ${timeoutMs}ms`);
-			reject(err);
-		}, timeoutMs);
-
-		bus.subscribe(event, handler);
-	});
-}
-
-/**
- * Waits until the FSM reaches a specific state or rejects after a timeout.
- *
- * Intended use:
- * - When EventBus processing is asynchronous, and state assertions must be deferred
- *   until after the event/transition pipeline completes.
- *
- * @param automata - WeatherReportAutomata instance under test
- * @param expectedState - Target numeric state id (statesDictionary.*)
- * @param timeoutMs - Max wait time in ms (default: 500)
- * @returns Promise<void> that resolves once the state is observed or rejects on timeout
- */
-function waitForState(
-	automata: WeatherReportAutomata,
-	expectedState: number,
-	timeoutMs = 500,
-): Promise<void> {
-	return new Promise((resolve, reject) => {
-		const start = Date.now();
-		const tick = () => {
-			if (automata.getContext().state === expectedState) {
-				return resolve();
-			}
-			if (Date.now() - start >= timeoutMs) {
-				return reject(
-					new Error(
-						`Timed out waiting for state ${expectedState}, got ${automata.getContext().state}`,
-					),
-				);
-			}
-			setTimeout(tick, 0);
-		};
-		tick();
-	});
-}
-
-/**
- * Configures an AutomataEventAdapter using the given automata instance.
- *
- * Adds:
- * - Event -> Action listeners (UI_* and WEATHER_* events to respective actions)
- * - State -> Event emitters (Pending -> FETCH_WEATHER, and UI_RENDER for main states)
- *
- * @param automata - WeatherReportAutomata whose adapter will be configured
- * @returns The configured AutomataEventAdapter instance
- */
-function buildAdapterFromAutomata(
-	automata: WeatherReportAutomata,
-): AutomataEventAdapter {
-	const adapter = automata.getEventAdapter() as AutomataEventAdapter;
-
-	// Event -> Action
-	adapter.addEventListener(TestEvents.UI_SELECT_CITY, ({ meta }) => ({
-		action: actionsDictionary.UpdateSelect,
-		payload: { city: meta?.city ?? null, coords: meta?.coords ?? null },
-	}));
-	adapter.addEventListener(TestEvents.UI_SUBMIT, ({ meta }) => ({
-		action: actionsDictionary.Submit,
-		payload: { city: meta?.city ?? null, coords: meta?.coords ?? null },
-	}));
-	adapter.addEventListener(TestEvents.WEATHER_RESOLVED, ({ meta }) => ({
-		action: actionsDictionary.Resolve,
-		payload: { data: meta?.data },
-	}));
-	adapter.addEventListener(TestEvents.WEATHER_REJECTED, ({ meta }) => ({
-		action: actionsDictionary.Reject,
-		payload: { error: meta?.error },
-	}));
-
-	// State -> Event
-	adapter.addEventEmitter(statesDictionary.Pending, ({ context }) => ({
-		event: TestEvents.FETCH_WEATHER,
-		meta: { city: context?.city ?? null, coords: context?.coords ?? null },
-	}));
-	[statesDictionary.Filling, statesDictionary.Pending, statesDictionary.Success, statesDictionary.Error].forEach(
-		(s) => {
-			adapter.addEventEmitter(s, () => ({
-				event: TestEvents.UI_RENDER,
-				meta: {},
-			}));
-		},
-	);
-
-	return adapter;
-}
-
-/**
  * Creates a mock Source compatible with CoreLoop registration.
  *
  * Behavior:
@@ -271,15 +127,118 @@ function createMockDestination(spy:
 	};
 }
 
-describe('coreLoop with generated WeatherReportAutomata', () => {
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
+
+const input = `stateDiagram-v2
+	[*] --> Idle: Init
+
+	Idle --> Filling: FocusInput
+	Idle --> Filling: UpdateSelect
+
+	Filling --> Filling: UpdateInput
+	Filling --> Filling: UpdateSelect
+	Filling --> Pending: Submit
+
+	Pending --> Success: Resolve
+	Pending --> Error: Reject
+
+	Error --> Filling: UpdateInput
+	Error --> Filling: UpdateSelect
+
+	Success --> [*]: Reset
+	Success --> Filling: UpdateInput
+	Success --> Filling: UpdateSelect
+
+	note left of Idle
+		+Init
+		#{ coords = 0, city = 0 }
+	end note
+
+	note right of Filling
+		#{ coords } <= coalesce($coords, #coords)
+		#{ city } <= coalesce($city, #city)
+		#{ result = 0, error = 0 }
+	end note
+
+	note right of Pending
+		#{ coords } <= coalesce($coords, #coords)
+		#{ city } <= coalesce($city, #city)
+	end note
+
+	note right of Success
+		#{ result = $data, coords, city }
+	end note
+
+	note right of Error
+		#{ error = $error, coords, city }
+	end note
+`;
+
+describe('coreLoop with generated WeatherReportAutomata', async () => {
+	await generateAndSave({ input, automataName: 'WeatherReportAutomata', lang: ModuleNames.TypeScript }, 'WeatherReportAutomata');
+	const { WeatherReportAutomata, actionsDictionary, statesDictionary } = await import(
+		getGeneratedFixturePath('WeatherReportAutomata_generated.ts')
+	);
 	let loop: CoreLoop<TestEvents, TTestMeta>;
-	let automata: WeatherReportAutomata;
+	let automata: typeof WeatherReportAutomata;
 	let bus: IAutomataEventBus<TestEvents, TTestMeta>;
 	let adapter: AutomataEventAdapter;
 
 	let handleTransitionSpy: ReturnType<typeof vi.spyOn>;
 
-	beforeEach(() => {
+	/**
+	 * Configures an AutomataEventAdapter using the given automata instance.
+	 *
+	 * Adds:
+	 * - Event -> Action listeners (UI_* and WEATHER_* events to respective actions)
+	 * - State -> Event emitters (Pending -> FETCH_WEATHER, and UI_RENDER for main states)
+	 *
+	 * @param automata - WeatherReportAutomata whose adapter will be configured
+	 * @returns The configured AutomataEventAdapter instance
+	 */
+	function buildAdapterFromAutomata(
+		automata: typeof WeatherReportAutomata,
+	): AutomataEventAdapter {
+		const adapter = automata.getEventAdapter() as AutomataEventAdapter;
+
+		// Event -> Action
+		adapter.addEventListener(TestEvents.UI_SELECT_CITY, ({ meta }) => ({
+			action: actionsDictionary.UpdateSelect,
+			payload: { city: meta?.city ?? null, coords: meta?.coords ?? null },
+		}));
+		adapter.addEventListener(TestEvents.UI_SUBMIT, ({ meta }) => ({
+			action: actionsDictionary.Submit,
+			payload: { city: meta?.city ?? null, coords: meta?.coords ?? null },
+		}));
+		adapter.addEventListener(TestEvents.WEATHER_RESOLVED, ({ meta }) => ({
+			action: actionsDictionary.Resolve,
+			payload: { data: meta?.data },
+		}));
+		adapter.addEventListener(TestEvents.WEATHER_REJECTED, ({ meta }) => ({
+			action: actionsDictionary.Reject,
+			payload: { error: meta?.error },
+		}));
+
+		// State -> Event
+		adapter.addEventEmitter(statesDictionary.Pending, ({ context }) => ({
+			event: TestEvents.FETCH_WEATHER,
+			meta: { city: context?.city ?? null, coords: context?.coords ?? null },
+		}));
+		[statesDictionary.Filling, statesDictionary.Pending, statesDictionary.Success, statesDictionary.Error].forEach(
+			(s) => {
+				adapter.addEventEmitter(s, () => ({
+					event: TestEvents.UI_RENDER,
+					meta: {},
+				}));
+			},
+		);
+
+		return adapter;
+	}
+
+	beforeEach(async () => {
 		loop = new CoreLoop<TestEvents, TTestMeta>();
 		bus = loop.getBus();
 		automata = new WeatherReportAutomata();
