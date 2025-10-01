@@ -1,0 +1,78 @@
+stateDiagram-v2
+	direction LR
+
+	[*] --> Configuring: Init
+
+%% Основной поток
+	Configuring --> Configuring: UpdateInput
+	Configuring --> StartRun: Apply
+	StartRun --> Ticking: [-]
+
+	Ticking --> TickSecond: TickSecond
+	TickSecond --> Ticking: [-]
+
+	Ticking --> TickMinute: TickMinute
+	TickMinute --> Ticking: [-]
+
+	Ticking --> TickHour: TickHour
+	TickHour --> Ticking: [-]
+
+	Ticking --> Paused: Stop
+	Paused --> Ticking: Start
+
+%% Reset из каждого состояния прямо в Configuring
+	Configuring --> Configuring: Reset
+	StartRun --> Configuring: Reset
+	Ticking --> Configuring: Reset
+	TickSecond --> Configuring: Reset
+	TickMinute --> Configuring: Reset
+	TickHour --> Configuring: Reset
+	Paused --> Configuring: Reset
+
+%% Reducers
+
+	note right of Configuring
+		+Init
+		#{ secMs } <= coalesce($secMs, #secMs, 1000)
+		#{ minMs } <= coalesce($minMs, #minMs, 60000)
+		#{ hourMs } <= coalesce($hourMs, #hourMs, 3600000)
+		#{ hourAngle = 0, minuteAngle = 0, secondAngle = 0 }
+	end note
+
+	note right of StartRun
+		+ByPass
+		#{ secMs } <= #secMs
+		#{ minMs } <= #minMs
+		#{ hourMs } <= #hourMs
+		#{ hourAngle = 0, minuteAngle = 0, secondAngle = 0 }
+	end note
+
+	note right of TickSecond
+		+ByPass
+		#{ secMs } <= #secMs
+		#{ minMs } <= #minMs
+		#{ hourMs } <= #hourMs
+		#{ hourAngle } <= coalesce(#hourAngle, 0)
+		#{ minuteAngle } <= coalesce(#minuteAngle, 0)
+		#{ secondAngle } <= mod(add(coalesce(#secondAngle, 0), 6), 360)
+	end note
+
+	note right of TickMinute
+		+ByPass
+		#{ secMs } <= #secMs
+		#{ minMs } <= #minMs
+		#{ hourMs } <= #hourMs
+		#{ hourAngle } <= coalesce(#hourAngle, 0)
+		#{ secondAngle } <= coalesce(#secondAngle, 0)
+		#{ minuteAngle } <= mod(add(coalesce(#minuteAngle, 0), 6), 360)
+	end note
+
+	note right of TickHour
+		+ByPass
+		#{ secMs } <= #secMs
+		#{ minMs } <= #minMs
+		#{ hourMs } <= #hourMs
+		#{ minuteAngle } <= coalesce(#minuteAngle, 0)
+		#{ secondAngle } <= coalesce(#secondAngle, 0)
+		#{ hourAngle } <= mod(add(coalesce(#hourAngle, 0), 30), 360)
+	end note

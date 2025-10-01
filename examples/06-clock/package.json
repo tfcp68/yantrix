@@ -1,0 +1,19 @@
+{
+  "name": "06-clock",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+	  "generate": "yantrix codegen ./src/diagrams/ClockAutomata.mermaid -l TypeScript -o src/generated/ClockAutomata.ts -c ClockAutomata",
+	"lint": "eslint .",
+	"format": "eslint --fix ."
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^7.1.7",
+	  "@yantrix/core": "workspace:^"
+  }
+}

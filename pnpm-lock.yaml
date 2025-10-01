@@ -352,9 +352,6 @@ importers:
       '@yantrix/core':
         specifier: workspace:^
         version: link:../../packages/core
-      '@yantrix/utils':
-        specifier: workspace:^
-        version: link:../../packages/utils
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.9.3)(@types/node@22.10.1)(typescript@5.9.2)
@@ -364,6 +361,18 @@ importers:
       vite:
         specifier: ^7.1.5
         version: 7.1.5(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1)
+
+  examples/06-clock:
+    devDependencies:
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^7.1.7
+        version: 7.1.7(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1)
 
   packages/automata:
     dependencies:
@@ -5403,6 +5412,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typescript@5.9.2:
     resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
     engines: {node: '>=14.17'}
@@ -5548,6 +5562,46 @@ packages:
 
   vite@7.1.5:
     resolution: {integrity: sha512-4cKBO9wR75r0BeIWWWId9XK9Lj6La5X846Zw9dFfzMRw38IlTk2iCcUt6hsyiDRcPidc55ZParFYDXi0nXOeLQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^20.19.0 || >=22.12.0
+      jiti: '>=1.21.0'
+      less: ^4.0.0
+      lightningcss: ^1.21.0
+      sass: ^1.70.0
+      sass-embedded: ^1.70.0
+      stylus: '>=0.54.8'
+      sugarss: ^5.0.0
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
+        optional: true
+
+  vite@7.1.7:
+    resolution: {integrity: sha512-VbA8ScMvAISJNJVbRDTJdCwqQoAareR/wutevKanhR2/1EkoXVZVkkORaYm/tNVCjP/UDTKtcw3bAkwOUdedmA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -11054,6 +11108,8 @@ snapshots:
 
   typescript@5.7.2: {}
 
+  typescript@5.8.3: {}
+
   typescript@5.9.2: {}
 
   ufo@1.5.4: {}
@@ -11187,6 +11243,20 @@ snapshots:
       fsevents: 2.3.3
 
   vite@7.1.5(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1):
+    dependencies:
+      esbuild: 0.25.9
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.50.2
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 22.10.1
+      fsevents: 2.3.3
+      jiti: 1.21.6
+      yaml: 2.6.1
+
+  vite@7.1.7(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1):
     dependencies:
       esbuild: 0.25.9
       fdir: 6.5.0(picomatch@4.0.3)
