@@ -1,3 +1,14 @@
+import { uniqId } from './fixtures';
+
+/**
+ * Subscribes to the specified event in EventBus and returns a promise
+ * that resolves when it first appears (with auto-unsubscribe and timeout).
+ * This is a way to "wait" for an asynchronous event to be published in a test,
+ * including for negative checks (waiting for a short timeout and ensuring the event hasn't arrived).
+ * @param bus
+ * @param event
+ * @param timeoutMs
+ */
 export function waitForEventOnce<E extends number, M extends Record<E, any>>(
 	bus: {
 		subscribe: (
@@ -38,16 +49,14 @@ export function waitForEventOnce<E extends number, M extends Record<E, any>>(
 		const cb = (e: { event: E | null; meta: M[E] | null }) => {
 			// Unsubscribe and resolve the promise
 			cleanup(cb);
-			// Ensure we return the expected E type (we are subscribed to a specific event anyway)
-			const evt = (e.event ?? event) as E;
+			const evt = (e.event ?? event);
 			resolve({ event: evt, meta: e.meta });
-			// Return a task compatible with the bus
 			return {
 				event: e.event,
 				meta: e.meta,
-				task_id: `wait_once_${String(event)}`,
+				task_id: `wait_once_${String(event)}_${uniqId()}`,
 				// Return an empty list of follow-up events
-				result: Promise.resolve([] as Array<{ event: E | null; meta: M[E] | null }>),
+				result: Promise.resolve([]),
 			};
 		};
 
@@ -60,6 +69,14 @@ export function waitForEventOnce<E extends number, M extends Record<E, any>>(
 	});
 }
 
+/**
+ * Periodically polls the automaton's
+ * getContext() and returns as soon as the automaton reaches the desired state (or by timeout).
+ * @param automata
+ * @param expectedState
+ * @param timeoutMs
+ * @param tickMs
+ */
 export function waitForState<S extends number>(
 	automata: {
 		getContext: <K extends S = S>() => { state: K | null; context?: unknown };
