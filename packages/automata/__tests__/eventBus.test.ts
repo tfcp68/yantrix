@@ -2,14 +2,14 @@ import { randomInteger, randomString, uniqId } from '@yantrix/utils';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { createEventBus, TAutomataEventMetaType, TAutomataEventStack } from '../src';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import { TTestEvent, TTestEventMeta } from './fixtures/index.js';
+import { TTestEvent, TTestEventMeta } from './fixtures';
 
 class EventBusTest extends createEventBus<
 	TTestEvent,
 	TTestEventMeta<TTestEvent>
 >()(AbstractBaseClass) {}
 
-const FrameRate = 1 / 60 * 1000;
+const FrameRate = Math.ceil(1000 / 60);
 
 describe('eventBus', () => {
 	let sampleInstance: EventBusTest = new EventBusTest();
