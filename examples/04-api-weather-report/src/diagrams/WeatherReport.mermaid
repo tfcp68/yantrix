@@ -1,0 +1,48 @@
+stateDiagram-v2
+	[*] --> Idle: Init
+
+	Idle --> Filling: FocusInput
+	Idle --> Filling: UpdateSelect
+
+	Filling --> Filling: UpdateInput
+	Filling --> Filling: UpdateSelect
+	Filling --> Pending: Submit
+
+	Pending --> Success: Resolve
+	Pending --> Error: Reject
+
+	Error --> Filling: UpdateInput
+	Error --> Filling: UpdateSelect
+
+	Success --> [*]: Reset
+	Success --> Filling: UpdateInput
+	Success --> Filling: UpdateSelect
+
+%% Initialization
+	note left of Idle
+		+Init
+		#{ coords = 0, city = 0 }
+	end note
+
+%% Filling — always update coords/city from payload with a fallback to the context; clear previous result/error
+	note right of Filling
+		#{ coords } <= coalesce($coords, #coords)
+		#{ city } <= coalesce($city, #city)
+		#{ result = 0, error = 0 }
+	end note
+
+%% Pending — carry over coords/city from the Submit payload (if provided), otherwise take from the context
+	note right of Pending
+		#{ loading, coords } <= #loading, coalesce($coords, #coords)
+		#{ city } <= coalesce($city, #city)
+	end note
+
+%% Success — write result and keep coords/city
+	note right of Success
+		#{ loading, result = $data, coords, city }
+	end note
+
+%% Error — write error and keep coords/city
+	note right of Error
+		#{ loading, error = $error, coords, city }
+	end note

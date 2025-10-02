@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1, viewport-fit=cover"
+	/>
+	<title>Clock example demo</title>
+	<link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+<main class="app">
+	<div class="card glass neon">
+		<div class="card-left">
+			<h1>Config</h1>
+
+			<div class="form-row">
+				<label for="secInterval">Second hand step (s)</label>
+				<input id="secInterval" type="number" min="0.05" step="0.05" value="1" />
+			</div>
+
+			<div class="form-row">
+				<label for="minInterval">Minute hand step (s)</label>
+				<input id="minInterval" type="number" min="1" step="1" value="60" />
+			</div>
+
+			<div class="form-row">
+				<label for="hourInterval">Hour hand step (s)</label>
+				<input id="hourInterval" type="number" min="60" step="60" value="3600" />
+			</div>
+
+			<div class="buttons">
+				<button id="applyBtn" class="btn primary">Update intervals</button>
+				<button id="startBtn" class="btn" disabled>Start</button>
+				<button id="stopBtn" class="btn danger">Stop</button>
+				<button id="resetBtn" class="btn">Reset</button>
+			</div>
+
+			<div class="status">
+				<div><b>Status:</b> <span id="statusText">Configuring</span></div>
+				<div><span id="stateLabel">—</span></div>
+				<div><b>Angles:</b></div>
+				<ul class="angles">
+					<li>Hour: <span id="hourAngleText">0</span>°</li>
+					<li>Minute: <span id="minuteAngleText">0</span>°</li>
+					<li>Second: <span id="secondAngleText">0</span>°</li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="card-right">
+			<div class="clock">
+				<div class="dial">
+				</div>
+				<div class="hand hour" id="hourHand"></div>
+				<div class="hand minute" id="minuteHand"></div>
+				<div class="hand second" id="secondHand"></div>
+				<div class="pin"></div>
+			</div>
+			<div class="digital" id="digitalTime">12:00:00</div>
+		</div>
+	</div>
+</main>
+
+<script type="module" src="src/index.ts"></script>
+</body>
+</html>

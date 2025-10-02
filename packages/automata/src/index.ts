@@ -13,10 +13,13 @@
 
 export * from './ActionDictionary.js';
 export * from './Automata.js';
+export * from './CoreLoop.js';
+export * from './DataSource.js';
 export * from './EventAdapter.js';
 export * from './EventBus.js';
 export * from './EventDictionary.js';
 export * from './FunctionDictionary.js';
+export * from './IOPromiseAdapter.js';
 export * from './StateDictionary.js';
 export * from './types/dictionaries.js';
 export * from './types/index.js';

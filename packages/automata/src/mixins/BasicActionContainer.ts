@@ -8,10 +8,6 @@ export default function BasicActionContainer<ActionType extends TAutomataBaseAct
 
 			#_actionValidator: TValidator<ActionType> | undefined;
 
-			constructor(...args: any[]) {
-				super(args);
-			}
-
 			get validateAction(): TValidator<ActionType> {
 				return this.#_actionValidator ?? this.#_defaultActionValidator;
 			}

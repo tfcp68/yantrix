@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Weather form — demo</title>
+	<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div class="app" role="application" aria-label="Weather form demo">
+	<div class="left col">
+		<div class="form-card" role="region" aria-label="Форма запроса погоды">
+			<h1>Прогноз погоды</h1>
+
+			<!-- persistent state label (added here per request) -->
+			<div id="stateLabel" class="state-label muted" aria-live="polite">State: Idle</div>
+
+			<p class="lead muted">Введите координаты или выберите город из списка</p>
+
+			<div class="row">
+				<div class="field" style="flex:1;">
+					<label for="lat">Широта (latitude)</label>
+					<input id="lat" type="text" inputmode="decimal" placeholder="55.7558" />
+				</div>
+				<div class="field" style="flex:1;">
+					<label for="lon">Долгота (longitude)</label>
+					<input id="lon" type="text" inputmode="decimal" placeholder="37.6173" />
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="field" style="flex:1;">
+					<label for="city">Город (выбрать)</label>
+					<select id="city">
+						<option value="">— выбрать —</option>
+					</select>
+				</div>
+				<div class="field" style="width:120px;">
+					<label>&nbsp;</label>
+					<button id="fillBtn" title="Подставить текущие из инпутов">Подставить</button>
+				</div>
+			</div>
+
+			<div class="controls">
+				<div style="flex:1">
+					<div class="muted">Результат будет справа</div>
+				</div>
+				<div>
+					<button id="submitBtn">Получить погоду</button>
+				</div>
+			</div>
+
+			<div id="error" class="error" role="alert" style="display:none;"></div>
+
+		</div>
+	</div>
+
+	<div class="right col">
+		<div class="right-panel" role="region" aria-label="Панель результата">
+			<div id="firstPlaceholder" class="placeholder" aria-hidden="false">
+				<svg width="72" height="72" viewBox="0 0 24 24" fill="none" style="display:block;margin:0 auto 10px;">
+					<path d="M12 2v4" stroke="white" stroke-opacity="0.9" stroke-width="1.4" stroke-linecap="round"/>
+					<path d="M12 22v-4" stroke="white" stroke-opacity="0.5" stroke-width="1.4" stroke-linecap="round"/>
+					<circle cx="12" cy="12" r="4" stroke="white" stroke-opacity="0.9" stroke-width="1.2"/>
+				</svg>
+				Введите координаты и выберите город
+			</div>
+
+			<div id="loadingPanel" style="display:none; align-items:center; flex-direction:column;">
+				<div class="loader" role="status" aria-live="polite"><span class="sr">Loading</span></div>
+				<div class="small muted">Запрос выполняется…</div>
+			</div>
+
+			<div id="resultPanel" style="display:none;">
+				<div class="card-result" id="resultCard" aria-live="polite">
+					<div id="weatherIcon" style="display:flex;align-items:center;gap:12px;">
+						<svg id="wyn" width="48" height="48" viewBox="0 0 24 24" fill="none">
+							<defs>
+								<linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#ffd86b"/><stop offset="1" stop-color="#ff9a3c"/></linearGradient>
+							</defs>
+							<circle cx="12" cy="12" r="8" fill="url(#g1)" />
+						</svg>
+						<div>
+							<div class="big" id="tempStr">— °C</div>
+							<div class="small" id="locStr">—</div>
+						</div>
+					</div>
+					<div style="margin-top:12px;">
+						<div class="muted">Время данных: <span id="timeStr">—</span></div>
+						<div class="muted">Широта: <span id="latStr">—</span>, Долгота: <span id="lonStr">—</span></div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="decor" aria-hidden="true">
+			<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" >
+				<g transform="translate(-50,-40)" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="1">
+					<path d="M200 160 q40 -60 120 -40 q60 18 120 6 q40 -8 80 36 q48 50 120 44" />
+					<path d="M80 420 q80 -140 220 -100 q140 40 240 -20 q80 -48 160 16" />
+				</g>
+			</svg>
+		</div>
+	</div>
+</div>
+
+<script type="module" src="src/index.js"></script>
+</body>
+</html>
+
+

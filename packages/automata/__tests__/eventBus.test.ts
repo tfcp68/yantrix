@@ -1,48 +1,34 @@
-import { randomInteger } from '@yantrix/utils';
+import { randomInteger, randomString, uniqId } from '@yantrix/utils';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
-import { createEventBus, TEventBusHandler } from '../src';
+import { createEventBus, TAutomataEventMetaType, TAutomataEventStack } from '../src';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
-import { TTestEvent, TTestEventMeta } from './fixtures/index.js';
+import { TTestEvent, TTestEventMeta } from './fixtures';
 
 class EventBusTest extends createEventBus<
 	TTestEvent,
 	TTestEventMeta<TTestEvent>
->()(AbstractBaseClass) {
+>()(AbstractBaseClass) {}
 
-}
-
-const createEventWithCallback:
-(e?: number, fn?: TEventBusHandler<number, TTestEventMeta<number>>) => [TTestEvent, TEventBusHandler<number, TTestEventMeta<number>>] = (event?: number, fn?: TEventBusHandler<number, TTestEventMeta<number>>) => {
-	let eventToReturn = randomInteger(1, 10000);
-	let callback: TEventBusHandler<number, TTestEventMeta<number>> = ({ event, meta }) => {
-		return {
-			event,
-			meta,
-			task_id: 'test_event',
-			result: new Promise((resolve, reject) => {
-				try {
-					resolve([]);
-				} catch {
-					reject(new Error('Error getting event stack'));
-				}
-			}),
-		};
-	};
-	if (event) {
-		eventToReturn = event;
-	}
-	if (fn) {
-		callback = fn;
-	}
-	return [eventToReturn, callback];
-};
+const FrameRate = Math.ceil(1000 / 60);
 
 describe('eventBus', () => {
 	let sampleInstance: EventBusTest = new EventBusTest();
+	let sampleEventMeta: TAutomataEventMetaType<TTestEvent, TTestEventMeta<TTestEvent>>;
+	const sampleHandler = vitest.fn((event: typeof sampleEventMeta) => ({
+		...event,
+		task_id: uniqId(),
+		result: Promise.resolve([]),
+	}));
 	beforeEach(() => {
 		vitest.restoreAllMocks();
 		vitest.clearAllTimers();
 		sampleInstance = new EventBusTest();
+		sampleEventMeta = {
+			event: randomInteger(1000, 2000),
+			meta: {
+				meta: randomString(10),
+			},
+		};
 	});
 	describe('constructor', () => {
 		it('returns an instance of EventBusTest', () => {
@@ -61,33 +47,253 @@ describe('eventBus', () => {
 			expect(sampleInstance.getEventStack()).toEqual([]);
 		});
 	});
-	describe('event stack', () => {
-		it('events are added to event stack', () => {
-			const [event, callback] = createEventWithCallback();
 
-			sampleInstance.subscribe(event, callback);
+	describe('/subscribe', () => {
+		it('returns self', () => {
+			expect(sampleInstance.subscribe(sampleEventMeta.event!, sampleHandler)).toBe(sampleInstance);
+		});
+		it('throws when provided invalid event', () => {
+			expect(() => sampleInstance.subscribe(null as any, sampleHandler)).toThrow();
+			expect(() => sampleInstance.subscribe(-5, sampleHandler)).toThrow();
+		});
+		it('throws when provided invalid handler', () => {
+			expect(() => sampleInstance.subscribe(sampleEventMeta.event!, null as any)).toThrow();
+			expect(() => sampleInstance.subscribe(sampleEventMeta.event!, {} as any)).toThrow();
+			expect(() => sampleInstance.subscribe(sampleEventMeta.event!, 'not a function' as any)).toThrow();
+		});
+		it('when the same handler added twice, it\'s called only once', () => {
+			const mockHandler = vitest.fn();
+			sampleInstance.subscribe(sampleEventMeta.event!, mockHandler);
+			sampleInstance.subscribe(sampleEventMeta.event!, mockHandler);
+			sampleInstance.dispatch(sampleEventMeta);
+			expect(mockHandler).toHaveBeenCalledTimes(1);
+		});
+		it('when handler returns result:null, events are processed synchronously', async () => {
+			const sampleEventMeta1 = {
+				event: randomInteger(1, 100),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta2 = {
+				event: randomInteger(1, 100),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const mockHandler = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: null,
+			}));
+			sampleInstance
+				.subscribe(sampleEventMeta1.event!, mockHandler)
+				.subscribe(sampleEventMeta2.event!, mockHandler)
+				.dispatch(sampleEventMeta1)
+				.dispatch(sampleEventMeta2);
+			expect(mockHandler).toHaveBeenCalledTimes(2);
+		});
+		it('when handler returns result as Promise, it gets into queue', async () => {
+			const sampleEventMeta1 = {
+				event: randomInteger(1, 100),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta2 = {
+				event: randomInteger(1, 100),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const mockHandler = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+					setTimeout(() => {
+						resolve([sampleEventMeta2]);
+					}, FrameRate);
+				}),
+			}));
+			sampleInstance
+				.clearEventStack()
+				.subscribe(sampleEventMeta1.event!, mockHandler)
+				.dispatch(sampleEventMeta1);
+			await new Promise(resolve => setTimeout(resolve, FrameRate * 2));
+			expect(mockHandler).toHaveBeenCalledTimes(1);
+			expect(sampleInstance.getEventStack()).toHaveLength(0);
+		});
+		it('when handler returns result as Promise, pausing and resuming after dispatching works as expected', async () => {
+			const sampleEventMeta1 = {
+				event: randomInteger(1, 100),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta2 = {
+				event: randomInteger(101, 200),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const mockHandler1 = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+					setTimeout(() => {
+						resolve([sampleEventMeta2]);
+					}, FrameRate);
+				}),
+			}));
+			const mockHandler2 = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: null,
+			}));
+			sampleInstance
+				.clearEventStack()
+				.subscribe(sampleEventMeta1.event!, mockHandler1)
+				.subscribe(sampleEventMeta2.event!, mockHandler2)
+				.dispatch(sampleEventMeta1)
+				.pause();
+			await new Promise(resolve => setTimeout(resolve, FrameRate * 2));
+			expect(mockHandler1).toHaveBeenCalledTimes(1);
+			expect(mockHandler2).not.toHaveBeenCalled();
+			expect(sampleInstance.getEventStack()).toHaveLength(1);
+			sampleInstance.resume();
+			await new Promise(resolve => setTimeout(resolve, FrameRate));
+			expect(mockHandler2).toHaveBeenCalledTimes(1);
+			expect(sampleInstance.getEventStack()).toHaveLength(0);
+		});
+		it('all events returned by handlers are added to the queue as one batch during processing cycle', async () => {
+			const sampleEventMeta1 = {
+				event: randomInteger(1, 10),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta2 = {
+				event: randomInteger(11, 20),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta3 = {
+				event: randomInteger(21, 30),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta4 = {
+				event: randomInteger(31, 40),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const mockHandler1 = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+					setTimeout(() => {
+						resolve([sampleEventMeta2]);
+					}, FrameRate);
+				}),
+			}));
+			const mockHandler2 = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+					setTimeout(() => {
+						resolve([sampleEventMeta4]);
+					}, FrameRate * 3);
+				}),
+			}));
+			sampleInstance
+				.clearEventStack()
+				.subscribe(sampleEventMeta1.event!, mockHandler1)
+				.subscribe(sampleEventMeta3.event!, mockHandler2)
+				.dispatch(sampleEventMeta1, sampleEventMeta3)
+				.pause();
 
+			// by this time the first handler resolves, but since both originating events were dispatched as a batch,
+			// it still waits for the second handler
+			await new Promise(resolve => setTimeout(resolve, FrameRate * 2));
+			expect(mockHandler1).toHaveBeenCalledTimes(1);
+			expect(mockHandler2).toHaveBeenCalledTimes(1);
+			expect(sampleInstance.getEventStack()).toHaveLength(0);
+			// now the second handler resolves, so both events are added to the queue, and since it's paused, they are not processed
+			await new Promise(resolve => setTimeout(resolve, FrameRate * 3));
+			expect(mockHandler1).toHaveBeenCalledTimes(1);
+			expect(mockHandler2).toHaveBeenCalledTimes(1);
+			expect(sampleInstance.getEventStack()).toHaveLength(2);
+			expect(sampleInstance.getEventStack()).toEqual([sampleEventMeta2, sampleEventMeta4]);
+		});
+	});
+	describe('/unsubscribe', () => {
+		it('throws when provided invalid event', () => {
+			expect(() => sampleInstance.unsubscribe(null as any, sampleHandler)).toThrow();
+			expect(() => sampleInstance.unsubscribe(-5, sampleHandler)).toThrow();
+		});
+		it('removes a specific handler', () => {
+			const mockHandler1 = vitest.fn();
+			const mockHandler2 = vitest.fn();
+			sampleInstance.subscribe(sampleEventMeta.event!, mockHandler1);
+			sampleInstance.subscribe(sampleEventMeta.event!, mockHandler2);
+			sampleInstance.unsubscribe(sampleEventMeta.event!, mockHandler1);
+			sampleInstance.dispatch(sampleEventMeta);
+			expect(mockHandler1).not.toHaveBeenCalled();
+			expect(mockHandler2).toHaveBeenCalledTimes(1);
+		});
+		it('ignores non-existent handler', () => {
+			sampleInstance.unsubscribe(sampleEventMeta.event!, sampleHandler);
+			expect(() => sampleInstance.unsubscribe(sampleEventMeta.event!, sampleHandler)).not.toThrow();
+		});
+		it('removes all handlers for given event if passed null', () => {
+			const mockHandler1 = vitest.fn();
+			const mockHandler2 = vitest.fn();
+			sampleInstance.subscribe(sampleEventMeta.event!, mockHandler1);
+			sampleInstance.subscribe(sampleEventMeta.event!, mockHandler2);
+			sampleInstance.unsubscribe(sampleEventMeta.event!, null);
+			sampleInstance.dispatch(sampleEventMeta);
+			expect(mockHandler1).not.toHaveBeenCalled();
+			expect(mockHandler2).not.toHaveBeenCalled();
+		});
+	});
+	describe('/resume, /pause', () => {
+		it('affects isRunning status', () => {
+			sampleInstance.resume();
+			expect(sampleInstance.isRunning()).toBe(true);
 			sampleInstance.pause();
+			expect(sampleInstance.isRunning()).toBe(false);
+			sampleInstance.resume();
+			expect(sampleInstance.isRunning()).toBe(true);
+		});
+		it('/resume consumes all events in queue', () => {
+			sampleInstance
+				.subscribe(sampleEventMeta.event!, sampleHandler)
+				.pause()
+				.dispatch(sampleEventMeta, { event: randomInteger(), meta: null });
 
-			sampleInstance.dispatch({
-				event,
-				meta: null,
-			});
+			expect(sampleInstance.getEventStack().length).toBe(2);
+			expect(sampleHandler).not.toHaveBeenCalled();
 
+			sampleInstance.resume();
+
+			expect(sampleInstance.getEventStack().length).toBe(0);
+			expect(sampleHandler).toHaveBeenCalledWith(sampleEventMeta);
+		});
+	});
+	describe('/getEventStack', () => {
+		it('events are added to event stack', () => {
+			sampleInstance.subscribe(sampleEventMeta.event!, sampleHandler).pause();
+			expect(sampleInstance.getEventStack().length).toBe(0);
+			sampleInstance.dispatch(sampleEventMeta);
 			expect(sampleInstance.getEventStack().length).toBe(1);
 		});
 		it('event stack can be cleared', () => {
-			const [event, callback] = createEventWithCallback();
-
-			sampleInstance.subscribe(event, callback);
-
 			sampleInstance.pause();
 
-			sampleInstance.dispatch({
-				event,
-				meta: null,
-			});
-
+			sampleInstance.dispatch(sampleEventMeta);
 			expect(sampleInstance.getEventStack().length).toBe(1);
 
 			sampleInstance.clearEventStack();
@@ -95,65 +301,77 @@ describe('eventBus', () => {
 			expect(sampleInstance.getEventStack().length).toBe(0);
 		});
 	});
-	describe('event processing', () => {
+	describe('/dispatch', () => {
 		it('can process events synchronously', () => {
-			let processedEventId = 0;
-			const [event, callback] = createEventWithCallback(123456, ({ event, meta }) => {
-				processedEventId = 123456;
-
-				return {
-					event,
-					meta,
-					task_id: 'test_event',
-					result: new Promise((resolve, reject) => {
-						try {
-							resolve([]);
-						} catch {
-							reject(new Error('Error getting event stack'));
-						}
-					}),
-				};
-			});
-
-			sampleInstance.subscribe(event, callback);
-			sampleInstance.dispatch({
-				event,
-				meta: null,
-			});
-
-			expect(processedEventId).toBe(123456);
+			sampleInstance
+				.subscribe(sampleEventMeta.event!, sampleHandler)
+				.dispatch(sampleEventMeta);
+			expect(sampleInstance.getEventStack().length).toBe(0);
+			expect(sampleHandler).toBeCalledWith(sampleEventMeta);
 		});
 		it('does not process events if paused', () => {
-			const [event, callback] = createEventWithCallback();
-
-			sampleInstance.subscribe(event, callback);
-
-			sampleInstance.pause();
-
-			sampleInstance.dispatch({
-				event,
-				meta: null,
-			});
+			sampleInstance
+				.subscribe(sampleEventMeta.event!, sampleHandler)
+				.pause()
+				.dispatch(sampleEventMeta);
 
 			expect(sampleInstance.getEventStack().length).toBe(1);
+			expect(sampleHandler).not.toHaveBeenCalled();
 		});
-		it('can process events after resume', () => {
-			const [event, callback] = createEventWithCallback();
-
-			sampleInstance.subscribe(event, callback);
-
+		it('there is no race condition when events are dispatched both directly and from handler', async () => {
+			const sampleEventMeta1 = {
+				event: randomInteger(1, 100),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const sampleEventMeta2 = {
+				event: randomInteger(101, 200),
+				meta: {
+					meta: randomString(10),
+				},
+			};
+			const mockHandler1 = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+					setTimeout(() => {
+						resolve([sampleEventMeta2]);
+					}, FrameRate);
+				}),
+			}));
+			const mockHandler2 = vitest.fn((event: typeof sampleEventMeta) => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+					setTimeout(() => {
+						resolve([]);
+					}, 3 * FrameRate);
+				}),
+			}));
+			sampleInstance
+				.clearEventStack()
+				.subscribe(sampleEventMeta1.event!, mockHandler1)
+				.subscribe(sampleEventMeta2.event!, mockHandler2)
+				.dispatch(sampleEventMeta1, sampleEventMeta2);
+			// so, event#1 resolves at point 1,  event#2 does  at point 3
+			// dispatching another event #3 at point 2 should add new event to queue without processing it,
+			// and it's gonna be processed in order #1 - #3 - #2
+			expect(mockHandler1).toHaveBeenCalledTimes(1);
+			expect(mockHandler2).toHaveBeenCalledTimes(1);
+			await new Promise(resolve => setTimeout(resolve, FrameRate * 2));
+			expect(sampleInstance.getEventStack()).toHaveLength(0);
+			sampleInstance.dispatch(sampleEventMeta);
+			expect(sampleInstance.getEventStack()).toHaveLength(1);
+			expect(sampleInstance.getEventStack()).toEqual([sampleEventMeta]);
 			sampleInstance.pause();
-
-			sampleInstance.dispatch({
-				event,
-				meta: null,
-			});
-
-			expect(sampleInstance.getEventStack().length).toBe(1);
-
+			await new Promise(resolve => setTimeout(resolve, FrameRate)); // now at point 3
+			expect(sampleInstance.getEventStack()).toHaveLength(2);
+			expect(sampleInstance.getEventStack()).toEqual([sampleEventMeta, sampleEventMeta2]);
+			await new Promise(resolve => setTimeout(resolve, FrameRate)); // now at point 4
 			sampleInstance.resume();
-
-			expect(sampleInstance.getEventStack().length).toBe(0);
+			expect(sampleInstance.getEventStack()).toHaveLength(0);
+			expect(mockHandler2).toHaveBeenCalledTimes(2);
 		});
 	});
 });

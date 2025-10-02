@@ -1,0 +1,261 @@
+:root {
+	--bg1: #0e0f1a;
+	--bg2: #181a2b;
+	--glass-bg: rgba(255, 255, 255, 0.08);
+	--glass-border: rgba(255, 255, 255, 0.12);
+	--text: #e6e8ff;
+	--muted: #aab0ff;
+	--neon1: #7afcff;
+	--neon2: #fe53bb;
+	--accent: #7afcff;
+	--danger: #fe537b;
+	--primary: #7afcff;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+	Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji",
+	"Segoe UI Emoji";
+	background: radial-gradient(1000px 800px at 20% 20%, #15172a, #0b0c16 80%),
+	linear-gradient(135deg, #0b0c16 0%, #0e0f1a 50%, #0b0c16 100%);
+	color: var(--text);
+}
+
+.app {
+	min-height: 100%;
+	display: grid;
+	place-items: center;
+	padding: 2rem;
+}
+
+.card {
+	width: min(100%, 980px);
+	display: grid;
+	grid-template-columns: 1.1fr 1fr;
+	gap: 2rem;
+	padding: 2rem;
+	border-radius: 18px;
+}
+
+.glass {
+	background: var(--glass-bg);
+	border: 1px solid var(--glass-border);
+	backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.neon {
+	box-shadow:
+		0 0 0 1px rgba(122, 252, 255, 0.05),
+		0 20px 60px rgba(0, 0, 0, 0.6),
+		inset 0 0 24px rgba(122, 252, 255, 0.05);
+}
+
+.card-left {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.card-left h1 {
+	margin: 0 0 0.25rem;
+	font-size: 1.5rem;
+	letter-spacing: 0.5px;
+}
+
+.hint {
+	color: var(--muted);
+	font-size: 0.95rem;
+	margin-top: -0.25rem;
+}
+
+.form-row {
+	display: grid;
+	grid-template-columns: 1fr 160px;
+	gap: 0.75rem;
+	align-items: center;
+}
+
+.form-row label {
+	color: var(--text);
+	opacity: 0.9;
+}
+
+.form-row input {
+	color: var(--text);
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid var(--glass-border);
+	border-radius: 10px;
+	padding: 0.65rem 0.75rem;
+	outline: none;
+}
+
+.form-row input:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(122, 252, 255, 0.2);
+}
+
+.buttons {
+	display: flex;
+	gap: 0.75rem;
+	margin-top: 0.25rem;
+}
+
+.btn {
+	appearance: none;
+	border: 1px solid var(--glass-border);
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--text);
+	padding: 0.6rem 0.9rem;
+	border-radius: 10px;
+	cursor: pointer;
+	transition: transform 0.08s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.btn:hover {
+	transform: translateY(-1px);
+}
+
+.btn.primary {
+	border-color: rgba(122, 252, 255, 0.5);
+	box-shadow: 0 0 18px rgba(122, 252, 255, 0.15);
+}
+
+.btn.danger {
+	border-color: rgba(254, 83, 123, 0.5);
+	box-shadow: 0 0 18px rgba(254, 83, 123, 0.15);
+}
+
+.btn:disabled {
+	opacity: 0.6;
+	box-shadow: none !important;
+	border-color: var(--glass-border) !important;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.status {
+	margin-top: 0.5rem;
+	font-size: 0.95rem;
+	color: var(--muted);
+}
+
+.angles {
+	margin: 0.5rem 0 0;
+	padding-left: 1rem;
+	display: grid;
+	gap: 0.25rem;
+}
+
+.card-right {
+	display: grid;
+	place-items: center;
+	gap: 1rem;
+}
+
+.clock {
+	position: relative;
+	width: min(72vmin, 420px);
+	aspect-ratio: 1 / 1;
+	border-radius: 50%;
+	background: radial-gradient(120px 120px at 50% 50%, rgba(122, 252, 255, 0.04), transparent 70%),
+	linear-gradient(135deg, rgba(254, 83, 187, 0.06), rgba(122, 252, 255, 0.06));
+	border: 1px solid var(--glass-border);
+	box-shadow:
+		inset 0 0 50px rgba(0, 0, 0, 0.6),
+		inset 0 0 60px rgba(122, 252, 255, 0.06),
+		0 0 60px rgba(254, 83, 187, 0.06);
+}
+
+.dial {
+	position: absolute;
+	inset: 6%;
+	border-radius: 50%;
+}
+
+.dial .mark {
+	position: absolute;
+	width: 2px;
+	height: 10%;
+	left: calc(50% - 1px);
+	top: 0;
+	background: rgba(230, 232, 255, 0.25);
+	transform-origin: center 210%;
+	border-radius: 1px;
+	box-shadow: 0 0 12px rgba(122, 252, 255, 0.2);
+}
+
+.dial .mark.major {
+	width: 4px;
+	left: calc(50% - 2px);
+	height: 12%;
+	background: rgba(230, 232, 255, 0.5);
+	box-shadow: 0 0 18px rgba(122, 252, 255, 0.35);
+}
+
+.hand {
+	position: absolute;
+	bottom: 50%;
+	left: 50%;
+	transform-origin: bottom center;
+	transform: translateX(-50%) rotate(0deg);
+	border-radius: 8px;
+	filter: drop-shadow(0 0 3px rgba(122, 252, 255, 0.25));
+}
+
+.hand.hour {
+	width: 8px;
+	height: 26%;
+	background: linear-gradient(180deg, rgba(254, 83, 187, 0.8), rgba(122, 252, 255, 0.85));
+}
+
+.hand.minute {
+	width: 6px;
+	height: 34%;
+	background: linear-gradient(180deg, rgba(122, 252, 255, 0.85), rgba(254, 83, 187, 0.8));
+}
+
+.hand.second {
+	width: 3px;
+	height: 38%;
+	background: linear-gradient(180deg, rgba(122, 252, 255, 0.95), rgba(122, 252, 255, 0.65));
+	box-shadow: 0 0 14px rgba(122, 252, 255, 0.55);
+}
+
+.pin {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	background: radial-gradient(circle at 35% 35%, #ffffff, #7afcff);
+	border-radius: 50%;
+	left: calc(50% - 8px);
+	top: calc(50% - 8px);
+	box-shadow:
+		0 0 22px rgba(122, 252, 255, 0.65),
+		inset 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+.digital {
+	font-size: 1.35rem;
+	letter-spacing: 2px;
+	color: var(--text);
+	opacity: 0.9;
+	text-shadow: 0 0 14px rgba(122, 252, 255, 0.4);
+}
+
+@media (max-width: 880px) {
+	.card {
+		grid-template-columns: 1fr;
+	}
+}
