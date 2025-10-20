@@ -2,11 +2,11 @@ import { uniqId } from '@yantrix/utils';
 import { IBaseClass } from '../types/index.js';
 
 export class AbstractBaseClass implements IBaseClass {
-	correlationId: string;
+	readonly correlationId: string;
+	static readonly BASE_ID_LENGTH = 12;
 
 	constructor(...args: any[]) {
-		(() => [...args])();
-		this.correlationId = uniqId();
+		this.correlationId = uniqId(AbstractBaseClass.BASE_ID_LENGTH + (args || []).length);
 	}
 
 	next(): this {

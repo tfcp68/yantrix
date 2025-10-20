@@ -38,9 +38,10 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
 			${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
+			${TypeScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
+			${TypeScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getFunctionDictionaryInternalRegisterCode()}
 			${TypeScriptCompiler.dictionaries.serializer.getFunctionDictionaryBuiltInRegisterCode()}
-			${TypeScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
 		`;
 
 		/*

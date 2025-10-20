@@ -29,6 +29,10 @@ import {
 	TAutomataReducer,
 	TAutomataStateContext,
 	TContextTransformer,
+	TCycleIteratorInfo,
+	TDataBoundEventDictionary,
+	TDataBoundSelector,
+	TDataDestinationOutput,
 	TEventBusHandler,
 	TSubscriptionCancelFunction,
 	TValidator,
@@ -100,7 +104,8 @@ export interface IAutomataValidatorContainer<
 	EventType extends TAutomataBaseEventType,
 > extends IAutomataEventContainer<EventType>,
 	IAutomataStateContainer<StateType>,
-	IAutomataActionContainer<ActionType> {}
+	IAutomataActionContainer<ActionType> {
+}
 
 /**
  * Interface for an Automata extended action container.
@@ -165,7 +170,8 @@ export interface IAutomataExtendedValidatorContainer<
 > extends IAutomataValidatorContainer<StateType, ActionType, EventType>,
 	IAutomataExtendedActionContainer<ActionType, PayloadType>,
 	IAutomataExtendedEventContainer<EventType, EventMetaType>,
-	IAutomataExtendedStateContainer<StateType, ContextType> {}
+	IAutomataExtendedStateContainer<StateType, ContextType> {
+}
 
 /**
  * Interface for an Automata event adapter.
@@ -746,12 +752,6 @@ export interface IAutomataEventBus<
 	 * @returns True if the event bus is running, false otherwise.
 	 */
 	isRunning: () => boolean;
-
-	/**
-	 * Process the events in the event stack.
-	 * @returns The processed event stack.
-	 */
-	processEvents: () => TAutomataEventStack<EventType, EventMetaType>;
 }
 
 /**
@@ -770,7 +770,10 @@ export interface IAutomataFunctionRegistry {
 	 *
 	 * 2). Name is already taken. Function cannot be registered under an already existing name to prevent overwriting of the basic built-in functions.
 	 */
-	register: (f: string | Record<string, TAutomataFunction>, callback?: TAutomataFunction) => Record<string, TAutomataFunction>;
+	register: (
+		f: string | Record<string, TAutomataFunction>,
+		callback?: TAutomataFunction
+	) => Record<string, TAutomataFunction>;
 
 	/**
 	 * Get function from registry.
@@ -806,4 +809,198 @@ export interface IAutomataFunctionRegistry {
 	 * 2). Arguments for the function are incorrect(as specified in their implementation).
 	 */
 	call: (functionKey: string, ...args: any[]) => unknown;
+}
+
+/**
+ * Interface for an agnostic data source that emits data packets through generator
+ *
+ * @template DataPacketType Any data type that can be emitted by the data source.
+ */
+export interface IAgnosticDataSource<
+	DataPacketType = any,
+> extends TCycleIteratorInfo {
+	/**
+	 * Start/resume data emission
+	 * @returns This data source instance
+	 */
+	start: () => this;
+
+	/**
+	 * Stop/pause data emission
+	 * @returns This data source instance
+	 */
+	stop: () => this;
+
+	/**
+	 * Check if data emission is active
+	 *
+	 * @returns True if emission is active, false otherwise
+	 */
+	isActive: () => boolean;
+
+	dataEmitter: () => IterableIterator<DataPacketType | null>;
+
+}
+
+/**
+ * Interface for a data source that emits Events based on incoming data packets
+ *
+ * @template EventType The base type of events that can be emitted
+ * @template EventMetaType The type mapping from EventType to metadata shapes
+ * @template DataPacketType The source data type (defaults to Record<string, any>)
+ */
+export interface IDataSource<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	DataPacketType = unknown,
+> extends IAgnosticDataSource<DataPacketType> {
+
+	/**
+	 * Add a data listener that emits events, one per each data package
+	 *
+	 * @param id The unique string identifier for the listener
+	 * @param transform Transformer to supply event metadata from data packet.
+	 * @param dispatch Optional dispatch function to use for emitting events
+	 * @returns This data source instance
+	 */
+	addListener: (
+		id: string,
+		transform: (data: DataPacketType) => TAutomataEventStack<EventType, EventMetaType>,
+		dispatch?: (...events: TAutomataEventStack<EventType, EventMetaType>) => any
+	) => this;
+
+	/**
+	 * Remove event emitter with a given id
+	 * @param id The unique string identifier for the listener to remove
+	 * @returns This data source instance
+	 */
+	removeListener: (
+		id: string
+	) => this;
+
+	/**
+	 * Get all registered emitters
+	 *
+	 * @returns Map of listener ids to their transform and dispatch functions
+	 */
+	getEventListeners: () => Partial<{ [id: string]: [
+		(data: DataPacketType) => TAutomataEventStack<EventType, EventMetaType>,
+		null | ((...events: TAutomataEventStack<EventType, EventMetaType>) => any),
+	]; }>;
+
+	/**
+	 * Emit all registered events based on incoming data packet.
+	 *
+	 * @returns Array of dispatched event stacks
+	 */
+	eventEmitter: () => Generator<TAutomataEventStack<EventType, EventMetaType>>;
+}
+
+/**
+ * Interface for dispatching data updates to external destinations with given rules and/or on specific events
+ * @template DataPacketType The data type that is used as an incoming interface for the Destination
+ * @template ResolveResultType An arbitrary type that is returned by transaction that actually delivers data
+ * @template ErrorType exception type
+ */
+export interface IAgnosticDataDestination<
+	DataPacketType,
+	ResolveResultType = void,
+	ErrorType = Error,
+> extends TCycleIteratorInfo {
+	/**
+	 * Start/resume data processing
+	 * @returns This destination instance
+	 */
+	start: () => this;
+
+	/**
+	 * Stop/pause data processing
+	 * @returns This destination instance
+	 */
+	stop: () => this;
+
+	/**
+	 * Check if processing is active
+	 * @returns True if actively processing data
+	 */
+	isActive: () => boolean;
+
+	/**
+	 * Directly send a packet to the destination
+	 *
+	 * @param data data packet to dispatch
+	 * @returns Promise resolved with declared resolve type
+	 */
+	send: (data: DataPacketType) => Promise<null | ResolveResultType>;
+
+	/**
+	 * Returns an iterator over the data packets actually dispatched to the destination.
+	 * @returns An iterator over data packets and dispatch results
+	 */
+	requestEmitter: () => Generator<TDataDestinationOutput<DataPacketType, ResolveResultType, ErrorType> | null>;
+}
+
+/**
+ * Interface for dispatching data updates to external destinations with given rules and/or on specific events
+ *
+ * @template EventType The base type of accepted events
+ * @template EventMetaType The metadata shape mapping for each event type
+ * @template DataModel The input data type (extends object | null)
+ * @template DataPacketType The data packet type for this destination
+ * @template ResolveResultType An arbitrary type that is returned by transaction that actually delivers data
+ * @template ErrorType exception type
+ */
+export interface IDataDestination<
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	DataModel extends object | null = object | null,
+	DataPacketType extends object = object,
+	ResolveResultType = void,
+	ErrorType = Error,
+> extends IAgnosticDataDestination<DataPacketType, ResolveResultType, ErrorType> {
+
+	/**
+	 * Bind an update trigger to specific events, creating a data packet from Model diff
+	 *
+	 * @param events Event types to bind the selector to. Null means all events
+	 * @param selector Function that extracts Data Packet from Events and/or global Data Model
+	 * @returns This destination instance
+	 */
+	createTrigger: (
+		events: EventType[] | null,
+		selector: TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>
+	) => this;
+
+	/**
+	 * Remove a previously registered trigger
+	 *
+	 * @param events Event types to remove the selector from. Null means all events
+	 * @returns This destination instance
+	 */
+	removeTrigger: (
+		events: EventType[] | null
+	) => this;
+
+	/**
+	 * dispatch the event to destination, invoking all attached triggers and updating the destination
+	 *
+	 * @param event Event to process
+	 * @param model New data model to process
+	 * @returns This sent data packet
+	 */
+	update: (event: TAutomataEventMetaType<EventType, EventMetaType>, model?: DataModel) => DataPacketType[] | null;
+
+	/**
+	 * Get all registered triggers
+	 *
+	 * @returns Mapping of event types to their selector functions
+	 */
+	getTriggers: () => TDataBoundEventDictionary<EventType, EventMetaType, DataPacketType, DataModel>;
+
+	/**
+	 * Get all events that have triggers bound to them.
+	 *
+	 * @returns Array of event types that have triggers bound to them. Null means all events.
+	 */
+	getBoundEvents: () => Array<EventType | null>;
 }

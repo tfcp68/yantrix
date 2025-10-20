@@ -13,7 +13,10 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		this.functions = functions ?? {};
 	}
 
-	register(f: string | Record<string, TAutomataFunction>, callback?: TAutomataFunction): Record<string, TAutomataFunction> {
+	register(
+		f: string | Record<string, TAutomataFunction>,
+		callback?: TAutomataFunction,
+	): Record<string, TAutomataFunction> {
 		if (typeof f === 'string' && callback != null) {
 			return this.registerSingleFunction(f, callback);
 		} else if (typeof f === 'object') {
@@ -23,7 +26,10 @@ export class FunctionDictionary implements IAutomataFunctionRegistry {
 		}
 	}
 
-	private registerSingleFunction(functionKey: string, callback: TAutomataFunction): Record<string, TAutomataFunction> {
+	private registerSingleFunction(
+		functionKey: string,
+		callback: TAutomataFunction,
+	): Record<string, TAutomataFunction> {
 		if (functionKey.length < 1 || functionKey.length > 255) {
 			throw new Error(`Function key length must be between 1-255 symbols!`);
 		}

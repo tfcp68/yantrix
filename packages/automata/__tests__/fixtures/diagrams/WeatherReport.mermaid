@@ -1,0 +1,43 @@
+stateDiagram-v2
+	[*] --> Idle: Init
+
+	Idle --> Filling: FocusInput
+	Idle --> Filling: UpdateSelect
+
+	Filling --> Filling: UpdateInput
+	Filling --> Filling: UpdateSelect
+	Filling --> Pending: Submit
+
+	Pending --> Success: Resolve
+	Pending --> Error: Reject
+
+	Error --> Filling: UpdateInput
+	Error --> Filling: UpdateSelect
+
+	Success --> [*]: Reset
+	Success --> Filling: UpdateInput
+	Success --> Filling: UpdateSelect
+
+	note left of Idle
+		+Init
+		#{ coords = 0, city = 0 }
+	end note
+
+	note right of Filling
+		#{ coords } <= coalesce($coords, #coords)
+		#{ city } <= coalesce($city, #city)
+		#{ result = 0, error = 0 }
+	end note
+
+	note right of Pending
+		#{ coords } <= coalesce($coords, #coords)
+		#{ city } <= coalesce($city, #city)
+	end note
+
+	note right of Success
+		#{ result = $data, coords, city }
+	end note
+
+	note right of Error
+		#{ error = $error, coords, city }
+	end note

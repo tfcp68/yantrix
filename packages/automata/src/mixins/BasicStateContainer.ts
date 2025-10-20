@@ -8,10 +8,6 @@ export default function BasicStateContainer<StateType extends TAutomataBaseState
 
 			#_stateValidator: TValidator<StateType> | undefined;
 
-			constructor(...args: any[]) {
-				super(args);
-			}
-
 			public get validateState(): TValidator<StateType> {
 				return this.#_stateValidator ?? this.#_defaultStateValidator;
 			}
