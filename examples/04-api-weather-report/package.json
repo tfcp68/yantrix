@@ -1,6 +1,8 @@
 {
 	"name": "04-api-weather-report",
+	"type": "module",
 	"version": "1.0.0",
+	"private": true,
 	"description": "",
 	"author": "",
 	"license": "ISC",
