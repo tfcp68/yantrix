@@ -6,8 +6,10 @@ stateDiagram-v2
 	Green --> Yellow: Switch
 	Yellow --> Red: Switch
 note right of [*]
-#{ counter = 0 } <= coalesce($initialCounter, inc(#counter))
+#{ counter } <= coalesce($initialCounter, inc(#counter))
 end note
+
 note left of Off
 +Init
+#{ counter = 0 }
 end note
