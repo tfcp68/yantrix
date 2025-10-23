@@ -1,7 +1,6 @@
 import { GenericAutomata, TAutomataActionPayload } from '@yantrix/automata';
 import { isStaticMethodsAutomata, TClassConstructor, TStaticMethods } from '@yantrix/utils';
-import { useRef, useState } from 'react';
-import { useSyncExternalStore } from 'use-sync-external-store';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import { trace } from '../debug';
 import { automatasList, fsm_context } from '../store/store';

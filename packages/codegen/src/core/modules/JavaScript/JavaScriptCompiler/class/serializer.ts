@@ -57,6 +57,7 @@ export function getClassTemplate(props: {
 			'%FUNCTION_REGISTRY%': 'functionDictionary',
 			'%EVENT_DICTIONARY%': 'GlobalEventDictionary',
 			'%IS_KEY_OF%': props.classSerializer.getIsKeyOf().toString(),
+			'%initContext%': props.classSerializer.getInitialContextForAutomata().toString(),
 		},
 	);
 }
@@ -165,6 +166,14 @@ export function getIsKeyOf() {
 	return `(key, obj) => key in obj`;
 }
 
+function getInitialContextForAutomata() {
+	return `const initReducer = reducer[this.state];
+		const prev = this.getContext()?.context ?? {};
+		const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+		this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
+	`;
+}
+
 export const classSerializer = {
 	getClassTemplate,
 	getStateValidator,
@@ -179,4 +188,5 @@ export const classSerializer = {
 	getRootReducerStateValidationError,
 	getRootReducerActionValidation,
 	getIsKeyOf,
+	getInitialContextForAutomata,
 } as const;
