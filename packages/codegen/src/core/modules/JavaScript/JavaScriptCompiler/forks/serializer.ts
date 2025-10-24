@@ -2,13 +2,13 @@ import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { getPredicates } from './core';
 
-function getPredicatesCode(props: {
+async function getPredicatesCode(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
 	expressions: TExpressionRecord;
 }) {
-	const predicateObject = getPredicates(props);
+	const predicateObject = await getPredicates(props);
 	const entries = Object.entries(predicateObject);
 	if (!entries || entries.length === 0) return '';
 	return `const predicates = {

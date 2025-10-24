@@ -1,6 +1,7 @@
 import { randomArray, randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
-import { YantrixParser } from '../src/yantrixParser.js';
+
+import { YantrixParser } from '../src/index.js';
 import { functionsFixtures } from './fixtures/keyItem.js';
 
 type TCaseFunction = [
@@ -206,25 +207,25 @@ function generateExpressionCase(template: any, casesAmount: number = randomInteg
 describe('function declaration', () => {
 	const parser = new YantrixParser();
 
-	describe('function strings with random sets of random arguments', () => {
+	describe('function strings with random sets of random arguments', async () => {
 		const cases = Array.from({ length: 1000 }, () => `#{${randomString()} = ${generateFunctionString()}}`);
-		it.each(cases)('%s', (input) => {
-			assert.isOk(parser.parse(input));
+		it.each(cases)('%s', async (input) => {
+			await expect(parser.parse(input)).resolves.toBeDefined();
 		});
 	});
 
 	describe('empty functions syntax', () => {
 		describe('correct functions', () => {
 			const cases = generateRandomStatementsFromTemplate(validEmptyFunctionsExamples);
-			it.each(cases)('%s', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
 		describe('incorrect functions', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidEmptyFunctionsExamples);
-			it.each(cases)('%s', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrow();
 			});
 		});
 	});
@@ -233,15 +234,15 @@ describe('function declaration', () => {
 		describe('correct functions', () => {
 			const cases = generateRandomStatementsFromTemplate(validFunctionsWithArgumentsExamples);
 
-			it.each(cases)('%s', (input) => {
-				assert.isOk(parser.parse(input));
+			it.each(cases)('%s', async (input) => {
+				await expect(parser.parse(input)).resolves.toBeDefined();
 			});
 		});
 
 		describe('incorrect functions', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidFunctionsWithArgumentsExamples);
-			it.each(cases)('%s', (input) => {
-				expect(() => parser.parse(input)).toThrowError();
+			it.each(cases)('%s', async (input) => {
+				await expect(async () => await parser.parse(input)).rejects.toThrow();
 			});
 		});
 	});
@@ -249,10 +250,10 @@ describe('function declaration', () => {
 	// @TODO maybe need to add separate describes for each function type, too much unnecessary work for now though
 	describe('functions are correctly separated into types: string,decimal,integer etc', () => {
 		functionCasesAndExpectedTypes.forEach((template) => {
-			describe(`function case - `, () => {
+			describe(`function case - `, async () => {
 				const cases = generateExpressionCase(template);
-				it.each(cases)('%s', (input: string, obj) => {
-					const result = parser.parse(input);
+				await it.each(cases)('%s', async (input: string, obj) => {
+					const result = await parser.parse(input);
 					assert.deepOwnInclude(result, obj);
 				});
 			});
@@ -263,8 +264,8 @@ describe('function declaration', () => {
 	// need to test limits, should be ~8 levels of nesting, but i think there is actually no limit
 	describe('multi-nested arguments as functions', () => {
 		const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments);
-		it.each(cases)('%s', (input: string) => {
-			assert.isOk(parser.parse(input));
+		it.each(cases)('%s', async (input: string) => {
+			await expect(parser.parse(input)).resolves.toBeDefined();
 		});
 	});
 });

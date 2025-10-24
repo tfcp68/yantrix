@@ -97,7 +97,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		});
 	}
 
-	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
+	public async getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
 		const props = {
 			imports: this.imports,
 			importNamespaces: this.importNamespaces,
@@ -127,7 +127,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			${JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
 			${JavaScriptCompiler.context.serializer.getDefaultContext(props)}
 			${JavaScriptCompiler.context.serializer.getStateReducerCode(props)}
-			${JavaScriptCompiler.forks.serializer.getPredicatesCode(props)}
+			${await JavaScriptCompiler.forks.serializer.getPredicatesCode(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
 			${JavaScriptCompiler.class.serializer.getClassTemplate(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}

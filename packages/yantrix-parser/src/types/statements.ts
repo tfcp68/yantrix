@@ -1,4 +1,4 @@
-import { TExpressionDefineMap, TInjectIdent } from './expressions.js';
+import { TExpressionDefineMap, TExpressionMap, TInjectIdent } from './expressions.js';
 import { TKeyItems } from './keyItem.js';
 
 export type TAction = TKeyItems<'reducer'>;
@@ -61,6 +61,10 @@ export type TInitialState = {
 	initialState: boolean;
 };
 
+export type TExpressionStatement = {
+	expression?: TExpressionMap;
+};
+
 export type TByPass = {
 	byPass: boolean;
 };
@@ -69,4 +73,11 @@ export type TInject = {
 	inject: TInjectIdent[];
 };
 
-export type TNotes = TInitialState & TContextDescription & TSubscribes & TEmits & TByPass & TDefines & TInject;
+export type TNotes = TInitialState
+	& TContextDescription
+	& TSubscribes
+	& TEmits
+	& TByPass
+	& TDefines
+	& TInject
+	& TExpressionStatement;

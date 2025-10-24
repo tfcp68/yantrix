@@ -87,7 +87,7 @@ export interface ICodegen<T extends TOutLang> {
 	 * @param options - Options for codegen in the desired output language `T`.
 	 * @returns The generated code.
 	 */
-	getCode: (options: TGetCodeOptionsMap[T]) => string;
+	getCode: (options: TGetCodeOptionsMap[T]) => Promise<string>;
 }
 
 export type TOutLang = keyof typeof Modules;

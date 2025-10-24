@@ -1,0 +1,18 @@
+{
+	"projectName": "YantrixLanguage",
+	"languages": [
+		{
+			"caseInsensitive": true,
+			"id": "yantrix",
+			"grammar": "src/grammar/notes.langium",
+			"fileExtensions": [".ytx"],
+			"textMate": {
+				"out": "syntaxes/yantrix.tmLanguage.json"
+			},
+			"railroad": {
+				"out": "docs/syntax-diagram.html"
+			}
+		}
+	],
+	"out": "src/generated"
+}
