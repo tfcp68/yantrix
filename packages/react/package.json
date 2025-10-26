@@ -59,12 +59,10 @@
 		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
 	},
 	"dependencies": {
-		"@yantrix/automata": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
 		"@yantrix/core": "workspace:^",
-		"@yantrix/functions": "workspace:^",
-		"@yantrix/utils": "workspace:^",
-		"react": "^18.3.1"
+		"react": "^18.3.1",
+		"use-sync-external-store": "^1.2.2"
 	},
 	"directories": {
 		"lib": "src",
@@ -78,7 +76,6 @@
 		"@testing-library/react-hooks": "^8.0.1",
 		"@types/react": "^18.3.5",
 		"@types/use-sync-external-store": "^0.0.6",
-		"jsdom": "^25.0.1",
-		"use-sync-external-store": "^1.2.2"
+		"jsdom": "^25.0.1"
 	}
 }

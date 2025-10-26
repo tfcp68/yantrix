@@ -1,5 +1,4 @@
-import { TAutomataBaseActionType, TAutomataBaseStateType } from '@yantrix/automata';
-import { uniqId } from '@yantrix/utils';
+import { TAutomataBaseActionType, TAutomataBaseStateType, uniqId } from '@yantrix/core';
 import { TPreviousContext, TTraceTransaction } from './types';
 
 export const trace = (lastPayload: any, previousContext: TPreviousContext):

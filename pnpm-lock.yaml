@@ -496,24 +496,18 @@ importers:
 
   packages/react:
     dependencies:
-      '@yantrix/automata':
-        specifier: workspace:^
-        version: link:../automata
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
       '@yantrix/core':
         specifier: workspace:^
         version: link:../core
-      '@yantrix/functions':
-        specifier: workspace:^
-        version: link:../functions
-      '@yantrix/utils':
-        specifier: workspace:^
-        version: link:../utils
       react:
         specifier: ^18.3.1
         version: 18.3.1
+      use-sync-external-store:
+        specifier: ^1.2.2
+        version: 1.2.2(react@18.3.1)
     devDependencies:
       '@testing-library/react-hooks':
         specifier: ^8.0.1
@@ -527,9 +521,6 @@ importers:
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
-      use-sync-external-store:
-        specifier: ^1.2.2
-        version: 1.2.2(react@18.3.1)
 
   packages/redux:
     dependencies:

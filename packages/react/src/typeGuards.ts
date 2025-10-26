@@ -1,4 +1,4 @@
-import { TClassConstructor } from '@yantrix/utils';
+import { TClassConstructor } from '@yantrix/core';
 import { TAutomata, TUseFSMProps } from './types';
 
 export const isPropsUseFSM = (props: any): props is TUseFSMProps<TAutomata> => Object.prototype.hasOwnProperty.call(props, 'Automata');

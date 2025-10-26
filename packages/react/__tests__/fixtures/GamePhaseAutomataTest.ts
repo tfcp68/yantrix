@@ -7,7 +7,7 @@ import {
 	TAutomataBaseActionType,
 	TAutomataBaseStateType,
 	TValidator
-} from '@yantrix/automata';
+} from '@yantrix/core';
 import { builtInFunctions } from '@yantrix/codegen';
 
 export const statesDictionary = {

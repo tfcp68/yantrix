@@ -5,8 +5,9 @@ import {
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
 	TAutomataStateContext,
-} from '@yantrix/automata';
-import { TClassConstructor, TStaticMethods } from '@yantrix/utils';
+	TClassConstructor,
+	TStaticMethods,
+} from '@yantrix/core';
 
 export type TUseFSMProps<Automata extends TAutomata> = {
 	Automata: TClassConstructor<Automata>;
@@ -41,37 +42,27 @@ export interface IUnsubscribe {
 
 export type TListenerCallback = () => void;
 
-export interface IContextFSM<Snapshot = TAutomata> {
+export interface IStores<Snapshot = TAutomata> {
 	callbacksIdCounter: number;
-	callbacks: Map<any, TListenerCallback>;
+	callbacks: Map<number, TListenerCallback>;
 	subscribe: (listener: TListenerCallback) => IUnsubscribe;
-	getSnapshot: () => Snapshot;
-	changeState: (newState: Snapshot) => void;
-	state: Snapshot;
+	getSnapshot: () => Snapshot; // throws if not initialized
+	changeState: () => void; // notify subscribers for this id
+}
 
-	/**
-	 * @description Инициализируцет автомат в зависимости от типа, переданного в хук и возвращает id автомата
-	 * @param Automata
-	 * @return string
-	 */
+export interface IContextFSM {
 	initializeFSM: (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => string;
-
-	/**
-	 * Добавляет новый автомат, если автомата с данным id еще не существует
-	 * @param id
-	 * @param Automata
-	 */
-	changeAutomatas: (id: string, Automata: TClassConstructor<TAutomata>) => void;
-};
+	getStore: (id: string) => IStores;
+}
 
 export type TUseFsmReturn = {
-	state: TAutomataBaseStateType;
+	state: TAutomataBaseStateType | null;
 	getContext: () => any;
-	dispatch: <ActionType extends number, PayloadType extends { [K in ActionType]: any }>
-	(action: TAutomataActionPayload<ActionType, PayloadType>
+	dispatch: <ActionType extends number, PayloadType extends { [K in ActionType]: any }>(
+		action: TAutomataActionPayload<ActionType, PayloadType>,
 	) => void;
 	trace: () => TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType>;
-	getInstanceAutomata: () => TAutomata | undefined;
+	getInstanceAutomata: () => TAutomata;
 	getAutomatasList: () => Record<string, TAutomata>;
 } & TStaticMethods;
 
