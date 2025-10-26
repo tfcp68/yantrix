@@ -1,5 +1,6 @@
-import { act, renderHook } from '@testing-library/react-hooks';
-import { uniqId } from '@yantrix/utils';
+import { renderHook } from '@testing-library/react-hooks';
+import { uniqId } from '@yantrix/core';
+import { act } from 'react';
 import { assert, describe, expect, it } from 'vitest';
 import { useFSM } from '../src';
 import GamePhaseAutomataTest from './fixtures/GamePhaseAutomataTest';
