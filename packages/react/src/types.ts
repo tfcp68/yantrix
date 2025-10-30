@@ -42,7 +42,7 @@ export interface IUnsubscribe {
 
 export type TListenerCallback = () => void;
 
-export interface IStores<Snapshot = TAutomata> {
+export interface IYantrixBoundStore<Snapshot = TAutomata> {
 	callbacksIdCounter: number;
 	callbacks: Map<number, TListenerCallback>;
 	subscribe: (listener: TListenerCallback) => IUnsubscribe;
@@ -52,13 +52,13 @@ export interface IStores<Snapshot = TAutomata> {
 
 export interface IContextFSM {
 	initializeFSM: (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => string;
-	getStore: (id: string) => IStores;
+	getStore: (id: string) => IYantrixBoundStore;
 }
 
 export type TUseFsmReturn = {
 	state: TAutomataBaseStateType | null;
 	getContext: () => any;
-	dispatch: <ActionType extends number, PayloadType extends { [K in ActionType]: any }>(
+	dispatch: <ActionType extends TAutomataBaseActionType, PayloadType extends { [K in ActionType]: any }>(
 		action: TAutomataActionPayload<ActionType, PayloadType>,
 	) => void;
 	trace: () => TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType>;
@@ -71,7 +71,7 @@ export type TPreviousContext = {
 	context: Record<string, any>;
 };
 
-export type TUseFSMOptions<Snapshot, Selection> = {
-	selector: (snapshot: Snapshot) => Selection;
+export type TUseFSMOptions<Snapshot, Selection, Statics> = {
+	selector: (snapshot: Snapshot, statics: Statics) => Selection;
 	isEqual?: (a: Selection, b: Selection) => boolean;
 };

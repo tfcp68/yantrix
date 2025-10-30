@@ -1,6 +1,6 @@
 import { isStaticMethodsAutomata, TClassConstructor } from '@yantrix/core';
 import { isAutomata, isPropsUseFSM } from '../typeGuards';
-import { IContextFSM, IStores, TAutomata, TListenerCallback, TUseFSMProps } from '../types';
+import { IContextFSM, IYantrixBoundStore, TAutomata, TListenerCallback, TUseFSMProps } from '../types';
 
 /**
  * Registry of created automata instances keyed by their unique id.
@@ -11,7 +11,7 @@ export const automatasList: Record<string, TAutomata> = {};
  * Internal storage for per-FSM subscriber stores.
  * Each key is an FSM id and the value is the corresponding store.
  */
-const stores: Record<string, IStores> = {};
+const stores: Record<string, IYantrixBoundStore> = {};
 
 /**
  * Ensure that a subscriber store exists for the given FSM id.
@@ -21,10 +21,10 @@ const stores: Record<string, IStores> = {};
  * @returns The store associated with the id
  * @throws If a snapshot is requested but the FSM instance is not initialized
  */
-function ensureStore(id: string): IStores {
+function ensureStore(id: string): IYantrixBoundStore {
 	let store = stores[id];
 	if (!store) {
-		const self: IStores = {
+		const self: IYantrixBoundStore = {
 			callbacksIdCounter: 0,
 			callbacks: new Map<number, TListenerCallback>(),
 
@@ -105,7 +105,7 @@ export const fsm_context: IContextFSM = {
 	 * Get (and create if needed) the store associated with the given FSM id.
 	 *
 	 * @param id - FSM identifier
-	 * @returns The IStores instance for the id
+	 * @returns The IYantrixBoundStore instance for the id
 	 */
 	getStore: (id: string) => ensureStore(id),
 };
