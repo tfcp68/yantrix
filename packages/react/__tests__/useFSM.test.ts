@@ -28,11 +28,11 @@ describe('useFSM tests', () => {
 		}));
 		act(() => {
 			result.current.dispatch({
-				action: TLA.getAction?.('Switch') as number,
+				action: TLA.getAction?.('Switch'),
 				payload: {},
 			});
 			result.current.dispatch({
-				action: TLA.getAction?.('Switch') as number,
+				action: TLA.getAction?.('Switch'),
 				payload: {},
 			});
 
@@ -48,11 +48,11 @@ describe('useFSM tests', () => {
 
 		act(() => {
 			result.current.dispatch({
-				action: result.current.getAction?.('Switch') as number,
+				action: result.current.getAction?.('Switch'),
 				payload: {},
 			});
 			result.current.dispatch({
-				action: result.current.getAction?.('Switch') as number,
+				action: result.current.getAction?.('Switch'),
 				payload: {},
 			});
 		});
@@ -78,5 +78,186 @@ describe('useFSM tests', () => {
 		}));
 
 		expect(result).toBeDefined();
+	});
+
+	it('selector: no re-render when selection is logically equal (isEqual preserves reference)', () => {
+		const id = uniqId(10);
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders += 1;
+			return useFSM(
+				{ Automata: TLA, id },
+				{
+					selector: (inst, statics) => {
+						const st = inst.getContext().state;
+						const red = statics.getState?.('Red');
+						const redYellow = statics.getState?.('RedYellow');
+						const isRedish = st === red || st === redYellow;
+						return { isRedish };
+					},
+					isEqual: (a, b) => a.isRedish === b.isRedish,
+				},
+			);
+		});
+
+		expect(renders).toBe(1);
+
+		// 1) Off -> Red (false -> true) => a re-render should occur
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+
+		// 2) Red -> RedYellow (true -> true) => with isEqual there should be no re-render
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+
+		// 3) RedYellow -> Green (true -> false) => a re-render should occur
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(3);
+	});
+
+	it('selector: re-renders without isEqual when selector returns new object each time (even if logical value same)', () => {
+		const id = uniqId(10);
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders += 1;
+			return useFSM(
+				{ Automata: TLA, id },
+				{
+					selector: (inst, statics) => {
+						const st = inst.getContext().state;
+						const red = statics.getState?.('Red');
+						const redYellow = statics.getState?.('RedYellow');
+						return { isRedish: st === red || st === redYellow };
+					},
+					// do not pass isEqual
+				},
+			);
+		});
+
+		expect(renders).toBe(1);
+
+		// Off -> Red (false -> true) => re-render
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+
+		// Red -> RedYellow (true -> true), but selector returns a new object => will re-render
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(3);
+	});
+
+	it('selector: constant primitive selection prevents re-renders for subsequent FSM changes', () => {
+		const id = uniqId();
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders += 1;
+			return useFSM(
+				{ Automata: TLA, id },
+				{
+					selector: () => 42,
+				},
+			);
+		});
+
+		expect(renders).toBe(1);
+
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+
+		// selection unchanged => no additional re-renders
+		expect(renders).toBe(1);
+	});
+
+	it('selector: primitive selection unchanged does not re-render', () => {
+		const id = uniqId(10);
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders += 1;
+			return useFSM(
+				{ Automata: TLA, id },
+				{
+					// boolean value remains true during Red -> RedYellow
+					selector: (inst, statics) => {
+						const state = inst.getContext().state;
+						const red = statics.getState?.('Red');
+						const redYellow = statics.getState?.('RedYellow');
+						return state === red || state === redYellow;
+					},
+				},
+			);
+		});
+
+		expect(renders).toBe(1);
+
+		// Off -> Red: false -> true => re-render
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+
+		// Red -> RedYellow: true -> true => primitive unchanged => no re-render
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+	});
+
+	it('selector: throws when selection returns null/undefined', () => {
+		const { result } = renderHook(() =>
+			useFSM(
+				{ Automata: TLA, id: 'test' },
+				{ selector: () => null },
+			),
+		);
+
+		// The error is available as result.error
+		expect(result.error).toBeInstanceOf(Error);
+		expect((result.error as Error).message).toMatch(/Undefined or null selection value/);
 	});
 });
