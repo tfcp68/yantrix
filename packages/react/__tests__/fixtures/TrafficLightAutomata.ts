@@ -234,7 +234,7 @@ return [EventBus, automatas];
 			
 export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata_1753446168660';
+    static id = 'TrafficLightAutomata_1761328224278';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
@@ -303,15 +303,29 @@ export class TrafficLightAutomata extends GenericAutomata {
             actionValidator: ((a) => Object.values(actionsDictionary).includes(a)) as TValidator<TAutomataBaseActionType>,
             functionRegistry: functionDictionary
         });
+        const initReducer = reducer[this.state];
+		const prev = this.getContext()?.context ?? {};
+		const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+		this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
+	
     }
 
     isKeyOf = ((key, obj) => key in obj) as (key: any, obj: object) => key is keyof typeof obj;
 }
 
 export default TrafficLightAutomata;
-			functionDictionary.register(internalFunctions);
-			functionDictionary.register(builtInFunctions);
 			const epoch = { val: 1 };
 const incrementEpoch = () => { epoch.val++ };
 const getEpoch = () => epoch.val;
+			const internals = {
+	...internalFunctions,
+	"currentStateId": internalFunctions.currentStateId(TrafficLightAutomata),
+	"currentStateName": internalFunctions.currentStateName(TrafficLightAutomata, statesDictionary),
+	"currentActionId": internalFunctions.currentActionId(TrafficLightAutomata),
+	"currentActionName": internalFunctions.currentActionName(TrafficLightAutomata, actionsDictionary),
+	"currentCycle": internalFunctions.currentCycle(TrafficLightAutomata),
+	"currentEpoch": getEpoch,
+}
+			functionDictionary.register(internals);
+			functionDictionary.register(builtInFunctions);
 		

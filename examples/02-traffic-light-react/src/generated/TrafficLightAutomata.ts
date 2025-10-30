@@ -233,7 +233,7 @@ return [EventBus, automatas];
 			
 export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata_1761043017915';
+    static id = 'TrafficLightAutomata_1761836441343';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];

@@ -1,13 +1,19 @@
-import { TAutomataBaseActionType, TAutomataBaseStateType } from '@yantrix/automata';
-import { uniqId } from '@yantrix/utils';
+import { TAutomataActionPayload, TAutomataBaseActionType, TAutomataBaseStateType, TAutomataStateContext, uniqId } from '@yantrix/core';
 import { TPreviousContext, TTraceTransaction } from './types';
 
-export const trace = (lastPayload: any, previousContext: TPreviousContext):
-TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType> => {
+export function trace<
+	S extends TAutomataBaseStateType = TAutomataBaseStateType,
+	A extends TAutomataBaseActionType = TAutomataBaseActionType,
+	C extends { [K in S]: any } = { [K in S]: any },
+	P extends { [K in A]: any } = { [K in A]: any },
+>(
+	lastAction: TAutomataActionPayload<A, P>,
+	previousContext: TAutomataStateContext<S, C> | TPreviousContext,
+): TTraceTransaction<S, A, C, P> {
 	return {
-		lastPayload,
-		previousContext,
+		lastPayload: lastAction,
+		previousContext: previousContext as TAutomataStateContext<S, C>,
 		timestamp: new Date(),
 		id: uniqId(10),
 	};
-};
+}
