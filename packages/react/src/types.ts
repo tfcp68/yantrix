@@ -66,6 +66,10 @@ export type TUseFsmReturn = {
 	getAutomatasList: () => Record<string, TAutomata>;
 } & TStaticMethods;
 
+export type TUseFsmReturnWithSelection<Selection> = TUseFsmReturn & {
+	selection: Selection;
+};
+
 export type TPreviousContext = {
 	state: number | null;
 	context: Record<string, any>;
