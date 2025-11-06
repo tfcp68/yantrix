@@ -56,7 +56,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"prepack": "pnpm run build && pnpm run lint",
-		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
+		"create_test_automata": "chmod +x generate_automata_fixtures.sh && ./generate_automata_fixtures.sh"
 	},
 	"dependencies": {
 		"@yantrix/codegen": "workspace:^",

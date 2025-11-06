@@ -1,14 +1,13 @@
 import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
-	TClassConstructor,
 	TStaticMethods,
 } from '@yantrix/core';
 import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { readVersion, setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context } from '../store/store';
-import { TAutomata, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
+import { TAutomata, TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
 
 /**
  * useFSM
@@ -46,7 +45,7 @@ import { TAutomata, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../typ
  * const isRed = state === getState('Red');
  */
 export const useFSM = (
-	Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>,
+	Automata: TUseFSMProps | TAutomataConstructorWithStatic,
 ): TUseFsmReturn => {
 	// Initialize FSM id once
 	const idFSM = useRef<string>('');
@@ -57,7 +56,7 @@ export const useFSM = (
 	const store = fsm_context.getStore(idFSM.current);
 
 	// Keep statics stable across renders
-	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(Automata) as TStaticMethods);
+	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(Automata));
 
 	// Subscribe to a version to guarantee rerenders on transitions
 	const getVersion = () => {

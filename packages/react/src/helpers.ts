@@ -1,6 +1,5 @@
-import { GenericAutomata, isStaticMethodsAutomata, TClassConstructor } from '@yantrix/core';
 import { hasCycle, isAutomata, isPropsUseFSM } from './typeGuards';
-import { TAutomata, TUseFSMProps } from './types';
+import { TAutomata, TAutomataConstructorWithStatic, TUseFSMProps } from './types';
 
 export const isNullish = (v: unknown): v is null | undefined => v === null || v === undefined;
 
@@ -10,14 +9,14 @@ export const isNullish = (v: unknown): v is null | undefined => v === null || v 
  * - a class constructor with statics or
  * - a props object { Automata, id } from codegen.
  */
-export const setInitialStaticMethods = (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => {
-	if (isAutomata(Automata) && isStaticMethodsAutomata(Automata)) {
-		return { ...Automata };
-	} else if (isPropsUseFSM(Automata)) {
-		return { ...Automata.Automata };
-	} else {
-		return { ...GenericAutomata };
+export const setInitialStaticMethods = (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => {
+	if (isAutomata(Automata)) {
+		return Automata;
 	}
+	if (isPropsUseFSM(Automata)) {
+		return Automata.Automata;
+	}
+	throw new TypeError('Unsupported Automata argument passed to setInitialStaticMethods');
 };
 
 /**

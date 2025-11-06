@@ -1,10 +1,15 @@
 import {
-	TClassConstructor,
 	TStaticMethods,
 } from '@yantrix/core';
 import { useMemo, useRef } from 'react';
 import { isNullish, readVersion, setInitialStaticMethods } from '../helpers';
-import { TAutomata, TUseFSMOptions, TUseFSMProps, TUseFsmReturnWithSelection } from '../types';
+import {
+	TAutomata,
+	TAutomataConstructorWithStatic,
+	TUseFSMOptions,
+	TUseFSMProps,
+	TUseFsmReturnWithSelection,
+} from '../types';
 import { useFSM } from './useFSM';
 
 /**
@@ -50,9 +55,9 @@ type TSelectionRef<Selection> =
  *   isEqual: (a, b) => a.isRedish === b.isRedish,
  * });
  */
-export function useFSMWithSelector<Selection, Statics extends TStaticMethods = TStaticMethods>(
-	Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>,
-	options: TUseFSMOptions<TAutomata, Selection, Statics>,
+export function useFSMWithSelector<Selection>(
+	Automata: TUseFSMProps | TAutomataConstructorWithStatic,
+	options: TUseFSMOptions<TAutomata, Selection>,
 ): TUseFsmReturnWithSelection<Selection> {
 	// Base FSM wiring: lifecycle, subscription to currentCycle, dispatch/trace/statics, etc.
 	const base = useFSM(Automata);
@@ -61,7 +66,7 @@ export function useFSMWithSelector<Selection, Statics extends TStaticMethods = T
 	const isEqualFn = options?.isEqual;
 
 	// Keep statics stable across renders for selector
-	const staticsRef = useRef<Statics>(setInitialStaticMethods(Automata) as Statics);
+	const staticsRef = useRef<TStaticMethods>(setInitialStaticMethods(Automata));
 	// Keep the last rendered selection for reference preservation
 	const prevSelectionRef = useRef<TSelectionRef<Selection>>({ has: false, val: undefined });
 

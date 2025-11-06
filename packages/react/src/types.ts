@@ -9,8 +9,8 @@ import {
 	TStaticMethods,
 } from '@yantrix/core';
 
-export type TUseFSMProps<Automata extends TAutomata> = {
-	Automata: TClassConstructor<Automata>;
+export type TUseFSMProps = {
+	Automata: TAutomataConstructorWithStatic;
 	id: string;
 };
 
@@ -22,6 +22,8 @@ export type TAutomata = IAutomata<
 	Record<TAutomataBaseActionType, any>,
 	Record<TAutomataBaseEventType, any>
 >;
+
+export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TStaticMethods;
 
 export type TTraceTransaction<
 	StateType extends TAutomataBaseStateType,
@@ -51,7 +53,7 @@ export interface IYantrixBoundStore<Snapshot = TAutomata> {
 }
 
 export interface IContextFSM {
-	initializeFSM: (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => string;
+	initializeFSM: (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => string;
 	getStore: (id: string) => IYantrixBoundStore;
 }
 
@@ -75,7 +77,7 @@ export type TPreviousContext = {
 	context: Record<string, any>;
 };
 
-export type TUseFSMOptions<Snapshot, Selection, Statics> = {
-	selector: (snapshot: Snapshot, statics: Statics) => Selection;
+export type TUseFSMOptions<Snapshot, Selection> = {
+	selector: (snapshot: Snapshot, statics: TStaticMethods) => Selection;
 	isEqual?: (a: Selection, b: Selection) => boolean;
 };

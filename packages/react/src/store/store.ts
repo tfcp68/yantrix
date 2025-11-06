@@ -1,6 +1,5 @@
-import { isStaticMethodsAutomata, TClassConstructor } from '@yantrix/core';
 import { isAutomata, isPropsUseFSM } from '../typeGuards';
-import { IContextFSM, IYantrixBoundStore, TAutomata, TListenerCallback, TUseFSMProps } from '../types';
+import { IContextFSM, IYantrixBoundStore, TAutomata, TAutomataConstructorWithStatic, TListenerCallback, TUseFSMProps } from '../types';
 
 /**
  * Registry of created automata instances keyed by their unique id.
@@ -82,8 +81,8 @@ export const fsm_context: IContextFSM = {
 	 * @returns The FSM id string
 	 * @throws When the provided value is neither a valid automata nor props object
 	 */
-	initializeFSM: (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => {
-		if (isAutomata(Automata) && isStaticMethodsAutomata(Automata)) {
+	initializeFSM: (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => {
+		if (isAutomata(Automata)) {
 			const id = Automata.id;
 			if (!automatasList[id]) {
 				automatasList[id] = new Automata();
