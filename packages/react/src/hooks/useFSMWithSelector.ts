@@ -47,7 +47,7 @@ export function useFSMWithSelector<Selection>(
 
 	const dispatch = <
 		ActionType extends number,
-		PayloadType extends { [K in ActionType]: any },
+		PayloadType extends { [K in ActionType]: TAutomataActionPayload<ActionType, PayloadType>['payload'] },
 	>(action: TAutomataActionPayload<ActionType, PayloadType>) => {
 		const instance = getInstance();
 
@@ -58,7 +58,7 @@ export function useFSMWithSelector<Selection>(
 		lastActionRef.current = action;
 		previousContextRef.current = prevCtx;
 
-		const reduced = instance.dispatch(action as any);
+		const reduced = instance.dispatch(action);
 
 		const nextState = reduced.state;
 		const nextContextObj = reduced.context ?? {};

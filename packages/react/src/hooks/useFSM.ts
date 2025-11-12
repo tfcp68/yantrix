@@ -93,7 +93,7 @@ export const useFSM = (
 	// dispatch wrapper
 	const dispatch = <
 		ActionType extends number,
-		PayloadType extends { [K in ActionType]: any },
+		PayloadType extends { [K in ActionType]: TAutomataActionPayload<ActionType, PayloadType>['payload'] },
 	>(action: TAutomataActionPayload<ActionType, PayloadType>) => {
 		const instance = getInstance();
 
@@ -101,10 +101,10 @@ export const useFSM = (
 		const prevState = prevCtx.state;
 		const prevContextObj = prevCtx.context ?? {};
 
-		lastActionRef.current = action as any;
+		lastActionRef.current = action;
 		previousContextRef.current = prevCtx;
 
-		const reduced = instance.dispatch(action as any);
+		const reduced = instance.dispatch(action);
 
 		const nextState = reduced.state;
 		const nextContextObj = reduced.context ?? {};
