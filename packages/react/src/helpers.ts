@@ -23,3 +23,18 @@ export const setInitialStaticMethods = (Automata: TUseFSMProps | TAutomataConstr
  * Read the "version" of the FSM. Version increments with each transition.
  */
 export const readVersion = (fsm: TAutomata): number => (hasCycle(fsm) ? fsm.currentCycle : 0);
+
+export function shallowEqual(a: any, b: any): boolean {
+	if (a === b) return true;
+	if (!a || !b) return false;
+	if (typeof a !== 'object' || typeof b !== 'object') return false;
+
+	const ka = Object.keys(a);
+	const kb = Object.keys(b);
+	if (ka.length !== kb.length) return false;
+
+	for (const k of ka) {
+		if (a[k] !== b[k]) return false;
+	}
+	return true;
+}
