@@ -286,7 +286,7 @@ return [EventBus, automatas];
 			
 export class GamePhaseAutomata extends GenericAutomata {
 
-    static id = 'GamePhaseAutomata_1762449360536';
+    static id = 'GamePhaseAutomata_1762913816895';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];

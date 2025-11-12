@@ -4,6 +4,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { useFSMWithSelector } from '../src/hooks/useFSMWithSelector';
 import { TrafficLightAutomata as TLA } from './fixtures/TrafficLightAutomata';
+import TrafficLightAutomataTwoCounters from './fixtures/TrafficLightAutomataTwoCounters';
 
 describe('useFSMWithSelector tests (selector-based hook)', () => {
 	it('basic selector returns context', () => {
@@ -164,5 +165,117 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 		// The error is available as result.error
 		expect(result.error).toBeInstanceOf(Error);
 		expect((result.error as Error).message).toMatch(/Undefined or null selection value/);
+	});
+});
+
+describe('selective re-render with second counter', () => {
+	it('selector: context.counter — Switch_1 after first Switch does not trigger re-render', () => {
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders++;
+			return useFSMWithSelector(TrafficLightAutomataTwoCounters, {
+				selector: inst => inst.getContext().context.counter,
+			});
+		});
+
+		// Initial state Off
+		const initial = result.current.selection;
+		expect(renders).toBe(1);
+
+		// 1. Switch (Off -> Red) — should increment counter
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
+				payload: {},
+			});
+		});
+
+		expect(result.current.selection).toBe(initial + 1);
+		expect(renders).toBe(2);
+
+		const afterFirstSwitch = result.current.selection;
+
+		// 2. Switch_1 (Red -> Red self-loop) — only counter2 changes; counter must remain unchanged
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch_1'),
+				payload: {},
+			});
+		});
+
+		// No change -> no re-render
+		expect(result.current.selection).toBe(afterFirstSwitch);
+		expect(renders).toBe(2);
+
+		// 3. Another Switch (Red -> RedYellow) — counter increments again
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
+				payload: {},
+			});
+		});
+
+		expect(result.current.selection).toBe(afterFirstSwitch + 1);
+		expect(renders).toBe(3);
+	});
+
+	it('selector: context.counter2 — reacts only to Switch_1; Switch does not trigger re-render', () => {
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders++;
+			return useFSMWithSelector(TrafficLightAutomataTwoCounters, {
+				selector: inst => inst.getContext().context.counter2,
+			});
+		});
+
+		const initial2 = result.current.selection;
+		expect(renders).toBe(1);
+
+		// 1. Switch (Off -> Red): only counter changes; counter2 stays the same
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
+				payload: {},
+			});
+		});
+
+		// No change -> still first render
+		expect(result.current.selection).toBe(initial2);
+		expect(renders).toBe(1);
+
+		// 2. Switch_1 (Red -> Red): counter2 increments
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch_1'),
+				payload: {},
+			});
+		});
+
+		expect(result.current.selection).toBe(initial2 + 1);
+		expect(renders).toBe(2);
+
+		// 3. Switch (Red -> RedYellow): counter2 unchanged
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
+				payload: {},
+			});
+		});
+
+		expect(result.current.selection).toBe(initial2 + 1);
+		expect(renders).toBe(2);
+
+		// 4. Switch_1 (RedYellow -> RedYellow): counter2 increments again
+		act(() => {
+			result.current.dispatch({
+				action: TrafficLightAutomataTwoCounters.getAction('Switch_1'),
+				payload: {},
+			});
+		});
+
+		expect(result.current.selection).toBe(initial2 + 2);
+		expect(renders).toBe(3);
 	});
 });

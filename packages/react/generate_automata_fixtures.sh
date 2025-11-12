@@ -15,7 +15,14 @@ declare -A TASK2=(
   [className]="GamePhaseAutomata"
 )
 
-TASKS=(TASK1 TASK2)
+declare -A TASK3=(
+  [input]="__tests__/fixtures/traffic-light_two_counters.mermaid"
+  [outfile]="__tests__/fixtures/TrafficLightAutomataTwoCounters.ts"
+  [language]="TypeScript"
+  [className]="TrafficLightAutomataTwoCounters"
+)
+
+TASKS=(TASK1 TASK2 TASK3)
 
 for task_name in "${TASKS[@]}"; do
   declare -n task="$task_name"

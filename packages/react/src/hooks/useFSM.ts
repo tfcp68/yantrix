@@ -5,7 +5,7 @@ import {
 } from '@yantrix/core';
 import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
-import { readVersion, setInitialStaticMethods } from '../helpers';
+import { readVersion, setInitialStaticMethods, shallowEqual } from '../helpers';
 import { automatasList, fsm_context } from '../store/store';
 import { TAutomata, TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
 
@@ -91,18 +91,30 @@ export const useFSM = (
 	const getAutomatasList = () => automatasList;
 
 	// dispatch wrapper
-	const payloadFromDispatch = <
+	const dispatch = <
 		ActionType extends number,
 		PayloadType extends { [K in ActionType]: any },
-	>(
-		action: TAutomataActionPayload<ActionType, PayloadType>,
-	) => {
+	>(action: TAutomataActionPayload<ActionType, PayloadType>) => {
 		const instance = getInstance();
-		lastActionRef.current = action;
-		previousContextRef.current = instance.getContext();
 
-		instance.dispatch(action);
-		fsm_context.getStore(idFSM.current).changeState();
+		const prevCtx = instance.getContext();
+		const prevState = prevCtx.state;
+		const prevContextObj = prevCtx.context ?? {};
+
+		lastActionRef.current = action as any;
+		previousContextRef.current = prevCtx;
+
+		const reduced = instance.dispatch(action as any);
+
+		const nextState = reduced.state;
+		const nextContextObj = reduced.context ?? {};
+
+		const stateChanged = nextState !== prevState;
+		const contextChanged = !shallowEqual(prevContextObj, nextContextObj);
+
+		if (stateChanged || contextChanged) {
+			fsm_context.getStore(idFSM.current).changeState();
+		}
 	};
 
 	const instance = getInstance();
@@ -110,7 +122,7 @@ export const useFSM = (
 	return {
 		state: instance.state,
 		getContext: instance.getContext.bind(instance),
-		dispatch: payloadFromDispatch,
+		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
 		getInstanceAutomata: getInstance,
 		getAutomatasList,

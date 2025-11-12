@@ -14,7 +14,8 @@
 }
 export const actionsDictionary = {
   "Reset": 78851375,
-  "Switch": 1805606060
+  "Switch": 1805606060,
+  "Switch_1": 20633082
 }
 export const functionDictionary = new FunctionDictionary();
 			const eventAdapter = new AutomataEventAdapter();
@@ -40,7 +41,7 @@ const automatas = Object.fromEntries(
 	);
 Object.entries(GlobalEventDictionary.getDictionary())
 	.forEach(([eventName, eventId]) => {
-	
+
 		EventBus.subscribe(eventId, ({ event, meta }) => {
 
 			const nextEventsToProcess = [];
@@ -55,7 +56,7 @@ Object.entries(GlobalEventDictionary.getDictionary())
 			})
 
 			EventBus.dispatch(...nextEventsToProcess);
-	
+
 			return {
 				event,
 				meta,
@@ -76,7 +77,8 @@ return [EventBus, automatas];
 }
 			const actionsMap = {
   "Reset": "Reset",
-  "Switch": "Switch"
+  "Switch": "Switch",
+  "Switch_1": "Switch_1"
 }
 			const statesMap = {
   "~~~START~~~": "~~~START~~~",
@@ -87,20 +89,70 @@ return [EventBus, automatas];
   "Yellow": "Yellow"
 }
 			const byPassedStates = new Set([])
-			export type TActionsTrafficLightAutomata = keyof typeof actionsMap;
-			const getDefaultContext = (prevContext, payload) => {
+			export type TActionsTrafficLightAutomataTwoCounters = keyof typeof actionsMap;
+			const getDefaultContext = (prevContext, payload, automata) => {
 				const ctx = {counter: (function(){
 			const boundValue = (function(){
-						return functionDictionary.get('coalesce')((function(){
+						return functionDictionary.get('if')(functionDictionary.get('isEqual')(functionDictionary.get('currentActionName')(automata),'Switch'),functionDictionary.get('inc')(functionDictionary.get('coalesce')((function(){
 						if(payload !== null && payload['initialCounter'] !== undefined && payload['initialCounter'] !== null) {
 							return payload['initialCounter']
 						}
 							else {
 								return null
 							}
-					}()),functionDictionary.get('inc')((function(){
+					}()),(function(){
 						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
 							return prevContext['counter']
+						}
+							else {
+								return null
+							}
+					}()))),functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['initialCounter'] !== undefined && payload['initialCounter'] !== null) {
+							return payload['initialCounter']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
+							return prevContext['counter']
+						}
+							else {
+								return null
+							}
+					}())))
+					}())
+
+			return boundValue
+
+		}()),
+	counter2: (function(){
+			const boundValue = (function(){
+						return functionDictionary.get('if')(functionDictionary.get('isEqual')(functionDictionary.get('currentActionName')(automata),'Switch_1'),functionDictionary.get('inc')(functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['initialCounter2'] !== undefined && payload['initialCounter2'] !== null) {
+							return payload['initialCounter2']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['counter2'] !== undefined && prevContext['counter2'] !== null) {
+							return prevContext['counter2']
+						}
+							else {
+								return null
+							}
+					}()))),functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['initialCounter2'] !== undefined && payload['initialCounter2'] !== null) {
+							return payload['initialCounter2']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['counter2'] !== undefined && prevContext['counter2'] !== null) {
+							return prevContext['counter2']
 						}
 							else {
 								return null
@@ -113,22 +165,72 @@ return [EventBus, automatas];
 		}())}
 				return  Object.assign({}, prevContext, ctx);
 			}
-			
+
 			const reducer = {
 		74979334: (prevContext, payload, functionDictionary, automata) => {
 
 				return {counter: (function(){
 			const boundValue = (function(){
-						return functionDictionary.get('coalesce')((function(){
+						return functionDictionary.get('if')(functionDictionary.get('isEqual')(functionDictionary.get('currentActionName')(automata),'Switch'),functionDictionary.get('inc')(functionDictionary.get('coalesce')((function(){
 						if(payload !== null && payload['initialCounter'] !== undefined && payload['initialCounter'] !== null) {
 							return payload['initialCounter']
 						}
 							else {
 								return null
 							}
-					}()),functionDictionary.get('inc')((function(){
+					}()),(function(){
 						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
 							return prevContext['counter']
+						}
+							else {
+								return null
+							}
+					}()))),functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['initialCounter'] !== undefined && payload['initialCounter'] !== null) {
+							return payload['initialCounter']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
+							return prevContext['counter']
+						}
+							else {
+								return null
+							}
+					}())))
+					}())
+
+			return boundValue
+
+		}()),
+	counter2: (function(){
+			const boundValue = (function(){
+						return functionDictionary.get('if')(functionDictionary.get('isEqual')(functionDictionary.get('currentActionName')(automata),'Switch_1'),functionDictionary.get('inc')(functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['initialCounter2'] !== undefined && payload['initialCounter2'] !== null) {
+							return payload['initialCounter2']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['counter2'] !== undefined && prevContext['counter2'] !== null) {
+							return prevContext['counter2']
+						}
+							else {
+								return null
+							}
+					}()))),functionDictionary.get('coalesce')((function(){
+						if(payload !== null && payload['initialCounter2'] !== undefined && payload['initialCounter2'] !== null) {
+							return payload['initialCounter2']
+						}
+							else {
+								return null
+							}
+					}()),(function(){
+						if(prevContext !== null && prevContext['counter2'] !== undefined && prevContext['counter2'] !== null) {
+							return prevContext['counter2']
 						}
 							else {
 								return null
@@ -145,6 +247,14 @@ return [EventBus, automatas];
 				return {counter: (function(){
 						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
 							return prevContext['counter']
+						}
+							else {
+								return 0
+							}
+					}()),
+	counter2: (function(){
+						if(prevContext !== null && prevContext['counter2'] !== undefined && prevContext['counter2'] !== null) {
+							return prevContext['counter2']
 						}
 							else {
 								return 0
@@ -168,12 +278,12 @@ return [EventBus, automatas];
 				return prevContext
 			}
 	}
-			
+
 			const actionToStateFromStateDict = {74979334: {
 				78851375: {
 					state: [79183]
 				}
-			
+
 	},
 	79183: {
 				78851375: {
@@ -184,9 +294,14 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [82033]
 				}
-			
+
 	},
 	82033: {
+				20633082: {
+					state: [82033]
+				}
+			,
+
 				78851375: {
 					state: [79183]
 				}
@@ -195,9 +310,14 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [1051543483]
 				}
-			
+
 	},
 	1051543483: {
+				20633082: {
+					state: [1051543483]
+				}
+			,
+
 				78851375: {
 					state: [79183]
 				}
@@ -206,9 +326,14 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [69066467]
 				}
-			
+
 	},
 	69066467: {
+				20633082: {
+					state: [69066467]
+				}
+			,
+
 				78851375: {
 					state: [79183]
 				}
@@ -217,9 +342,14 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [1650372460]
 				}
-			
+
 	},
 	1650372460: {
+				20633082: {
+					state: [1650372460]
+				}
+			,
+
 				78851375: {
 					state: [79183]
 				}
@@ -228,19 +358,19 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [82033]
 				}
-			
-	},}
-			
-export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata_1762466510971';
+	},}
+
+export class TrafficLightAutomataTwoCounters extends GenericAutomata {
+
+    static id = 'TrafficLightAutomataTwoCounters_1762913817631';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
-    static hasState = (instance: TrafficLightAutomata, state: keyof typeof TrafficLightAutomata.states) => instance.state === TrafficLightAutomata.getState(state);
+    static hasState = (instance: TrafficLightAutomataTwoCounters, state: keyof typeof TrafficLightAutomataTwoCounters.states) => instance.state === TrafficLightAutomataTwoCounters.getState(state);
     static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
     static createAction = (action: keyof typeof actionsMap, payload:any) => {
-		const actionId = TrafficLightAutomata.getAction(action);
+		const actionId = TrafficLightAutomataTwoCounters.getAction(action);
 		return {
 			action: actionId,
 			payload,
@@ -251,7 +381,7 @@ export class TrafficLightAutomata extends GenericAutomata {
         super(eventAdapter);
         this.init({
             state: 79183,
-            context:{"counter":null},
+            context:{"counter":null,"counter2":null},
             rootReducer: ({ action, context, payload, state }) => {
 					if (!action || payload === null) return { state, context };
 
@@ -263,17 +393,17 @@ export class TrafficLightAutomata extends GenericAutomata {
 
 						const actionMove = actionToStateFromStateDict[state][action];
 						const newStateObject = { state: actionMove.state[0] }
-						const contextWithInitial = getDefaultContext(context,payload)
+						const contextWithInitial = getDefaultContext(context,payload, this)
 
 
-						
+
 			if(actionMove.state.length > 1 && actionMove.predicate != null) {
 				// determine new state from predicate
 				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
 				if(resolvedPredicateValue == null) return { state, context };
 				newStateObject.state = resolvedPredicateValue;
 			}
-		
+
 
 						const newState = newStateObject.state;
 						const newContextFunc = reducer[newState]
@@ -306,25 +436,24 @@ export class TrafficLightAutomata extends GenericAutomata {
 		const prev = this.getContext()?.context ?? {};
 		const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
 		this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
-	
+
     }
 
     isKeyOf = ((key, obj) => key in obj) as (key: any, obj: object) => key is keyof typeof obj;
 }
 
-export default TrafficLightAutomata;
+export default TrafficLightAutomataTwoCounters;
 			const epoch = { val: 1 };
 const incrementEpoch = () => { epoch.val++ };
 const getEpoch = () => epoch.val;
 			const internals = {
 	...internalFunctions,
-	"currentStateId": internalFunctions.currentStateId(TrafficLightAutomata),
-	"currentStateName": internalFunctions.currentStateName(TrafficLightAutomata, statesDictionary),
-	"currentActionId": internalFunctions.currentActionId(TrafficLightAutomata),
-	"currentActionName": internalFunctions.currentActionName(TrafficLightAutomata, actionsDictionary),
-	"currentCycle": internalFunctions.currentCycle(TrafficLightAutomata),
+	"currentStateId": internalFunctions.currentStateId(TrafficLightAutomataTwoCounters),
+	"currentStateName": internalFunctions.currentStateName(TrafficLightAutomataTwoCounters, statesDictionary),
+	"currentActionId": internalFunctions.currentActionId(TrafficLightAutomataTwoCounters),
+	"currentActionName": internalFunctions.currentActionName(TrafficLightAutomataTwoCounters, actionsDictionary),
+	"currentCycle": internalFunctions.currentCycle(TrafficLightAutomataTwoCounters),
 	"currentEpoch": getEpoch,
 }
 			functionDictionary.register(internals);
 			functionDictionary.register(builtInFunctions);
-		

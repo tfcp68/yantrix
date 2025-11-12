@@ -69,4 +69,42 @@ describe('useFSM tests', () => {
 		expect(FSM1.current.getInstanceAutomata()).toBeInstanceOf(TLA);
 		expect(FSM2.current.getInstanceAutomata()).toBeInstanceOf(GamePhaseAutomataTest);
 	});
+
+	it('does not re-render when dispatch results in the same state and context (isEqual guards)', () => {
+		const id = uniqId(10);
+		let renders = 0;
+
+		const { result } = renderHook(() => {
+			renders++;
+			return useFSM(
+				{ Automata: TLA, id },
+			);
+		});
+
+		expect(renders).toBe(1);
+		expect(result.current.state).toBe(TLA.getState?.('Off'));
+
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Reset'),
+				payload: {
+					initialCounter: 0,
+				},
+			});
+		});
+
+		expect(renders).toBe(1);
+		const afterNoop = result.current.state;
+		expect(afterNoop).toBe(TLA.getState?.('Off'));
+
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+		const afterChange = result.current.state;
+		expect(afterChange).toBe(TLA.getState?.('Red'));
+	});
 });

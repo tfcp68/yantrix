@@ -103,16 +103,12 @@ return [EventBus, automatas];
 							return prevContext['counter']
 						}
 							else {
-								return 0
+								return null
 							}
 					}())))
 					}())
-			if(boundValue !== null){
-				return boundValue
-			}
-			else {
-				return 0
-			}
+
+			return boundValue
 
 		}())}
 				return  Object.assign({}, prevContext, ctx);
@@ -135,22 +131,25 @@ return [EventBus, automatas];
 							return prevContext['counter']
 						}
 							else {
-								return 0
+								return null
 							}
 					}())))
 					}())
-			if(boundValue !== null){
-				return boundValue
-			}
-			else {
-				return 0
-			}
+
+			return boundValue
 
 		}())}
 			},
 	79183: (prevContext, payload, functionDictionary, automata) => {
 
-				return prevContext
+				return {counter: (function(){
+						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
+							return prevContext['counter']
+						}
+							else {
+								return 0
+							}
+					}())}
 			},
 	82033: (prevContext, payload, functionDictionary, automata) => {
 
@@ -234,7 +233,7 @@ return [EventBus, automatas];
 			
 export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata_1762449360013';
+    static id = 'TrafficLightAutomata_1762913816167';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
