@@ -81,3 +81,5 @@ export type TUseFSMOptions<Snapshot, Selection> = {
 	selector: (snapshot: Snapshot, statics: TStaticMethods) => Selection;
 	isEqual?: (a: Selection, b: Selection) => boolean;
 };
+
+export type TRef<T> = { current: T };

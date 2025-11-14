@@ -1,4 +1,3 @@
-import { ReservedInternalFunctionNames } from '@yantrix/functions';
 import {
 	ExpressionTypes,
 	isKeyItemReference,
@@ -124,12 +123,6 @@ export function setupExpressions(props: {
 					`Max level of nested functions reached ${maxNestedFuncLevel}`,
 				);
 			}
-
-			// check that the functions are internal to the automaton, but except for currentEpoch
-			if (ReservedInternalFunctionNames.includes(FunctionName) && FunctionName !== 'currentEpoch') {
-				res.push('automata');
-			}
-
 			return expressionsSerializer.getFunctionFromDictionary(FunctionName).concat(
 				`(${res.join(',')})`,
 			);

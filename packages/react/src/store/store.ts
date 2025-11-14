@@ -1,5 +1,14 @@
+import { isNullish, readVersion } from '../helpers';
 import { isAutomata, isPropsUseFSM } from '../typeGuards';
-import { IContextFSM, IYantrixBoundStore, TAutomata, TAutomataConstructorWithStatic, TListenerCallback, TUseFSMProps } from '../types';
+import {
+	IContextFSM,
+	IYantrixBoundStore,
+	TAutomata,
+	TAutomataConstructorWithStatic,
+	TListenerCallback,
+	TRef,
+	TUseFSMProps,
+} from '../types';
 
 /**
  * Registry of created automata instances keyed by their unique id.
@@ -108,3 +117,39 @@ export const fsm_context: IContextFSM = {
 	 */
 	getStore: (id: string) => ensureStore(id),
 };
+
+export function getSnapshotWithSelector<Selection, Statics>(
+	store: IYantrixBoundStore,
+	staticsRef: TRef<Statics>,
+	selector: (inst: TAutomata, statics: Statics) => Selection,
+	versionRef: TRef<number>,
+	selectionRef: TRef<Selection | null>,
+	isEqual?: (a: Selection, b: Selection) => boolean,
+
+): Selection {
+	const inst = store.getSnapshot();
+	const version = readVersion(inst);
+
+	const prevVersion = versionRef.current;
+	const prevSelection = selectionRef.current;
+
+	if (version === prevVersion && prevSelection !== null) {
+		return prevSelection;
+	}
+
+	const nextSel = selector(inst, staticsRef.current);
+	if (isNullish(nextSel)) {
+		throw new Error('Undefined or null selection value');
+	}
+
+	if (prevSelection !== null && version !== prevVersion && typeof isEqual === 'function') {
+		if (isEqual(prevSelection, nextSel)) {
+			versionRef.current = version;
+			return prevSelection;
+		}
+	}
+
+	selectionRef.current = nextSel;
+	versionRef.current = version;
+	return nextSel;
+}

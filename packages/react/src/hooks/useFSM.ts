@@ -5,9 +5,10 @@ import {
 } from '@yantrix/core';
 import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
-import { readVersion, setInitialStaticMethods, shallowEqual } from '../helpers';
+import { readVersion, setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context } from '../store/store';
-import { TAutomata, TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
+import { TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
+import { dispatchWrapper } from '../utils/dispatchWrapper';
 
 /**
  * useFSM
@@ -55,6 +56,8 @@ export const useFSM = (
 
 	const store = fsm_context.getStore(idFSM.current);
 
+	const instance = store.getSnapshot();
+
 	// Keep statics stable across renders
 	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(Automata));
 
@@ -64,15 +67,6 @@ export const useFSM = (
 		return readVersion(snap);
 	};
 	useSyncExternalStore<number>(store.subscribe, getVersion, getVersion);
-
-	// Instance accessor
-	const getInstance = (): TAutomata => {
-		const inst = automatasList[idFSM.current];
-		if (!inst) {
-			throw new Error(`FSM '${idFSM.current}' not initialized`);
-		}
-		return inst;
-	};
 
 	// Trace refs (no rerenders)
 	const previousContextRef = useRef<TPreviousContext>({
@@ -95,36 +89,20 @@ export const useFSM = (
 		ActionType extends number,
 		PayloadType extends { [K in ActionType]: TAutomataActionPayload<ActionType, PayloadType>['payload'] },
 	>(action: TAutomataActionPayload<ActionType, PayloadType>) => {
-		const instance = getInstance();
-
-		const prevCtx = instance.getContext();
-		const prevState = prevCtx.state;
-		const prevContextObj = prevCtx.context ?? {};
-
+		previousContextRef.current = instance.getContext();
 		lastActionRef.current = action;
-		previousContextRef.current = prevCtx;
-
-		const reduced = instance.dispatch(action);
-
-		const nextState = reduced.state;
-		const nextContextObj = reduced.context ?? {};
-
-		const stateChanged = nextState !== prevState;
-		const contextChanged = !shallowEqual(prevContextObj, nextContextObj);
-
-		if (stateChanged || contextChanged) {
-			fsm_context.getStore(idFSM.current).changeState();
-		}
+		dispatchWrapper({
+			store,
+			action,
+		});
 	};
-
-	const instance = getInstance();
 
 	return {
 		state: instance.state,
 		getContext: instance.getContext.bind(instance),
 		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
-		getInstanceAutomata: getInstance,
+		getInstanceAutomata: store.getSnapshot,
 		getAutomatasList,
 		...staticMethods.current,
 	};

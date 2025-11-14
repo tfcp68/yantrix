@@ -3,8 +3,8 @@ import { uniqId } from '@yantrix/core';
 import { act } from 'react';
 import { assert, describe, expect, it } from 'vitest';
 import { useFSM } from '../src';
-import GamePhaseAutomataTest from './fixtures/GamePhaseAutomataTest';
-import { TrafficLightAutomata as TLA } from './fixtures/TrafficLightAutomata';
+import GamePhaseAutomataTest from './generated/GamePhaseAutomataTest';
+import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata';
 
 describe('useFSM tests', () => {
 	it('instance class by automata id', () => {

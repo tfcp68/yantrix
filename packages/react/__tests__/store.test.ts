@@ -1,7 +1,7 @@
 import { uniqId } from '@yantrix/core';
 import { describe, expect, it } from 'vitest';
 import { automatasList, fsm_context } from '../src/store/store';
-import { TrafficLightAutomata as TLA } from './fixtures/TrafficLightAutomata';
+import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata';
 
 describe('store.ts (per-id stores)', () => {
 	it('initializeFSM with class returns static id and creates an instance', () => {
