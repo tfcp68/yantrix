@@ -10,7 +10,7 @@ const checkboxesData = [
 ];
 
 export function Checkbox() {
-	const { dispatch: dispatchAutomata, state } = useFSM<Record<number, boolean>>(TLA);
+	const { dispatch: dispatchAutomata, state } = useFSM(TLA);
 
 	const toggleCheckbox = (id: number) => {
 		dispatchAutomata(TLA.createAction('TOGGLE', { id }));

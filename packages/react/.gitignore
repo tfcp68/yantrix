@@ -28,3 +28,5 @@ coverage
 
 # Generated files
 *_generated.ts
+
+./__tests__/generated/**

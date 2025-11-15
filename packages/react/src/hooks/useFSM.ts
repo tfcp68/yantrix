@@ -1,103 +1,108 @@
-import { GenericAutomata, TAutomataActionPayload } from '@yantrix/automata';
-import { isStaticMethodsAutomata, TClassConstructor, TStaticMethods } from '@yantrix/utils';
-import { useRef, useState, useSyncExternalStore } from 'react';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import {
+	TAutomataActionPayload,
+	TAutomataBaseActionType,
+	TStaticMethods,
+} from '@yantrix/core';
+import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
+import { readVersion, setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context } from '../store/store';
-import { isAutomata, isFSM, isPropsUseFSM } from '../typeGuards';
-import { TAutomata, TPreviousContext, TUseFSMOptions, TUseFSMProps, TUseFsmReturn } from '../types';
+import { TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
+import { dispatchWrapper } from '../utils/dispatchWrapper';
 
-const setInitialStaticMethods = (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => {
-	if (isAutomata(Automata) && isStaticMethodsAutomata(Automata)) {
-		return {
-			...Automata,
-		};
-	} else if (isPropsUseFSM(Automata)) {
-		return {
-			...Automata.Automata,
-		};
-	} else {
-		return {
-			...GenericAutomata,
-		};
-	}
-};
 /**
- * The `useFSM` hook is used for initializing and managing an FSM (Finite State Machine) in the context of React.
+ * useFSM
  *
- * @template TAutomata The type of automaton (FSM) to be used.
+ * React hook that initializes and subscribes to a Yantrix FSM instance.
  *
- * @param {TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>} Automata - The automaton class or its props.
+ * Behavior:
+ * - Lazily creates or reuses a singleton FSM instance keyed by its id.
+ * - Subscribes the component to FSM updates by tracking the machine "version" (currentCycle)
+ *   via useSyncExternalStore, ensuring a re-render on every transition.
+ * - Exposes imperative helpers: dispatch, getContext, getInstanceAutomata, trace, and automata statics.
  *
- * @param options
- * @throws {Error} If the automaton is not found or its state is undefined.
+ * Contract:
+ * - This base hook does not accept a selector. For derived reads, use useFSMWithSelector(...).
+ * - trace() is side-effect free: it stores the last action and previous context in refs to avoid extra renders.
  *
- * @description
- * The hook performs the following actions:
- * - Initializes the automaton using the provided class or props with a unique automaton ID.
- * - Provides methods to manage the automaton's state, dispatch actions, and trace its behavior.
- * - Uses `useSyncExternalStore` to synchronize with the automaton state context and subscribe to its changes.
+ * @param Automata - Either:
+ *   - a generated Automata class (constructor with static helpers) or
+ *   - a props object { Automata, id } produced by codegen to create a distinct instance per id.
+ *
+ * @returns TUseFsmReturn
+ *   An object with:
+ *   - state: current numeric state
+ *   - getContext(): current state+context
+ *   - dispatch(action): dispatches an action payload
+ *   - trace(): { lastPayload, previousContext, timestamp, id }
+ *   - getInstanceAutomata(): underlying IAutomata
+ *   - getAutomatasList(): registry map of id -> instance
+ *   - automata static helpers spread in (e.g., getState, getAction, statesDictionary, actionsDictionary)
  *
  * @example
- * // Example of using the useFSM hook
- * const { state, dispatch, getContext } = useFSM(MyAutomataClass);
- *
- * console.log(state);  // Current state of the automaton
- * dispatch({ type: MyActionType, payload: {} });  // Dispatch an action
- * const context = getContext();  // Retrieve the current context of the automaton
+ * const { getContext, dispatch, getState } = useFSM(TrafficLight);
+ * const onClick = () => dispatch({ action: TrafficLight.getAction('Switch'), payload: {} });
+ * const { state, context } = getContext();
+ * const isRed = state === getState('Red');
  */
-export const useFSM = <Selection>(
-	Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>,
-	options?: TUseFSMOptions<TAutomata, Selection>,
+export const useFSM = (
+	Automata: TUseFSMProps | TAutomataConstructorWithStatic,
 ): TUseFsmReturn => {
-	const idFSM = useRef('');
-
+	// Initialize FSM id once
+	const idFSM = useRef<string>('');
 	if (!idFSM.current) {
-		// Инициализируем автомат в store'е
 		idFSM.current = fsm_context.initializeFSM(Automata);
 	}
-	const fsmStore = (options?.selector)
-		? useSyncExternalStoreWithSelector<TAutomata, Selection>(
-			fsm_context.subscribe,
-			fsm_context.getSnapshot,
-			null,
-			options?.selector,
-			options?.isEqual,
-		)
-		: useSyncExternalStore<TAutomata>(fsm_context.subscribe, fsm_context.getSnapshot);
 
-	if (!fsmStore) {
-		if (isFSM(fsmStore)) {
-			throw new Error('Automata not found');
-		} else {
-			throw new Error('Undefined or null selection value');
-		}
-	}
+	const store = fsm_context.getStore(idFSM.current);
 
-	const [previousContext, setPreviousContext] = useState<TPreviousContext>({
+	const instance = store.getSnapshot();
+
+	// Keep statics stable across renders
+	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(Automata));
+
+	// Subscribe to a version to guarantee rerenders on transitions
+	const getVersion = () => {
+		const snap = store.getSnapshot();
+		return readVersion(snap);
+	};
+	useSyncExternalStore<number>(store.subscribe, getVersion, getVersion);
+
+	// Trace refs (no rerenders)
+	const previousContextRef = useRef<TPreviousContext>({
 		state: null,
 		context: {},
 	});
-	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(Automata) as TStaticMethods);
-	const [lastPayload, setLastPayload] = useState<any>();
+	type TGenericAction = TAutomataActionPayload<
+		TAutomataBaseActionType,
+		Record<TAutomataBaseActionType, unknown>
+	>;
+	const lastActionRef = useRef<TGenericAction>({
+		action: null,
+		payload: {},
+	});
 
-	const getInstanceAutomata = () => automatasList[idFSM.current];
 	const getAutomatasList = () => automatasList;
 
-	const payloadFromDispatch = <ActionType extends number, PayloadType extends { [K in ActionType]: any } >
-	(action: TAutomataActionPayload<ActionType, PayloadType>) => {
-		setLastPayload(action.payload);
-		setPreviousContext(automatasList[idFSM.current].getContext());
-
-		return automatasList[idFSM.current].dispatch(action);
+	// dispatch wrapper
+	const dispatch = <
+		ActionType extends number,
+		PayloadType extends { [K in ActionType]: TAutomataActionPayload<ActionType, PayloadType>['payload'] },
+	>(action: TAutomataActionPayload<ActionType, PayloadType>) => {
+		previousContextRef.current = instance.getContext();
+		lastActionRef.current = action;
+		dispatchWrapper({
+			store,
+			action,
+		});
 	};
 
 	return {
-		state: automatasList[idFSM.current].state,
-		getContext: automatasList[idFSM.current].getContext.bind(fsmStore),
-		dispatch: payloadFromDispatch,
-		trace: () => trace(lastPayload, previousContext),
-		getInstanceAutomata,
+		state: instance.state,
+		getContext: instance.getContext.bind(instance),
+		dispatch,
+		trace: () => trace(lastActionRef.current, previousContextRef.current),
+		getInstanceAutomata: store.getSnapshot,
 		getAutomatasList,
 		...staticMethods.current,
 	};
