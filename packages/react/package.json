@@ -56,7 +56,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"prepack": "pnpm run build && pnpm run lint",
-		"create_test_automata": "chmod +x ./__tests__/generate_automata_fixtures.sh && ./__tests__/generate_automata_fixtures.sh"
+		"create_test_automata": "bash __tests__/generate_automata_fixtures.sh"
 	},
 	"dependencies": {
 		"@yantrix/codegen": "workspace:^",
