@@ -5,11 +5,12 @@ import {
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
 	TAutomataStateContext,
-} from '@yantrix/automata';
-import { TClassConstructor, TStaticMethods } from '@yantrix/utils';
+	TClassConstructor,
+	TStaticMethods,
+} from '@yantrix/core';
 
-export type TUseFSMProps<Automata extends TAutomata> = {
-	Automata: TClassConstructor<Automata>;
+export type TUseFSMProps = {
+	Automata: TAutomataConstructorWithStatic;
 	id: string;
 };
 
@@ -21,6 +22,8 @@ export type TAutomata = IAutomata<
 	Record<TAutomataBaseActionType, any>,
 	Record<TAutomataBaseEventType, any>
 >;
+
+export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TStaticMethods;
 
 export type TTraceTransaction<
 	StateType extends TAutomataBaseStateType,
@@ -41,39 +44,33 @@ export interface IUnsubscribe {
 
 export type TListenerCallback = () => void;
 
-export interface IContextFSM<Snapshot = TAutomata> {
+export interface IYantrixBoundStore<Snapshot = TAutomata> {
 	callbacksIdCounter: number;
-	callbacks: Map<any, TListenerCallback>;
+	callbacks: Map<number, TListenerCallback>;
 	subscribe: (listener: TListenerCallback) => IUnsubscribe;
-	getSnapshot: () => Snapshot;
-	changeState: (newState: Snapshot) => void;
-	state: Snapshot;
+	getSnapshot: () => Snapshot; // throws if not initialized
+	changeState: () => void; // notify subscribers for this id
+}
 
-	/**
-	 * @description Инициализируцет автомат в зависимости от типа, переданного в хук и возвращает id автомата
-	 * @param Automata
-	 * @return string
-	 */
-	initializeFSM: (Automata: TUseFSMProps<TAutomata> | TClassConstructor<TAutomata>) => string;
-
-	/**
-	 * Добавляет новый автомат, если автомата с данным id еще не существует
-	 * @param id
-	 * @param Automata
-	 */
-	changeAutomatas: (id: string, Automata: TClassConstructor<TAutomata>) => void;
-};
+export interface IContextFSM {
+	initializeFSM: (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => string;
+	getStore: (id: string) => IYantrixBoundStore;
+}
 
 export type TUseFsmReturn = {
-	state: TAutomataBaseStateType;
+	state: TAutomataBaseStateType | null;
 	getContext: () => any;
-	dispatch: <ActionType extends number, PayloadType extends { [K in ActionType]: any }>
-	(action: TAutomataActionPayload<ActionType, PayloadType>
+	dispatch: <ActionType extends TAutomataBaseActionType, PayloadType extends { [K in ActionType]: any }>(
+		action: TAutomataActionPayload<ActionType, PayloadType>,
 	) => void;
 	trace: () => TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType>;
-	getInstanceAutomata: () => TAutomata | undefined;
+	getInstanceAutomata: () => TAutomata;
 	getAutomatasList: () => Record<string, TAutomata>;
 } & TStaticMethods;
+
+export type TUseFsmReturnWithSelection<Selection> = TUseFsmReturn & {
+	selection: Selection;
+};
 
 export type TPreviousContext = {
 	state: number | null;
@@ -81,6 +78,8 @@ export type TPreviousContext = {
 };
 
 export type TUseFSMOptions<Snapshot, Selection> = {
-	selector: (snapshot: Snapshot) => Selection;
+	selector: (snapshot: Snapshot, statics: TStaticMethods) => Selection;
 	isEqual?: (a: Selection, b: Selection) => boolean;
 };
+
+export type TRef<T> = { current: T };

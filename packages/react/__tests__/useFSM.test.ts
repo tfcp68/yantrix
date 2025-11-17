@@ -1,9 +1,10 @@
-import { act, renderHook } from '@testing-library/react-hooks';
-import { uniqId } from '@yantrix/utils';
+import { renderHook } from '@testing-library/react-hooks';
+import { uniqId } from '@yantrix/core';
+import { act } from 'react';
 import { assert, describe, expect, it } from 'vitest';
 import { useFSM } from '../src';
-import GamePhaseAutomataTest from './fixtures/GamePhaseAutomataTest';
-import { TrafficLightAutomata as TLA } from './fixtures/TrafficLightAutomata';
+import GamePhaseAutomataTest from './generated/GamePhaseAutomataTest';
+import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata';
 
 describe('useFSM tests', () => {
 	it('instance class by automata id', () => {
@@ -27,11 +28,11 @@ describe('useFSM tests', () => {
 		}));
 		act(() => {
 			result.current.dispatch({
-				action: TLA.getAction?.('Switch') as number,
+				action: TLA.getAction?.('Switch'),
 				payload: {},
 			});
 			result.current.dispatch({
-				action: TLA.getAction?.('Switch') as number,
+				action: TLA.getAction?.('Switch'),
 				payload: {},
 			});
 
@@ -47,11 +48,11 @@ describe('useFSM tests', () => {
 
 		act(() => {
 			result.current.dispatch({
-				action: result.current.getAction?.('Switch') as number,
+				action: result.current.getAction?.('Switch'),
 				payload: {},
 			});
 			result.current.dispatch({
-				action: result.current.getAction?.('Switch') as number,
+				action: result.current.getAction?.('Switch'),
 				payload: {},
 			});
 		});
@@ -69,13 +70,41 @@ describe('useFSM tests', () => {
 		expect(FSM2.current.getInstanceAutomata()).toBeInstanceOf(GamePhaseAutomataTest);
 	});
 
-	it('selector in useFSM', () => {
-		const { result } = renderHook(() => useFSM(TLA, {
-			selector: (state) => {
-				return state.context;
-			},
-		}));
+	it('does not re-render when dispatch results in the same state and context (isEqual guards)', () => {
+		const id = uniqId(10);
+		let renders = 0;
 
-		expect(result).toBeDefined();
+		const { result } = renderHook(() => {
+			renders++;
+			return useFSM(
+				{ Automata: TLA, id },
+			);
+		});
+
+		expect(renders).toBe(1);
+		expect(result.current.state).toBe(TLA.getState?.('Off'));
+
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Reset'),
+				payload: {
+					initialCounter: 0,
+				},
+			});
+		});
+
+		expect(renders).toBe(1);
+		const afterNoop = result.current.state;
+		expect(afterNoop).toBe(TLA.getState?.('Off'));
+
+		act(() => {
+			result.current.dispatch({
+				action: TLA.getAction?.('Switch'),
+				payload: {},
+			});
+		});
+		expect(renders).toBe(2);
+		const afterChange = result.current.state;
+		expect(afterChange).toBe(TLA.getState?.('Red'));
 	});
 });

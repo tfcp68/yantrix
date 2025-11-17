@@ -123,7 +123,6 @@ export function setupExpressions(props: {
 					`Max level of nested functions reached ${maxNestedFuncLevel}`,
 				);
 			}
-
 			return expressionsSerializer.getFunctionFromDictionary(FunctionName).concat(
 				`(${res.join(',')})`,
 			);
