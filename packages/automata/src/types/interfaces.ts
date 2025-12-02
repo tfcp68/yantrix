@@ -357,6 +357,17 @@ export interface IAutomata<
 	 * Returns the final result of all Actions, including the Queue
 	 */
 	dispatch: TAutomataDispatch<StateType, ActionType, ContextType, PayloadType>;
+
+	/**
+	 * Sets the event adapter for handling and mapping events.
+	 *
+	 * @param {IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null} adapter
+	 * The event adapter to be set, or null to remove the current adapter.
+	 *
+	 * @returns {this}
+	 * Returns the current instance for method chaining.
+	 */
+	setEventAdapter: (adapter: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null) => this;
 }
 
 /**
