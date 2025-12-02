@@ -204,6 +204,10 @@ function getStateToContext(props: {
 	});
 }
 
+const emptyContextFunction = `const getDefaultContext = (prevContext, payload) => {
+				return prevContext
+		}`;
+
 function getDefaultContext(props: {
 	stateDictionary: BasicStateDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -219,6 +223,10 @@ function getDefaultContext(props: {
 			value: state,
 		});
 
+		if (ctx === 'prevContext') {
+			return emptyContextFunction;
+		}
+
 		return `const getDefaultContext = (prevContext, payload) => {
 				const ctx = ${ctx}
 				return  Object.assign({}, prevContext, ctx);
@@ -226,9 +234,7 @@ function getDefaultContext(props: {
 			`;
 	}
 
-	return `const getDefaultContext = (prevContext, payload) => {
-				return prevContext
-		}`;
+	return emptyContextFunction;
 }
 
 export const contextSerializer = {
