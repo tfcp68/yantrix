@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FIXTURES_DIR="__tests__/fixtures"
+DIAGRAMS_DIR="__tests__/diagrams"
 OUT_DIR="__tests__/generated"
 LANG_DEFAULT="TypeScript"
 
@@ -20,7 +20,7 @@ while IFS=';' read -r DIAGRAM CLASS FILE_NAME LANG; do
   [[ -z "$DIAGRAM" || -z "$CLASS" || -z "$FILE_NAME" ]] && continue
 
   LANG="${LANG:-$LANG_DEFAULT}"
-  INPUT="${FIXTURES_DIR}/${DIAGRAM}"
+  INPUT="${DIAGRAMS_DIR}/${DIAGRAM}"
   OUTFILE="${OUT_DIR}/${FILE_NAME}.ts"
 
   echo "Generating $CLASS..."
