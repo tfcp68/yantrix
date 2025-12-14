@@ -10,7 +10,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 		this.imports['@yantrix/core']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
-	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
+	public override async getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
 		const props = {
 			imports: this.imports,
 			dictionaries: this.dictionaries,
@@ -35,7 +35,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			export type TActions${options.className} = keyof typeof actionsMap;
 			${TypeScriptCompiler.context.serializer.getDefaultContext(props)}
 			${TypeScriptCompiler.context.serializer.getStateReducerCode(props)}
-			${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
+			${await TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
 			${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
