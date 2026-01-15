@@ -93,16 +93,19 @@ export class CoreLoop<
 	>(
 		id: string,
 		machine: IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
-		adapter: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
+		adapter?: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
 	): this {
 		if (this.automata.has(id)) throw new Error(`Automata with id "${id}" already registered`);
 
-		const bridge
-			= adapter
-			?? new AutomataEventAdapter();
+		let bridge = machine.eventAdapter;
 
-		// Attach adapter to the automata:
-		machine.setEventAdapter(bridge);
+		if (adapter) {
+			bridge = adapter;
+			machine.setEventAdapter(bridge);
+		} else {
+			// eslint-disable-next-line style/max-len
+			bridge = new AutomataEventAdapter() as unknown as IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>;
+		}
 
 		// Subscribe to the Event Bus for events observed by the adapter
 		const observed = bridge.getObservedEvents();

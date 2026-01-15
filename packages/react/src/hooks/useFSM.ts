@@ -7,7 +7,7 @@ import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { readVersion, setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context } from '../store/store';
-import { TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
+import { TAutomata, TPreviousContext, TUseFSMInput, TUseFsmReturn } from '../types';
 import { dispatchWrapper } from '../utils/dispatchWrapper';
 
 /**
@@ -46,7 +46,7 @@ import { dispatchWrapper } from '../utils/dispatchWrapper';
  * const isRed = state === getState('Red');
  */
 export const useFSM = (
-	Automata: TUseFSMProps | TAutomataConstructorWithStatic,
+	Automata: TUseFSMInput,
 ): TUseFsmReturn => {
 	// Initialize FSM id once
 	const idFSM = useRef<string>('');
@@ -97,12 +97,19 @@ export const useFSM = (
 		});
 	};
 
+	const getInstanceAutomata = (id: string, fsm: TAutomata) => {
+		return {
+			id,
+			Automata: fsm,
+		};
+	};
+
 	return {
 		state: instance.state,
 		getContext: instance.getContext.bind(instance),
 		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
-		getInstanceAutomata: store.getSnapshot,
+		getInstanceAutomata: () => getInstanceAutomata(idFSM.current, store.getSnapshot()),
 		getAutomatasList,
 		...staticMethods.current,
 	};

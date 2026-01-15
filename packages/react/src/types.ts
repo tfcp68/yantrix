@@ -9,11 +9,6 @@ import {
 	TStaticMethods,
 } from '@yantrix/core';
 
-export type TUseFSMProps = {
-	Automata: TAutomataConstructorWithStatic;
-	id: string;
-};
-
 export type TAutomata = IAutomata<
 	TAutomataBaseStateType,
 	TAutomataBaseActionType,
@@ -24,6 +19,19 @@ export type TAutomata = IAutomata<
 >;
 
 export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TStaticMethods;
+
+// Props for useFSM / initializeFSM: either constructor or already created instance
+export type TUseFSMProps =
+	| {
+		Automata: TAutomataConstructorWithStatic;
+		id: string;
+	}
+	| {
+		Automata: TAutomata;
+		id: string;
+	};
+
+export type TUseFSMInput = TAutomataConstructorWithStatic | TUseFSMProps;
 
 export type TTraceTransaction<
 	StateType extends TAutomataBaseStateType,
@@ -53,7 +61,7 @@ export interface IYantrixBoundStore<Snapshot = TAutomata> {
 }
 
 export interface IContextFSM {
-	initializeFSM: (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => string;
+	initializeFSM: (Automata: TUseFSMInput) => string;
 	getStore: (id: string) => IYantrixBoundStore;
 }
 
@@ -64,7 +72,10 @@ export type TUseFsmReturn = {
 		action: TAutomataActionPayload<ActionType, PayloadType>,
 	) => void;
 	trace: () => TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType>;
-	getInstanceAutomata: () => TAutomata;
+	getInstanceAutomata: () => {
+		id: string;
+		Automata: TAutomata;
+	};
 	getAutomatasList: () => Record<string, TAutomata>;
 } & TStaticMethods;
 
@@ -83,3 +94,7 @@ export type TUseFSMOptions<Snapshot, Selection> = {
 };
 
 export type TRef<T> = { current: T };
+
+export type TAutomataList = {
+	[key: string]: TAutomata;
+};

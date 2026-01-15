@@ -9,10 +9,9 @@ import { setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context, getSnapshotWithSelector } from '../store/store';
 import {
 	TAutomata,
-	TAutomataConstructorWithStatic,
 	TPreviousContext,
+	TUseFSMInput,
 	TUseFSMOptions,
-	TUseFSMProps,
 	TUseFsmReturnWithSelection,
 } from '../types';
 import { dispatchWrapper } from '../utils/dispatchWrapper';
@@ -23,7 +22,7 @@ type TGenericAction = TAutomataActionPayload<
 >;
 
 export function useFSMWithSelector<Selection>(
-	Automata: TUseFSMProps | TAutomataConstructorWithStatic,
+	Automata: TUseFSMInput,
 	options: TUseFSMOptions<TAutomata, Selection>,
 ): TUseFsmReturnWithSelection<Selection> {
 	const selectorFn = options.selector;
@@ -76,12 +75,19 @@ export function useFSMWithSelector<Selection>(
 
 	const getAutomatasList = () => automatasList;
 
+	const getInstanceAutomata = (id: string, fsm: TAutomata) => {
+		return {
+			id,
+			Automata: fsm,
+		};
+	};
+
 	return {
 		state: instance.state,
 		getContext: instance.getContext.bind(instance),
 		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
-		getInstanceAutomata: store.getSnapshot,
+		getInstanceAutomata: () => getInstanceAutomata(id, store.getSnapshot()),
 		getAutomatasList,
 		...staticsRef.current,
 		selection,
