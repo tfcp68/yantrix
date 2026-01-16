@@ -1,5 +1,9 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { ExpressionTypes, TRefereneceType } from '@yantrix/yantrix-parser';
+import { 
+	getEmitStatements, 
+	getSubscribeStatements, 
+	hasByPass,
+} from '@yantrix/yantrix-parser';
 
 import { ByPassAction } from '../constants.js';
 import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
@@ -33,14 +37,18 @@ export function fillDictionaries(
 	// fill event dictionary
 	if (eventDictionary) {
 		for (const state of diagram.states) {
-			const emittedEventsKeys = state.notes?.emit.map(event => event.identifier);
-			if (emittedEventsKeys && emittedEventsKeys.length > 0) {
+			if (!state.notes) continue;
+			
+			const emitStatements = getEmitStatements(state.notes);
+			const emittedEventsKeys = emitStatements.map(emit => emit.identifier);
+			if (emittedEventsKeys.length > 0) {
 				const uniqueKeys = emittedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 
-			const subscribedEventsKeys = state.notes?.subscribe.map(event => event.identifier);
-			if (subscribedEventsKeys && subscribedEventsKeys.length > 0) {
+			const subscribeStatements = getSubscribeStatements(state.notes);
+			const subscribedEventsKeys = subscribeStatements.map(sub => sub.identifier);
+			if (subscribedEventsKeys.length > 0) {
 				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
@@ -63,7 +71,7 @@ export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateD
 	const byPassed: number[] = [];
 
 	diagram.states.forEach((state) => {
-		if (state.notes?.byPass) {
+		if (state.notes && hasByPass(state.notes)) {
 			const actionChains = diagram.actionChains[state.id];
 
 			if (!actionChains) throw new Error(`ByPassed state ${state.id} doesn\'t have transition`);
@@ -89,8 +97,11 @@ export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateD
 	return byPassed;
 }
 
-export const pathRecord: Record<TRefereneceType, string> = {
-	[ExpressionTypes.Constant]: 'constant',
-	[ExpressionTypes.Context]: 'prevContext',
-	[ExpressionTypes.Payload]: 'payload',
+/**
+ * Reference type to path mapping for code generation.
+ */
+export const pathRecord: Record<string, string> = {
+	constant: 'constant',
+	context: 'prevContext',
+	payload: 'payload',
 };

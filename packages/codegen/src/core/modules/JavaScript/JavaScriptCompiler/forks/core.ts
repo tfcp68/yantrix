@@ -1,6 +1,10 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TActionChain, TActionChainParams } from '@yantrix/mermaid-parser';
-import { isFunctionExpression, YantrixParser } from '@yantrix/yantrix-parser';
+import {
+	getExpressionStatements,
+	isFunctionExpression,
+	YantrixParser,
+} from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { expressions } from '../expressions';
 
@@ -135,13 +139,17 @@ function resolveChainSegment(segment: string, props: {
 	const { expressionRecord } = props;
 	try {
 		const wrappedSegment = `=${segment}?`;
-		const processedExpression = parser.parse(wrappedSegment);
-		// check the expression property at the top-level of the parsed object
-		if (!processedExpression.expression || !isFunctionExpression(processedExpression.expression)) {
+		const processedDocument = parser.parse(wrappedSegment);
+		const exprStatements = getExpressionStatements(processedDocument);
+		if (exprStatements.length === 0) {
+			throw new Error('Incorrect expression');
+		}
+		const expression = exprStatements[0]!.expression;
+		if (!isFunctionExpression(expression)) {
 			throw new Error('Incorrect expression');
 		}
 		const expressionValue = expressions.functions.getExpressionValue({
-			expression: processedExpression.expression,
+			expression,
 			expressionRecord,
 		});
 		return expressionValue;

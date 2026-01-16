@@ -47,21 +47,12 @@ export function generateRandomKeyList() {
 	const length = Math.floor(Math.random() * KeyItemsCount) + 1;
 	return Array.from({ length }, (_, i) => `${defaultName}${i}`);
 }
+
 export function getKeyItemsInitialEmpty() {
 	const keyItemsName = generateRandomKeyList();
-
-	return keyItemsName.map((value) => {
-		return {
-			value,
-			output: () => {
-				return {
-					keyItem: {
-						identifier: value,
-					},
-				};
-			},
-		};
-	});
+	return keyItemsName.map(value => ({
+		value,
+	}));
 }
 export function getKeyItemsWithInitial(expression: any) {
 	const keyItems = generateRandomKeyList();
@@ -104,7 +95,7 @@ export function getKeyItemsWithInitial(expression: any) {
 	});
 }
 
-export function getKeyItemsRandomInitial(isRandomEmptyErr: boolean = false): any {
+export function getKeyItemsRandomInitial(isRandomEmptyErr: boolean = false): any[] {
 	const keyItems = generateRandomKeyList();
 	const expressions = Object.values(allowedExpressions);
 
