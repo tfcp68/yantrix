@@ -97,14 +97,12 @@ export class CoreLoop<
 	): this {
 		if (this.automata.has(id)) throw new Error(`Automata with id "${id}" already registered`);
 
-		let bridge = machine.eventAdapter;
+		// eslint-disable-next-line style/max-len
+		let bridge = machine.eventAdapter ?? new AutomataEventAdapter() as unknown as IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>;
 
 		if (adapter) {
 			bridge = adapter;
 			machine.setEventAdapter(bridge);
-		} else {
-			// eslint-disable-next-line style/max-len
-			bridge = new AutomataEventAdapter() as unknown as IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>;
 		}
 
 		// Subscribe to the Event Bus for events observed by the adapter

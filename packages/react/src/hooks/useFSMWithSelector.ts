@@ -9,6 +9,7 @@ import { setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context, getSnapshotWithSelector } from '../store/store';
 import {
 	TAutomata,
+	TExtractAutomataContext,
 	TPreviousContext,
 	TUseFSMInput,
 	TUseFSMOptions,
@@ -21,10 +22,10 @@ type TGenericAction = TAutomataActionPayload<
 	Record<TAutomataBaseActionType, unknown>
 >;
 
-export function useFSMWithSelector<Selection>(
+export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext<TAutomata>>(
 	Automata: TUseFSMInput,
 	options: TUseFSMOptions<TAutomata, Selection>,
-): TUseFsmReturnWithSelection<Selection> {
+): TUseFsmReturnWithSelection<Selection, TContext> {
 	const selectorFn = options.selector;
 	const isEqualFn = options.isEqual;
 

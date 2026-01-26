@@ -65,9 +65,17 @@ export interface IContextFSM {
 	getStore: (id: string) => IYantrixBoundStore;
 }
 
-export type TUseFsmReturn = {
+export type TExtractAutomataContext<T> =
+	T extends { getContext: () => { context: infer C } } ? C : unknown;
+
+export type TUseFsmGetContext<TContext> = () => {
 	state: TAutomataBaseStateType | null;
-	getContext: () => any;
+	context: TContext;
+};
+
+export type TUseFsmReturn<TContext = unknown> = {
+	state: TAutomataBaseStateType | null;
+	getContext: TUseFsmGetContext<TContext>;
 	dispatch: <ActionType extends TAutomataBaseActionType, PayloadType extends { [K in ActionType]: any }>(
 		action: TAutomataActionPayload<ActionType, PayloadType>,
 	) => void;
@@ -79,13 +87,13 @@ export type TUseFsmReturn = {
 	getAutomatasList: () => Record<string, TAutomata>;
 } & TStaticMethods;
 
-export type TUseFsmReturnWithSelection<Selection> = TUseFsmReturn & {
+export type TUseFsmReturnWithSelection<Selection, TContext> = TUseFsmReturn<TContext> & {
 	selection: Selection;
 };
 
-export type TPreviousContext = {
+export type TPreviousContext<Context = any> = {
 	state: number | null;
-	context: Record<string, any>;
+	context: Record<string, Context>;
 };
 
 export type TUseFSMOptions<Snapshot, Selection> = {
