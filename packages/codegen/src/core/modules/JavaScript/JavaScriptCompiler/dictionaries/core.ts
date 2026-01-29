@@ -29,6 +29,15 @@ export function setupDictionaries(props: {
 	dictionaries.push(
 		`export const actionsDictionary = ${JSON.stringify(props.actionDictionary.getDictionary(), null, 2)}`,
 	);
+
+	dictionaries.push(`export const reversedStatesDictionary = ${JSON.stringify(Object.fromEntries(
+		Object.entries(props.stateDictionary.getDictionary()).map(([k, v]) => [v, k]),
+	), null, 2)};`);
+
+	dictionaries.push(`export const reversedActionsDictionary = ${JSON.stringify(Object.fromEntries(
+		Object.entries(props.actionDictionary.getDictionary()).map(([k, v]) => [v, k]),
+	), null, 2)};`);
+
 	if (Object.keys(props.eventDictionary.getDictionary()).length > 0) {
 		dictionaries.push(
 			`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,

@@ -91,6 +91,17 @@ implements IAutomata<
 	setContextValidator = (() => this) as any;
 	validateEventMeta = ((_: any) => true) as any;
 	setEventMetaValidator = (() => this) as any;
+	setEventAdapter = (adapter: IAutomataEventAdapter<
+		UStates,
+		UActions,
+		UEvents,
+		Record<UStates, any>,
+		Record<UActions, any>,
+		TMeta
+	> | null) => {
+		this.eventAdapter = adapter;
+		return this;
+	};
 
 	enable = () => this;
 	disable = () => this;

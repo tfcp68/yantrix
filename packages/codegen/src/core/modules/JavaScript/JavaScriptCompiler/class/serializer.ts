@@ -71,7 +71,7 @@ export function getGetStateFunc() {
 }
 
 export function getGetActionFunc() {
-	return `(action) => actionsDictionary[action];`;
+	return `(action) => actionsDictionary[action]`;
 }
 
 export function getCreateActionFunc(props: { className: string }) {
@@ -113,7 +113,7 @@ export function getRootReducer() {
 							throw new Error('Invalid newContextFunc')
 						}
 
-						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this)};
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this.lastAction)};
 
 					}
 

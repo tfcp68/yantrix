@@ -40,7 +40,7 @@ const automatas = Object.fromEntries(
 	);
 Object.entries(GlobalEventDictionary.getDictionary())
 	.forEach(([eventName, eventId]) => {
-	
+
 		EventBus.subscribe(eventId, ({ event, meta }) => {
 
 			const nextEventsToProcess = [];
@@ -55,7 +55,7 @@ Object.entries(GlobalEventDictionary.getDictionary())
 			})
 
 			EventBus.dispatch(...nextEventsToProcess);
-	
+
 			return {
 				event,
 				meta,
@@ -113,9 +113,14 @@ return [EventBus, automatas];
 		}())}
 				return  Object.assign({}, prevContext, ctx);
 			}
-			
+
 			const reducer = {
-		74979334: (prevContext, payload, functionDictionary, automata) => {
+		74979334: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = 74979334;
+				const _currentActionName = findKeyByValue(actionsDictionary, lastAction);
+				const _currentStateName = findKeyByValue(statesDictionary, 74979334);
 
 				return {counter: (function(){
 			const boundValue = (function(){
@@ -140,7 +145,12 @@ return [EventBus, automatas];
 
 		}())}
 			},
-	79183: (prevContext, payload, functionDictionary, automata) => {
+	79183: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = 79183;
+				const _currentActionName = findKeyByValue(actionsDictionary, lastAction);
+				const _currentStateName = findKeyByValue(statesDictionary, 79183);
 
 				return {counter: (function(){
 						if(prevContext !== null && prevContext['counter'] !== undefined && prevContext['counter'] !== null) {
@@ -151,29 +161,49 @@ return [EventBus, automatas];
 							}
 					}())}
 			},
-	82033: (prevContext, payload, functionDictionary, automata) => {
+	82033: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = 82033;
+				const _currentActionName = findKeyByValue(actionsDictionary, lastAction);
+				const _currentStateName = findKeyByValue(statesDictionary, 82033);
 
 				return prevContext
 			},
-	1051543483: (prevContext, payload, functionDictionary, automata) => {
+	1051543483: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = 1051543483;
+				const _currentActionName = findKeyByValue(actionsDictionary, lastAction);
+				const _currentStateName = findKeyByValue(statesDictionary, 1051543483);
 
 				return prevContext
 			},
-	69066467: (prevContext, payload, functionDictionary, automata) => {
+	69066467: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = 69066467;
+				const _currentActionName = findKeyByValue(actionsDictionary, lastAction);
+				const _currentStateName = findKeyByValue(statesDictionary, 69066467);
 
 				return prevContext
 			},
-	1650372460: (prevContext, payload, functionDictionary, automata) => {
+	1650372460: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = 1650372460;
+				const _currentActionName = findKeyByValue(actionsDictionary, lastAction);
+				const _currentStateName = findKeyByValue(statesDictionary, 1650372460);
 
 				return prevContext
 			}
 	}
-			
+
 			const actionToStateFromStateDict = {74979334: {
 				78851375: {
 					state: [79183]
 				}
-			
+
 	},
 	79183: {
 				78851375: {
@@ -184,7 +214,7 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [82033]
 				}
-			
+
 	},
 	82033: {
 				78851375: {
@@ -195,7 +225,7 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [1051543483]
 				}
-			
+
 	},
 	1051543483: {
 				78851375: {
@@ -206,7 +236,7 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [69066467]
 				}
-			
+
 	},
 	69066467: {
 				78851375: {
@@ -217,7 +247,7 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [1650372460]
 				}
-			
+
 	},
 	1650372460: {
 				78851375: {
@@ -228,12 +258,12 @@ return [EventBus, automatas];
 				1805606060: {
 					state: [82033]
 				}
-			
+
 	},}
-			
+
 export class TrafficLightAutomata extends GenericAutomata {
 
-    static id = 'TrafficLightAutomata_1761845237940';
+    static id = 'TrafficLightAutomata_1769668286904';
     static actions = actionsMap;
     static states = statesMap;
     static getState = (state: keyof typeof statesMap) => statesDictionary[state];
@@ -266,14 +296,14 @@ export class TrafficLightAutomata extends GenericAutomata {
 						const contextWithInitial = getDefaultContext(context,payload)
 
 
-						
+
 			if(actionMove.state.length > 1 && actionMove.predicate != null) {
 				// determine new state from predicate
 				const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
 				if(resolvedPredicateValue == null) return { state, context };
 				newStateObject.state = resolvedPredicateValue;
 			}
-		
+
 
 						const newState = newStateObject.state;
 						const newContextFunc = reducer[newState]
@@ -282,7 +312,7 @@ export class TrafficLightAutomata extends GenericAutomata {
 							throw new Error('Invalid newContextFunc')
 						}
 
-						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this)};
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this.lastAction)};
 
 					}
 
@@ -306,7 +336,7 @@ export class TrafficLightAutomata extends GenericAutomata {
 		const prev = this.getContext()?.context ?? {};
 		const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
 		this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
-	
+
     }
 
     isKeyOf = ((key, obj) => key in obj) as (key: any, obj: object) => key is keyof typeof obj;
@@ -327,4 +357,3 @@ const getEpoch = () => epoch.val;
 }
 			functionDictionary.register(internals);
 			functionDictionary.register(builtInFunctions);
-		

@@ -13,6 +13,13 @@ import { pathRecord } from '../../../../shared';
 import { getFunctionBody } from './functions';
 import { expressionsSerializer } from './serializer';
 
+const mapInternals = {
+	currentActionId: '_currentActionId',
+	currentStateId: '_currentStateId',
+	currentActionName: '_currentActionName',
+	currentStateName: '_currentStateName',
+};
+
 export function setupExpressions(props: {
 	constants: TConstants | null;
 }): TExpressionRecord {
@@ -28,6 +35,11 @@ export function setupExpressions(props: {
 					`The identifier is missing in the const dictionary: ${identifier}`,
 				);
 			}
+
+			if (Object.keys(mapInternals).includes(identifier)) {
+				return mapInternals[identifier as keyof typeof mapInternals];
+			}
+
 			if (typeof props.constants[identifier] === 'string')
 				return `"${props.constants[identifier]}"`;
 

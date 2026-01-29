@@ -192,7 +192,12 @@ function getStateToContext(props: {
 			throw new Error('Invalid state');
 		}
 
-		return `${stateValue}: (prevContext, payload, functionDictionary, automata) => {
+		return `${stateValue}: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = ${stateValue};
+				const _currentActionName = reversedActionsDictionary[_currentActionId];
+				const _currentStateName = reversedStatesDictionary[_currentStateId];
 
 				return ${getContextTransition({
 					value: stateValue,
@@ -203,6 +208,10 @@ function getStateToContext(props: {
 			}`;
 	});
 }
+
+const emptyContextFunction = `const getDefaultContext = (prevContext, payload) => {
+				return prevContext
+		}`;
 
 function getDefaultContext(props: {
 	stateDictionary: BasicStateDictionary;
@@ -219,6 +228,10 @@ function getDefaultContext(props: {
 			value: state,
 		});
 
+		if (ctx === 'prevContext') {
+			return emptyContextFunction;
+		}
+
 		return `const getDefaultContext = (prevContext, payload) => {
 				const ctx = ${ctx}
 				return  Object.assign({}, prevContext, ctx);
@@ -226,9 +239,7 @@ function getDefaultContext(props: {
 			`;
 	}
 
-	return `const getDefaultContext = (prevContext, payload) => {
-				return prevContext
-		}`;
+	return emptyContextFunction;
 }
 
 export const contextSerializer = {
