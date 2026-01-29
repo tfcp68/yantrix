@@ -63,9 +63,6 @@ function ensureStore(id: string): IYantrixBoundStore {
 				return inst;
 			},
 
-			/**
-			 * Notify all subscribers about a state change.елай
-			 */
 			changeState() {
 				self.callbacks.forEach(cb => cb());
 			},

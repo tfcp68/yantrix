@@ -99,7 +99,7 @@ export class CoreLoop<
 
 		// eslint-disable-next-line style/max-len
 		let bridge = machine.eventAdapter ?? new AutomataEventAdapter() as unknown as IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>;
-
+		machine.setEventAdapter(bridge);
 		if (adapter) {
 			bridge = adapter;
 			machine.setEventAdapter(bridge);
