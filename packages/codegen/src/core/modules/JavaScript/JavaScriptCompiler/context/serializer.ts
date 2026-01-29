@@ -192,7 +192,12 @@ function getStateToContext(props: {
 			throw new Error('Invalid state');
 		}
 
-		return `${stateValue}: (prevContext, payload, functionDictionary, automata) => {
+		return `${stateValue}: (prevContext, payload, functionDictionary, lastAction) => {
+
+				const _currentActionId = lastAction;
+				const _currentStateId = ${stateValue};
+				const _currentActionName = reversedActionsDictionary[_currentActionId];
+				const _currentStateName = reversedStatesDictionary[_currentStateId];
 
 				return ${getContextTransition({
 					value: stateValue,
