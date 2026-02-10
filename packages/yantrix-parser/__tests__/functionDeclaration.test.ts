@@ -1,3 +1,4 @@
+import { randomArray, randomValue } from '@yantrix/utils';
 import { assert, describe, expect, it } from 'vitest';
 import { getDefineStatements, YantrixParser } from '../src';
 
@@ -50,15 +51,23 @@ const invalidFunctionsWithArgumentsExamples = [
 	'#{%s = %s(%%)}',
 ];
 
-/**
- * Generate random statements from templates
- */
+const multiplyNestedFunctionsArguments = [
+	`#{%s = %s(%s(%s()))}`,
+	`#{%s = %s(%s(%s(%s(%s(%s(%s()))))))}`,
+	`#{%s = %s(%s(%s(%s(%s(%s(%s())), %f, %f))), %f)}`,
+	`#{%s = %s(%s(%s(%arr,%d)), %i, %f)}`,
+];
+
 function generateRandomStatementsFromTemplate(arr: string[], casesAmount: number = 10) {
 	return arr.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () =>
 			template
 				.replaceAll('%i', () => randomInteger().toString())
 				.replaceAll('%d', () => randomDecimal().toFixed(2))
+				.replaceAll('%rand', () => randomValue().toString())
+				.replaceAll('%list', () => randomArray(randomString).join(','))
+				.replaceAll('%arr', () => '[]')
+				.replaceAll('%f', () => `${randomString()}()`)
 				.replaceAll('%s', () => randomString()));
 	});
 }
@@ -124,6 +133,13 @@ describe('function declaration', () => {
 			const cases = generateRandomStatementsFromTemplate(invalidFunctionsWithArgumentsExamples);
 			it.each(cases)('%s', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
+
+		describe('multi-nested arguments as functions', () => {
+			const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments, randomInteger(10, 25));
+			it.each(cases)('%s', (input: string) => {
+				assert.isOk(parser.parse(input));
 			});
 		});
 	});
