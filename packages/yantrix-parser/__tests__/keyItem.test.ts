@@ -1,4 +1,4 @@
-import { randomInteger, randomString } from '@yantrix/utils';
+import { randomDecimal, randomInteger, randomString, randomValue } from '@yantrix/utils';
 import { describe, expect, it } from 'vitest';
 import {
 	getContextStatements,
@@ -13,6 +13,88 @@ import {
 	isStringLiteral,
 	YantrixParser,
 } from '../src';
+import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
+
+const validCases = [
+	[`#{%s}`, keyItem.declarationKeyItem],
+	[`#{%s = "%s"}`, keyItem.withStringInitial],
+	[`#{%s = %arr}`, keyItem.withArrayInitial],
+	[`#{%s = %i}`, keyItem.withIntegerInitial],
+	[`#{%s = #%s}`, keyItem.withContextInitial],
+	[`#{%s = $%s}`, keyItem.withPayloadInitial],
+	[`#{%s = %%%s}`, keyItem.withConstantInitial],
+	['#{%multi}', keyItem.withMultipleInitials],
+	[`#{%s = %d}`, keyItem.withDecimalInitial],
+	[`#{%s = %s()}`, functionsFixtures.expression],
+];
+
+const templateFunctions: { [key: string]: (...args: any) => any } = {
+	'"%s"': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('"%s"', `"${val}"`), func(propertyName, `${val}`)];
+	},
+	'%s': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomString();
+		return [templateString.replace('%s', val), func(propertyName, val)];
+	},
+	'%i': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomInteger();
+		return [templateString.replace('%i', val.toString()), func(propertyName, val)];
+	},
+	'%d': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		const val = randomDecimal();
+		return [templateString.replace('%d', val.toString()), func(propertyName, val)];
+	},
+	'%multi': (templateString: string, _: string, func: (...args: any) => any) => {
+		const propsForExpected: Array<[string, string | number]> = [];
+		const partsForInput: string[] = [];
+
+		for (let i = 0; i < randomInteger(1, 5); i++) {
+			const propName = randomString();
+			const raw = randomValue();
+
+			if (typeof raw === 'string') {
+				partsForInput.push(`${propName}="${raw}"`);
+				propsForExpected.push([propName, raw]);
+			} else {
+				partsForInput.push(`${propName}=${raw}`);
+				propsForExpected.push([propName, raw]);
+			}
+		}
+
+		const str = partsForInput.join(',');
+		return [templateString.replace('%multi', str), func(propsForExpected)];
+	},
+	'%arr': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		return [templateString.replace('%arr', '[]'), func(propertyName)];
+	},
+	'default': (templateString: string, propertyName: string, func: (...args: any) => any) => {
+		return [templateString, func(propertyName)];
+	},
+};
+
+function generateExpressionStringAndExpectedObject(args: [string, (...args: any) => any]) {
+	const templateString = args[0];
+	const func = args[1];
+
+	// replacing property name with random string
+	const propertyName = randomString();
+	const templateStringWithName = templateString.replace('%s', propertyName);
+
+	// afterwards expecting different objects depending on the regex inside function arguments,
+	// all names and values need to match to pass tests
+	for (const regex in templateFunctions) {
+		if (templateStringWithName.match(regex)) {
+			return templateFunctions[regex]?.(templateStringWithName, propertyName, func);
+		}
+	}
+	return templateFunctions.default?.(templateStringWithName, propertyName, func);
+}
+function generateExpressionCases(templates: any[], casesAmount: number = randomInteger(1, 50)) {
+	return templates.flatMap((template) => {
+		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+	});
+}
 
 function genFromTemplates(templates: string[], casesAmount: number): string[] {
 	return templates.flatMap((t) => {
@@ -37,6 +119,15 @@ function genFromTemplates(templates: string[], casesAmount: number): string[] {
 
 describe('key list', () => {
 	const parser = new YantrixParser();
+
+	describe('single key item (fixtures)', () => {
+		const cases = generateExpressionCases(validCases, 20);
+
+		it.each(cases)('%s', (input, expected) => {
+			const output = parser.parse(input);
+			expect(output).toMatchObject(expected);
+		});
+	});
 
 	describe('single key item', () => {
 		it('should parse simple key item', () => {
@@ -150,16 +241,23 @@ describe('key list', () => {
 		});
 
 		describe('many items of the same type', () => {
-			const typeTemplates: Array<{ name: string; template: string; expected: ReturnType<typeof getExpressionType> }> = [
-				{ name: 'string', template: '#{%ID = "%STR"}', expected: 'string' },
-				{ name: 'integer', template: '#{%ID = %INT}', expected: 'integer' },
-				{ name: 'decimal', template: '#{%ID = %DEC}', expected: 'decimal' },
-				{ name: 'array', template: '#{%ID = []}', expected: 'array' },
-				{ name: 'contextRef', template: '#{%ID = #%CTX}', expected: 'context' },
-				{ name: 'payloadRef', template: '#{%ID = $%PAY}', expected: 'payload' },
-				{ name: 'constantRef', template: '#{%ID = %%%CST}', expected: 'constant' },
-				{ name: 'function', template: '#{%ID = %FN()}', expected: 'function' },
-			];
+			const typeTemplates: Array<
+				{
+					name: string;
+					template: string;
+					expected: ReturnType<typeof getExpressionType>;
+				}
+			>
+				= [
+					{ name: 'string', template: '#{%ID = "%STR"}', expected: 'string' },
+					{ name: 'integer', template: '#{%ID = %INT}', expected: 'integer' },
+					{ name: 'decimal', template: '#{%ID = %DEC}', expected: 'decimal' },
+					{ name: 'array', template: '#{%ID = []}', expected: 'array' },
+					{ name: 'contextRef', template: '#{%ID = #%CTX}', expected: 'context' },
+					{ name: 'payloadRef', template: '#{%ID = $%PAY}', expected: 'payload' },
+					{ name: 'constantRef', template: '#{%ID = %%%CST}', expected: 'constant' },
+					{ name: 'function', template: '#{%ID = %FN()}', expected: 'function' },
+				];
 
 			for (const { name, template, expected } of typeTemplates) {
 				it(`${name}: parses many items and preserves expression types`, () => {
