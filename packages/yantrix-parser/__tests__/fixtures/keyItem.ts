@@ -1,81 +1,79 @@
 import {
-	ArrayLiteral,
-	Constant,
-	ContextReference,
-	ContextStatement,
-	DataObject,
-	Document,
-	Expression,
-	FunctionCall,
-	NumberLiteral,
-	PayloadReference,
-	RawKeyItem,
-	StringLiteral,
-} from '../../src';
+	TArrLit,
+	TConstRef,
+	TCtx,
+	TCtxRef,
+	TDataObj,
+	TDoc,
+	TFuncCall,
+	TNumLit,
+	TPayRef,
+	TRawKey,
+	TStringLit,
+} from './types';
 
-function createDocument(): Document {
-	const doc = { $type: 'Document', statements: [] };
-	return doc as unknown as Document;
+function createDocument(): TDoc {
+	return { $type: 'Document', statements: [] };
 }
 
-function createContextStatement(doc: Document): Omit<ContextStatement, '$container'> {
-	const ctx: any = {
+function createContextStatement(doc: TDoc): TCtx {
+	const ctx: TCtx = {
 		$type: 'ContextStatement',
 		items: [],
 		reducer: [],
 	};
 	doc.statements.push(ctx);
-	return ctx as Omit<ContextStatement, '$container'>;
+	return ctx;
 }
 
-export function createRawKeyItem(identifier: string, parent: { items: any[] }): RawKeyItem {
-	const item = {
+export function createRawKeyItem(identifier: string, parent: { items: TRawKey[] }): TRawKey {
+	const item: TRawKey = {
 		$type: 'RawKeyItem',
 		identifier,
-	} as const;
+	};
 	parent.items.push(item);
-	return item as unknown as RawKeyItem;
+	return item;
 }
 
 function createContextStatementWithSingleItem(
-	itemBuilder: (ctx: ContextStatement, doc: Document) => void,
-): Document {
+	itemBuilder: (ctx: TCtx, doc: TDoc) => void,
+): TDoc {
 	const doc = createDocument();
-	const ctx = createContextStatement(doc) as unknown as ContextStatement;
+	const ctx = createContextStatement(doc);
 	itemBuilder(ctx, doc);
 	return doc;
 }
 
-function createStringLiteral(valueWithQuotes: string): StringLiteral {
-	return { $type: 'StringLiteral', value: valueWithQuotes } as unknown as StringLiteral;
+function createStringLiteral(valueWithQuotes: string): TStringLit {
+	return { $type: 'StringLiteral', value: valueWithQuotes };
 }
 
-function createNumberLiteral(value: number): NumberLiteral {
-	return { $type: 'NumberLiteral', value: String(value) } as unknown as NumberLiteral;
+function createNumberLiteral(value: number): TNumLit {
+	return { $type: 'NumberLiteral', value: String(value) };
 }
 
-function createArrayLiteral(): ArrayLiteral {
-	return { $type: 'ArrayLiteral' } as unknown as ArrayLiteral;
+function createArrayLiteral(): TArrLit {
+	return { $type: 'ArrayLiteral' };
 }
 
-function createFunctionCall(name: string): FunctionCall {
-	return { $type: 'FunctionCall', name, args: [] } as unknown as FunctionCall;
+function createFunctionCall(name: string): TFuncCall {
+	return { $type: 'FunctionCall', name, args: [] };
 }
 
-function createContextRef(identifier: string): ContextReference {
-	return { $type: 'ContextReference', identifier } as unknown as ContextReference;
+function createContextRef(identifier: string): TCtxRef {
+	return { $type: 'ContextReference', identifier };
 }
 
-function createPayloadRef(identifier: string): PayloadReference {
-	return { $type: 'PayloadReference', identifier } as unknown as PayloadReference;
+function createPayloadRef(identifier: string): TPayRef {
+	return { $type: 'PayloadReference', identifier };
 }
 
-function createConstant(identifier: string): Constant {
-	return { $type: 'Constant', identifier } as unknown as Constant;
+function createConstant(identifier: string): TConstRef {
+	return { $type: 'Constant', identifier };
 }
 
-function createDataObject(reference: Constant | ContextReference | PayloadReference): DataObject {
-	return { $type: 'DataObject', reference } as unknown as DataObject;
+function createDataObject(reference: TConstRef | TCtxRef | TPayRef): TDataObj {
+	return { $type: 'DataObject', reference };
 }
 
 export const keyItem = {
@@ -87,44 +85,45 @@ export const keyItem = {
 	withStringInitial: (propertyName: string, stringWithQuotes: string) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createStringLiteral(stringWithQuotes) as unknown as Expression;
+			item.defaultValue = createStringLiteral(stringWithQuotes);
 		}),
 
 	withArrayInitial: (propertyName: string) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createArrayLiteral() as unknown as Expression;
+			item.defaultValue = createArrayLiteral();
 		}),
 
 	withIntegerInitial: (propertyName: string, integerValue: number) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createNumberLiteral(integerValue) as unknown as Expression;
+			item.defaultValue = createNumberLiteral(integerValue);
 		}),
 
 	withDecimalInitial: (propertyName: string, decimalValue: number) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createNumberLiteral(decimalValue) as unknown as Expression;
+			item.defaultValue = createNumberLiteral(decimalValue);
 		}),
 
 	withContextInitial: (propertyName: string, ref: string) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createDataObject(createContextRef(ref)) as unknown as Expression;
+			item.defaultValue = createDataObject(createContextRef(ref));
 		}),
 
 	withPayloadInitial: (propertyName: string, ref: string) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createDataObject(createPayloadRef(ref)) as unknown as Expression;
+			item.defaultValue = createDataObject(createPayloadRef(ref));
 		}),
 
 	withConstantInitial: (propertyName: string, ref: string) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createDataObject(createConstant(ref)) as unknown as Expression;
+			item.defaultValue = createDataObject(createConstant(ref));
 		}),
+
 	withMultipleInitials: (pairs: Array<[string, string | number]>) =>
 		createContextStatementWithSingleItem((ctx) => {
 			for (const [name, raw] of pairs) {
@@ -132,9 +131,9 @@ export const keyItem = {
 
 				if (typeof raw === 'string') {
 					const unquoted = raw.replace(/^"(.*)"$/, '$1');
-					item.defaultValue = createStringLiteral(unquoted) as unknown as Expression;
+					item.defaultValue = createStringLiteral(unquoted);
 				} else {
-					item.defaultValue = createNumberLiteral(Number(raw)) as unknown as Expression;
+					item.defaultValue = createNumberLiteral(Number(raw));
 				}
 			}
 		}),
@@ -144,6 +143,6 @@ export const functionsFixtures = {
 	expression: (propertyName: string, functionName: string) =>
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
-			item.defaultValue = createFunctionCall(functionName) as unknown as Expression;
+			item.defaultValue = createFunctionCall(functionName);
 		}),
 };

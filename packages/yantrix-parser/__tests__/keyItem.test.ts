@@ -2,18 +2,15 @@ import { randomDecimal, randomInteger, randomString, randomValue } from '@yantri
 import { describe, expect, it } from 'vitest';
 import {
 	getContextStatements,
-	getExpressionType,
-	getNumberValue,
-	getReferenceIdentifier,
-	getReferenceType,
-	getStringValue,
-	isDataObject,
-	isFunctionCall,
-	isNumberLiteral,
-	isStringLiteral,
 	YantrixParser,
 } from '../src';
 import { functionsFixtures, keyItem } from './fixtures/keyItem.js';
+import {
+	allowedExpressions,
+	getKeyItemsInitialEmpty,
+	getKeyItemsRandomInitial,
+	getKeyItemsWithInitial,
+} from './utils/utils';
 
 const validCases = [
 	[`#{%s}`, keyItem.declarationKeyItem],
@@ -77,12 +74,9 @@ function generateExpressionStringAndExpectedObject(args: [string, (...args: any)
 	const templateString = args[0];
 	const func = args[1];
 
-	// replacing property name with random string
 	const propertyName = randomString();
 	const templateStringWithName = templateString.replace('%s', propertyName);
 
-	// afterwards expecting different objects depending on the regex inside function arguments,
-	// all names and values need to match to pass tests
 	for (const regex in templateFunctions) {
 		if (templateStringWithName.match(regex)) {
 			return templateFunctions[regex]?.(templateStringWithName, propertyName, func);
@@ -90,35 +84,24 @@ function generateExpressionStringAndExpectedObject(args: [string, (...args: any)
 	}
 	return templateFunctions.default?.(templateStringWithName, propertyName, func);
 }
+
 function generateExpressionCases(templates: any[], casesAmount: number = randomInteger(1, 50)) {
 	return templates.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
 	});
 }
 
-function genFromTemplates(templates: string[], casesAmount: number): string[] {
-	return templates.flatMap((t) => {
-		return Array.from({ length: casesAmount }, () => {
-			const id = () => randomString(); // already valid ID (letters only)
-			const intStr = () => randomInteger(0, 10_000).toString();
-			const decStr = () => `${randomInteger(0, 10_000)}.${randomInteger(0, 10_000)}`;
-			const str = () => randomString();
-
-			return t
-				.replaceAll('%ID', () => id())
-				.replaceAll('%INT', () => intStr())
-				.replaceAll('%DEC', () => decStr())
-				.replaceAll('%STR', () => str())
-				.replaceAll('%CTX', () => id())
-				.replaceAll('%PAY', () => id())
-				.replaceAll('%FN', () => id())
-				.replaceAll('%CST', () => id());
-		});
-	});
-}
-
 describe('key list', () => {
 	const parser = new YantrixParser();
+
+	describe('the number of arguments must be equal to or less than the number of context arguments', () => {
+		const keyItem = getKeyItemsInitialEmpty()[0];
+		const strInput = `#{${keyItem?.value}} <= #a, #b`;
+
+		expect(() => parser.parse(strInput)).toThrowError(
+			'The number of arguments must be equal to or less than the number of context arguments.',
+		);
+	});
 
 	describe('single key item (fixtures)', () => {
 		const cases = generateExpressionCases(validCases, 20);
@@ -129,222 +112,147 @@ describe('key list', () => {
 		});
 	});
 
-	describe('single key item', () => {
-		it('should parse simple key item', () => {
-			const result = parser.parse('#{prop1}');
-			const contexts = getContextStatements(result);
-			expect(contexts).toHaveLength(1);
-			expect(contexts[0]!.items[0]!.identifier).toBe('prop1');
-		});
+	describe('random number of keyItem', () => {
+		describe('same type of data', () => {
+			Object.entries(allowedExpressions).forEach(([_, value]: [string, any]) => {
+				it(`data type`, () => {
+					for (let index = 0; index < 50; index++) {
+						const keyItems = getKeyItemsWithInitial(value);
 
-		it('should parse key item with string default', () => {
-			const result = parser.parse('#{prop1 = "hello"}');
-			const item = getContextStatements(result)[0]!.items[0]!;
-			expect(item.identifier).toBe('prop1');
-			expect(item.defaultValue).toBeDefined();
+						const targetPropertyCount = keyItems.length;
+						const formatInput = `#{${keyItems.map(({ input }) => input).join(',')}}`;
 
-			const expr = item.defaultValue!;
-			expect(isStringLiteral(expr)).toBe(true);
-			if (isStringLiteral(expr)) expect(getStringValue(expr)).toBe('hello');
-			expect(getExpressionType(expr)).toBe('string');
-		});
+						const output = parser.parse(formatInput);
+						const context = getContextStatements(output)[0]!.items;
 
-		it('should parse key item with integer default', () => {
-			const result = parser.parse('#{prop1 = 42}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isNumberLiteral(expr)).toBe(true);
-			if (isNumberLiteral(expr)) expect(getNumberValue(expr)).toBe(42);
-			expect(getExpressionType(expr)).toBe('integer');
-		});
+						expect(targetPropertyCount).toBe(context.length);
 
-		it('should parse key item with decimal default', () => {
-			const result = parser.parse('#{prop1 = 3.14}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isNumberLiteral(expr)).toBe(true);
-			expect(getExpressionType(expr)).toBe('decimal');
-		});
+						keyItems.forEach(({ initialValue, key }, index) => {
+							const item = context[index]!;
+							const expected = value.output(initialValue);
 
-		it('should parse key item with array default', () => {
-			const result = parser.parse('#{prop1 = []}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(getExpressionType(expr)).toBe('array');
-		});
-
-		it('should parse key item with context reference default', () => {
-			const result = parser.parse('#{prop1 = #otherProp}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isDataObject(expr)).toBe(true);
-			if (isDataObject(expr)) {
-				expect(getReferenceType(expr)).toBe('context');
-				expect(getReferenceIdentifier(expr)).toBe('otherProp');
-			}
-		});
-
-		it('should parse key item with payload reference default', () => {
-			const result = parser.parse('#{prop1 = $payload}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isDataObject(expr)).toBe(true);
-			if (isDataObject(expr)) {
-				expect(getReferenceType(expr)).toBe('payload');
-				expect(getReferenceIdentifier(expr)).toBe('payload');
-			}
-		});
-
-		it('should parse key item with constant reference default', () => {
-			const result = parser.parse('#{prop1 = %%MY_CONST}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isDataObject(expr)).toBe(true);
-			if (isDataObject(expr)) {
-				expect(getReferenceType(expr)).toBe('constant');
-				expect(getReferenceIdentifier(expr)).toBe('MY_CONST');
-			}
-		});
-
-		it('should parse key item with function default', () => {
-			const result = parser.parse('#{prop1 = MyFunc()}');
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isFunctionCall(expr)).toBe(true);
-			if (isFunctionCall(expr)) {
-				expect(expr.name).toBe('MyFunc');
-				expect(expr.args).toHaveLength(0);
-			}
-		});
-
-		it('should throw if there is whitespace between function name and "(" in key item default value', () => {
-			expect(() => parser.parse('#{prop1 = MyFunc ()}')).toThrow();
-		});
-	});
-
-	describe('multiple key items', () => {
-		it('should parse multiple key items', () => {
-			const result = parser.parse('#{prop1, prop2, prop3}');
-			const contexts = getContextStatements(result);
-			expect(contexts[0]!.items).toHaveLength(3);
-		});
-
-		it('should parse multiple key items with defaults', () => {
-			const result = parser.parse('#{prop1 = 1, prop2 = 2, prop3 = 3}');
-			const contexts = getContextStatements(result);
-			expect(contexts[0]!.items).toHaveLength(3);
-			contexts[0]!.items.forEach((item) => {
-				expect(item.defaultValue).toBeDefined();
+							expect(key).toBe(item.identifier);
+							expect(item.defaultValue).toMatchObject(expected);
+						});
+					}
+				});
 			});
 		});
 
-		it('should parse mixed key items (with and without defaults)', () => {
-			const result = parser.parse('#{prop1 = 1, prop2, prop3 = 3}');
-			const contexts = getContextStatements(result);
-			expect(contexts[0]!.items).toHaveLength(3);
-			expect(contexts[0]!.items[0]!.defaultValue).toBeDefined();
-			expect(contexts[0]!.items[1]!.defaultValue).toBeUndefined();
-			expect(contexts[0]!.items[2]!.defaultValue).toBeDefined();
-		});
+		it(`different types of data`, () => {
+			for (let index = 0; index < 20; index++) {
+				const keyItems = getKeyItemsRandomInitial();
+				const keyItemsCount = keyItems.length;
+				const inputArray = keyItems.map((item: any) => item.value);
 
-		describe('many items of the same type', () => {
-			const typeTemplates: Array<
-				{
-					name: string;
-					template: string;
-					expected: ReturnType<typeof getExpressionType>;
-				}
-			>
-				= [
-					{ name: 'string', template: '#{%ID = "%STR"}', expected: 'string' },
-					{ name: 'integer', template: '#{%ID = %INT}', expected: 'integer' },
-					{ name: 'decimal', template: '#{%ID = %DEC}', expected: 'decimal' },
-					{ name: 'array', template: '#{%ID = []}', expected: 'array' },
-					{ name: 'contextRef', template: '#{%ID = #%CTX}', expected: 'context' },
-					{ name: 'payloadRef', template: '#{%ID = $%PAY}', expected: 'payload' },
-					{ name: 'constantRef', template: '#{%ID = %%%CST}', expected: 'constant' },
-					{ name: 'function', template: '#{%ID = %FN()}', expected: 'function' },
-				];
+				const formattedInput = `#{${inputArray.join(',')}}`;
 
-			for (const { name, template, expected } of typeTemplates) {
-				it(`${name}: parses many items and preserves expression types`, () => {
-					for (let round = 0; round < 50; round++) {
-						const count = randomInteger(1, 30);
-						const parts = genFromTemplates([template], count).map(s => s.slice(2, -1));
-						const input = `#{${parts.join(', ')}}`;
+				const output = parser.parse(formattedInput);
+				const context = getContextStatements(output)[0]!.items;
 
-						const doc = parser.parse(input);
-						const ctx = getContextStatements(doc)[0]!;
+				expect(keyItemsCount).toBe(context.length);
 
-						expect(ctx.items).toHaveLength(count);
+				keyItems.forEach((item: any, index: number) => {
+					const keyItem = context[index]!;
+					const targetPropertyInput = item.value.split('=')[0];
 
-						for (const item of ctx.items) {
-							expect(item.defaultValue).toBeDefined();
-							expect(getExpressionType(item.defaultValue!)).toBe(expected);
-						}
-					}
+					expect(targetPropertyInput).toBe(keyItem.identifier);
+					expect(keyItem.defaultValue).toMatchObject(item.output);
 				});
 			}
 		});
 
-		describe('many items of different types', () => {
-			it('parses mixed defaults (string/int/dec/array/refs/function) in one context', () => {
-				const templates = [
-					'%ID = "%STR"',
-					'%ID = %INT',
-					'%ID = %DEC',
-					'%ID = []',
-					'%ID = #%CTX',
-					'%ID = $%PAY',
-					'%ID = %%%CST',
-					'%ID = %FN()',
-				];
+		describe('empty default value at the end', () => {
+			it('single trailing identifier-only item has no defaultValue', () => {
+				for (let index = 0; index < 10; index++) {
+					const keyItems = getKeyItemsRandomInitial();
+					const last = 'emptyprop';
 
-				for (let round = 0; round < 25; round++) {
-					const count = randomInteger(5, 20);
+					const inputArray = [...keyItems.map((item: any) => item.value), last];
+					const formattedInput = `#{${inputArray.join(',')}}`;
 
-					const parts = Array.from({ length: count }, () => {
-						const t = templates[randomInteger(0, templates.length - 1)]!;
-						return genFromTemplates([t], 1)[0]!;
-					});
+					const output = parser.parse(formattedInput);
+					const context = getContextStatements(output)[0]!.items;
 
-					const input = `#{${parts.join(', ')}}`;
-
-					const doc = parser.parse(input);
-					const ctx = getContextStatements(doc)[0]!;
-					expect(ctx.items).toHaveLength(count);
-
-					for (const item of ctx.items) {
-						expect(item.identifier.length).toBeGreaterThan(0);
-						expect(item.defaultValue).toBeDefined();
-					}
-				}
-			});
-		});
-
-		describe('empty default value at the end (identifier-only item)', () => {
-			it('last item has no defaultValue', () => {
-				for (let round = 0; round < 20; round++) {
-					const parts = genFromTemplates(['%ID = %INT', '%ID = "%STR"', '%ID = []'], randomInteger(1, 10));
-					const last = randomString();
-					const input = `#{${parts.join(', ')}, ${last}}`;
-
-					const doc = parser.parse(input);
-					const ctx = getContextStatements(doc)[0]!;
-					expect(ctx.items.at(-1)!.identifier).toBe(last);
-					expect(ctx.items.at(-1)!.defaultValue).toBeUndefined();
+					const lastItem = context.at(-1)!;
+					expect(lastItem.identifier).toBe(last);
+					expect(lastItem.defaultValue).toBeUndefined();
 				}
 			});
 
 			it('multiple trailing identifier-only items have no defaultValue', () => {
-				for (let round = 0; round < 20; round++) {
-					const withDefaults = genFromTemplates(['%ID = %INT', '%ID = "%STR"'], randomInteger(1, 10));
-					const emptyItems = Array.from({ length: randomInteger(1, 10) }, () => randomString());
+				for (let index = 0; index < 10; index++) {
+					const generatedEmpty = getKeyItemsInitialEmpty();
+					const generatedRandomInitial = getKeyItemsRandomInitial();
 
-					const input = `#{${withDefaults.join(', ')}, ${emptyItems.join(', ')}}`;
-					const doc = parser.parse(input);
-					const ctx = getContextStatements(doc)[0]!;
+					const keyItems = [...generatedRandomInitial, ...generatedEmpty];
 
-					const trailing = ctx.items.slice(withDefaults.length);
-					expect(trailing).toHaveLength(emptyItems.length);
-					for (let i = 0; i < emptyItems.length; i++) {
-						expect(trailing[i]!.identifier).toBe(emptyItems[i]);
-						expect(trailing[i]!.defaultValue).toBeUndefined();
-					}
+					const formattedArr = keyItems.map(el => el.value);
+					const formattedInput = `#{${formattedArr.join(',')}}`;
+
+					const output = parser.parse(formattedInput);
+					const context = getContextStatements(output)[0]!.items;
+
+					const emptyOutputElements = context.slice(generatedRandomInitial.length);
+					emptyOutputElements.forEach((el: any, index: number) => {
+						expect(el.identifier).toBe(generatedEmpty[index]?.value);
+						expect(el.defaultValue).toBeUndefined();
+					});
+					expect(emptyOutputElements.length).toBe(generatedEmpty.length);
 				}
+			});
+		});
+
+		describe('incorrect input', () => {
+			it('empty values in random arguments', () => {
+				const keyItems = getKeyItemsRandomInitial(true);
+
+				const itemsValue = keyItems.map((item: any) => item.value);
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+
+				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+
+			it('comma at the end', () => {
+				const keyItems = [...getKeyItemsRandomInitial(), { value: 'prop3,' }];
+
+				const itemsValue = keyItems.map((item: any) => item.value);
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+
+				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+
+			it('comma at the beginning', () => {
+				const keyItems = [{ value: ',prop3=' }, ...getKeyItemsRandomInitial()];
+
+				const itemsValue = keyItems.map((item: any) => item.value);
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+
+				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+
+			it('the comma is duplicated', () => {
+				const keyItems = getKeyItemsRandomInitial();
+
+				const itemsValue = keyItems.map((item: any, index: number) => {
+					if (index === Math.floor(keyItems.length / 2)) {
+						return `${item.value},`;
+					}
+					return item.value;
+				});
+
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+				expect(() => parser.parse(formattedInput)).toThrowError();
+			});
+
+			it('incorrect name (invalid symbols in name property)', () => {
+				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
+				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
+				const keyItems = [{ value: `pro${randomInvalidSymbol}p3=` }, ...getKeyItemsRandomInitial()];
+				const itemsValue = keyItems.map((item: any) => item.value);
+				const formattedInput = `#{${itemsValue.join(',')}}`;
+				const callError = () => parser.parse(formattedInput);
+				expect(callError).toThrowError();
 			});
 		});
 	});
@@ -367,25 +275,9 @@ describe('key list', () => {
 		});
 	});
 
-	describe('invalid inputs', () => {
-		it('should throw on trailing comma', () => {
-			expect(() => parser.parse('#{prop1,}')).toThrow();
-		});
-
-		it('should throw on leading comma', () => {
-			expect(() => parser.parse('#{,prop1}')).toThrow();
-		});
-
-		it('should throw on double comma', () => {
-			expect(() => parser.parse('#{prop1,,prop2}')).toThrow();
-		});
-
-		it('should throw on empty value after "="', () => {
-			expect(() => parser.parse('#{prop1 = }')).toThrow();
-		});
-
-		it('should throw on invalid identifier characters (e.g. "pro-p")', () => {
-			expect(() => parser.parse('#{pro-p = 1}')).toThrow();
+	describe('function call syntax', () => {
+		it('should throw if there is whitespace between function name and "(" in key item default value', () => {
+			expect(() => parser.parse('#{prop1 = MyFunc ()}')).toThrow();
 		});
 	});
 });

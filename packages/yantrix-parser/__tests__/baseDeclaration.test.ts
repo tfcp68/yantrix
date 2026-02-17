@@ -1,5 +1,5 @@
-import { randomInteger, randomString } from '@yantrix/utils';
-import { describe, expect, it } from 'vitest';
+import { randomDecimal, randomInteger, randomString } from '@yantrix/utils';
+import { assert, describe, expect, it } from 'vitest';
 import {
 	getContextStatements,
 	getDefineStatements,
@@ -7,21 +7,26 @@ import {
 	getExpressionStatements,
 	getExpressionType,
 	getInjectStatements,
-	getNumberValue,
 	getReferenceIdentifier,
 	getReferenceType,
-	getStringValue,
 	getSubscribeStatements,
 	hasByPass,
 	hasInitialState,
 	isDataObject,
-	isFunctionCall,
-	isNumberLiteral,
-	isStringLiteral,
 	ReservedList,
 	SpecialCharList,
 	YantrixParser,
 } from '../src';
+
+import {
+	baseContext,
+	baseContextWithPrevious,
+	baseEmitEvent,
+	baseEmpty,
+	baseSubscribe,
+	expectStatementCount,
+} from './fixtures/baseDeclarations';
+import { expressionProperties } from './fixtures/expressions.js';
 
 function genFromTemplates(templates: string[], casesAmount: number): string[] {
 	return templates.flatMap((t) => {
@@ -200,57 +205,6 @@ describe('base grammar declarations', () => {
 		});
 	});
 
-	describe('base constructs creation', () => {
-		it('parses "#{LeftSideProperty} <= #RightSideProperty"', () => {
-			const result = parser.parse('#{LeftSideProperty} <= #RightSideProperty');
-			const ctx = getContextStatements(result);
-			expect(ctx).toHaveLength(1);
-			expect(ctx[0]!.items.map(i => i.identifier)).toEqual(['LeftSideProperty']);
-			expect(ctx[0]!.reducer).toHaveLength(1);
-
-			const reducer0 = ctx[0]!.reducer[0]!;
-			expect(isDataObject(reducer0)).toBe(true);
-			if (isDataObject(reducer0)) {
-				expect(getReferenceType(reducer0)).toBe('context');
-				expect(getReferenceIdentifier(reducer0)).toBe('RightSideProperty');
-			}
-		});
-
-		it('parses "#{LeftSideProperty} <= $RightSideProperty"', () => {
-			const result = parser.parse('#{LeftSideProperty} <= $RightSideProperty');
-			const ctx = getContextStatements(result);
-			expect(ctx).toHaveLength(1);
-			expect(ctx[0]!.items.map(i => i.identifier)).toEqual(['LeftSideProperty']);
-			expect(ctx[0]!.reducer).toHaveLength(1);
-
-			const reducer0 = ctx[0]!.reducer[0]!;
-			expect(isDataObject(reducer0)).toBe(true);
-			if (isDataObject(reducer0)) {
-				expect(getReferenceType(reducer0)).toBe('payload');
-				expect(getReferenceIdentifier(reducer0)).toBe('RightSideProperty');
-			}
-		});
-
-		it('parses "emit/event (#t) <= #{ab}"', () => {
-			const result = parser.parse('emit/event (#t) <= #{ab}');
-			const emits = getEmitStatements(result);
-			expect(emits).toHaveLength(1);
-
-			const e = emits[0]!;
-			expect(e.identifier).toBe('event');
-
-			expect(e.meta).toHaveLength(1);
-			expect(isDataObject(e.meta[0]!)).toBe(true);
-			if (isDataObject(e.meta[0]!)) {
-				expect(getReferenceType(e.meta[0]!)).toBe('context');
-				expect(getReferenceIdentifier(e.meta[0]!)).toBe('t');
-			}
-
-			expect(e.context).toHaveLength(1);
-			expect(e.context[0]!.identifier).toBe('ab');
-		});
-	});
-
 	describe('identical output with', () => {
 		it('#{Left1, Left2} <= #Right1, #Right2 is #{Left2, Left1} <= #Right2, #Right1', () => {
 			const left1 = `L_${randomString().replace(/\W/g, 'a')}`;
@@ -366,6 +320,100 @@ describe('base grammar declarations', () => {
 		});
 	});
 
+	describe('base constructs via fixtures', () => {
+		const base = [
+			['', baseEmpty, 0],
+			['#{LeftSideProperty} <= #RightSideProperty', baseContext, 1],
+			['#{LeftSideProperty} <= $RightSideProperty', baseContextWithPrevious, 1],
+			['subscribe/event action (#m) <= (#k)', baseSubscribe, 1],
+			['emit/event (#t) <= #{ab}', baseEmitEvent, 1],
+		] as const;
+
+		it.each(base)('%s', (input, expected, count) => {
+			const result = parser.parse(input);
+			expectStatementCount(result, count);
+			expect(result).toMatchObject(expected);
+		});
+	});
+
+	describe('expression fixtures (types separation)', () => {
+		const expressionTemplates: Array<[string, (value: any) => any]> = [
+			['#{%s = "%s"}', expressionProperties.string],
+			['#{%s = %i}', expressionProperties.integer],
+			['#{%s = %d}', expressionProperties.decimal],
+			['#{%s = %%%s}', expressionProperties.constantReference],
+			['#{%s = %arr}', expressionProperties.array],
+			['#{%s = #%s}', expressionProperties.contextReference],
+			['#{%s = $%s}', expressionProperties.payloadReference],
+			['#{%s = %s()}', expressionProperties.function],
+		];
+
+		const templateFunctions: { [key: string]: (...args: any) => any } = {
+			'"%s"': (templateString: string, func: (...args: any) => any) => {
+				const val = randomString();
+				return [templateString.replace('"%s"', `"${val}"`), func(val)];
+			},
+			'%%%s': (templateString: string, func: (...args: any) => any) => {
+				const val = randomString();
+				return [templateString.replace('%%%s', `%%${val}`), func(val)];
+			},
+			'#%s': (templateString: string, func: (...args: any) => any) => {
+				const val = randomString();
+				return [templateString.replace('#%s', `#${val}`), func(val)];
+			},
+			'$%s': (templateString: string, func: (...args: any) => any) => {
+				const val = randomString();
+				return [templateString.replace('$%s', `$${val}`), func(val)];
+			},
+			'%s': (templateString: string, func: (...args: any) => any) => {
+				const val = randomString();
+				return [templateString.replace('%s', val), func(val)];
+			},
+			'%i': (templateString: string, func: (...args: any) => any) => {
+				const val = randomInteger();
+				return [templateString.replace('%i', val.toString()), func(val)];
+			},
+			'%d': (templateString: string, func: (...args: any) => any) => {
+				const val = randomDecimal();
+				return [templateString.replace('%d', val.toString()), func(val)];
+			},
+			'%arr': (templateString: string, func: (...args: any) => any) => {
+				return [templateString.replace('%arr', '[]'), func('[]')];
+			},
+			'default': (templateString: string, func: (...args: any) => any) => {
+				const val = randomString();
+				return [templateString, func(val)];
+			},
+		};
+
+		function generateExpressionStringAndExpectedObject(args: [string, (value: any) => any]) {
+			const templateString = args[0];
+			const func = args[1];
+			const templateStringWithName = templateString.replace('%s', randomString());
+
+			for (const regex in templateFunctions) {
+				if (templateStringWithName.match(regex)) {
+					return templateFunctions[regex]?.(templateStringWithName, func);
+				}
+			}
+			return templateFunctions.default?.(templateStringWithName, func);
+		}
+
+		function generateExpressionCases(templates: any[], casesAmount: number = randomInteger(1, 50)) {
+			return templates.flatMap((template) => {
+				return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
+			});
+		}
+
+		const cases = generateExpressionCases(expressionTemplates);
+		it.each(cases)('%s', (input: string, expectedExpr) => {
+			const result = parser.parse(input);
+			const ctx = getContextStatements(result)[0]!;
+			const expr = ctx.items[0]!.defaultValue!;
+			expect(expr).toMatchObject(expectedExpr);
+		});
+	});
+
 	describe('expression creation', () => {
 		const validExpressionDefaultValues = [
 			`#{%s = #%s}`,
@@ -411,70 +459,6 @@ describe('base grammar declarations', () => {
 
 		it('array expression: non-empty array forbidden (should throw)', () => {
 			expect(() => parser.parse(`#{arr = [1,2,3]}`)).toThrowError();
-		});
-	});
-
-	describe('expression values are separated into strings, integers, decimals, functions etc', () => {
-		it('string literal defaultValue', () => {
-			const result = parser.parse(`#{a = "hello"}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isStringLiteral(expr)).toBe(true);
-			if (isStringLiteral(expr)) expect(getStringValue(expr)).toBe('hello');
-		});
-
-		it('integer literal defaultValue', () => {
-			const result = parser.parse(`#{a = 42}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isNumberLiteral(expr)).toBe(true);
-			if (isNumberLiteral(expr)) expect(getNumberValue(expr)).toBe(42);
-			expect(getExpressionType(expr)).toBe('integer');
-		});
-
-		it('decimal literal defaultValue', () => {
-			const result = parser.parse(`#{a = 3.14}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isNumberLiteral(expr)).toBe(true);
-			expect(getExpressionType(expr)).toBe('decimal');
-		});
-
-		it('constant reference defaultValue', () => {
-			const result = parser.parse(`#{a = %%PI}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isDataObject(expr)).toBe(true);
-			if (isDataObject(expr)) {
-				expect(getReferenceType(expr)).toBe('constant');
-				expect(getReferenceIdentifier(expr)).toBe('PI');
-			}
-		});
-
-		it('context reference defaultValue', () => {
-			const result = parser.parse(`#{a = #prev}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isDataObject(expr)).toBe(true);
-			if (isDataObject(expr)) {
-				expect(getReferenceType(expr)).toBe('context');
-				expect(getReferenceIdentifier(expr)).toBe('prev');
-			}
-		});
-
-		it('payload reference defaultValue', () => {
-			const result = parser.parse(`#{a = $p}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isDataObject(expr)).toBe(true);
-			if (isDataObject(expr)) {
-				expect(getReferenceType(expr)).toBe('payload');
-				expect(getReferenceIdentifier(expr)).toBe('p');
-			}
-		});
-
-		it('function defaultValue', () => {
-			const result = parser.parse(`#{a = sum($p, #q, 1)}`);
-			const expr = getContextStatements(result)[0]!.items[0]!.defaultValue!;
-			expect(isFunctionCall(expr)).toBe(true);
-			if (isFunctionCall(expr)) {
-				expect(expr.name).toBe('sum');
-				expect(expr.args.length).toBeGreaterThanOrEqual(1);
-			}
 		});
 	});
 
@@ -600,6 +584,85 @@ describe('base grammar declarations', () => {
 			it.each(cases)('%s --- ERROR', (str) => {
 				expect(() => parser.parse(str)).toThrowError();
 			});
+		});
+	});
+
+	describe('key item descriptor creation', () => {
+		const parser = new YantrixParser();
+
+		describe('descriptor cannot start with or contain a special character', () => {
+			const cases = [
+				...SpecialCharList.map((char: string) => `#{${char}${randomString()}}`),
+				...SpecialCharList.map((char: string) => `#{${randomString()}${char}}`),
+			];
+			it.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
+
+		describe('descriptor cannot start with a number', () => {
+			const cases = [...Array.from({ length: 10 }).keys()].map(number => `#{${number}${randomString()}}`);
+			it.each(cases)('%s --- ERROR', (input) => {
+				expect(() => parser.parse(input)).toThrowError();
+			});
+		});
+
+		describe('descriptor can contain numbers after the first symbol', () => {
+			const descriptorLength = randomInteger();
+			const stringBeforeNumber = randomString(randomInteger(1, descriptorLength));
+			const stringAfterNumber = randomString(descriptorLength - stringBeforeNumber.length);
+			const cases = [...Array.from({ length: 10 }).keys()].map(
+				number => `#{${stringBeforeNumber}${number}${stringAfterNumber}}`,
+			);
+			it.each(cases)('%s --- CORRECT', (input) => {
+				assert.isOk(parser.parse(input));
+			});
+		});
+
+		describe('descriptor can start with lowercase and uppercase letters', () => {
+			const cases = Array.from({ length: randomInteger() }, () =>
+				Math.random() < 0.5 ? `#{${randomString().toUpperCase()}}` : `#{${randomString().toLowerCase()}}`);
+			it.each(cases)('%s --- CORRECT', (input) => {
+				assert.isOk(parser.parse(input));
+			});
+		});
+	});
+
+	describe('previous context argument comparisons', () => {
+		const parser = new YantrixParser();
+
+		it('previous context cannot have more arguments than the current one (=> throw)', () => {
+			const makeCase = () => {
+				const ctxCount = randomInteger(1, 6);
+				const prevCount = ctxCount + randomInteger(1, 6);
+
+				const ctxArgs = Array.from({ length: ctxCount }, (_, i) => `p${i}`).join(',');
+				const prevArgs = Array.from({ length: prevCount }, (_, i) => `#r${i}`).join(',');
+
+				return `#{${ctxArgs}} <= ${prevArgs}`;
+			};
+
+			const cases = Array.from({ length: 25 }, () => makeCase());
+			for (const c of cases) {
+				expect(() => parser.parse(c)).toThrowError();
+			}
+		});
+
+		it('context can have the same or more arguments than previous context (=> ok)', () => {
+			const makeCase = () => {
+				const prevCount = randomInteger(1, 6);
+				const ctxCount = prevCount + randomInteger(0, 6);
+
+				const ctxArgs = Array.from({ length: ctxCount }, (_, i) => `p${i}`).join(',');
+				const prevArgs = Array.from({ length: prevCount }, (_, i) => `#r${i}`).join(',');
+
+				return `#{${ctxArgs}} <= ${prevArgs}`;
+			};
+
+			const cases = Array.from({ length: 25 }, () => makeCase());
+			for (const c of cases) {
+				expect(() => parser.parse(c)).not.toThrow();
+			}
 		});
 	});
 });
