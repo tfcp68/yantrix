@@ -1,4 +1,6 @@
 import { AstNode, EmptyFileSystem } from 'langium';
+import { validateFunctionNesting } from './ast-utils';
+
 import {
 	ContextStatement,
 	DefineFunction,
@@ -12,7 +14,6 @@ import {
 	isNestedDefineFunction,
 	NestedDefineFunction,
 } from './generated/ast.js';
-
 import { createYantrixServices } from './langium/yantrix-module.js';
 
 // Create services once (lazily)
@@ -47,6 +48,10 @@ function validateFunctionCallNoWhitespace(node: FunctionCall | DefineFunction | 
 function traverseAndValidateFunctions(node: AstNode): void {
 	if (isFunctionCall(node) || isDefineFunction(node) || isNestedDefineFunction(node)) {
 		validateFunctionCallNoWhitespace(node);
+
+		if (isFunctionCall(node)) {
+			validateFunctionNesting(node);
+		}
 	}
 
 	// Traverse children, skipping special properties ($ prefix)

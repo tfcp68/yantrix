@@ -103,7 +103,7 @@ describe('key list', () => {
 		);
 	});
 
-	describe('single key item (fixtures)', () => {
+	describe('single key item', () => {
 		const cases = generateExpressionCases(validCases, 20);
 
 		it.each(cases)('%s', (input, expected) => {
@@ -113,9 +113,9 @@ describe('key list', () => {
 	});
 
 	describe('random number of keyItem', () => {
-		describe('same type of data', () => {
+		describe('input = #{prop1=5, prop2=10, prop5=5...} ------- The same type of data', () => {
 			Object.entries(allowedExpressions).forEach(([_, value]: [string, any]) => {
-				it(`data type`, () => {
+				it(`data type - `, () => {
 					for (let index = 0; index < 50; index++) {
 						const keyItems = getKeyItemsWithInitial(value);
 
@@ -139,7 +139,7 @@ describe('key list', () => {
 			});
 		});
 
-		it(`different types of data`, () => {
+		it(`input = #{prop= "5", prop2=4, prop3=[]...} ------- different types of data`, () => {
 			for (let index = 0; index < 20; index++) {
 				const keyItems = getKeyItemsRandomInitial();
 				const keyItemsCount = keyItems.length;
@@ -163,7 +163,7 @@ describe('key list', () => {
 		});
 
 		describe('empty default value at the end', () => {
-			it('single trailing identifier-only item has no defaultValue', () => {
+			it('input = #{prop= "5", prop2=4, prop3} -------  empty default value at the end', () => {
 				for (let index = 0; index < 10; index++) {
 					const keyItems = getKeyItemsRandomInitial();
 					const last = 'emptyprop';
@@ -180,7 +180,7 @@ describe('key list', () => {
 				}
 			});
 
-			it('multiple trailing identifier-only items have no defaultValue', () => {
+			it('input = #{prop= "5", prop2=4, prop3. prop4, prop5...} ------- empty default value at the end', () => {
 				for (let index = 0; index < 10; index++) {
 					const generatedEmpty = getKeyItemsInitialEmpty();
 					const generatedRandomInitial = getKeyItemsRandomInitial();
@@ -204,7 +204,7 @@ describe('key list', () => {
 		});
 
 		describe('incorrect input', () => {
-			it('empty values in random arguments', () => {
+			it('input = #{prop1=5, prop2=, prop5=5} ------- empty values in random arguments', () => {
 				const keyItems = getKeyItemsRandomInitial(true);
 
 				const itemsValue = keyItems.map((item: any) => item.value);
@@ -213,7 +213,7 @@ describe('key list', () => {
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
 
-			it('comma at the end', () => {
+			it('input = #{prop1=5, prop2=10, prop5=5, } ------- comma at the end', () => {
 				const keyItems = [...getKeyItemsRandomInitial(), { value: 'prop3,' }];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
@@ -222,7 +222,7 @@ describe('key list', () => {
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
 
-			it('comma at the beginning', () => {
+			it('input = #{,prop1=5, prop2=10, prop5=5 } ------- comma at the beginning', () => {
 				const keyItems = [{ value: ',prop3=' }, ...getKeyItemsRandomInitial()];
 
 				const itemsValue = keyItems.map((item: any) => item.value);
@@ -231,7 +231,7 @@ describe('key list', () => {
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
 
-			it('the comma is duplicated', () => {
+			it('input = #{prop1=5, prop2=10, , prop5=5 } ------- the comma is duplicated', () => {
 				const keyItems = getKeyItemsRandomInitial();
 
 				const itemsValue = keyItems.map((item: any, index: number) => {
@@ -245,7 +245,7 @@ describe('key list', () => {
 				expect(() => parser.parse(formattedInput)).toThrowError();
 			});
 
-			it('incorrect name (invalid symbols in name property)', () => {
+			it('input = #{pro,p1=5, prop2=10, prop5=5 } ------- incorrect name (invalid symbols in name property)', () => {
 				const invalidSymbols = ',$,%,^,&,*,(,),+,-,|,\\,/,.,<,>,?'.split(',');
 				const randomInvalidSymbol = invalidSymbols[Math.floor(Math.random() * invalidSymbols.length)];
 				const keyItems = [{ value: `pro${randomInvalidSymbol}p3=` }, ...getKeyItemsRandomInitial()];

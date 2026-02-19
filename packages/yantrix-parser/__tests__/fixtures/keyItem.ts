@@ -56,8 +56,8 @@ function createArrayLiteral(): TArrLit {
 	return { $type: 'ArrayLiteral' };
 }
 
-function createFunctionCall(name: string): TFuncCall {
-	return { $type: 'FunctionCall', name, args: [] };
+function createFunctionCall(name: string, args: Array<TDataObj | TStringLit | TNumLit | TArrLit | TFuncCall> = []): TFuncCall {
+	return { $type: 'FunctionCall', name, args };
 }
 
 function createContextRef(identifier: string): TCtxRef {
@@ -144,5 +144,43 @@ export const functionsFixtures = {
 		createContextStatementWithSingleItem((ctx) => {
 			const item = createRawKeyItem(propertyName, ctx);
 			item.defaultValue = createFunctionCall(functionName);
+		}),
+
+	withString: (propertyName: string, functionName: string, value: string) =>
+		createContextStatementWithSingleItem((ctx) => {
+			const item = createRawKeyItem(propertyName, ctx);
+			const unquoted = value.replace(/^"(.*)"$/, '$1');
+			item.defaultValue = createFunctionCall(functionName, [createStringLiteral(unquoted)]);
+		}),
+
+	withInteger: (propertyName: string, functionName: string, value: number) =>
+		createContextStatementWithSingleItem((ctx) => {
+			const item = createRawKeyItem(propertyName, ctx);
+			item.defaultValue = createFunctionCall(functionName, [createNumberLiteral(value)]);
+		}),
+
+	withDecimal: (propertyName: string, functionName: string, value: number) =>
+		createContextStatementWithSingleItem((ctx) => {
+			const item = createRawKeyItem(propertyName, ctx);
+			item.defaultValue = createFunctionCall(functionName, [createNumberLiteral(value)]);
+		}),
+
+	withArray: (propertyName: string, functionName: string) =>
+		createContextStatementWithSingleItem((ctx) => {
+			const item = createRawKeyItem(propertyName, ctx);
+			item.defaultValue = createFunctionCall(functionName, [createArrayLiteral()]);
+		}),
+
+	withConstant: (propertyName: string, functionName: string, value: string) =>
+		createContextStatementWithSingleItem((ctx) => {
+			const item = createRawKeyItem(propertyName, ctx);
+			item.defaultValue = createFunctionCall(functionName, [createDataObject(createConstant(value))]);
+		}),
+
+	recursive: (propertyName: string, functionName: string, nestedName: string) =>
+		createContextStatementWithSingleItem((ctx) => {
+			const item = createRawKeyItem(propertyName, ctx);
+			const nested = createFunctionCall(nestedName);
+			item.defaultValue = createFunctionCall(functionName, [nested]);
 		}),
 };

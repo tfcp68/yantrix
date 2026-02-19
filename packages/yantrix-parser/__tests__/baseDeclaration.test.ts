@@ -320,7 +320,7 @@ describe('base grammar declarations', () => {
 		});
 	});
 
-	describe('base constructs via fixtures', () => {
+	describe('base constructs creation', () => {
 		const base = [
 			['', baseEmpty, 0],
 			['#{LeftSideProperty} <= #RightSideProperty', baseContext, 1],
@@ -336,7 +336,7 @@ describe('base grammar declarations', () => {
 		});
 	});
 
-	describe('expression fixtures (types separation)', () => {
+	describe('expression values are separated into strings, integers, decimals, functions etc', () => {
 		const expressionTemplates: Array<[string, (value: any) => any]> = [
 			['#{%s = "%s"}', expressionProperties.string],
 			['#{%s = %i}', expressionProperties.integer],
