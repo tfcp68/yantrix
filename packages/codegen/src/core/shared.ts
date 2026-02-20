@@ -1,7 +1,7 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { 
-	getEmitStatements, 
-	getSubscribeStatements, 
+import {
+	getEmitStatements,
+	getSubscribeStatements,
 	hasByPass,
 } from '@yantrix/yantrix-parser';
 
@@ -38,7 +38,7 @@ export function fillDictionaries(
 	if (eventDictionary) {
 		for (const state of diagram.states) {
 			if (!state.notes) continue;
-			
+
 			const emitStatements = getEmitStatements(state.notes);
 			const emittedEventsKeys = emitStatements.map(emit => emit.identifier);
 			if (emittedEventsKeys.length > 0) {

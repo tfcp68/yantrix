@@ -1,42 +1,27 @@
+// eslint-disable-next-line ts/ban-ts-comment
 // @ts-nocheck
 // TODO: This file needs to be updated to work with the new Langium AST
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import {
 	ContextStatement,
-	DataObject,
 	DefineExpression,
 	defineExpressionIsFunction,
 	DefineFunction,
-	Expression,
-	FunctionCall,
 	getContextStatements,
 	getDefineStatements,
-	getNumberValue,
 	getReferenceIdentifier,
 	getReferenceType,
-	getStringValue,
 	hasInitialState,
 	hasReducer,
-	isArrayLiteral,
 	isConstant,
-	isContextReference,
 	isDataObject,
-	isFunctionCall,
-	isIntegerLiteral,
-	isNumberLiteral,
-	isPayloadReference,
-	isStringLiteral,
-	KeyItem,
-	MAX_NESTED_FUNC_LEVEL,
-	NumberLiteral,
-	StringLiteral,
 } from '@yantrix/yantrix-parser';
+import { TConstants, TExpressionRecord } from '../../types/common';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 // import { replaceFileContents } from '../../utils/utils.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
 import { PythonTemplate } from '../templates/Python.js';
-import { TConstants, TExpressionRecord } from './../../types/common';
 import { ModuleNames } from './index';
 
 function getReferenceString(path: string, identifier: string) {
