@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FIXTURES_DIR="__tests__/diagrams"
+DIAGRAMS_DIR="__tests__/diagrams"
 OUT_DIR="__tests__/generated"
 LANG_DEFAULT="TypeScript"
 
 TASKS=$(
   cat <<'EOF'
-traffic-light.mermaid;TrafficLightAutomata;TrafficLightAutomata
-game_phase.mermaid;GamePhaseAutomata;GamePhaseAutomataTest
-traffic-light_two_counters.mermaid;TrafficLightAutomataTwoCounters;TrafficLightAutomataTwoCounters
+traffic-light.mermaid;TrafficLightAutomata;TrafficLightAutomata_generated
+game_phase.mermaid;GamePhaseAutomata;GamePhaseAutomataTest_generated
+traffic-light_two_counters.mermaid;TrafficLightAutomataTwoCounters;TrafficLightAutomataTwoCounters_generated
 EOF
 )
 
@@ -20,7 +20,7 @@ while IFS=';' read -r DIAGRAM CLASS FILE_NAME LANG; do
   [[ -z "$DIAGRAM" || -z "$CLASS" || -z "$FILE_NAME" ]] && continue
 
   LANG="${LANG:-$LANG_DEFAULT}"
-  INPUT="${FIXTURES_DIR}/${DIAGRAM}"
+  INPUT="${DIAGRAMS_DIR}/${DIAGRAM}"
   OUTFILE="${OUT_DIR}/${FILE_NAME}.ts"
 
   echo "Generating $CLASS..."

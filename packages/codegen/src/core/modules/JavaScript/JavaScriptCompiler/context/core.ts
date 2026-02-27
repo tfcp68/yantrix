@@ -1,3 +1,4 @@
+import { getContextStatements } from '@yantrix/yantrix-parser';
 import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 
 export function getInitialContextShape(props: {
@@ -9,9 +10,11 @@ export function getInitialContextShape(props: {
 	if (states.length) {
 		return states.reduce(
 			(acc, curr) => {
-				curr.notes?.contextDescription.forEach((el) => {
-					el.context.forEach((el) => {
-						acc[el.keyItem.identifier] = null;
+				if (!curr.notes) return acc;
+				const contextStatements = getContextStatements(curr.notes);
+				contextStatements.forEach((ctx) => {
+					ctx.items.forEach((item) => {
+						acc[item.identifier] = null;
 					});
 				});
 				return acc;

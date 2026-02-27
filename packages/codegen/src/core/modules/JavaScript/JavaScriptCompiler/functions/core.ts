@@ -1,6 +1,12 @@
 import { builtInFunctions } from '@yantrix/functions';
 import { TNullable } from '@yantrix/utils';
-import { ExpressionTypes, TExpressionDefineMap, TInjectIdent } from '@yantrix/yantrix-parser';
+import {
+	DefineExpression,
+	defineExpressionIsFunction,
+	getDefineStatements,
+	getInjectStatements,
+	InjectStatement,
+} from '@yantrix/yantrix-parser';
 import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../../../constants';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
 import { TDictionaries } from '../dictionaries';
@@ -9,15 +15,16 @@ import { TDependencyGraph } from '../imports';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;
-	expression: TExpressionDefineMap;
+	expression: DefineExpression;
 }): string {
-	if (props.expression.expressionType === ExpressionTypes.Function) {
-		const { FunctionName, Arguments } = props.expression.FunctionDeclaration;
+	if (defineExpressionIsFunction(props.expression)) {
+		const { name: FunctionName, args: Arguments } = props.expression;
 
 		const argsList = Arguments.map((arg) => {
-			if (arg.expressionType === ExpressionTypes.Function) {
+			const argType = '$type' in arg ? arg.$type as string : '';
+			if (argType === 'DefineFunction' || argType === 'NestedDefineFunction') {
 				return getFunctionBody({
-					expression: arg,
+					expression: arg as unknown as DefineExpression,
 					expressions: props.expressions,
 				});
 			} else {
@@ -42,7 +49,7 @@ export function getFunctionBody(props: {
 
 export function checkUserFunctionsDefined(props: {
 	injectedPath: TNullable<string>;
-	injects: TInjectIdent[];
+	injects: InjectStatement[];
 }) {
 	const { injectedPath, injects } = props;
 	const identifiers = injects.map(inject => `'${inject.identifier}'`);
@@ -92,8 +99,8 @@ export function registerCustomFunctions(props: {
 }) {
 	const { dictionaries, diagram, injectFunctions, dependencyGraph, expressions } = props;
 	const newDictionary = dictionaries;
-	const defines = diagram.states.flatMap(state => state.notes?.defines ?? []);
-	const inject = diagram.states.flatMap(state => state.notes?.inject ?? []);
+	const defines = diagram.states.flatMap(state => state.notes ? getDefineStatements(state.notes) : []);
+	const inject = diagram.states.flatMap(state => state.notes ? getInjectStatements(state.notes) : []);
 
 	const registered = new Set<string>();
 
@@ -127,7 +134,7 @@ export function registerCustomFunctions(props: {
 				expression: defineFunction.expression,
 				expressions,
 			});
-			newDictionary.push(`functionDictionary.register('${funcName}', function(${defineFunction.Arguments.join(', ')}) {
+			newDictionary.push(`functionDictionary.register('${funcName}', function(${defineFunction.args.join(', ')}) {
 						return ${functionBody};
 					});`);
 			registered.add(funcName);

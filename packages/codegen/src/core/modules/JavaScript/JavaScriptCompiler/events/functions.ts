@@ -1,16 +1,33 @@
-import { ExpressionTypes, isEmitFull, isEmitWithMeta, isSubscribeWithMeta, isSubscribeWithPayload, TEventEmit, TEventSubscribe } from '@yantrix/yantrix-parser';
+import {
+	emitHasMeta,
+	EmitStatement,
+	getReferenceIdentifier,
+	isDataObject,
+	isFullEmit,
+	KeyItem,
+	RawKeyItem,
+	subscribeHasMeta,
+	subscribeHasPayload,
+	SubscribeStatement,
+} from '@yantrix/yantrix-parser';
 import { TExpressionRecord } from '../../../../../types/common';
 import { context } from '../context';
 
-export function getEventCode(e: TEventEmit, expressions: TExpressionRecord) {
-	if (isEmitFull(e)) {
-		e.context = e.context.map(c => ({
-			keyItem: {
-				...c.keyItem,
-				expressionType: ExpressionTypes.Context,
-			},
-		}));
+function getKeyItemIdentifier(item: KeyItem): string {
+	if (isDataObject(item)) {
+		return getReferenceIdentifier(item);
 	}
+	return `_item`;
+}
+
+function keyItemsToRawKeyItems(items: KeyItem[]): RawKeyItem[] {
+	return items.map(item => ({
+		identifier: getKeyItemIdentifier(item),
+		defaultValue: undefined,
+	})) as unknown as RawKeyItem[];
+}
+
+export function getEventCode(e: EmitStatement, expressions: TExpressionRecord) {
 	return `{
 			event: eventDictionary["${e.identifier}"],
 			meta: {
@@ -20,21 +37,31 @@ export function getEventCode(e: TEventEmit, expressions: TExpressionRecord) {
 }
 
 export function getEventMeta(props: {
-	event: TEventEmit;
+	event: EmitStatement;
 	expressions: TExpressionRecord;
 }): string {
 	const { event, expressions } = props;
-	if (isEmitFull(event)) {
+	if (isFullEmit(event)) {
+		const contextAsKeyItems = event.context.map((rawKeyItem) => {
+			return {
+				$type: 'DataObject' as const,
+				reference: {
+					$type: 'ContextReference' as const,
+					identifier: rawKeyItem.identifier,
+				},
+				assignedExpression: rawKeyItem.defaultValue,
+			};
+		});
 		return context.serializer.getBoundValues({
 			expressions,
-			arr: context.serializer.mapReducerItems({ reducer: event.context, sourcePath: 'context', expressions }),
-			context: event.meta,
+			arr: context.serializer.mapReducerItems({ reducer: contextAsKeyItems as any, sourcePath: 'context', expressions }),
+			context: keyItemsToRawKeyItems(event.meta),
 		}).toString();
-	} else if (isEmitWithMeta(event)) {
+	} else if (emitHasMeta(event)) {
 		return context.serializer.getBoundValues({
 			expressions,
 			arr: context.serializer.mapReducerItems({ reducer: event.meta, sourcePath: 'context', expressions }),
-			context: event.meta,
+			context: keyItemsToRawKeyItems(event.meta),
 		}).toString();
 	} else {
 		return '';
@@ -42,21 +69,25 @@ export function getEventMeta(props: {
 }
 
 export function getActionPayload(props: {
-	event: TEventSubscribe;
+	event: SubscribeStatement;
 	expressions: TExpressionRecord;
 }) {
 	const { event, expressions } = props;
-	if (isSubscribeWithMeta(event)) {
+	if (subscribeHasMeta(event)) {
+		const targetIdentifiers = subscribeHasPayload(event)
+			? keyItemsToRawKeyItems(event.payload)
+			: keyItemsToRawKeyItems(event.metaItems);
+
 		return context.serializer.getBoundValues({
 			expressions,
-			arr: context.serializer.mapReducerItems({ reducer: event.meta, sourcePath: 'meta', expressions }),
-			context: event.payload,
+			arr: context.serializer.mapReducerItems({ reducer: event.metaItems, sourcePath: 'meta', expressions }),
+			context: targetIdentifiers,
 		}).toString();
-	} else if (isSubscribeWithPayload(event)) {
+	} else if (subscribeHasPayload(event)) {
 		return context.serializer.getBoundValues({
 			expressions,
 			arr: context.serializer.mapReducerItems({ reducer: event.payload, sourcePath: 'meta', expressions }),
-			context: event.payload,
+			context: keyItemsToRawKeyItems(event.payload),
 		}).toString();
 	} else {
 		return '';

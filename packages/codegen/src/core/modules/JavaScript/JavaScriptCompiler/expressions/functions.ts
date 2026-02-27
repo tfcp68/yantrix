@@ -1,6 +1,6 @@
 import { builtInFunctions, ReservedInternalFunctionNames } from '@yantrix/functions';
 import { TNullable } from '@yantrix/utils';
-import { ExpressionTypes, TDefine, TExpressionDefineMap } from '@yantrix/yantrix-parser';
+import { DefineArgument, DefineFunction, DefineStatement, getDefineStatements, getInjectStatements, isDefineFunction, isNestedDefineFunction, NestedDefineFunction } from '@yantrix/yantrix-parser';
 import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../../../constants';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
 import { TDictionaries } from '../dictionaries';
@@ -9,48 +9,40 @@ import { getExpressionValueDefine } from './core';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;
-	expression: TExpressionDefineMap;
+	expression: DefineFunction | NestedDefineFunction;
 }): string {
-	if (props.expression.expressionType === ExpressionTypes.Function) {
-		const { FunctionName, Arguments } = props.expression.FunctionDeclaration;
+	const { name: FunctionName, args: Arguments } = props.expression;
 
-		// If function name is one of internals - the only argument will be automata itself
-		if (ReservedInternalFunctionNames.includes(FunctionName)) {
-			return `(function() {
+	// If function name is one of internals - the only argument will be automata itself
+	if (ReservedInternalFunctionNames.includes(FunctionName)) {
+		return `(function() {
 				const func = functionDictionary.get('${FunctionName}');
 				return func(automata);
 			})()`;
+	}
+
+	const argsList = Arguments.map((arg: DefineArgument) => {
+		if (isDefineFunction(arg) || isNestedDefineFunction(arg)) {
+			return getFunctionBody({
+				expression: arg,
+				expressions: props.expressions,
+			});
 		}
+		return getExpressionValueDefine({
+			expression: arg,
+			expressions: props.expressions,
+		});
+	}).join(', ');
 
-		const argsList = Arguments.map((arg) => {
-			if (arg.expressionType === ExpressionTypes.Function) {
-				return getFunctionBody({
-					expression: arg,
-					expressions: props.expressions,
-				});
-			} else {
-				return getExpressionValueDefine({
-					expression: arg,
-					expressions: props.expressions,
-				});
-			}
-		}).join(', ');
-
-		return `(function() {
+	return `(function() {
 				const func = functionDictionary.get('${FunctionName}');
 				return func(${argsList});
 			})()`;
-	} else {
-		return getExpressionValueDefine({
-			expression: props.expression,
-			expressions: props.expressions,
-		});
-	}
 }
 
 export function checkUserFunctionsDefined(props: {
 	injectedPath: TNullable<string>;
-	defines: TDefine[];
+	defines: DefineStatement[];
 }) {
 	const { injectedPath, defines } = props;
 	const identifiers = defines.map(({ identifier }) => identifier);
@@ -74,8 +66,8 @@ export function registerCustomFunctions(props: {
 }) {
 	const { dictionaries, diagram, injectFunctions, dependencyGraph, expressions } = props;
 	const newDictionary = dictionaries;
-	const defines = diagram.states.flatMap(state => state.notes?.defines ?? []);
-	const inject = diagram.states.flatMap(state => state.notes?.inject ?? []);
+	const defines = diagram.states.flatMap(state => state.notes ? getDefineStatements(state.notes) : []);
+	const inject = diagram.states.flatMap(state => state.notes ? getInjectStatements(state.notes) : []);
 
 	const registered = new Set<string>();
 
@@ -105,11 +97,11 @@ export function registerCustomFunctions(props: {
 			newDictionary.push(`functionDictionary.register('${funcName}', ${DEFAULT_USER_FUNCTIONS_NAMESPACE}['${funcName}']);`);
 			registered.add(funcName);
 		} else if (defineFunction) {
-			const functionBody = getFunctionBody({
-				expression: defineFunction.expression,
-				expressions,
-			});
-			newDictionary.push(`functionDictionary.register('${funcName}', function(${defineFunction.Arguments.join(', ')}) {
+			const { expression } = defineFunction;
+			const functionBody = isDefineFunction(expression) || isNestedDefineFunction(expression)
+				? getFunctionBody({ expression, expressions })
+				: getExpressionValueDefine({ expression, expressions });
+			newDictionary.push(`functionDictionary.register('${funcName}', function(${defineFunction.args.join(', ')}) {
 					return ${functionBody};
 				});`);
 			registered.add(funcName);

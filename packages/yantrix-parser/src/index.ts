@@ -7,13 +7,16 @@
  * It's not encouraged to use this package individually, as it's useful only for processing Yantrix syntax during the creation of automatas
  * together with packages like `automata` and `mermaid-parser` (all of this is included inside of the `core` package).
  *
- * Lexer and parser are created with the help of `@ts/jison` package.
  *
  * See also:
  * - [Yantrix diagram syntax](/syntax)
  * - [Mermaid Parser API](/API/mermaid-parser/)
  */
 
+export * from './ast-utils.js';
+
 export * from './constants/index.js';
-export * from './types/index.js';
-export * from './yantrixParser.js';
+
+export * from './generated/ast.js';
+
+export * from './parser.js';
