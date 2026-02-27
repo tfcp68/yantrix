@@ -4,7 +4,7 @@
 	"version": "0.2.1",
 	"private": true,
 	"scripts": {
-		"dev": "vite --host 0.0.0.0",
+		"dev": "vite",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
 		"generate": "yantrix codegen ./src/diagrams/ClockAutomata.mermaid -l TypeScript -o src/generated/ClockAutomata.ts -c ClockAutomata",
