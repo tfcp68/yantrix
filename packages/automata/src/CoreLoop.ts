@@ -93,23 +93,23 @@ export class CoreLoop<
 	>(
 		id: string,
 		machine: IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
-		adapter?: AutomataEventAdapter,
+		adapter?: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
 	): this {
 		if (this.automata.has(id)) throw new Error(`Automata with id "${id}" already registered`);
 
 		const bridge
 			= adapter
-			?? new AutomataEventAdapter();
+			?? machine.eventAdapter
+			?? (new AutomataEventAdapter() as unknown as IAutomataEventAdapter<
+				StateType,
+				ActionType,
+				EventType,
+				ContextType,
+				PayloadType,
+				EventMetaType
+			>);
 
-		// Attach adapter to the automata:
-		machine.eventAdapter = bridge as unknown as IAutomataEventAdapter<
-			StateType,
-			ActionType,
-			EventType,
-			ContextType,
-			PayloadType,
-			EventMetaType
-		>;
+		machine.setEventAdapter(bridge);
 
 		// Subscribe to the Event Bus for events observed by the adapter
 		const observed = bridge.getObservedEvents();
@@ -120,14 +120,14 @@ export class CoreLoop<
 				const nextEventsToProcess: TAutomataEventStack<EventType, EventMetaType> = [];
 
 				// 1) Event -> Actions
-				const actions = bridge.handleEvent({ event, meta } as any);
+				const actions = bridge.handleEvent({ event, meta });
 
 				// 2) Actions -> FSM -> Transition -> Emitted Events
 				for (const a of actions) {
-					machine.dispatch(a as any);
+					machine.dispatch(a);
 					const emitted = bridge.handleTransition(machine.getContext()) ?? [];
 					if (emitted?.length) {
-						nextEventsToProcess.push(...(emitted as TAutomataEventStack<EventType, EventMetaType>));
+						nextEventsToProcess.push(...emitted);
 					}
 				}
 
@@ -139,8 +139,8 @@ export class CoreLoop<
 				};
 			};
 
-			this.bus.subscribe(evt as EventType, handler as any);
-			unsubs.push(() => this.bus.unsubscribe(evt as EventType, handler as any));
+			this.bus.subscribe(evt, handler);
+			unsubs.push(() => this.bus.unsubscribe(evt, handler));
 		}
 
 		this.automata.set(id, { id, unsubs });

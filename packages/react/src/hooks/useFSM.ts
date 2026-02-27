@@ -7,7 +7,7 @@ import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { readVersion, setInitialStaticMethods } from '../helpers';
 import { automatasList, fsm_context } from '../store/store';
-import { TAutomataConstructorWithStatic, TPreviousContext, TUseFSMProps, TUseFsmReturn } from '../types';
+import { TAutomata, TExtractAutomataContext, TPreviousContext, TUseFSMInput, TUseFsmReturn } from '../types';
 import { dispatchWrapper } from '../utils/dispatchWrapper';
 
 /**
@@ -45,9 +45,9 @@ import { dispatchWrapper } from '../utils/dispatchWrapper';
  * const { state, context } = getContext();
  * const isRed = state === getState('Red');
  */
-export const useFSM = (
-	Automata: TUseFSMProps | TAutomataConstructorWithStatic,
-): TUseFsmReturn => {
+export const useFSM = <TContext = TExtractAutomataContext<TAutomata>>(
+	Automata: TUseFSMInput,
+): TUseFsmReturn<TContext> => {
 	// Initialize FSM id once
 	const idFSM = useRef<string>('');
 	if (!idFSM.current) {
@@ -67,7 +67,6 @@ export const useFSM = (
 		return readVersion(snap);
 	};
 	useSyncExternalStore<number>(store.subscribe, getVersion, getVersion);
-
 	// Trace refs (no rerenders)
 	const previousContextRef = useRef<TPreviousContext>({
 		state: null,
@@ -97,12 +96,19 @@ export const useFSM = (
 		});
 	};
 
+	const getInstanceAutomata = (id: string, fsm: TAutomata) => {
+		return {
+			id,
+			Automata: fsm,
+		};
+	};
+
 	return {
 		state: instance.state,
 		getContext: instance.getContext.bind(instance),
 		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
-		getInstanceAutomata: store.getSnapshot,
+		getInstanceAutomata: () => getInstanceAutomata(idFSM.current, store.getSnapshot()),
 		getAutomatasList,
 		...staticMethods.current,
 	};

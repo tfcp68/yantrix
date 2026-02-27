@@ -1,3 +1,3 @@
 export default {
-	'*': 'eslint --fix',
+	'**/*.{js,jsx,ts,tsx,cjs,mjs}': ['eslint --fix'],
 };

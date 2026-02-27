@@ -174,7 +174,7 @@ export type TAutomataDispatch<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	NewStateType extends StateType = StateType,
 > = (
-	action: TAutomataActionPayload<ActionType, PayloadType>,
+	actionWithPayload: TAutomataActionPayload<ActionType, PayloadType>,
 ) => ReturnType<TAutomataReducer<StateType, ActionType, ContextType, PayloadType, NewStateType>>;
 
 export type TSubscriptionCancelFunction = () => void;
