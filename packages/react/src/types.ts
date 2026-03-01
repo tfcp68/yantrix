@@ -9,11 +9,6 @@ import {
 	TStaticMethods,
 } from '@yantrix/core';
 
-export type TUseFSMProps = {
-	Automata: TAutomataConstructorWithStatic;
-	id: string;
-};
-
 export type TAutomata = IAutomata<
 	TAutomataBaseStateType,
 	TAutomataBaseActionType,
@@ -24,6 +19,19 @@ export type TAutomata = IAutomata<
 >;
 
 export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TStaticMethods;
+
+// Props for useFSM / initializeFSM: either constructor or already created instance
+export type TUseFSMProps =
+	| {
+		Automata: TAutomataConstructorWithStatic;
+		id: string;
+	}
+	| {
+		Automata: TAutomata;
+		id: string;
+	};
+
+export type TUseFSMInput = TAutomataConstructorWithStatic | TUseFSMProps;
 
 export type TTraceTransaction<
 	StateType extends TAutomataBaseStateType,
@@ -53,28 +61,39 @@ export interface IYantrixBoundStore<Snapshot = TAutomata> {
 }
 
 export interface IContextFSM {
-	initializeFSM: (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => string;
+	initializeFSM: (Automata: TUseFSMInput) => string;
 	getStore: (id: string) => IYantrixBoundStore;
 }
 
-export type TUseFsmReturn = {
+export type TExtractAutomataContext<T> =
+	T extends { getContext: () => { context: infer C } } ? C : unknown;
+
+export type TUseFsmGetContext<TContext> = () => {
 	state: TAutomataBaseStateType | null;
-	getContext: () => any;
+	context: TContext;
+};
+
+export type TUseFsmReturn<TContext = unknown> = {
+	state: TAutomataBaseStateType | null;
+	getContext: TUseFsmGetContext<TContext>;
 	dispatch: <ActionType extends TAutomataBaseActionType, PayloadType extends { [K in ActionType]: any }>(
 		action: TAutomataActionPayload<ActionType, PayloadType>,
 	) => void;
 	trace: () => TTraceTransaction<TAutomataBaseStateType, TAutomataBaseActionType>;
-	getInstanceAutomata: () => TAutomata;
+	getInstanceAutomata: () => {
+		id: string;
+		Automata: TAutomata;
+	};
 	getAutomatasList: () => Record<string, TAutomata>;
 } & TStaticMethods;
 
-export type TUseFsmReturnWithSelection<Selection> = TUseFsmReturn & {
+export type TUseFsmReturnWithSelection<Selection, TContext> = TUseFsmReturn<TContext> & {
 	selection: Selection;
 };
 
-export type TPreviousContext = {
+export type TPreviousContext<Context = any> = {
 	state: number | null;
-	context: Record<string, any>;
+	context: Record<string, Context>;
 };
 
 export type TUseFSMOptions<Snapshot, Selection> = {
@@ -83,3 +102,7 @@ export type TUseFSMOptions<Snapshot, Selection> = {
 };
 
 export type TRef<T> = { current: T };
+
+export type TAutomataList = {
+	[key: string]: TAutomata;
+};

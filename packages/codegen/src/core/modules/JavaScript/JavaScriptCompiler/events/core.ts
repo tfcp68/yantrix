@@ -1,4 +1,9 @@
-import { TEventEmit, TEventSubscribe } from '@yantrix/yantrix-parser';
+import {
+	EmitStatement,
+	getEmitStatements,
+	getSubscribeStatements,
+	SubscribeStatement,
+} from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TStateIncludingNotes } from '../../../../../types/common';
 import { getActionPayload, getEventCode } from './functions';
 
@@ -22,8 +27,10 @@ export function stateToEventEmitter(state: TStateIncludingNotes, props: {
 	expressions: TExpressionRecord;
 }) {
 	const { expressions } = props;
-	const emittedEvents = state.notes?.emit;
-	if (emittedEvents && emittedEvents.length > 0) {
+	if (!state.notes) return '';
+
+	const emittedEvents = getEmitStatements(state.notes);
+	if (emittedEvents.length > 0) {
 		return `eventAdapter.addEventEmitter(
 				statesDictionary["${state.id}"], 
 				${getEventEmitterHandler({ events: emittedEvents, expressions })}
@@ -37,10 +44,12 @@ export function stateToEventListeners(state: TStateIncludingNotes, props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	expressions: TExpressionRecord;
 }) {
-	return state.notes?.subscribe?.map(event => eventToEventListener(event, props)).join(';\n') ?? '';
+	if (!state.notes) return '';
+	const subscribeStatements = getSubscribeStatements(state.notes);
+	return subscribeStatements.map(event => eventToEventListener(event, props)).join(';\n');
 }
 
-function eventToEventListener(event: TEventSubscribe, props: {
+function eventToEventListener(event: SubscribeStatement, props: {
 	expressions: TExpressionRecord;
 }) {
 	const { expressions } = props;
@@ -51,7 +60,7 @@ function eventToEventListener(event: TEventSubscribe, props: {
 }
 
 function getEventEmitterHandler(props: {
-	events: TEventEmit[];
+	events: EmitStatement[];
 	expressions: TExpressionRecord;
 }) {
 	const { events, expressions } = props;
@@ -65,7 +74,7 @@ function getEventEmitterHandler(props: {
 }
 
 function getEventListenerHandler(props: {
-	event: TEventSubscribe;
+	event: SubscribeStatement;
 	expressions: TExpressionRecord;
 }) {
 	const { event, expressions } = props;

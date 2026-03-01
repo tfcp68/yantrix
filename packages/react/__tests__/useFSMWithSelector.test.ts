@@ -3,8 +3,8 @@ import { uniqId } from '@yantrix/core';
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { useFSMWithSelector } from '../src/hooks/useFSMWithSelector';
-import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata';
-import TrafficLightAutomataTwoCounters from './generated/TrafficLightAutomataTwoCounters';
+import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata_generated';
+import TrafficLightAutomataTwoCounters from './generated/TrafficLightAutomataTwoCounters_generated';
 
 describe('useFSMWithSelector tests (selector-based hook)', () => {
 	it('basic selector returns context', () => {

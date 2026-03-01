@@ -1,13 +1,4 @@
-import {
-	ExpressionTypes,
-	isKeyItemReference,
-	isKeyItemWithExpression,
-	maxNestedFuncLevel,
-	TExpression,
-	TExpressionDefineMap,
-	TExpressionFunction,
-	TMappedKeys,
-} from '@yantrix/yantrix-parser';
+import { ArrayLiteral, Constant, DataObject, DefineArgument, DefineExpression, DefineFunction, Expression, FunctionCall, getNumberValue, getReferenceIdentifier, getReferenceType, getStringValue, isConstant, isDataObject, isFunctionCall, isIntegerLiteral, KeyItem, MAX_NESTED_FUNC_LEVEL, NestedDefineFunction, NumberLiteral, StringLiteral } from '@yantrix/yantrix-parser';
 import { TConstants, TExpressionRecord } from '../../../../../types/common';
 import { pathRecord } from '../../../../shared';
 import { getFunctionBody } from './functions';
@@ -17,11 +8,12 @@ export function setupExpressions(props: {
 	constants: TConstants | null;
 }): TExpressionRecord {
 	const expressionRecord: TExpressionRecord = {
-		[ExpressionTypes.ArrayDeclaration]: () => '[]',
-		[ExpressionTypes.Constant]: ({ identifier }) => {
+		array: () => '[]',
+		constant: (expr: DataObject) => {
 			if (props.constants === null) {
 				throw new Error('Missing dictionary with constants');
 			}
+			const identifier = getReferenceIdentifier(expr);
 
 			if (props.constants[identifier] === undefined) {
 				throw new Error(
@@ -33,69 +25,68 @@ export function setupExpressions(props: {
 
 			return `${props.constants[identifier]}`;
 		},
-		[ExpressionTypes.Function]: () => {
+		function: () => {
 			return 'null';
 		},
-		[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
-			return `${NumberDeclaration}`;
+		decimal: (expr: NumberLiteral) => {
+			return `${getNumberValue(expr)}`;
 		},
-		[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
-			return `${NumberDeclaration}`;
+		integer: (expr: NumberLiteral) => {
+			return `${getNumberValue(expr)}`;
 		},
-		[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
-			return `'${StringDeclaration}'`;
+		string: (expr: StringLiteral) => {
+			return `'${getStringValue(expr)}'`;
 		},
-		[ExpressionTypes.Context]: ({ identifier }) => {
+		context: (expr: DataObject) => {
+			const identifier = getReferenceIdentifier(expr);
 			return `prevContext === null ||  (prevContext === undefined || prevContext['${identifier}'] === undefined) ? null : prevContext['${identifier}']`;
 		},
-		[ExpressionTypes.Payload]: ({ identifier }) => {
+		payload: (expr: DataObject) => {
+			const identifier = getReferenceIdentifier(expr);
 			return `payload === null || (payload === undefined  || payload['${identifier}'] === undefined) ? null : payload['${identifier}']`;
 		},
-	} as const;
+	};
 
-	expressionRecord[ExpressionTypes.Function] = (func) => {
+	expressionRecord.function = (func: FunctionCall) => {
 		let currentRecLevel = 0;
-		const recursive = (func: TExpressionFunction) => {
-			const { FunctionDeclaration } = func;
-			const { FunctionName, Arguments } = FunctionDeclaration;
+		const recursive = (func: FunctionCall): string => {
+			const { name: FunctionName, args: Arguments } = func;
 
 			const res: string[] = [];
 
-			if (currentRecLevel < maxNestedFuncLevel) {
-				Arguments.forEach((item) => {
-					if (isKeyItemReference(item)) {
-						const { expressionType, identifier } = item;
-						const path = pathRecord[expressionType];
-						if (isKeyItemWithExpression(item)) {
-							const { expression } = item;
+			if (currentRecLevel < MAX_NESTED_FUNC_LEVEL) {
+				Arguments.forEach((item: Expression) => {
+					if (isDataObject(item)) {
+						const refType = getReferenceType(item);
+						const identifier = getReferenceIdentifier(item);
+						const path = pathRecord[refType];
 
-							if (
-								expression.expressionType
-								=== ExpressionTypes.Function
-							) {
+						if (!path) {
+							throw new Error(`Unknown reference type: ${refType}`);
+						}
+
+						if (item.assignedExpression) {
+							const expression = item.assignedExpression;
+
+							if (isFunctionCall(expression)) {
 								currentRecLevel++;
 								res.push(recursive(expression));
 							}
 
-							const valueExpression
-								= getExpressionValue({
-									expressionRecord,
-									expression,
-								});
+							const valueExpression = getExpressionValue({
+								expressionRecord,
+								expression,
+							});
 
 							res.push(
 								`${expressionsSerializer.getDefaultPropertyContext(path, identifier, valueExpression)}`,
 							);
 						} else {
-							if (
-								item.expressionType
-								=== ExpressionTypes.Constant
-							) {
-								const expressionValueRight
-									= getExpressionValue({
-										expressionRecord,
-										expression: item,
-									});
+							if (isConstant(item.reference)) {
+								const expressionValueRight = getExpressionValue({
+									expressionRecord,
+									expression: item,
+								});
 								res.push(expressionValueRight);
 							} else {
 								res.push(
@@ -103,24 +94,19 @@ export function setupExpressions(props: {
 								);
 							}
 						}
+					} else if (isFunctionCall(item)) {
+						res.push(recursive(item));
 					} else {
-						if (
-							item.expressionType === ExpressionTypes.Function
-						) {
-							res.push(recursive(item));
-						} else {
-							const valueExpression
-								= getExpressionValue({
-									expressionRecord,
-									expression: item,
-								});
-							res.push(valueExpression);
-						}
+						const valueExpression = getExpressionValue({
+							expressionRecord,
+							expression: item,
+						});
+						res.push(valueExpression);
 					}
 				});
 			} else {
 				throw new Error(
-					`Max level of nested functions reached ${maxNestedFuncLevel}`,
+					`Max level of nested functions reached ${MAX_NESTED_FUNC_LEVEL}`,
 				);
 			}
 			return expressionsSerializer.getFunctionFromDictionary(FunctionName).concat(
@@ -135,29 +121,53 @@ export function setupExpressions(props: {
 	return expressionRecord;
 }
 
-export function getExpressionValue<T extends TMappedKeys>(props: {
+const expressionHandlers = {
+	FunctionCall: (expr: FunctionCall, record: TExpressionRecord) => record.function(expr),
+	DataObject: (expr: DataObject, record: TExpressionRecord) => record[getReferenceType(expr)](expr),
+	ArrayLiteral: (expr: ArrayLiteral, record: TExpressionRecord) => record.array(expr),
+	StringLiteral: (expr: StringLiteral, record: TExpressionRecord) => record.string(expr),
+	NumberLiteral: (expr: NumberLiteral, record: TExpressionRecord) =>
+		isIntegerLiteral(expr) ? record.integer(expr) : record.decimal(expr),
+};
+
+export function getExpressionValue(props: {
 	expressionRecord: TExpressionRecord;
-	expression: TExpression<T>;
-}) {
-	return props.expressionRecord[props.expression.expressionType](props.expression);
+	expression: Expression | KeyItem;
+}): string {
+	const { expression, expressionRecord } = props;
+	const handler = expressionHandlers[expression.$type as keyof typeof expressionHandlers];
+
+	if (!handler) {
+		throw new Error(`Unknown expression type: ${expression.$type}`);
+	}
+
+	return handler(expression as never, expressionRecord);
 }
+
+const defineExpressionHandlers = {
+	IdentifierRef: (expr: { identifier: string }) => expr.identifier,
+	DefineFunction: (expr: DefineFunction, record: TExpressionRecord) =>
+		getFunctionBody({ expression: expr, expressions: record }),
+	NestedDefineFunction: (expr: NestedDefineFunction, record: TExpressionRecord) =>
+		getFunctionBody({ expression: expr, expressions: record }),
+	Constant: (expr: Constant, record: TExpressionRecord) =>
+		record.constant({ $type: 'DataObject', reference: expr } as DataObject),
+	ArrayLiteral: (expr: ArrayLiteral, record: TExpressionRecord) => record.array(expr),
+	StringLiteral: (expr: StringLiteral, record: TExpressionRecord) => record.string(expr),
+	NumberLiteral: (expr: NumberLiteral, record: TExpressionRecord) =>
+		isIntegerLiteral(expr) ? record.integer(expr) : record.decimal(expr),
+};
 
 export function getExpressionValueDefine(props: {
 	expressions: TExpressionRecord;
-	expression: TExpressionDefineMap;
-}) {
-	switch (props.expression.expressionType) {
-		case ExpressionTypes.Identifier:
-			return props.expression.identifier;
-		case ExpressionTypes.Function:
-			return getFunctionBody({
-				expression: props.expression,
-				expressions: props.expressions,
-			});
-		default:
-			return getExpressionValue({
-				expressionRecord: props.expressions,
-				expression: props.expression,
-			});
+	expression: DefineArgument | DefineExpression;
+}): string {
+	const { expression, expressions } = props;
+	const handler = defineExpressionHandlers[expression.$type as keyof typeof defineExpressionHandlers];
+
+	if (!handler) {
+		throw new Error(`Unknown define expression type: ${expression.$type}`);
 	}
+
+	return handler(expression as never, expressions);
 }

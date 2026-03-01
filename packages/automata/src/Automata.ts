@@ -177,25 +177,26 @@ export function createAutomata<
 			}
 
 			dispatch(
-				action: TAutomataActionPayload<ActionType, PayloadType>,
+				actionWithPayload: TAutomataActionPayload<ActionType, PayloadType>,
 			): TAutomataStateContext<StateType, ContextType> {
-				if (!this.validateAction(action?.action))
-					throw new Error(`Invalid Action: ${JSON.stringify(action)}`);
+				if (!this.validateAction(actionWithPayload?.action))
+					throw new Error(`Invalid Action: ${JSON.stringify(actionWithPayload)}`);
 				if (!this.#rootReducer) {
 					throw new Error(
 						`Root Reducer is not defined. Please init the Instance with a rootReducer. Dispatched Action: ${JSON.stringify(
-							action,
+							actionWithPayload,
 						)}`,
 					);
 				}
+				const stateWithContext = this.reduceQueue();
 				const reducedValue = this.#rootReducer({
-					...action,
-					...this.reduceQueue(),
+					...actionWithPayload,
+					...stateWithContext,
 				});
 				if (!reducedValue || !this.validateState(reducedValue.state))
 					throw new Error(`Invalid Reduced State: ${reducedValue}`);
 				if (this.isPaused()) {
-					this.#actionQueue = this.getActionQueue().concat(action);
+					this.#actionQueue = this.getActionQueue().concat(actionWithPayload);
 				} else if (this.isEnabled()) {
 					this.clearActionQueue();
 					this.setContext(reducedValue);

@@ -1,6 +1,7 @@
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { TNullable } from '@yantrix/utils';
-import { TExpression, TMappedKeys, TNotes } from '@yantrix/yantrix-parser';
+import { ArrayLiteral,	DataObject,	Document,	FunctionCall,	NumberLiteral,	StringLiteral } from '@yantrix/yantrix-parser';
+
 import { ModuleNames, Modules } from '../core/modules/index.js';
 
 export type TStateDiagramMatrixIncludeNotes = {
@@ -10,7 +11,7 @@ export type TStateDiagramMatrixIncludeNotes = {
 type TDiagramStateOmitNotes = Omit<TDiagramState, 'notes'>;
 
 export type TStateIncludingNotes = {
-	notes: TNotes | null;
+	notes: Document | null;
 } & TDiagramStateOmitNotes;
 
 export type TConstants = Record<string, string | number>;
@@ -93,8 +94,14 @@ export interface ICodegen<T extends TOutLang> {
 export type TOutLang = keyof typeof Modules;
 
 export type TExpressionRecord = {
-	[K in TMappedKeys]: (arg: TExpression<K>) => string;
-
+	function: (arg: FunctionCall) => string;
+	string: (arg: StringLiteral) => string;
+	array: (arg: ArrayLiteral) => string;
+	integer: (arg: NumberLiteral) => string;
+	decimal: (arg: NumberLiteral) => string;
+	constant: (arg: DataObject) => string;
+	payload: (arg: DataObject) => string;
+	context: (arg: DataObject) => string;
 };
 export type TUserFunctionsDict = {
 	path: TNullable<string>;

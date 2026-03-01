@@ -26,12 +26,16 @@ export function dispatchWrapper<
 
 	const prevCtx = automata.getContext();
 	const previousState = prevCtx.state;
+	// const previousContext = prevCtx.context;
 
 	const reduced = automata.dispatch(action);
 
 	const nextState = reduced.state;
+	// const nextContext = reduced.context;
 
 	const stateChanged = nextState !== previousState;
+	// const contextChanged = !builtInFunctions.isEqual(previousContext, nextContext);
+	// console.log(previousContext, nextContext, previousState, nextState);
 
 	if (stateChanged) {
 		store.changeState();

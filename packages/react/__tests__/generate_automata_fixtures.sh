@@ -7,9 +7,9 @@ LANG_DEFAULT="TypeScript"
 
 TASKS=$(
   cat <<'EOF'
-traffic-light.mermaid;TrafficLightAutomata;TrafficLightAutomata
-game_phase.mermaid;GamePhaseAutomata;GamePhaseAutomataTest
-traffic-light_two_counters.mermaid;TrafficLightAutomataTwoCounters;TrafficLightAutomataTwoCounters
+traffic-light.mermaid;TrafficLightAutomata;TrafficLightAutomata_generated
+game_phase.mermaid;GamePhaseAutomata;GamePhaseAutomataTest_generated
+traffic-light_two_counters.mermaid;TrafficLightAutomataTwoCounters;TrafficLightAutomataTwoCounters_generated
 EOF
 )
 

@@ -1,4 +1,9 @@
-import { ExpressionTypes, TExpressionDefine } from '@yantrix/yantrix-parser';
+import {
+	defineExpressionIsFunction,
+	DefineFunction,
+	getDefineStatements,
+	getInjectStatements,
+} from '@yantrix/yantrix-parser';
 import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { TDependencyGraph, TImports } from './types';
 
@@ -7,11 +12,11 @@ export function buildDependencyGraph(props: {
 	imports: TImports;
 	dependencyGraph: TDependencyGraph;
 }) {
-	const defines = props.diagram.states.flatMap(state => state.notes?.defines ?? []);
-	const injects = props.diagram.states.flatMap(state => state.notes?.inject ?? []);
+	const defines = props.diagram.states.flatMap(state => state.notes ? getDefineStatements(state.notes) : []);
+	const injects = props.diagram.states.flatMap(state => state.notes ? getInjectStatements(state.notes) : []);
 
-	const addDependencies = (expression: TExpressionDefine<'function'>, currentFunc: string) => {
-		const { FunctionName, Arguments } = expression.FunctionDeclaration;
+	const addDependencies = (expression: DefineFunction, currentFunc: string) => {
+		const { name: FunctionName, args: Arguments } = expression;
 
 		if (!props.dependencyGraph.has(currentFunc)) {
 			props.dependencyGraph.set(currentFunc, new Set());
@@ -20,8 +25,9 @@ export function buildDependencyGraph(props: {
 		props.dependencyGraph.get(currentFunc)!.add(FunctionName);
 
 		for (const arg of Arguments) {
-			if (arg.expressionType === 'function') {
-				addDependencies(arg, currentFunc);
+			const argType = '$type' in arg ? arg.$type as string : '';
+			if (argType === 'DefineFunction' || argType === 'NestedDefineFunction') {
+				addDependencies(arg as unknown as DefineFunction, currentFunc);
 			}
 		}
 	};
@@ -33,7 +39,7 @@ export function buildDependencyGraph(props: {
 	});
 
 	for (const define of defines) {
-		if (define.expression.expressionType === ExpressionTypes.Function) {
+		if (defineExpressionIsFunction(define.expression)) {
 			addDependencies(define.expression, define.identifier);
 		}
 	}

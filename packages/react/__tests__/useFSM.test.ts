@@ -3,8 +3,8 @@ import { uniqId } from '@yantrix/core';
 import { act } from 'react';
 import { assert, describe, expect, it } from 'vitest';
 import { useFSM } from '../src';
-import GamePhaseAutomataTest from './generated/GamePhaseAutomataTest';
-import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata';
+import GamePhaseAutomataTest from './generated/GamePhaseAutomataTest_generated';
+import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata_generated';
 
 describe('useFSM tests', () => {
 	it('instance class by automata id', () => {
@@ -18,7 +18,7 @@ describe('useFSM tests', () => {
 			id: TLA.id,
 		}));
 
-		expect(FSM2.current.getInstanceAutomata()).toBeInstanceOf(TLA);
+		expect(FSM2.current.getInstanceAutomata().Automata).toBeInstanceOf(TLA);
 	});
 
 	it('change state after action', async () => {
@@ -66,8 +66,8 @@ describe('useFSM tests', () => {
 		const { result: FSM2 } = renderHook(() => useFSM(GamePhaseAutomataTest));
 
 		assert.notDeepEqual(FSM1.current.getInstanceAutomata(), FSM2.current.getInstanceAutomata());
-		expect(FSM1.current.getInstanceAutomata()).toBeInstanceOf(TLA);
-		expect(FSM2.current.getInstanceAutomata()).toBeInstanceOf(GamePhaseAutomataTest);
+		expect(FSM1.current.getInstanceAutomata().Automata).toBeInstanceOf(TLA);
+		expect(FSM2.current.getInstanceAutomata().Automata).toBeInstanceOf(GamePhaseAutomataTest);
 	});
 
 	it('does not re-render when dispatch results in the same state and context (isEqual guards)', () => {

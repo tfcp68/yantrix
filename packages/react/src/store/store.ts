@@ -4,16 +4,16 @@ import {
 	IContextFSM,
 	IYantrixBoundStore,
 	TAutomata,
-	TAutomataConstructorWithStatic,
+	TAutomataList,
 	TListenerCallback,
 	TRef,
-	TUseFSMProps,
+	TUseFSMInput,
 } from '../types';
 
 /**
  * Registry of created automata instances keyed by their unique id.
  */
-export const automatasList: Record<string, TAutomata> = {};
+export const automatasList: TAutomataList = {};
 
 /**
  * Internal storage for per-FSM subscriber stores.
@@ -63,9 +63,6 @@ function ensureStore(id: string): IYantrixBoundStore {
 				return inst;
 			},
 
-			/**
-			 * Notify all subscribers about a state change.
-			 */
 			changeState() {
 				self.callbacks.forEach(cb => cb());
 			},
@@ -90,7 +87,8 @@ export const fsm_context: IContextFSM = {
 	 * @returns The FSM id string
 	 * @throws When the provided value is neither a valid automata nor props object
 	 */
-	initializeFSM: (Automata: TUseFSMProps | TAutomataConstructorWithStatic) => {
+	initializeFSM: (Automata: TUseFSMInput) => {
+		// 1) Constructor case
 		if (isAutomata(Automata)) {
 			const id = Automata.id;
 			if (!automatasList[id]) {
@@ -98,15 +96,26 @@ export const fsm_context: IContextFSM = {
 			}
 			ensureStore(id);
 			return id;
-		} else if (isPropsUseFSM(Automata)) {
-			const id = Automata.id;
+		}
+
+		// 2) Props { Automata, id } from codegen or manual usage
+		if (isPropsUseFSM(Automata)) {
+			const props = Automata;
+			const { id } = props;
+
 			if (!automatasList[id]) {
-				automatasList[id] = new Automata.Automata();
+				if (typeof props.Automata === 'function') {
+					automatasList[id] = new props.Automata();
+				} else {
+					automatasList[id] = props.Automata;
+				}
 			}
+
 			ensureStore(id);
 			return id;
 		}
-		throw new Error('Is not fsm or props');
+
+		throw new Error('Is not fsm constructor or props');
 	},
 
 	/**

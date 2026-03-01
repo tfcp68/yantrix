@@ -1,12 +1,15 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import {
-	ExpressionTypes,
-	isContextWithReducer,
-	isKeyItemReference,
-	isKeyItemWithExpression,
-	TContextItem,
-	TKeyItems,
+	ContextStatement,
+	getContextStatements,
+	getReferenceIdentifier,
+	getReferenceType,
+	hasReducer,
+	isConstant,
+	isDataObject,
+	KeyItem,
+	RawKeyItem,
 } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { pathRecord } from '../../../../shared';
@@ -24,24 +27,24 @@ function getStateReducerCode(props: {
 }
 
 function getContextItem(props: {
-	ctx: TContextItem;
+	ctx: ContextStatement;
 	expressions: TExpressionRecord;
 }) {
-	if (isContextWithReducer(props.ctx)) {
-		const { context, reducer } = props.ctx;
+	if (hasReducer(props.ctx)) {
+		const { items, reducer } = props.ctx;
 
 		return getBoundValues({
 			expressions: props.expressions,
 			arr: mapReducerItems({ reducer, expressions: props.expressions }),
-			context,
+			context: items,
 		});
 	} else {
-		const { context } = props.ctx;
-		return context.map(({ keyItem }) => {
-			const { identifier } = keyItem;
-			if (isKeyItemWithExpression(keyItem)) {
+		const { items } = props.ctx;
+		return items.map((rawKeyItem) => {
+			const { identifier, defaultValue } = rawKeyItem;
+			if (defaultValue) {
 				const expressionValue = expressions.functions.getExpressionValue({
-					expression: keyItem.expression,
+					expression: defaultValue,
 					expressionRecord: props.expressions,
 				});
 
@@ -54,17 +57,18 @@ function getContextItem(props: {
 };
 
 function mapReducerItems(props: {
-	reducer: TKeyItems<'reducer'>;
+	reducer: KeyItem[];
 	sourcePath?: string;
 	expressions: TExpressionRecord;
 }) {
 	return props.reducer
-		.map(({ keyItem }) => {
-			if (isKeyItemReference(keyItem)) {
-				const { expressionType, identifier: boundIdentifier } = keyItem;
-				const path = props.sourcePath ?? pathRecord[expressionType];
+		.map((keyItem) => {
+			if (isDataObject(keyItem)) {
+				const refType = getReferenceType(keyItem);
+				const boundIdentifier = getReferenceIdentifier(keyItem);
+				const path = props.sourcePath ?? pathRecord[refType];
 
-				if (keyItem.expressionType === ExpressionTypes.Constant) {
+				if (isConstant(keyItem.reference)) {
 					const expressionValueRight = expressions.functions.getExpressionValue({
 						expression: keyItem,
 						expressionRecord: props.expressions,
@@ -74,11 +78,13 @@ function mapReducerItems(props: {
 							}())`;
 				}
 
-				if (isKeyItemWithExpression(keyItem)) {
-					const { expression } = keyItem;
+				if (!path) {
+					throw new Error(`Unknown reference type: ${refType}`);
+				}
 
+				if (keyItem.assignedExpression) {
 					const expressionValueRight = expressions.functions.getExpressionValue({
-						expression,
+						expression: keyItem.assignedExpression,
 						expressionRecord: props.expressions,
 					});
 
@@ -87,10 +93,8 @@ function mapReducerItems(props: {
 
 				return expressions.serializer.getDefaultPropertyContext(path, boundIdentifier);
 			} else {
-				const { expression } = keyItem;
-
 				const expressionValueRight = expressions.functions.getExpressionValue({
-					expression,
+					expression: keyItem,
 					expressionRecord: props.expressions,
 				});
 				return `(function(){
@@ -103,7 +107,7 @@ function mapReducerItems(props: {
 function getBoundValues(props: {
 	expressions: TExpressionRecord;
 	arr: string[];
-	context: any;
+	context: RawKeyItem[];
 }) {
 	return props.arr
 		.map((el, index) => {
@@ -111,14 +115,11 @@ function getBoundValues(props: {
 			if (!item) {
 				throw new Error('Unexpected index bound property');
 			}
-			const { keyItem } = item;
-			const { identifier: targetProperty } = keyItem;
+			const targetProperty = item.identifier;
 
-			if (isKeyItemWithExpression(keyItem)) {
-				const { expression } = keyItem;
-
+			if (item.defaultValue) {
 				const expressionValueRight = expressions.functions.getExpressionValue({
-					expression,
+					expression: item.defaultValue,
 					expressionRecord: props.expressions,
 				});
 
@@ -165,14 +166,17 @@ function getContextTransition(props: {
 
 	const ctxRes: string[] = [];
 
-	diagramState.notes?.contextDescription.forEach((ctx) => {
-		const newContext = getContextItem({
-			ctx,
-			expressions: props.expressions,
-		});
+	if (diagramState.notes) {
+		const contextStatements = getContextStatements(diagramState.notes);
+		contextStatements.forEach((ctx) => {
+			const newContext = getContextItem({
+				ctx,
+				expressions: props.expressions,
+			});
 
-		ctxRes.push(...newContext);
-	});
+			ctxRes.push(...newContext);
+		});
+	}
 
 	if (ctxRes.length === 0) return 'prevContext';
 

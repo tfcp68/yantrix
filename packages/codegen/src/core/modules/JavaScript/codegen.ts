@@ -1,6 +1,11 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TNullable } from '@yantrix/utils';
-import { TDefine, TInjectIdent } from '@yantrix/yantrix-parser';
+import {
+	DefineStatement,
+	getDefineStatements,
+	getInjectStatements,
+	InjectStatement,
+} from '@yantrix/yantrix-parser';
 import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../constants';
 import {
 	ICodegen,
@@ -22,8 +27,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	diagram: TStateDiagramMatrixIncludeNotes;
 	handlersDict: string[];
 
-	defines: TDefine[];
-	injects: TInjectIdent[];
+	defines: DefineStatement[];
+	injects: InjectStatement[];
 
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
@@ -55,8 +60,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		this.constants = constants;
 
-		this.defines = diagram.states.flatMap(state => state.notes?.defines ?? []);
-		this.injects = diagram.states.flatMap(state => state.notes?.inject ?? []);
+		this.defines = diagram.states.flatMap(state => state.notes ? getDefineStatements(state.notes) : []);
+		this.injects = diagram.states.flatMap(state => state.notes ? getInjectStatements(state.notes) : []);
 
 		this.expressions = JavaScriptCompiler.expressions.functions.setupExpressions({
 			constants: this.constants,

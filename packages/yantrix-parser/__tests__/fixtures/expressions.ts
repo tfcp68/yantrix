@@ -1,70 +1,85 @@
 import { randomDecimal, randomInteger, randomString } from '@yantrix/utils';
-import { Map } from 'immutable';
-import { ExpressionTypes } from '../../src/constants/index.js';
+import {
+	ArrayLiteral,
+	Expression,
+	FunctionCall,
+	NumberLiteral,
+	StringLiteral,
+} from '../../src';
+import { TConstRef, TCtxRef, TDataObj, TPayRef } from './types';
 
-function getStringExpressionProperties(value: string = randomString()) {
+export const expressionTypes = {
+	string: 'StringLiteral',
+	integer: 'NumberLiteral',
+	decimal: 'NumberLiteral',
+	array: 'ArrayLiteral',
+	contextReference: 'ContextReference',
+	payloadReference: 'PayloadReference',
+	constant: 'Constant',
+	function: 'FunctionCall',
+	dataObject: 'DataObject',
+} as const;
+
+type TStrLit = Omit<StringLiteral, '$container'>;
+type TNumLit = Omit<NumberLiteral, '$container'>;
+type TArrLit = Omit<ArrayLiteral, '$container'>;
+
+type TExpressionNode = Omit<Expression, '$container'>;
+type TFuncCall = Omit<FunctionCall, '$container' | 'args'> & { args: TExpressionNode[] };
+
+function stringLiteral(value = randomString()): TStrLit {
 	return {
-		StringDeclaration: value,
-		expressionType: ExpressionTypes.StringDeclaration,
-	};
-}
-function getIntegerExpressionProperties(value: number = randomInteger()) {
-	return {
-		NumberDeclaration: value,
-		expressionType: ExpressionTypes.IntegerDeclaration,
-	};
-}
-function getDecimalExpressionProperties(value: number = randomDecimal()) {
-	return {
-		NumberDeclaration: value,
-		expressionType: ExpressionTypes.DecimalDeclaration,
-	};
-}
-function getConstantExpressionProperties(value: string = randomString()) {
-	return {
-		identifier: value,
-		expressionType: ExpressionTypes.Constant,
+		$type: expressionTypes.string,
+		value: `${value}`,
 	};
 }
 
-function getContextRefrenceExpressionProperties(name: string = randomString()) {
+function integerLiteral(value = randomInteger()): TNumLit {
 	return {
-		identifier: name,
-		expressionType: ExpressionTypes.Context,
+		$type: expressionTypes.integer,
+		value: String(value),
 	};
 }
 
-function getPayloadReferenceExpressionProperties(name: string = randomString()) {
+function decimalLiteral(value = randomDecimal()): TNumLit {
 	return {
-		identifier: name,
-		expressionType: ExpressionTypes.Payload,
+		$type: expressionTypes.decimal,
+		value: String(value),
 	};
 }
-function getArrayExpressionProperties() {
-	return {
-		ArrayDeclaration: [],
-		expressionType: ExpressionTypes.ArrayDeclaration,
-	};
+
+function arrayLiteral(): TArrLit {
+	return { $type: expressionTypes.array };
 }
-function getFunctionExpressionProperties(name: string = randomString(), args: any[] = []) {
-	return {
-		FunctionDeclaration: {
-			FunctionName: name,
-			Arguments: args,
-		},
-		expressionType: ExpressionTypes.Function,
-	};
+
+function constantRef(value = randomString()): TDataObj {
+	const ref: TConstRef = { $type: expressionTypes.constant, identifier: value };
+	return { $type: expressionTypes.dataObject, reference: ref };
+}
+
+function contextRef(name = randomString()): TDataObj {
+	const ref: TCtxRef = { $type: expressionTypes.contextReference, identifier: name };
+	return { $type: expressionTypes.dataObject, reference: ref };
+}
+
+function payloadRef(name = randomString()): TDataObj {
+	const ref: TPayRef = { $type: expressionTypes.payloadReference, identifier: name };
+	return { $type: expressionTypes.dataObject, reference: ref };
+}
+
+function functionCall(name = randomString(), args: TExpressionNode[] = []): TFuncCall {
+	return { $type: expressionTypes.function, name, args };
 }
 
 export const expressionProperties = {
-	string: getStringExpressionProperties,
-	integer: getIntegerExpressionProperties,
-	decimal: getDecimalExpressionProperties,
-	contextReference: getContextRefrenceExpressionProperties,
-	payloadReference: getPayloadReferenceExpressionProperties,
-	constantRefrence: getConstantExpressionProperties,
-	function: getFunctionExpressionProperties,
-	array: getArrayExpressionProperties,
+	string: stringLiteral,
+	integer: integerLiteral,
+	decimal: decimalLiteral,
+	contextReference: contextRef,
+	payloadReference: payloadRef,
+	constantReference: constantRef,
+	function: functionCall,
+	array: arrayLiteral,
 };
 
 type TKeysPrimitive = keyof typeof expressionProperties;
@@ -74,84 +89,13 @@ type TExpressionsPrimitive = {
 export type TPrimitives = TExpressionsPrimitive[TKeysPrimitive];
 
 export const functions = {
-	withPropertyArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [
-				{
-					identifier: randomString(),
-					expressionType: ExpressionTypes.Context,
-				},
-			],
-		},
-	},
-	withStringArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [getStringExpressionProperties()],
-		},
-	},
-	withIntegerArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [getIntegerExpressionProperties()],
-		},
-	},
-	withDecimalArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [getDecimalExpressionProperties()],
-		},
-	},
-	withArrayArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [getArrayExpressionProperties()],
-		},
-	},
-	withConstantArgs: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [getConstantExpressionProperties()],
-		},
-	},
-	// withMultiplyArgs: {
-	// 	expressionType: ExpressionTypes.Function,
-	// 	FunctionDeclaration: {
-	// 		FunctionName: 'func-' + randomString(),
-	// 		Arguments: [
-	// 			{
-	// 				Property: 'first-' + randomString(),
-	// 				expressionType: ExpressionTypes.Property,
-	// 			},
-	// 			{
-	// 				Property: 'second-' + randomString(),
-	// 				expressionType: ExpressionTypes.Property,
-	// 			},
-	// 		],
-	// 	},
-	// },
-	withRecursiveFunction: {
-		expressionType: ExpressionTypes.Function,
-		FunctionDeclaration: {
-			FunctionName: `func-${randomString()}`,
-			Arguments: [
-				{
-					FunctionDeclaration: {
-						FunctionName: `func-${randomString()}`,
-						Arguments: [],
-					},
-					expressionType: ExpressionTypes.Function,
-				},
-			],
-		},
-	},
+	withPropertyArgs: functionCall(randomString(), [contextRef(randomString())]),
+	withStringArgs: functionCall(randomString(), [stringLiteral()]),
+	withIntegerArgs: functionCall(randomString(), [integerLiteral()]),
+	withDecimalArgs: functionCall(randomString(), [decimalLiteral()]),
+	withArrayArgs: functionCall(randomString(), [arrayLiteral()]),
+	withConstantArgs: functionCall(randomString(), [constantRef()]),
+	withRecursiveFunction: functionCall(randomString(), [functionCall(randomString(), [])]),
 };
 
 type TKeysFunctions = keyof typeof functions;
@@ -159,11 +103,9 @@ export type TFunctionValues = (typeof functions)[TKeysFunctions];
 
 export type TExpression = TFunctionValues | TPrimitives;
 
-type TRecordExpression = Record<'Expression', TExpression>;
+export type TRecordExpression = Record<'Expression', TExpression>;
 export function getExpression(primitiveObj: TExpression): TRecordExpression {
-	return {
-		Expression: Map<string, any>(primitiveObj).toJS() as TExpression,
-	};
+	return { Expression: primitiveObj };
 }
 
 export const expressions = Object.fromEntries(

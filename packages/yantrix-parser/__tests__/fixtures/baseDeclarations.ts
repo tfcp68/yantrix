@@ -1,46 +1,86 @@
-import { TMapped } from '../../src/index.js';
-import { TKeyItems } from '../../src/types/keyItem.js';
-import { baseKeyItemDeclaration, createContextDescription } from './keyItem.js';
+import { expressionTypes } from './expressions';
+import { TConstRef, TCtx, TCtxRef, TDataObj, TDoc, TEmit, TKey, TPayRef, TRawKey, TStmt, TSubscribe } from './types';
 
-export const baseEmpty = {
-	contextDescription: [],
-	emit: [],
-	subscribe: [],
-};
+export function expectStatementCount(doc: { statements: unknown[] }, count: number): void {
+	if (doc.statements.length !== count) {
+		throw new Error(`Expected ${count} statements, got ${doc.statements.length}`);
+	}
+}
 
-export const baseContext = createContextDescription(
-	[baseKeyItemDeclaration('LeftSideProperty')],
-	[baseKeyItemDeclaration('RightSideProperty', 'context' as keyof TMapped)],
-);
+function makeDoc(statements: TStmt[] = []): TDoc {
+	return { $type: 'Document', statements };
+}
 
-export const baseContextWithPrevious = createContextDescription(
-	[baseKeyItemDeclaration('LeftSideProperty')],
-	[baseKeyItemDeclaration('RightSideProperty', 'payload' as keyof TMapped)],
-);
+function makeRawKey(identifier: string): TRawKey {
+	return { $type: 'RawKeyItem', identifier };
+}
 
-export function createSubscribeStatement(eventName: string = 'event',	actionName: string = 'action',	payloadItems: TKeyItems = [baseKeyItemDeclaration('m', 'context' as keyof TMapped)],	context: TKeyItems = [baseKeyItemDeclaration('k', 'context' as keyof TMapped)]) {
+function makeContextStatement(items: TRawKey[], reducer: TKey[] = []): TCtx {
 	return {
-		subscribe: [
-			{
-				identifier: eventName,
-				actionName,
-				meta: [...context],
-				payload: [...payloadItems],
-			},
-		],
+		$type: 'ContextStatement',
+		items,
+		reducer,
 	};
 }
 
-export function createEmitStatement(eventName: string = 'event',	payloadItems: TKeyItems = [baseKeyItemDeclaration('t', 'context' as keyof TMapped)],	context: TKeyItems = [baseKeyItemDeclaration('ab')]) {
-	return {
-		emit: [
-			{
-				identifier: eventName,
-				meta: [...payloadItems],
-				context: [...context],
-			},
-		],
+function makeDataObject(reference: TCtxRef | TPayRef | TConstRef): TDataObj {
+	return { $type: expressionTypes.dataObject, reference };
+}
+
+function makeContextRef(identifier: string): TCtxRef {
+	return { $type: expressionTypes.contextReference, identifier };
+}
+
+function makePayloadRef(identifier: string): TPayRef {
+	return { $type: expressionTypes.payloadReference, identifier };
+}
+
+export const baseEmpty = makeDoc([]);
+
+export const baseContext = makeDoc([
+	makeContextStatement(
+		[makeRawKey('LeftSideProperty')],
+		[makeDataObject(makeContextRef('RightSideProperty'))],
+	),
+]);
+
+export const baseContextWithPrevious = makeDoc([
+	makeContextStatement(
+		[makeRawKey('LeftSideProperty')],
+		[makeDataObject(makePayloadRef('RightSideProperty'))],
+	),
+]);
+
+export function createSubscribeStatement(
+	eventName = 'event',
+	actionName = 'action',
+	payloadItems: TKey[] = [makeDataObject(makeContextRef('m'))],
+	metaItems: TKey[] = [makeDataObject(makeContextRef('k'))],
+): TDoc {
+	const subscribe: TSubscribe = {
+		$type: 'SubscribeStatement',
+		identifier: eventName,
+		actionName,
+		payload: payloadItems,
+		metaItems,
 	};
+
+	return makeDoc([subscribe]);
+}
+
+export function createEmitStatement(
+	eventName = 'event',
+	payloadItems: TKey[] = [makeDataObject(makeContextRef('t'))],
+	contextItems: TRawKey[] = [makeRawKey('ab')],
+): TDoc {
+	const emit: TEmit = {
+		$type: 'EmitStatement',
+		identifier: eventName,
+		meta: payloadItems,
+		context: contextItems,
+	};
+
+	return makeDoc([emit]);
 }
 
 export const baseSubscribe = createSubscribeStatement();
