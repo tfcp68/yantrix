@@ -1,0 +1,31 @@
+export class <%~ it.className %> extends GenericAutomata {
+  static id = '<%~ it.className %>_<%~ Date.now() %>';
+  static actions = actionsMap;
+  static states = statesMap;
+  static getState = <%~ include('getState', it) %>;
+  static hasState = <%~ include('hasState', it) %>;
+  static getAction = <%~ include('getAction', it) %>;
+  static createAction = <%~ include('createAction', it) %>;
+
+  constructor() {
+    super(eventAdapter);
+    this.init({
+      state: <%~ it.initialStateValue %>,
+      context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
+      rootReducer: <%~ include('rootReducer', it) %>,
+      stateValidator: <%~ include('stateValidator', it) %>,
+      actionValidator: <%~ include('actionValidator', it) %>,
+      functionRegistry: functionDictionary,
+    });
+    <%~ include('initContext', it) %>
+  }
+
+  isKeyOf = <%~ include('isKeyOf', it) %>;
+}
+
+<%~ it.dictionariesVM.epochCode %>
+<%~ it.dictionariesVM.internalsRegistryCode %>
+<%~ it.dictionariesVM.functionRegistryInternalRegisterCode %>
+<%~ it.dictionariesVM.functionRegistryBuiltInRegisterCode %>
+
+export default <%~ it.className %>;
