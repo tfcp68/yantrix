@@ -1,0 +1,4 @@
+functionDictionary.register('<%~ it.registration.name %>', function(<%~ it.registration.args.join(', ') %>) {
+  return <%~ it.registration.body %>;
+});
+

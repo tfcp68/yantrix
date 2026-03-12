@@ -1,8 +1,8 @@
-import { checkUserFunctionsDefined, registerCustomFunctions } from './core';
+import { getCustomFunctionRegistrationsModel, getUserFunctionsCheckModel } from './core';
 
 export const functions = {
-	serializer: checkUserFunctionsDefined,
 	functions: {
-		registerCustomFunctions,
+		getUserFunctionsCheckModel,
+		getCustomFunctionRegistrationsModel,
 	},
 };

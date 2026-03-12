@@ -1,0 +1,18 @@
+<%
+const registrations = it.functionsVM.customRegistrations;
+const hasInjectRegistration = registrations.some((registration) => registration.kind === 'inject');
+%>
+
+<% if (hasInjectRegistration) { %>
+<%~ include('resolveUserFunctions', { namespace: it.functionsVM.userFunctionsNamespace }) %>
+<%~ include('validateInjectedFunctions', { injectIdentifiers: it.functionsVM.userFunctionsCheck.injectIdentifiers }) %>
+<% } %>
+
+<% for (const registration of registrations) { %>
+<% if (registration.kind === 'inject') { %>
+<%~ include('registerInject', { registration }) %>
+<% } else { %>
+<%~ include('registerDefine', { registration }) %>
+<% } %>
+<% } %>
+

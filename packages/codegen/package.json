@@ -61,6 +61,7 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
+		"postbuild": "bash ./copyTemplates.sh",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
 		"test": "vitest run --outputFile=../../test_reports/codegen.md"
@@ -70,7 +71,8 @@
 		"@yantrix/functions": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/utils": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^"
+		"@yantrix/yantrix-parser": "workspace:^",
+		"eta": "^4.5.1"
 	},
 	"publishConfig": {
 		"access": "public",

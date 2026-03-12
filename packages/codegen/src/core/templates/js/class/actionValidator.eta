@@ -1,0 +1,1 @@
+(a) => Object.values(actionsDictionary).includes(a)

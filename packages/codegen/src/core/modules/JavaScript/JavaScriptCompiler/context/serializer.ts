@@ -242,4 +242,5 @@ export const contextSerializer = {
 	getBoundValues,
 	getStateToContext,
 	getDefaultContext,
+	getContextTransition,
 };

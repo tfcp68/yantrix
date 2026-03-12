@@ -143,7 +143,7 @@ export function getAutomataInternalsRegisterCode(props: {
 	lines.push(`\t"currentActionName": internalFunctions.currentActionName(${className}, actionsDictionary),`);
 	lines.push(`\t"currentCycle": internalFunctions.currentCycle(${className}),`);
 	lines.push(`\t"currentEpoch": getEpoch,`);
-	lines.push(`}`);
+	lines.push(`};`);
 	return lines.join('\n');
 }
 

@@ -1,0 +1,6 @@
+<%~ it.stateId %>: {
+<% for (const [actionId, predicate] of Object.entries(it.actionPredicates ?? {})) { %>
+  <%~ include('actionPredicateEntry', { actionId, predicate }) %>
+<% } %>
+},
+

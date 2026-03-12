@@ -1,0 +1,40 @@
+({ action, context, payload, state }) => {
+  if (!action || payload === null) return { state, context };
+
+  <%~ include('stateValidationHead') %> <%~ include('stateValidationError') %>;
+
+  <%~ include('actionValidation') %>;
+
+  const getNew = (action, state, context, payload) => {
+    this.lastAction = action;
+
+    const actionMove = actionToStateFromStateDict[state][action];
+    const newStateObject = { state: actionMove.state[0] };
+    const contextWithInitial = getDefaultContext(context, payload);
+
+    <%~ include('newStatePredicateResolution') %>
+
+    const newState = newStateObject.state;
+    const newContextFunc = reducer[newState];
+
+    if (typeof newContextFunc !== 'function') {
+      throw new Error('Invalid newContextFunc');
+    }
+
+    return {
+      state: newState,
+      context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this),
+    };
+  };
+
+  let localCtx = getNew(action, state, context, payload);
+
+  while (byPassedStates.has(localCtx.state)) {
+    localCtx = getNew(actionsDictionary['<%~ it.byPassAction %>'], localCtx.state, localCtx.context, {});
+  }
+
+  this.incrementCycle(); // increment automata local cycle counter
+  incrementEpoch(); // increment global epoch counter
+
+  return localCtx;
+}

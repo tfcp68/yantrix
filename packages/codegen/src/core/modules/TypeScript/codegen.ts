@@ -1,4 +1,5 @@
 import { ICodegen, TGetCodeOptionsMap, TModuleParams } from '../../../types/common';
+import { eta } from '../../eta';
 import { getStatesByPass } from '../../shared';
 import { ModuleNames } from '../index';
 import { JavaScriptCodegen } from '../JavaScript';
@@ -24,6 +25,11 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			classSerializer: TypeScriptCompiler.class.serializer,
 			className: options.className,
 		};
+		const predicatesModel = TypeScriptCompiler.forks.serializer.getPredicatesCode(props);
+		const predicatesCode = eta.render('js/forks/predicates.eta', { predicatesModel });
+		if (predicatesCode == null) {
+			throw new Error('Eta render returned null/undefined for js/forks/predicates');
+		}
 		return `
 			${TypeScriptCompiler.imports.serializer.getImportsCode(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
@@ -35,7 +41,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			export type TActions${options.className} = keyof typeof actionsMap;
 			${TypeScriptCompiler.context.serializer.getDefaultContext(props)}
 			${TypeScriptCompiler.context.serializer.getStateReducerCode(props)}
-			${TypeScriptCompiler.forks.serializer.getPredicatesCode(props)}
+			${predicatesCode}
 			${TypeScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
 			${TypeScriptCompiler.class.serializer.getClassTemplate(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
