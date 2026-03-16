@@ -1,4 +1,4 @@
-import { JavaScriptTemplate } from '../core/templates/JavaScript';
+import { JavaScriptTemplate } from './JavaScript';
 
 export function replaceFileContents(replacementMap: Record<string, string>): string {
 	let res = JavaScriptTemplate;
