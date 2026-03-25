@@ -3,8 +3,7 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 
-import type { Grammar } from 'langium';
-import { loadGrammarFromJson } from 'langium';
+import { Grammar, loadGrammarFromJson } from 'langium';
 
 let loadedYantrixGrammar: Grammar | undefined;
 export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYantrixGrammar = loadGrammarFromJson(`{

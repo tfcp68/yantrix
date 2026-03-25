@@ -3,23 +3,23 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 
-import type { LangiumSharedCoreServices, LangiumCoreServices, LangiumGeneratedCoreServices, LangiumGeneratedSharedCoreServices, LanguageMetaData, Module } from 'langium';
+import { LangiumCoreServices, LangiumGeneratedCoreServices, LangiumGeneratedSharedCoreServices, LangiumSharedCoreServices, LanguageMetaData, Module } from 'langium';
 import { YantrixAstReflection } from './ast.js';
 import { YantrixGrammar } from './grammar.js';
 
 export const YantrixLanguageMetaData = {
-    languageId: 'yantrix',
-    fileExtensions: ['.yantrix', '.yx'],
-    caseInsensitive: false,
-    mode: 'development'
+	languageId: 'yantrix',
+	fileExtensions: ['.yantrix', '.yx'],
+	caseInsensitive: false,
+	mode: 'development',
 } as const satisfies LanguageMetaData;
 
 export const YantrixGeneratedSharedModule: Module<LangiumSharedCoreServices, LangiumGeneratedSharedCoreServices> = {
-    AstReflection: () => new YantrixAstReflection()
+	AstReflection: () => new YantrixAstReflection(),
 };
 
 export const YantrixGeneratedModule: Module<LangiumCoreServices, LangiumGeneratedCoreServices> = {
-    Grammar: () => YantrixGrammar(),
-    LanguageMetaData: () => YantrixLanguageMetaData,
-    parser: {}
+	Grammar: () => YantrixGrammar(),
+	LanguageMetaData: () => YantrixLanguageMetaData,
+	parser: {},
 };
