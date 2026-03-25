@@ -119,38 +119,27 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			expressions: this.expressions,
 		});
 
-		const eventAdapterCode = JavaScriptCompiler.events.serializer.getEventAdapterCode({
+		const eventAdapterModel = JavaScriptCompiler.events.serializer.getEventAdapterModel({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 			eventDictionary: this.eventDictionary,
 			expressions: this.expressions,
 		});
-		const createEventBusCode = JavaScriptCompiler.events.serializer.getCreateEventBusFunctionCode();
+		const createEventBusModel = JavaScriptCompiler.events.serializer.getCreateEventBusModel();
 
-		const actionToStateFromStateDictCode = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState({
+		const actionToStateFromStateModel = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromStateModel({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
-			dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
 		});
-		const byPassedStatesCode = JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed({
-			byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
-		});
-		const actionsMapCode = JavaScriptCompiler.dictionaries.serializer.getActionsMap({
+		const byPassedList = getStatesByPass(this.diagram, this.stateDictionary);
+		const actionsMapModel = JavaScriptCompiler.dictionaries.serializer.getActionsMapModel({
 			actionDictionary: this.actionDictionary,
 		});
-		const statesMapCode = JavaScriptCompiler.dictionaries.serializer.getStatesMap({
+		const statesMapModel = JavaScriptCompiler.dictionaries.serializer.getStatesMapModel({
 			stateDictionary: this.stateDictionary,
 		});
-		const epochCode = JavaScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode();
-		const internalsRegistryCode = JavaScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode({
-			className,
-		});
-		const functionRegistryInternalRegisterCode = JavaScriptCompiler.dictionaries.serializer
-			.getFunctionDictionaryInternalRegisterCode();
-		const functionRegistryBuiltInRegisterCode = JavaScriptCompiler.dictionaries.serializer
-			.getFunctionDictionaryBuiltInRegisterCode();
 
 		const userFunctionsCheck = JavaScriptCompiler.functions.functions.getUserFunctionsCheckModel({
 			injectedPath: this.injectedPath,
@@ -193,18 +182,14 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				predicatesModel,
 			},
 			events: {
-				eventAdapterCode,
-				createEventBusCode,
+				eventAdapterModel,
+				createEventBusModel,
 			},
 			dictionariesVM: {
-				actionToStateFromStateDictCode,
-				byPassedStatesCode,
-				actionsMapCode,
-				statesMapCode,
-				epochCode,
-				internalsRegistryCode,
-				functionRegistryInternalRegisterCode,
-				functionRegistryBuiltInRegisterCode,
+				actionToStateFromStateModel,
+				byPassedList,
+				actionsMapModel,
+				statesMapModel,
 			},
 		};
 	}

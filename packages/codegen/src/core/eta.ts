@@ -8,4 +8,5 @@ const __dirname = path.dirname(__filename);
 export const eta = new Eta({
 	views: path.resolve(__dirname, 'templates'),
 	cache: true,
+
 });

@@ -23,7 +23,7 @@ export type TPredicatesModel = Record<number, Record<number, TPredicateActionMod
 
 /*
 	Predicates object is necessary for resolving the correct state to transition to, when using forks;
-	Function, obtained w/ IDs of currentState and dispatchedAction , is later loaded with values
+	Function, obtained w/ IDs of currentState and dispatchedAction, is later loaded with values
 	from context/payload during root reducer operations.
 	Resulting value is the new state of the automata, exact state value depends on which conditions resolve to TRUE inside
 */

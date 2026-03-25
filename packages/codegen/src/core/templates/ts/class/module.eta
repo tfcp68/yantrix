@@ -23,10 +23,7 @@ export class <%~ it.className %> extends GenericAutomata {
   isKeyOf = <%~ include('isKeyOf', it) %>;
 }
 
-<%~ it.dictionariesVM.epochCode %>
-<%~ it.dictionariesVM.internalsRegistryCode %>
-<%~ it.dictionariesVM.functionRegistryInternalRegisterCode %>
-<%~ it.dictionariesVM.functionRegistryBuiltInRegisterCode %>
+<%~ include('../../js/dictionaries/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;
 

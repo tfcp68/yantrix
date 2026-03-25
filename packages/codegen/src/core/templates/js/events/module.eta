@@ -1,3 +1,2 @@
-<%~ it.events.eventAdapterCode %>
-
-<%~ it.events.createEventBusCode %>
+<%~ include('eventAdapter', it) %>
+<%~ include('createEventBus', it) %>
