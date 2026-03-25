@@ -1,2 +1,11 @@
-<%~ it.actionId %>: <%~ it.predicate %>,
+<% const transitions = it.predicate?.transitions ?? []; %>
+<%~ it.actionId %>: (prevContext, payload, functionDictionary) => {
+<% for (let transitionIndex = 0; transitionIndex < transitions.length; transitionIndex++) { %>
+  <%~ include('transitionPredicateEntry', {
+	transition: transitions[transitionIndex],
+	transitionIndex,
+  }) %>
+<% } %>
+  return null;
+},
 

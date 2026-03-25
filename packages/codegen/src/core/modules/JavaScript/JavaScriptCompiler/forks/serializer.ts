@@ -1,8 +1,8 @@
 import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
-import { getPredicates } from './core';
+import { getPredicates, TPredicatesModel } from './core';
 
-export type TPredicatesModel = Record<number, Record<number, string>>;
+export type { TPredicatesModel };
 
 function getPredicatesCode(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;

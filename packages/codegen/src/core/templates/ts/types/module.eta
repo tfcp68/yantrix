@@ -1,0 +1,41 @@
+type TStateId = (typeof statesDictionary)[keyof typeof statesDictionary];
+type TActionId = (typeof actionsDictionary)[keyof typeof actionsDictionary];
+
+type TAutomataContext = Record<string, unknown>;
+type TAutomataPayload = Record<string, unknown> | null;
+type TReducerPayload = Exclude<TAutomataPayload, null>;
+
+type TPredicate = (
+  context: TAutomataContext,
+  payload: TReducerPayload,
+  functionDictionary: FunctionDictionary,
+) => TStateId | null;
+
+type TTransition = {
+  state: TStateId[];
+  predicate?: TPredicate;
+};
+
+type TTransitions = Record<TStateId, Partial<Record<TActionId, TTransition>>>;
+
+type TReducerFn = (
+  prevContext: TAutomataContext,
+  payload: TReducerPayload,
+  functionDictionary: FunctionDictionary,
+  automata: GenericAutomata,
+) => TAutomataContext;
+
+type TReducerMap = Partial<Record<TStateId, TReducerFn>>;
+
+type TRootReducerInput = {
+  action: TActionId | null;
+  context: TAutomataContext;
+  payload: TAutomataPayload;
+  state: TStateId;
+};
+
+type TRootReducerOutput = {
+  state: TStateId;
+  context: TAutomataContext;
+};
+

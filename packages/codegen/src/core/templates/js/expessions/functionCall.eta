@@ -1,0 +1,9 @@
+<%
+const model = it.model;
+const args = (model.args ?? []).map((arg) => include('module', { model: arg }).trim());
+%>
+(function() {
+  const func = functionDictionary.get('<%~ model.functionName %>');
+  return func(<%~ args.join(', ') %>);
+})()
+

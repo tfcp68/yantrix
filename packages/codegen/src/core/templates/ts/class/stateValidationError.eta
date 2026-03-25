@@ -1,0 +1,2 @@
+throw new Error("Invalid state, maybe machine isn't running.")
+

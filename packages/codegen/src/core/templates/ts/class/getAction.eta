@@ -1,0 +1,2 @@
+(action: keyof typeof actionsMap) => actionsDictionary[action]
+

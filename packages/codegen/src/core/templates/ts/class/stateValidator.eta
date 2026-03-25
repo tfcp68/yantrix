@@ -1,0 +1,2 @@
+(s: TAutomataBaseStateType) => Object.values(statesDictionary).includes(s)
+

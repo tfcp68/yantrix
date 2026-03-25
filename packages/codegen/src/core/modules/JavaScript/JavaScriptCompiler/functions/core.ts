@@ -9,39 +9,27 @@ import {
 } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
 import { getExpressionValueDefine } from '../expressions/core';
+import { getFunctionBodyModel, TDefineExpressionModel } from '../expressions/functions';
 import { TDependencyGraph } from '../imports';
+import { TCustomRegistration } from './types';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;
 	expression: DefineExpression;
-}): string {
+}): TDefineExpressionModel {
 	if (defineExpressionIsFunction(props.expression)) {
-		const { name: FunctionName, args: Arguments } = props.expression;
-
-		const argsList = Arguments.map((arg) => {
-			const argType = '$type' in arg ? arg.$type as string : '';
-			if (argType === 'DefineFunction' || argType === 'NestedDefineFunction') {
-				return getFunctionBody({
-					expression: arg as unknown as DefineExpression,
-					expressions: props.expressions,
-				});
-			} else {
-				return getExpressionValueDefine({
-					expression: arg,
-					expressions: props.expressions,
-				});
-			}
-		}).join(', ');
-
-		return `(function() {
-					const func = functionDictionary.get('${FunctionName}');
-					return func(${argsList});
-				})()`;
-	} else {
-		return getExpressionValueDefine({
+		return getFunctionBodyModel({
 			expression: props.expression,
 			expressions: props.expressions,
 		});
+	} else {
+		return {
+			kind: 'raw',
+			value: getExpressionValueDefine({
+				expression: props.expression,
+				expressions: props.expressions,
+			}),
+		};
 	}
 }
 
@@ -59,10 +47,6 @@ export function getUserFunctionsCheckModel(props: {
 		injectIdentifiers: injects.map(inject => inject.identifier),
 	};
 }
-
-export type TCustomRegistration =
-	| { kind: 'inject'; name: string }
-	| { kind: 'define'; name: string; args: string[]; body: string };
 
 export function getCustomFunctionRegistrationsModel(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -103,11 +87,11 @@ export function getCustomFunctionRegistrationsModel(props: {
 			registrations.push({ kind: 'inject', name: funcName });
 			registered.add(funcName);
 		} else if (defineFunction) {
-			const functionBody = getFunctionBody({
+			const bodyModel = getFunctionBody({
 				expression: defineFunction.expression,
 				expressions,
 			});
-			registrations.push({ kind: 'define', name: funcName, args: defineFunction.args, body: functionBody });
+			registrations.push({ kind: 'define', name: funcName, args: defineFunction.args, bodyModel });
 			registered.add(funcName);
 		};
 	};
@@ -119,4 +103,13 @@ export function getCustomFunctionRegistrationsModel(props: {
 	}
 
 	return registrations;
+}
+
+export function getCustomFunctionRegistrationsVM(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	dependencyGraph: TDependencyGraph;
+	expressions: TExpressionRecord;
+	injectFunctions: TUserFunctionsDict;
+}): TCustomRegistration[] {
+	return getCustomFunctionRegistrationsModel(props);
 }

@@ -1,0 +1,2 @@
+(state: keyof typeof statesMap) => statesDictionary[state]
+

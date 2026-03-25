@@ -1,0 +1,53 @@
+((input: TRootReducerInput): TRootReducerOutput => {
+  const { action, context, payload, state } = input;
+  if (action === null || payload === null) return { state, context };
+
+  <%~ include('stateValidationHead') %> <%~ include('stateValidationError') %>;
+
+  <%~ include('actionValidation') %>;
+
+  const transitions: TTransitions = actionToStateFromStateDict;
+
+  const getNew = (
+    localAction: TActionId,
+    localState: TStateId,
+    localContext: TAutomataContext,
+    localPayload: TReducerPayload,
+  ): TRootReducerOutput => {
+    this.lastAction = localAction;
+
+    const stateTransitions = transitions[localState];
+    if (!stateTransitions) return { state: localState, context: localContext };
+
+    const actionMove = stateTransitions[localAction];
+    if (!actionMove) return { state: localState, context: localContext };
+
+    const newStateObject = { state: actionMove.state[0] };
+    const contextWithInitial = getDefaultContext(localContext, localPayload);
+
+    <%~ include('newStatePredicateResolution') %>
+
+    const newState = newStateObject.state;
+    const newContextFunc = reducer[newState];
+
+    if (typeof newContextFunc !== 'function') {
+      throw new Error('Invalid newContextFunc');
+    }
+
+    return {
+      state: newState,
+      context: newContextFunc(contextWithInitial, localPayload, this.getFunctionRegistry(), this),
+    };
+  };
+
+  let localCtx = getNew(action, state, context, payload);
+
+  while (byPassedStates.has(localCtx.state)) {
+    localCtx = getNew(actionsDictionary['<%~ it.byPassAction %>'], localCtx.state, localCtx.context, {});
+  }
+
+  this.incrementCycle(); // increment automata local cycle counter
+  incrementEpoch(); // increment global epoch counter
+
+  return localCtx;
+})

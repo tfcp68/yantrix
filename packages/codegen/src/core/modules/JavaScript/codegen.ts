@@ -1,4 +1,3 @@
-// packages/codegen/src/core/modules/JavaScript/codegen.ts
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import { TNullable } from '@yantrix/utils';
@@ -62,7 +61,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.eventDictionary = new BasicEventDictionary();
 
 		this.diagram = diagram;
-
 		this.constants = constants;
 		this.injectedFunctions = injectedFunctions;
 
@@ -79,7 +77,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			imports: this.imports,
 		});
 		this.imports = buildDependencyGraphResult.imports;
-
 		this.dependencyGraph = buildDependencyGraphResult.dependencyGraph;
 
 		this.handlersDict = [];
@@ -104,7 +101,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		});
 	}
 
-	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
+	protected buildTemplateModel(className: string) {
 		const initialStateId = JavaScriptCompiler.state.functions.getInitialState({ diagram: this.diagram });
 		const initialStateValue = this.stateDictionary.getStateValues({ keys: [initialStateId] })[0];
 		if (initialStateValue == null) throw new Error('Invalid initial state');
@@ -122,7 +119,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			expressions: this.expressions,
 		});
 
-		// events: eventAdapter, handlers, createEventBus
 		const eventAdapterCode = JavaScriptCompiler.events.serializer.getEventAdapterCode({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
@@ -132,7 +128,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		});
 		const createEventBusCode = JavaScriptCompiler.events.serializer.getCreateEventBusFunctionCode();
 
-		// dictionaries, transition matrix, byPassed, epoch/internals/registry
 		const actionToStateFromStateDictCode = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
@@ -150,7 +145,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		});
 		const epochCode = JavaScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode();
 		const internalsRegistryCode = JavaScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode({
-			className: options.className,
+			className,
 		});
 		const functionRegistryInternalRegisterCode = JavaScriptCompiler.dictionaries.serializer
 			.getFunctionDictionaryInternalRegisterCode();
@@ -161,7 +156,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			injectedPath: this.injectedPath,
 			injects: this.injects,
 		});
-		const customRegistrations = JavaScriptCompiler.functions.functions.getCustomFunctionRegistrationsModel({
+		const customRegistrations = JavaScriptCompiler.functions.functions.getCustomFunctionRegistrationsVM({
 			diagram: this.diagram,
 			dependencyGraph: this.dependencyGraph,
 			expressions: this.expressions,
@@ -171,9 +166,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			? this.importNamespaces[this.injectedPath]![0] ?? {}
 			: null;
 
-		const it = {
-			className: options.className,
-
+		return {
+			className,
 			imports: this.imports,
 			importNamespaces: this.importNamespaces,
 			diagram: this.diagram,
@@ -193,12 +187,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			initialStateValue,
 			initialContext,
 			startStateKey: StartState,
-
-			// bypass action name
 			byPassAction: ByPassAction,
 			contextSerializer: JavaScriptCompiler.context.serializer,
-
-			// forks/events/dictionaries
 			forks: {
 				predicatesModel,
 			},
@@ -217,7 +207,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 				functionRegistryBuiltInRegisterCode,
 			},
 		};
+	}
 
+	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
+		const it = this.buildTemplateModel(options.className);
 		const rendered = eta.render('js/module.eta', it);
 		if (rendered == null) throw new Error('Eta render returned null/undefined for js/module');
 		return rendered;
