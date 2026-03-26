@@ -1,7 +1,6 @@
 import { ArrayLiteral, Constant, DataObject, DefineArgument, DefineExpression, DefineFunction, Expression, FunctionCall, getNumberValue, getReferenceIdentifier, getReferenceType, getStringValue, isConstant, isDataObject, isFunctionCall, isIntegerLiteral, KeyItem, MAX_NESTED_FUNC_LEVEL, NestedDefineFunction, NumberLiteral, StringLiteral } from '@yantrix/yantrix-parser';
 import { TConstants, TExpressionRecord } from '../../../../../types/common';
 import { pathRecord } from '../../../../shared';
-import { getFunctionBody } from './functions';
 import { expressionsSerializer } from './serializer';
 
 export function setupExpressions(props: {
@@ -146,10 +145,12 @@ export function getExpressionValue(props: {
 
 const defineExpressionHandlers = {
 	IdentifierRef: (expr: { identifier: string }) => expr.identifier,
-	DefineFunction: (expr: DefineFunction, record: TExpressionRecord) =>
-		getFunctionBody({ expression: expr, expressions: record }),
-	NestedDefineFunction: (expr: NestedDefineFunction, record: TExpressionRecord) =>
-		getFunctionBody({ expression: expr, expressions: record }),
+	DefineFunction: (_expr: DefineFunction, _record: TExpressionRecord) => {
+		throw new Error('DefineFunction should be compiled via getFunctionBodyModel and Eta templates in functions module');
+	},
+	NestedDefineFunction: (_expr: NestedDefineFunction, _record: TExpressionRecord) => {
+		throw new Error('NestedDefineFunction should be compiled via getFunctionBodyModel and Eta templates in functions module');
+	},
 	Constant: (expr: Constant, record: TExpressionRecord) =>
 		record.constant({ $type: 'DataObject', reference: expr } as DataObject),
 	ArrayLiteral: (expr: ArrayLiteral, record: TExpressionRecord) => record.array(expr),

@@ -57,30 +57,3 @@ export function getFunctionBodyModel(props: {
 		args,
 	};
 }
-
-export function getFunctionBody(props: {
-	expressions: TExpressionRecord;
-	expression: DefineFunction | NestedDefineFunction;
-}): string {
-	const model = getFunctionBodyModel(props);
-	const stringify = (node: TDefineExpressionModel): string => {
-		if (node.kind === 'raw') {
-			return node.value;
-		}
-
-		if (node.isInternal) {
-			return `(function() {
-				const func = functionDictionary.get('${node.functionName}');
-				return func(automata);
-			})()`;
-		}
-
-		const args = node.args.map(stringify).join(', ');
-		return `(function() {
-				const func = functionDictionary.get('${node.functionName}');
-				return func(${args});
-			})()`;
-	};
-
-	return stringify(model);
-}
