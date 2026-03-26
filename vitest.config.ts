@@ -24,6 +24,7 @@ export default defineConfig({
 				'/{interfaces,types}/*.ts',
 				'/index.{js,ts}',
 				'**/exports/*.{js,ts}',
+				'**/dist/templates/**',
 			],
 		},
 	},
