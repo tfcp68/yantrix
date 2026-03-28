@@ -1,4 +1,0 @@
-const initReducer = reducer[this.state];
-const prev = this.getContext()?.context ?? {};
-const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
-this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });

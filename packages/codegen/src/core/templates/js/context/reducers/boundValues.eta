@@ -1,0 +1,9 @@
+<%~ it.arr.map((el, index) => include('boundValuesItem', {
+  ...it,
+  el,
+  index,
+  item: it.context[index],
+  targetProperty: it.context[index]?.identifier
+})).join(',\n\t') %>
+
+

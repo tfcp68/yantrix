@@ -1,5 +1,0 @@
-<%~ it.actionId %>: {
-  state: [<%~ it.entry.state.join(', ') %>]<% if (it.entry.withPredicate) { %>,
-  predicate: predicates[<%~ it.stateId %>][<%~ it.actionId %>]
-<% } %>
-}

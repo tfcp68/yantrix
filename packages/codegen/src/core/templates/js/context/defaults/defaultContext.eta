@@ -1,17 +1,17 @@
 <% const start = it.stateDictionary.getStateValues({ keys: [it.startStateKey] })[0]; %>
 <% if (start != null) { %>
-const getDefaultContext = (prevContext: TAutomataContext, payload: TReducerPayload): TAutomataContext => {
-  const ctx = <%~ include('../../js/context/reducers/contextTransition', {
+const getDefaultContext = (prevContext, payload) => {
+  const ctx = <%~ include('../reducers/contextTransition', {
     diagram: it.diagram,
     expressions: it.expressions,
     stateDictionary: it.stateDictionary,
     value: start,
     contextSerializer: it.contextSerializer,
   }) %>;
-
   return Object.assign({}, prevContext, ctx);
 }
 <% } else { %>
-const getDefaultContext = (prevContext: TAutomataContext, payload: TReducerPayload): TAutomataContext => prevContext
+const getDefaultContext = (prevContext, payload) => prevContext
 <% } %>
+
 

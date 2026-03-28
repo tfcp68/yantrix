@@ -1,3 +1,0 @@
-<%~ it.stateValue %>: (prevContext, payload, functionDictionary, automata) => {
-  <%~ include('contextTransition', it) %>
-}

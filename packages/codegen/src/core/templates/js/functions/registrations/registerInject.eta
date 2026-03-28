@@ -1,0 +1,3 @@
+functionDictionary.register('<%~ it.registration.name %>', userFunctionsDict['<%~ it.registration.name %>']);
+
+

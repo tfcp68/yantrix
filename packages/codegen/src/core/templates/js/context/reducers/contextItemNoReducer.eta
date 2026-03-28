@@ -1,0 +1,9 @@
+<%~ (function(){
+  const identifier = it.rawKeyItem.identifier;
+  const defaultValue = it.rawKeyItem.defaultValue;
+  if (defaultValue) {
+    return `${identifier}: ${it.expressions.serializer.getDefaultPropertyContext('prevContext', identifier, it.expressions.functions.getExpressionValue({ expression: defaultValue, expressionRecord: it.expressions }))}`;
+  }
+  return `${identifier}: ${it.expressions.serializer.getDefaultPropertyContext('prevContext', identifier)}`;
+}()) %>
+

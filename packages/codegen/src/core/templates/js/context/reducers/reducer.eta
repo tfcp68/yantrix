@@ -1,8 +1,8 @@
-const reducer: TReducerMap = {
+const reducer = {
 <% for (const st of it.diagram.states) { %>
   <% const stateValue = it.stateDictionary.getStateValues({ keys: [st.id] })[0]; %>
-  <%~ stateValue %>: (prevContext: TAutomataContext, payload: TReducerPayload, functionDictionary: FunctionDictionary, automata: GenericAutomata) => {
-    return <%~ include('../../js/context/reducers/contextTransition', {
+  <%~ stateValue %>: (prevContext, payload, functionDictionary, automata) => {
+    return <%~ include('contextTransition', {
       diagram: it.diagram,
       expressions: it.expressions,
       stateDictionary: it.stateDictionary,

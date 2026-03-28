@@ -1,0 +1,43 @@
+const userFunctionsDict = (function () {
+  const namespace = <%~ it.namespace %>;
+  if (namespace == null || typeof namespace !== 'object') {
+    throw new TypeError('Inject functions module should export functions');
+  }
+
+  const resolved = {};
+
+  for (const [exportName, exportedValue] of Object.entries(namespace)) {
+    if (exportName === 'default') {
+      if (typeof exportedValue === 'function') {
+        const defaultName = exportedValue.name;
+        if (!defaultName || defaultName === 'default') {
+          throw new TypeError('Default exported function should be named');
+        }
+        resolved[defaultName] = exportedValue;
+        continue;
+      }
+
+      if (exportedValue != null && typeof exportedValue === 'object' && !Array.isArray(exportedValue)) {
+        for (const [name, callback] of Object.entries(exportedValue)) {
+          if (typeof callback !== 'function') {
+            throw new TypeError('Every exported value from default dictionary should be a function');
+          }
+          resolved[name] = callback;
+        }
+        continue;
+      }
+
+      throw new TypeError('Default export should be a named function or dictionary of functions');
+    }
+
+    if (typeof exportedValue !== 'function') {
+      throw new TypeError(`Exported value ${exportName} should be a function`);
+    }
+
+    resolved[exportName] = exportedValue;
+  }
+
+  return resolved;
+})();
+
+

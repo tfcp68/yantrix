@@ -1,2 +1,2 @@
-<%~ include('eventAdapter', it) %>
-<%~ include('createEventBus', it) %>
+<%~ include('adapter/module', it) %>
+<%~ include('bus/module', it) %>

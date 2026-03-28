@@ -1,2 +1,0 @@
-export const actionsDictionary = <%~ JSON.stringify(it.actionDictionary.getDictionary(), null, 2) %>;
-

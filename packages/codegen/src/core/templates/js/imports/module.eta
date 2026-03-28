@@ -1,11 +1,2 @@
-<% const entries = Object.entries(it.imports) %>
-<% for (const [pkg, names] of entries) { %>
-import { <%~ names.join(', ') %> } from '<%~ pkg %>'
-<% } %>
-
-<% if (it.importNamespaces) { %>
-<% const nsEntries = Object.entries(it.importNamespaces) %>
-<% for (const [pkg, nsNames] of nsEntries) { %>
-import * as <%~ nsNames[0] %> from '<%~ pkg %>'
-<% } %>
-<% } %>
+<%~ include('named/module', it) %>
+<%~ include('namespace/module', it) %>

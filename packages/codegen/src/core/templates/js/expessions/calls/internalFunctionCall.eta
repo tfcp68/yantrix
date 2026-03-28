@@ -1,0 +1,7 @@
+<% const model = it.model; %>
+(function() {
+  const func = functionDictionary.get('<%~ model.functionName %>');
+  return func(automata);
+})()
+
+

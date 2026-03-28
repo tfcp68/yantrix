@@ -1,1 +1,0 @@
-(s) => Object.values(statesDictionary).includes(s)

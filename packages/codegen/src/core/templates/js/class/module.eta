@@ -2,27 +2,24 @@ export class <%~ it.className %> extends GenericAutomata {
   static id = '<%~ it.className %>_<%~ Date.now() %>';
   static actions = actionsMap;
   static states = statesMap;
-  static getState = <%~ include('getState', it) %>;
-  static hasState = <%~ include('hasState', it) %>;
-  static getAction = <%~ include('getAction', it) %>;
-  static createAction = <%~ include('createAction', it) %>;
+<%~ include('static/module', it) %>
 
   constructor() {
     super(eventAdapter);
     this.init({
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
-      rootReducer: <%~ include('rootReducer', it) %>,
-      stateValidator: <%~ include('stateValidator', it) %>,
-      actionValidator: <%~ include('actionValidator', it) %>,
+      rootReducer: <%~ include('reducer/module', it) %>,
+      stateValidator: <%~ include('validation/stateValidator', it) %>,
+      actionValidator: <%~ include('validation/actionValidator', it) %>,
       functionRegistry: functionDictionary,
     });
-    <%~ include('initContext', it) %>
+    <%~ include('lifecycle/initContext', it) %>
   }
 
-  isKeyOf = <%~ include('isKeyOf', it) %>;
+  isKeyOf = <%~ include('lifecycle/isKeyOf', it) %>;
 }
 
-<%~ include('../dictionaries/runtimeRegistries', it) %>
+<%~ include('../dictionaries/runtime/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;

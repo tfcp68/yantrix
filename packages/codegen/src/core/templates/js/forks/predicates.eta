@@ -1,9 +1,0 @@
-<%
-const predicatesModel = it.predicatesModel ?? {};
-const stateEntries = Object.entries(predicatesModel);
-%>
-const predicates = {
-<% for (const [stateId, actionPredicates] of stateEntries) { %>
-  <%~ include('statePredicateEntry', { stateId, actionPredicates }) %>
-<% } %>
-};

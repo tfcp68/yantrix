@@ -1,1 +1,0 @@
-(key, obj) => key in obj

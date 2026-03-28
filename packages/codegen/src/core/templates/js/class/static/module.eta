@@ -1,0 +1,6 @@
+  static getState = <%~ include('getState', it) %>;
+  static hasState = <%~ include('hasState', it) %>;
+  static getAction = <%~ include('getAction', it) %>;
+  static createAction = <%~ include('createAction', it) %>;
+
+

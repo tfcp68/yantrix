@@ -1,0 +1,7 @@
+<%~ it.contextSerializer.getContextTransition({
+  value: it.value,
+  stateDictionary: it.stateDictionary,
+  diagram: it.diagram,
+  expressions: it.expressions,
+}) %>
+

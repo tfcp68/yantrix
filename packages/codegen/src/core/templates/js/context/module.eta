@@ -1,10 +1,10 @@
-<%~ include('reducer', {
+<%~ include('reducers/module', {
   diagram: it.diagram,
   stateDictionary: it.stateDictionary,
   expressions: it.expressions,
   contextSerializer: it.contextSerializer,
 }) %>
-<%~ include('defaultContext', {
+<%~ include('defaults/module', {
   stateDictionary: it.stateDictionary,
   diagram: it.diagram,
   expressions: it.expressions,

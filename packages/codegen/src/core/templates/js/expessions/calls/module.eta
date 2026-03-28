@@ -1,0 +1,7 @@
+<% if (it.model.isInternal === true) { %>
+<%~ include('internalFunctionCall', it) %>
+<% } else { %>
+<%~ include('functionCall', it) %>
+<% } %>
+
+

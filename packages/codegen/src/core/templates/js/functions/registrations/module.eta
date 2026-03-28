@@ -1,0 +1,9 @@
+<% for (const registration of it.registrations) { %>
+<% if (registration.kind === 'inject') { %>
+<%~ include('registerInject', { registration }) %>
+<% } else { %>
+<%~ include('registerDefine', { registration }) %>
+<% } %>
+<% } %>
+
+

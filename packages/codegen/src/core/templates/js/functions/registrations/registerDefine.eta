@@ -1,0 +1,6 @@
+functionDictionary.register('<%~ it.registration.name %>', function(<%~ it.registration.args.join(', ') %>) {
+  return <%~ include('../../expessions/module', { model: it.registration.bodyModel }) %>;
+});
+
+
+

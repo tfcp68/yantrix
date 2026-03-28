@@ -1,0 +1,3 @@
+export const statesDictionary = <%~ JSON.stringify(it.stateDictionary.getDictionary(), null, 2) %>;
+
+

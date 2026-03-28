@@ -1,8 +1,0 @@
-const injectIdentifiers = <%~ JSON.stringify(it.injectIdentifiers ?? []) %>;
-
-for (const identifier of injectIdentifiers) {
-  if (typeof userFunctionsDict[identifier] !== 'function') {
-    throw new Error(`Function ${identifier} is not defined in injected functions module`);
-  }
-}
-

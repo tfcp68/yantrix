@@ -1,0 +1,6 @@
+<%~ include('statesDictionary', it) %>
+<%~ include('actionsDictionary', it) %>
+<%~ include('eventDictionary', it) %>
+<%~ include('functionDictionary', it) %>
+
+

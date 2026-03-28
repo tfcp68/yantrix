@@ -1,6 +1,0 @@
-if(actionMove.state.length > 1 && actionMove.predicate != null) {
-  // determine new state from predicate
-  const resolvedPredicateValue = actionMove.predicate(contextWithInitial, payload, functionDictionary);
-  if(resolvedPredicateValue == null) return { state, context };
-  newStateObject.state = resolvedPredicateValue;
-}

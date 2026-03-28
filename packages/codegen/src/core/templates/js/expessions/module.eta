@@ -5,10 +5,8 @@ const model = it.model;
 null
 <% } else if (model.kind === 'raw') { %>
 <%~ model.value %>
-<% } else if (model.kind === 'functionCall' && model.isInternal === true) { %>
-<%~ include('internalFunctionCall', { model }) %>
 <% } else if (model.kind === 'functionCall') { %>
-<%~ include('functionCall', { model }) %>
+<%~ include('calls/module', { model }) %>
 <% } else { %>
 null
 <% } %>
