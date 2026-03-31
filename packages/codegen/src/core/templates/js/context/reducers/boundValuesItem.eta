@@ -1,17 +1,26 @@
-<% if (!it.item) { throw new Error('Unexpected index bound property') } %>
-<% if (it.item.defaultValue) { %>
-<%~ it.targetProperty %>: (function(){
-	const boundValue = <%~ it.el %>
+<% const source = it.boundValue.source; %>
+<% const sourceValue = source.kind === 'defaultProperty'
+  ? include('../../expessions/context/defaultPropertyContext', {
+      path: source.path,
+      identifier: source.identifier,
+      expression: source.fallbackExpression,
+    })
+  : source.kind === 'constant'
+    ? include('mapReducerItemsConstant', { expressionValueRight: source.expressionValueRight })
+    : include('mapReducerItemsExpression', { expressionValueRight: source.expressionValueRight }); %>
+<% if (it.boundValue.defaultExpressionValueRight != null) { %>
+<%~ it.boundValue.targetProperty %>: (function(){
+	const boundValue = <%~ sourceValue %>
 	if(boundValue !== null){
 		return boundValue
 	}
 	else {
-		return <%~ it.defaultExpressionValueRight ?? it.expressions.functions.getExpressionValue({ expression: it.item.defaultValue, expressionRecord: it.expressions }) %>
+		return <%~ it.boundValue.defaultExpressionValueRight %>
 	}
 }())
 <% } else { %>
-<%~ it.targetProperty %>: (function(){
-	const boundValue = <%~ it.el %>
+<%~ it.boundValue.targetProperty %>: (function(){
+	const boundValue = <%~ sourceValue %>
 	return boundValue
 }())
 <% } %>

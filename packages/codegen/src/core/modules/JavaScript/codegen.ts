@@ -141,6 +141,17 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			stateDictionary: this.stateDictionary,
 		});
 
+		const reducerModel = JavaScriptCompiler.context.serializer.getReducerModel({
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			expressions: this.expressions,
+		});
+		const defaultContextModel = JavaScriptCompiler.context.serializer.getDefaultContextModel({
+			stateDictionary: this.stateDictionary,
+			diagram: this.diagram,
+			expressions: this.expressions,
+		});
+
 		const userFunctionsCheck = JavaScriptCompiler.functions.functions.getUserFunctionsCheckModel({
 			injectedPath: this.injectedPath,
 			injects: this.injects,
@@ -177,7 +188,10 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			initialContext,
 			startStateKey: StartState,
 			byPassAction: ByPassAction,
-			contextSerializer: JavaScriptCompiler.context.serializer,
+			contextVM: {
+				reducerModel,
+				defaultContextModel,
+			},
 			forks: {
 				predicatesModel,
 			},

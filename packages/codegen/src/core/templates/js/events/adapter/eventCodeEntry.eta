@@ -1,0 +1,6 @@
+{
+  event: eventDictionary["<%~ it.eventCode.eventIdentifier %>"],
+  meta: {
+    <%~ include('payloadEntries', { entries: it.eventCode.metaEntries }) %>
+  },
+}

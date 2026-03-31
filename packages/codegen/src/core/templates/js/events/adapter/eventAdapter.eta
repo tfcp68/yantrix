@@ -1,6 +1,6 @@
 const eventAdapter = new AutomataEventAdapter();
-<%~ it.events.eventAdapterModel.emittersCode %>
-<%~ it.events.eventAdapterModel.listenersCode %>
+<%~ include('emitters', { emitters: it.events.eventAdapterModel.emitters }) %>
+<%~ include('listeners', { listeners: it.events.eventAdapterModel.listeners }) %>
 
 
 

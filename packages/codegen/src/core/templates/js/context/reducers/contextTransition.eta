@@ -1,7 +1,17 @@
-<%~ it.contextSerializer.getContextTransition({
-  value: it.value,
-  stateDictionary: it.stateDictionary,
-  diagram: it.diagram,
-  expressions: it.expressions,
-}) %>
+<% if (it.transition.kind === 'prevContext') { %>
+prevContext
+<% } else { %>
+{
+<%~ it.transition.items.map((item) => {
+  if (item.kind === 'withReducer') {
+    return include('contextItemWithReducer', { boundValues: item.boundValues });
+  }
+
+  return include('contextItemNoReducer', {
+    identifier: item.identifier,
+    defaultExpressionValueRight: item.defaultExpressionValueRight,
+  });
+}).join(',\n\t') %>
+}
+<% } %>
 

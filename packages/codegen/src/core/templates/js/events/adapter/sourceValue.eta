@@ -1,0 +1,12 @@
+<% if (it.source.kind === 'defaultProperty') { %>
+<%~ include('../../expessions/context/defaultPropertyContext', {
+  path: it.source.path,
+  identifier: it.source.identifier,
+  expression: it.source.fallbackExpression,
+}) %>
+<% } else { %>
+(function(){
+  return <%~ it.source.expressionValueRight %>
+}())
+<% } %>
+

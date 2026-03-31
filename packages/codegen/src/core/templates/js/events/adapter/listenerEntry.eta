@@ -1,0 +1,12 @@
+eventAdapter.addEventListener(
+  eventDictionary["<%~ it.listener.eventIdentifier %>"],
+  ({ event, meta }) => {
+    return {
+      action: actionsDictionary["<%~ it.listener.actionName %>"],
+      payload: {
+        <%~ include('payloadEntries', { entries: it.listener.payloadEntries }) %>
+      },
+    };
+  },
+);
+

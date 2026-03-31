@@ -1,6 +1,4 @@
 <%~ include('boundValues', {
-  ...it,
-  arr: it.mappedReducerItems,
-  context: it.items
+  boundValues: it.boundValues,
 }) %>
 

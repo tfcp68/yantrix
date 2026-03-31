@@ -12,6 +12,12 @@ import {
 } from '@yantrix/yantrix-parser';
 import { TExpressionRecord } from '../../../../../types/common';
 import { context } from '../context';
+import { TReducerBoundValueVM } from '../context/serializer';
+
+export type TEventCodeVM = {
+	eventIdentifier: string;
+	metaEntries: TReducerBoundValueVM[];
+};
 
 function getKeyItemIdentifier(item: KeyItem): string {
 	if (isDataObject(item)) {
@@ -27,20 +33,19 @@ function keyItemsToRawKeyItems(items: KeyItem[]): RawKeyItem[] {
 	})) as unknown as RawKeyItem[];
 }
 
-export function getEventCode(e: EmitStatement, expressions: TExpressionRecord) {
-	return `{
-			event: eventDictionary["${e.identifier}"],
-			meta: {
-				${getEventMeta({ event: e, expressions })}
-			}
-		}`;
+export function getEventCodeModel(e: EmitStatement, expressions: TExpressionRecord): TEventCodeVM {
+	return {
+		eventIdentifier: e.identifier,
+		metaEntries: getEventMetaModel({ event: e, expressions }),
+	};
 }
 
-export function getEventMeta(props: {
+export function getEventMetaModel(props: {
 	event: EmitStatement;
 	expressions: TExpressionRecord;
-}): string {
+}): TReducerBoundValueVM[] {
 	const { event, expressions } = props;
+
 	if (isFullEmit(event)) {
 		const contextAsKeyItems = event.context.map((rawKeyItem) => {
 			return {
@@ -52,44 +57,50 @@ export function getEventMeta(props: {
 				assignedExpression: rawKeyItem.defaultValue,
 			};
 		});
-		return context.serializer.getBoundValues({
+
+		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItems({ reducer: contextAsKeyItems as any, sourcePath: 'context', expressions }),
+			arr: context.serializer.mapReducerItemsModel({
+				reducer: contextAsKeyItems as unknown as KeyItem[],
+				sourcePath: 'context',
+				expressions,
+			}),
 			context: keyItemsToRawKeyItems(event.meta),
-		}).toString();
+		});
 	} else if (emitHasMeta(event)) {
-		return context.serializer.getBoundValues({
+		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItems({ reducer: event.meta, sourcePath: 'context', expressions }),
+			arr: context.serializer.mapReducerItemsModel({ reducer: event.meta, sourcePath: 'context', expressions }),
 			context: keyItemsToRawKeyItems(event.meta),
-		}).toString();
+		});
 	} else {
-		return '';
+		return [];
 	}
 }
 
-export function getActionPayload(props: {
+export function getActionPayloadModel(props: {
 	event: SubscribeStatement;
 	expressions: TExpressionRecord;
-}) {
+}): TReducerBoundValueVM[] {
 	const { event, expressions } = props;
+
 	if (subscribeHasMeta(event)) {
 		const targetIdentifiers = subscribeHasPayload(event)
 			? keyItemsToRawKeyItems(event.payload)
 			: keyItemsToRawKeyItems(event.metaItems);
 
-		return context.serializer.getBoundValues({
+		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItems({ reducer: event.metaItems, sourcePath: 'meta', expressions }),
+			arr: context.serializer.mapReducerItemsModel({ reducer: event.metaItems, sourcePath: 'meta', expressions }),
 			context: targetIdentifiers,
-		}).toString();
+		});
 	} else if (subscribeHasPayload(event)) {
-		return context.serializer.getBoundValues({
+		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItems({ reducer: event.payload, sourcePath: 'meta', expressions }),
+			arr: context.serializer.mapReducerItemsModel({ reducer: event.payload, sourcePath: 'meta', expressions }),
 			context: keyItemsToRawKeyItems(event.payload),
-		}).toString();
+		});
 	} else {
-		return '';
+		return [];
 	}
 }

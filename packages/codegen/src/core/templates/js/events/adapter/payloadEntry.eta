@@ -1,0 +1,18 @@
+<% const sourceCode = include('sourceValue', { source: it.entry.source }); %>
+<% if (it.entry.defaultExpressionValueRight != null) { %>
+<%~ it.entry.targetProperty %>: (function(){
+  const boundValue = <%~ sourceCode %>
+  if(boundValue !== null){
+    return boundValue
+  }
+  else {
+    return <%~ it.entry.defaultExpressionValueRight %>
+  }
+}())
+<% } else { %>
+<%~ it.entry.targetProperty %>: (function(){
+  const boundValue = <%~ sourceCode %>
+  return boundValue
+}())
+<% } %>
+

@@ -1,14 +1,7 @@
 <%~ include('reducer', {
-  diagram: it.diagram,
-  stateDictionary: it.stateDictionary,
-  expressions: it.expressions,
-  contextSerializer: it.contextSerializer,
+  reducerModel: it.contextVM.reducerModel,
 }) %>
 <%~ include('defaultContext', {
-  stateDictionary: it.stateDictionary,
-  diagram: it.diagram,
-  expressions: it.expressions,
-  startStateKey: it.startStateKey,
-  contextSerializer: it.contextSerializer,
+  defaultContextModel: it.contextVM.defaultContextModel,
 }) %>
 

@@ -1,6 +1,6 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
-import { getEventEmitters, getEventListeners } from './core';
+import { getEventEmittersModel, getEventListenersModel } from './core';
 
 function getEventAdapterModel(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
@@ -10,8 +10,8 @@ function getEventAdapterModel(props: {
 	expressions: TExpressionRecord;
 }) {
 	return {
-		emittersCode: getEventEmitters(props),
-		listenersCode: getEventListeners(props),
+		emitters: getEventEmittersModel(props),
+		listeners: getEventListenersModel(props),
 	};
 }
 

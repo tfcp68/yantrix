@@ -1,12 +1,7 @@
-<% const start = it.stateDictionary.getStateValues({ keys: [it.startStateKey] })[0]; %>
-<% if (start != null) { %>
+<% if (it.defaultContextModel.startStateValue != null && it.defaultContextModel.transition) { %>
 const getDefaultContext = (prevContext, payload) => {
   const ctx = <%~ include('../reducers/contextTransition', {
-    diagram: it.diagram,
-    expressions: it.expressions,
-    stateDictionary: it.stateDictionary,
-    value: start,
-    contextSerializer: it.contextSerializer,
+    transition: it.defaultContextModel.transition,
   }) %>;
   return Object.assign({}, prevContext, ctx);
 }
