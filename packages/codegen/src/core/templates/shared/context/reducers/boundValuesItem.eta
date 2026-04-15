@@ -1,6 +1,6 @@
 <% const source = it.boundValue.source; %>
 <% const sourceValue = source.kind === 'defaultProperty'
-  ? include('../../expessions/context/defaultPropertyContext', {
+  ? include('../../expressions/context/defaultPropertyContext', {
       path: source.path,
       identifier: source.identifier,
       expression: source.fallbackExpression,

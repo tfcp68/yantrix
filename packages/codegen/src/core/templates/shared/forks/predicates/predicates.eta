@@ -1,6 +1,6 @@
 <%
-const predicatesModel = it.predicatesModel ?? {};
-const stateEntries = Object.entries(predicatesModel);
+const predicates = it.predicates ?? {};
+const stateEntries = Object.entries(predicates);
 %>
 const predicates = {
 <% for (const [stateId, actionPredicates] of stateEntries) { %>

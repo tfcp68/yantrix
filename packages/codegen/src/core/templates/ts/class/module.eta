@@ -23,7 +23,7 @@ export class <%~ it.className %> extends GenericAutomata {
   isKeyOf = <%~ include('isKeyOf', it) %>;
 }
 
-<%~ include('../../js/dictionaries/runtime/runtimeRegistries', it) %>
+<%~ include('../../shared/dictionaries/runtime/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;
 

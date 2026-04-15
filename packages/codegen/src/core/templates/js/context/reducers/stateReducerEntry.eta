@@ -1,4 +1,4 @@
 <%~ it.stateValue %>: (prevContext, payload, functionDictionary, automata) => {
-  return <%~ include('contextTransition', { transition: it.transition }) %>
+  return <%~ include('../../../shared/context/reducers/contextTransition', { transition: it.transition }) %>
 }
 

@@ -1,3 +1,0 @@
-<%~ include('predicates/module', {
-  predicatesModel: it.forks.predicatesModel,
-}) %>

@@ -1,0 +1,3 @@
+const actionsMap = <%~ JSON.stringify(it.dictionaries.actionsMap, null, 2) %>;
+
+

@@ -1,7 +1,7 @@
-<% if (it.defaultContextModel.startStateValue != null && it.defaultContextModel.transition) { %>
+<% if (it.defaultContext.startStateValue != null && it.defaultContext.transition) { %>
 const getDefaultContext = (prevContext, payload) => {
-  const ctx = <%~ include('../reducers/contextTransition', {
-    transition: it.defaultContextModel.transition,
+  const ctx = <%~ include('../../../shared/context/reducers/contextTransition', {
+    transition: it.defaultContext.transition,
   }) %>;
   return Object.assign({}, prevContext, ctx);
 }

@@ -1,17 +1,17 @@
 Object.entries(GlobalEventDictionary.getDictionary()).forEach(([eventName, eventId]) => {
   EventBus.subscribe(eventId, ({ event, meta }) => {
-    const <%~ it.events.createEventBusModel.resultVarName %> = [];
+    const <%~ it.events.createEventBus.resultVarName %> = [];
 
     Object.values(automatas).forEach((automata) => {
       const newActions = automata.eventAdapter?.handleEvent({ event, meta }) ?? [];
       for (const action of newActions) {
         automata.dispatch(action);
         const newAutomataEvents = automata.eventAdapter?.handleTransition(automata.getContext()) ?? [];
-        <%~ it.events.createEventBusModel.resultVarName %>.push(...newAutomataEvents);
+        <%~ it.events.createEventBus.resultVarName %>.push(...newAutomataEvents);
       }
     });
 
-    EventBus.dispatch(...<%~ it.events.createEventBusModel.resultVarName %>);
+    EventBus.dispatch(...<%~ it.events.createEventBus.resultVarName %>);
 
     return {
       event,

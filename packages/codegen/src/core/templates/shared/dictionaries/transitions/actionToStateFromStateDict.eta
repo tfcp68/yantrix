@@ -1,6 +1,6 @@
 const actionToStateFromStateDict = {
 <%
-const stateEntries = Object.entries(it.dictionariesVM.actionToStateFromStateModel ?? {});
+const stateEntries = Object.entries(it.dictionaries.actionToStateFromState ?? {});
 for (let index = 0; index < stateEntries.length; index++) {
   const [stateId, actions] = stateEntries[index];
 %>

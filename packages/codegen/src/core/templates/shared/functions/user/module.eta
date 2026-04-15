@@ -1,0 +1,9 @@
+<%
+const hasInjectRegistration = it.registrations.some((registration) => registration.kind === 'inject');
+%>
+<% if (hasInjectRegistration) { %>
+<%~ include('resolveUserFunctions', { namespace: it.functions.userFunctionsNamespace }) %>
+<%~ include('validateInjectedFunctions', { injectIdentifiers: it.functions.userFunctionsCheck.injectIdentifiers }) %>
+<% } %>
+
+

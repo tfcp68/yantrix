@@ -1,5 +1,5 @@
 const reducer = {
-<% for (const entry of it.reducerModel.entries) { %>
+<% for (const entry of it.reducer.entries) { %>
   <%~ include('stateReducerEntry', {
     stateValue: entry.stateValue,
     transition: entry.transition,

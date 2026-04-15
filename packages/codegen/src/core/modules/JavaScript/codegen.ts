@@ -112,41 +112,41 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			.getInitialContextShape({ diagram: this.diagram, stateName: initialStateId });
 		const initialContext = Object.assign({}, startCtx, initialCtxForInitialState);
 
-		const predicatesModel = JavaScriptCompiler.forks.serializer.getPredicatesCode({
+		const predicates = JavaScriptCompiler.forks.serializer.getPredicatesCode({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 			expressions: this.expressions,
 		});
 
-		const eventAdapterModel = JavaScriptCompiler.events.serializer.getEventAdapterModel({
+		const eventAdapter = JavaScriptCompiler.events.serializer.getEventAdapterModel({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 			eventDictionary: this.eventDictionary,
 			expressions: this.expressions,
 		});
-		const createEventBusModel = JavaScriptCompiler.events.serializer.getCreateEventBusModel();
+		const createEventBus = JavaScriptCompiler.events.serializer.getCreateEventBusModel();
 
-		const actionToStateFromStateModel = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromStateModel({
+		const actionToStateFromState = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromStateModel({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 		});
 		const byPassedList = getStatesByPass(this.diagram, this.stateDictionary);
-		const actionsMapModel = JavaScriptCompiler.dictionaries.serializer.getActionsMapModel({
+		const actionsMap = JavaScriptCompiler.dictionaries.serializer.getActionsMapModel({
 			actionDictionary: this.actionDictionary,
 		});
-		const statesMapModel = JavaScriptCompiler.dictionaries.serializer.getStatesMapModel({
+		const statesMap = JavaScriptCompiler.dictionaries.serializer.getStatesMapModel({
 			stateDictionary: this.stateDictionary,
 		});
 
-		const reducerModel = JavaScriptCompiler.context.serializer.getReducerModel({
+		const reducer = JavaScriptCompiler.context.serializer.getReducerModel({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			expressions: this.expressions,
 		});
-		const defaultContextModel = JavaScriptCompiler.context.serializer.getDefaultContextModel({
+		const defaultContext = JavaScriptCompiler.context.serializer.getDefaultContextModel({
 			stateDictionary: this.stateDictionary,
 			diagram: this.diagram,
 			expressions: this.expressions,
@@ -178,7 +178,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			defines: this.defines,
 			injects: this.injects,
 			injectedPath: this.injectedPath,
-			functionsVM: {
+			functions: {
 				userFunctionsCheck,
 				customRegistrations,
 				userFunctionsNamespace,
@@ -188,22 +188,22 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			initialContext,
 			startStateKey: StartState,
 			byPassAction: ByPassAction,
-			contextVM: {
-				reducerModel,
-				defaultContextModel,
+			context: {
+				reducer,
+				defaultContext,
 			},
 			forks: {
-				predicatesModel,
+				predicates,
 			},
 			events: {
-				eventAdapterModel,
-				createEventBusModel,
+				eventAdapter,
+				createEventBus,
 			},
-			dictionariesVM: {
-				actionToStateFromStateModel,
+			dictionaries: {
+				actionToStateFromState,
 				byPassedList,
-				actionsMapModel,
-				statesMapModel,
+				actionsMap,
+				statesMap,
 			},
 		};
 	}

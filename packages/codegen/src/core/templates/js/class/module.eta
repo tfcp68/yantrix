@@ -20,6 +20,6 @@ export class <%~ it.className %> extends GenericAutomata {
   isKeyOf = <%~ include('lifecycle/isKeyOf', it) %>;
 }
 
-<%~ include('../dictionaries/runtime/runtimeRegistries', it) %>
+<%~ include('../../shared/dictionaries/runtime/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;

@@ -1,3 +1,0 @@
-const statesMap = <%~ JSON.stringify(it.dictionariesVM.statesMapModel, null, 2) %>;
-
-

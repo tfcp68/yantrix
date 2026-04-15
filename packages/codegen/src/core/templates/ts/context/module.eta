@@ -1,7 +1,7 @@
 <%~ include('reducer', {
-  reducerModel: it.contextVM.reducerModel,
+  reducer: it.context.reducer,
 }) %>
 <%~ include('defaultContext', {
-  defaultContextModel: it.contextVM.defaultContextModel,
+  defaultContext: it.context.defaultContext,
 }) %>
 

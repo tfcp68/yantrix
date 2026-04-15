@@ -1,5 +1,5 @@
 <%
-const registrations = it.functionsVM.customRegistrations;
+const registrations = it.functions.customRegistrations;
 %>
 
 <%~ include('user/module', {
