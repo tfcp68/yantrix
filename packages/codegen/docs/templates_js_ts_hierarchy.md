@@ -496,4 +496,3 @@ Each arrow `A -->|data| B` represents an `<%~ include('B', data) %>` call.
 | `shared/events/adapter/sourceValue` | `shared/expressions/context/defaultPropertyContext` | `{ path, identifier, expression }` |
 | `shared/functions/registrations/registerDefine` | `shared/expressions/module` | `{ model: registration.bodyModel }` |
 | `shared/expressions/calls/functionCall` | `shared/expressions/module` (recursive) | `{ model: arg }` |
-
