@@ -2,8 +2,8 @@
 
 Demonstrates an async form/request FSM that models the full lifecycle of an API call: input → submit → pending → success/error. No UI framework — pure TypeScript with a minimal Vite HTML shell.
 
-**States:** `Idle → Filling → Pending → Success | Error`  
-**Actions:** `Init`, `FocusInput`, `UpdateSelect`, `UpdateInput`, `Submit`, `Resolve`, `Reject`, `Reset`  
+**States:** `Idle → Filling → Pending → Success | Error`
+**Actions:** `Init`, `FocusInput`, `UpdateSelect`, `UpdateInput`, `Submit`, `Resolve`, `Reject`, `Reset`
 **Context:** `coords`, `city`, `loading`, `result`, `error`
 
 ## Yantrix packages
