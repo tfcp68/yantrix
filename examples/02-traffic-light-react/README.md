@@ -6,39 +6,54 @@
 
 ## 📖 Documentation
 
-Documentation of the following example can be found [here](https://tfcp68.github.io/yantrix/examples/110_react.html).
+[Example documentation](https://tfcp68.github.io/yantrix/examples/110_react.html)
 
 ## ⭐ Installation and usage
 
 If you want to run this example locally, follow these steps:
+
 1. Clone into the Yantrix repository:
-```
+
+```sh
 git clone https://github.com/tfcp68/yantrix.git
 ```
-2. Open the example folder:
+
+1. Open the example folder:
+
+```sh
+cd yantrix/examples/02-traffic-light-react
 ```
-cd yantrix
-cd examples
-cd 02-traffic-light-react
-```
-3. Install the dependencies:
-```
+
+1. Install the dependencies:
+
+```sh
 pnpm install
 ```
-4. To run the project in development mode:
+
+1. Generate the automata code from the diagram:
+
+```sh
+pnpm --filter 02-traffic-light-react generate
 ```
-pnpm dev
-// Check out the example at http://localhost:5173
+
+1. To run the project in development mode:
+
+```sh
+pnpm --filter 02-traffic-light-react dev
+# Check out the example at http://localhost:5173
 ```
-5. To build for production:
-```
+
+1. To build for production (also runs generate automatically):
+
+```sh
 pnpm build
 ```
+
 For more information on how the example works, refer to the documentation.
 
 ## Source diagram
 
-```
+```mermaid
 stateDiagram-v2
 	[*] --> Off: Reset (initialCounter=0)
 	Off --> Red: Switch
@@ -53,7 +68,8 @@ note left of Off
 +Init
 end note
 ```
-Detailed explanation on the diagram syntax can be found [here](https://tfcp68.github.io/yantrix/syntax/).
+
+[Yantrix syntax reference](https://tfcp68.github.io/yantrix/syntax/)
 
 ## 🌱 Contributing
 

@@ -1,7 +1,7 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { uniqId } from '@yantrix/core';
 import { act } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { useFSMWithSelector } from '../src/hooks/useFSMWithSelector';
 import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata_generated';
 import TrafficLightAutomataTwoCounters from './generated/TrafficLightAutomataTwoCounters_generated';
@@ -155,16 +155,19 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 	});
 
 	it('selector: throws when selection returns null/undefined', () => {
-		const { result } = renderHook(() =>
-			useFSMWithSelector(
-				{ Automata: TLA, id: 'test' },
-				{ selector: () => null },
-			),
-		);
-
-		// The error is available as result.error
-		expect(result.error).toBeInstanceOf(Error);
-		expect((result.error as Error).message).toMatch(/Undefined or null selection value/);
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		try {
+			expect(() =>
+				renderHook(() =>
+					useFSMWithSelector(
+						{ Automata: TLA, id: 'test' },
+						{ selector: () => null },
+					),
+				),
+			).toThrow(/Undefined or null selection value/);
+		} finally {
+			spy.mockRestore();
+		}
 	});
 });
 

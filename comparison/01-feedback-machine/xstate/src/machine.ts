@@ -40,7 +40,6 @@ type TSubmitEvent = {
 
 type TRestartEvent = {
 	type: typeof feedbackMachineEvents['restart'];
-	value: string;
 };
 
 type TCloseEvent = {
@@ -94,7 +93,7 @@ export const feedbackMachine = setup({
 				[feedbackMachineEvents.restart]: {
 					target: [feedbackMachineStates.prompt],
 					actions: assign({
-						feedback: ({ event }) => event.value,
+						feedback: () => '',
 					}),
 				},
 			},

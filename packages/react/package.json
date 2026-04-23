@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/react",
 	"type": "module",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"description": "React integration for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -72,7 +72,7 @@
 		"provenance": true
 	},
 	"devDependencies": {
-		"@testing-library/react-hooks": "^8.0.1",
+		"@testing-library/react": "^14.3.1",
 		"@types/react": "^18.3.5",
 		"@types/use-sync-external-store": "^0.0.6",
 		"jsdom": "^25.0.1"

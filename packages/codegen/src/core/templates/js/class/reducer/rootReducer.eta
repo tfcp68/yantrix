@@ -37,8 +37,7 @@
     localCtx = getNew(actionsDictionary['<%~ it.byPassAction %>'], localCtx.state, localCtx.context, {});
   }
 
-  this.incrementCycle(); // increment automata local cycle counter
-  incrementEpoch(); // increment global epoch counter
+  incrementEpoch();
 
   return localCtx;
 }

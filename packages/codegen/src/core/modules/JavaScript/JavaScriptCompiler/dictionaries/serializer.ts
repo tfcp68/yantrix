@@ -61,10 +61,19 @@ export function getActionToStateFromStateModel(props: {
 	const model: TActionToStateFromStateModel = {};
 
 	Object.entries(props.diagram.transitions).forEach(([currentState, transitions]) => {
-		const transitionsWithStartState = {
-			...transitions,
-			...actionToStartStateMatrix,
-		};
+		const transitionsWithStartState = { ...transitions };
+		for (const [targetState, startAction] of Object.entries(actionToStartStateMatrix)) {
+			if (transitionsWithStartState[targetState]) {
+				transitionsWithStartState[targetState] = {
+					actionsPath: [
+						...transitionsWithStartState[targetState]!.actionsPath,
+						...startAction.actionsPath,
+					],
+				};
+			} else {
+				transitionsWithStartState[targetState] = startAction;
+			}
+		}
 
 		const stateId = props.stateDictionary.getStateValues({ keys: [currentState] })[0];
 		if (stateId == null) throw new Error(`State ${currentState} not found`);

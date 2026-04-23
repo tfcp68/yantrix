@@ -6,6 +6,7 @@
 		"jsx": "preserve",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"baseUrl": ".",
+		"rootDir": "./src",
 		"paths": {
 			"@/*": ["./src/*"]
 		},

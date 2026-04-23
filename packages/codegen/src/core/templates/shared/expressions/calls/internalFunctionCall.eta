@@ -1,7 +1,10 @@
-<% const model = it.model; %>
-(function() {
-  const func = functionDictionary.get('<%~ model.functionName %>');
-  return func(automata);
-})()
-
-
+<%
+const internalsMap = {
+  currentEpoch: 'getEpoch()',
+  currentStateId: 'automata.state',
+  currentStateName: '(Object.keys(statesDictionary).find(k => statesDictionary[k] === automata.state) ?? null)',
+  currentActionId: 'automata.lastAction',
+  currentActionName: '(Object.keys(actionsDictionary).find(k => actionsDictionary[k] === automata.lastAction) ?? null)',
+  currentCycle: 'automata.currentCycle',
+};
+%><%~ internalsMap[it.model.functionName] ?? 'null' %>
