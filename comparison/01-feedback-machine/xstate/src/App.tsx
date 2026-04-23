@@ -21,7 +21,7 @@ function App() {
 			&& (
 				<Button
 					onClick={() => {
-						feedbackMachineActorRef.send({ type: feedbackMachineEvents.restart, value: '' });
+						feedbackMachineActorRef.send({ type: feedbackMachineEvents.restart });
 					}}
 				>
 					Provide feedback
