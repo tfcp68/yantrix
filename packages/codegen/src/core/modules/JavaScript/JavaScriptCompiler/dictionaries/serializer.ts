@@ -68,10 +68,19 @@ export function getActionToStateFromStateDict(props: {
 	});
 
 	return Object.entries(props.diagram.transitions).map(([currentState, transitions]) => {
-		const transitionsWithStartState = {
-			...transitions,
-			...actionToStartStateMatrix,
-		};
+		const transitionsWithStartState = { ...transitions };
+		for (const [targetState, startAction] of Object.entries(actionToStartStateMatrix)) {
+			if (transitionsWithStartState[targetState]) {
+				transitionsWithStartState[targetState] = {
+					actionsPath: [
+						...transitionsWithStartState[targetState].actionsPath,
+						...startAction.actionsPath,
+					],
+				};
+			} else {
+				transitionsWithStartState[targetState] = startAction;
+			}
+		}
 
 		const value = props.stateDictionary.getStateValues({ keys: [currentState] })[0];
 		if (!value) throw new Error(`State ${currentState} not found`);
