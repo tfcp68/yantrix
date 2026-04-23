@@ -72,7 +72,7 @@
 		"provenance": true
 	},
 	"devDependencies": {
-		"@testing-library/react-hooks": "^8.0.1",
+		"@testing-library/react": "^14.3.1",
 		"@types/react": "^18.3.5",
 		"@types/use-sync-external-store": "^0.0.6",
 		"jsdom": "^25.0.1"
