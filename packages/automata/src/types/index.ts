@@ -1,5 +1,7 @@
 import { IAutomataEventBus, IAutomataFunctionRegistry } from './interfaces';
 
+export * from './internalsContext';
+
 /**
  * Represents the base state type for the automata.
  */

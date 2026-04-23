@@ -183,6 +183,8 @@ function getContextTransition(props: {
 	return `{${ctxRes.join(',\n\t')}}`;
 };
 
+const emptyContextFunction = `const getDefaultContext = (prevContext, payload) => prevContext`;
+
 function getStateToContext(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
@@ -196,7 +198,14 @@ function getStateToContext(props: {
 			throw new Error('Invalid state');
 		}
 
-		return `${stateValue}: (prevContext, payload, functionDictionary, automata) => {
+		return `${stateValue}: (prevContext, payload, functionDictionary, action) => {
+
+				const _currentStateId    = ${stateValue};
+				const _currentStateName  = '${state.id}';
+				const _currentActionId   = action;
+				const _currentActionName = Object.keys(actionsDictionary).find(k => actionsDictionary[k] === action) ?? null;
+				const currentCycle       = _currentCycle;
+				const currentEpoch       = getEpoch();
 
 				return ${getContextTransition({
 					value: stateValue,
@@ -223,6 +232,10 @@ function getDefaultContext(props: {
 			value: state,
 		});
 
+		if (ctx === 'prevContext') {
+			return emptyContextFunction;
+		}
+
 		return `const getDefaultContext = (prevContext, payload) => {
 				const ctx = ${ctx}
 				return  Object.assign({}, prevContext, ctx);
@@ -230,9 +243,7 @@ function getDefaultContext(props: {
 			`;
 	}
 
-	return `const getDefaultContext = (prevContext, payload) => {
-				return prevContext
-		}`;
+	return emptyContextFunction;
 }
 
 export const contextSerializer = {

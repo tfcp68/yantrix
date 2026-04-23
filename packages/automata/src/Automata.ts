@@ -200,6 +200,7 @@ export function createAutomata<
 				} else if (this.isEnabled()) {
 					this.clearActionQueue();
 					this.setContext(reducedValue);
+					this.incrementCycle();
 
 					if (this.eventAdapter) {
 						this.eventAdapter.handleTransition(this.getContext());

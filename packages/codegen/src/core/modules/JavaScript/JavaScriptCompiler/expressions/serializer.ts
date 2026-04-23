@@ -1,3 +1,16 @@
+const internalsMap: Record<string, string> = {
+	currentStateId: '_currentStateId',
+	currentStateName: '_currentStateName',
+	currentActionId: '_currentActionId',
+	currentActionName: '_currentActionName',
+	currentCycle: 'currentCycle',
+	currentEpoch: 'currentEpoch',
+};
+
+export function mapInternals(name: string): string | null {
+	return internalsMap[name] ?? null;
+}
+
 function getDefaultPropertyContext(path: string, indetifier: string, expression?: string) {
 	const fullPath = getReferenceString(path, indetifier);
 

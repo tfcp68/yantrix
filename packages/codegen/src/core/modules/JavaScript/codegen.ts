@@ -135,8 +135,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			${JavaScriptCompiler.forks.serializer.getPredicatesCode(props)}
 			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
 			${JavaScriptCompiler.class.serializer.getClassTemplate(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getAutomataCycleCode()}
 			${JavaScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
-			${JavaScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode(props)}
+			${JavaScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode()}
 			${JavaScriptCompiler.dictionaries.serializer.getFunctionDictionaryInternalRegisterCode()}
 			${JavaScriptCompiler.dictionaries.serializer.getFunctionDictionaryBuiltInRegisterCode()}
 		`;

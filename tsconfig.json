@@ -32,7 +32,6 @@
 		"removeComments": false,
 		"sourceMap": true,
 		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": false,
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
 		"skipLibCheck": true

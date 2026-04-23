@@ -96,6 +96,8 @@ export function getRootReducer() {
 					${getRootReducerStateValidation()}
 					${getRootReducerActionValidation()}
 
+					_currentCycle = _cycleMap.get(this.correlationId) ?? 1;
+
 					const getNew = (action,state,context,payload) => {
 						this.lastAction = action;
 
@@ -113,7 +115,7 @@ export function getRootReducer() {
 							throw new Error('Invalid newContextFunc')
 						}
 
-						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), this)};
+						return {state:newState, context: newContextFunc(contextWithInitial, payload, this.getFunctionRegistry(), action)};
 
 					}
 
@@ -123,8 +125,8 @@ export function getRootReducer() {
 						localCtx = getNew(actionsDictionary['${ByPassAction}'], localCtx.state, localCtx.context, {})
 					}
 
-					this.incrementCycle(); // increment automata local cycle counter
-					incrementEpoch(); // increment global epoch counter
+					_cycleMap.set(this.correlationId, _currentCycle + 1);
+					incrementEpoch();
 
 					return localCtx
 
@@ -169,7 +171,8 @@ export function getIsKeyOf() {
 function getInitialContextForAutomata() {
 	return `const initReducer = reducer[this.state];
 		const prev = this.getContext()?.context ?? {};
-		const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+		_currentCycle = _cycleMap.get(this.correlationId) ?? 1;
+		const initContext = initReducer(prev, {}, this.getFunctionRegistry(), null);
 		this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
 	`;
 }

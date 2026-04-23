@@ -2,7 +2,7 @@ import { ArrayLiteral, Constant, DataObject, DefineArgument, DefineExpression, D
 import { TConstants, TExpressionRecord } from '../../../../../types/common';
 import { pathRecord } from '../../../../shared';
 import { getFunctionBody } from './functions';
-import { expressionsSerializer } from './serializer';
+import { expressionsSerializer, mapInternals } from './serializer';
 
 export function setupExpressions(props: {
 	constants: TConstants | null;
@@ -109,6 +109,9 @@ export function setupExpressions(props: {
 					`Max level of nested functions reached ${MAX_NESTED_FUNC_LEVEL}`,
 				);
 			}
+			const internalRef = mapInternals(FunctionName);
+			if (internalRef !== null) return internalRef;
+
 			return expressionsSerializer.getFunctionFromDictionary(FunctionName).concat(
 				`(${res.join(',')})`,
 			);

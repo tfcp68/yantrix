@@ -5,7 +5,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"prebuild": "pnpm run generate",
+		"build": "tsc --noEmit && vite build",
 		"preview": "vite preview",
 		"generate": "yantrix codegen ./src/diagrams/ClockAutomata.mermaid -l TypeScript -o src/generated/ClockAutomata.ts -c ClockAutomata",
 		"lint": "eslint .",

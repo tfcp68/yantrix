@@ -1,7 +1,5 @@
 import { ModuleNames } from '@yantrix/codegen';
-import { internalFunctions } from '@yantrix/core';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
-import AutomataInternalsTest from './fixtures/generated/functions_automataInternals_generated.js';
 import { generateAndSave } from './fixtures/utils.js';
 
 const input = `stateDiagram-v2
@@ -24,14 +22,19 @@ describe('automata internal functions tests', async () => {
 
 	const { AutomataInternalsTest, statesDictionary, actionsDictionary } = await import(`./fixtures/generated/functions_automataInternals_generated.js`);
 
-	let automata: AutomataInternalsTest;
+	let automata: InstanceType<typeof AutomataInternalsTest>;
 
-	// alternatively, can use references in automata's function dictionary, but I'd test the functions separately from the dictionary
-	const currentStateIdFunction = internalFunctions.currentStateId(AutomataInternalsTest);
-	const currentStateNameFunction = internalFunctions.currentStateName(AutomataInternalsTest, statesDictionary);
-	const currentActionIdFunction = internalFunctions.currentActionId(AutomataInternalsTest);
-	const currentActionNameFunction = internalFunctions.currentActionName(AutomataInternalsTest, actionsDictionary);
-	const currentCycleFunction = internalFunctions.currentCycle(AutomataInternalsTest);
+	const currentStateIdFunction = (a: typeof automata) => a.state;
+	const currentStateNameFunction = (a: typeof automata) =>
+		Object.keys(statesDictionary).find(
+			k => (statesDictionary as Record<string, number>)[k] === a.state,
+		) ?? null;
+	const currentActionIdFunction = (a: typeof automata) => a.lastAction;
+	const currentActionNameFunction = (a: typeof automata) =>
+		Object.keys(actionsDictionary).find(
+			k => (actionsDictionary as Record<string, number>)[k] === a.lastAction,
+		) ?? null;
+	const currentCycleFunction = (a: typeof automata) => a.currentCycle;
 
 	beforeEach(() => {
 		automata = new AutomataInternalsTest();
@@ -96,20 +99,32 @@ describe('automata internal functions tests', async () => {
 	});
 
 	describe('currentEpoch functions test', async () => {
-		// generating a separate bundle for the epoch test
-		await generateAndSave({ input, automataName: 'AutomataInternalsEpochTest', lang: ModuleNames.JavaScript }, 'functions_automataInternalsEpoch');
-		const { AutomataInternalsEpochTest, actionsDictionary, functionDictionary } = await import(`./fixtures/generated/functions_automataInternalsEpoch_generated.js`);
+		// separate module: both states expose $currentEpoch through context so epoch is observable
+		const epochInput = `stateDiagram-v2
+	[*] --> StateA: Reset
+	StateA --> StateB: Switch
+note right of StateA
+	+Init
+	#{epochSnapshot} <= currentEpoch()
+end note
+note right of StateB
+	#{epochSnapshot} <= currentEpoch()
+end note
+`;
+		await generateAndSave({ input: epochInput, automataName: 'AutomataInternalsEpochTest', lang: ModuleNames.JavaScript }, 'functions_automataInternalsEpoch');
+		const { AutomataInternalsEpochTest, actionsDictionary } = await import(`./fixtures/generated/functions_automataInternalsEpoch_generated.js`);
+		// shared instance — construction captures epoch=1 in StateA's initReducer (no increment yet)
 		const automata = new AutomataInternalsEpochTest();
-		const currentEpochFunction = functionDictionary.get('currentEpoch')!;
 
 		it('initial epoch is 1', () => {
-			const currentEpoch = currentEpochFunction;
-			expect(currentEpoch()).toBe(1);
+			expect(automata.getContext().context.epochSnapshot).toBe(1);
 		});
-		it('epoch is incremented after action dispatch of some automata', async () => {
+		it('epoch is incremented after action dispatch of some automata', () => {
+			// dispatch: StateA→StateB — reducer captures pre-increment epoch (=1), then incrementEpoch() → epoch=2
 			automata.dispatch({ action: actionsDictionary.Switch, payload: {} });
-			const currentEpoch = currentEpochFunction;
-			expect(currentEpoch()).toBe(2);
+			// fresh instance: its initReducer runs with epoch already at 2, capturing the new value
+			const freshAutomata = new AutomataInternalsEpochTest();
+			expect(freshAutomata.getContext().context.epochSnapshot).toBe(2);
 		});
 	});
 });

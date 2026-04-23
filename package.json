@@ -37,8 +37,13 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"build": "turbo run build --concurrency=4",
+		"build": "pnpm run build:yantrix && pnpm run build:rest && pnpm run generate:packages && pnpm run build:examples",
 		"build:affected": "turbo run build --filter=...[origin/main] --concurrency=4",
+		"build:yantrix": "echo \"[1/4] Building @yantrix/* packages...\" && turbo run build --filter=@yantrix/* --concurrency=4",
+		"build:rest": "echo \"[2/4] Building remaining packages...\" && turbo run build --filter=./packages/* --filter=!@yantrix/* --concurrency=4",
+		"build:examples": "echo \"[4/4] Building examples...\" && turbo run build --filter=./examples/* --concurrency=4",
+		"generate:packages": "echo \"[3/4] Generating code for packages...\" && turbo run generate --filter=./packages/* --concurrency=4",
+		"generate:affected": "turbo run generate --filter=...[origin/main] --concurrency=4",
 		"clean": "rimraf --glob **/dist **/coverage **/*_generated.*",
 		"format": "turbo run format --concurrency=4",
 		"format:affected": "turbo run format --filter=...[origin/main] --concurrency=4",

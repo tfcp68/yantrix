@@ -5,6 +5,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
+		"prebuild": "pnpm run generate",
 		"build": "tsc -b && vite build",
 		"lint": "eslint .",
 		"format": "eslint --fix .",

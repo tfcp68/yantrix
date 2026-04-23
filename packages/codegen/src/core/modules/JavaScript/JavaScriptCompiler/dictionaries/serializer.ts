@@ -122,6 +122,13 @@ export function getActionToStateFromState(props: {
 	}).join('\n\t')}}`;
 }
 
+export function getAutomataCycleCode() {
+	const lines: string[] = [];
+	lines.push(`const _cycleMap = new Map();`);
+	lines.push(`let _currentCycle = 1;`);
+	return lines.join('\n');
+}
+
 export function getAutomataEpochCounterCode() {
 	const lines: string[] = [];
 	lines.push(`const epoch = { val: 1 };`);
@@ -130,21 +137,8 @@ export function getAutomataEpochCounterCode() {
 	return lines.join('\n');
 }
 
-export function getAutomataInternalsRegisterCode(props: {
-	className: string;
-}) {
-	const { className } = props;
-	const lines: string[] = [];
-	lines.push(`const internals = {`);
-	lines.push(`\t...internalFunctions,`);
-	lines.push(`\t"currentStateId": internalFunctions.currentStateId(${className}),`);
-	lines.push(`\t"currentStateName": internalFunctions.currentStateName(${className}, statesDictionary),`);
-	lines.push(`\t"currentActionId": internalFunctions.currentActionId(${className}),`);
-	lines.push(`\t"currentActionName": internalFunctions.currentActionName(${className}, actionsDictionary),`);
-	lines.push(`\t"currentCycle": internalFunctions.currentCycle(${className}),`);
-	lines.push(`\t"currentEpoch": getEpoch,`);
-	lines.push(`}`);
-	return lines.join('\n');
+export function getAutomataInternalsRegisterCode() {
+	return `const internals = {\n\t...internalFunctions,\n}`;
 }
 
 export function getFunctionDictionaryInternalRegisterCode() {
@@ -163,6 +157,7 @@ export const dictionariesSerializer = {
 	getActionsMap,
 	getStatesMap,
 	getSerializedSetByPassed,
+	getAutomataCycleCode,
 	getAutomataInternalsRegisterCode,
 	getAutomataEpochCounterCode,
 	getFunctionDictionaryInternalRegisterCode,

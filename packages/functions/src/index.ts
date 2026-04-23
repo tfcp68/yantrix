@@ -11,7 +11,7 @@
  * @module BuiltInFunctions
  */
 
-import { automataInternals, pureInternals } from './internals';
+import { isNumber } from 'lodash-es';
 import * as conditionals from './typescript/conditionals';
 import * as predicates from './typescript/predicates';
 import * as transformers from './typescript/transformers';
@@ -59,11 +59,58 @@ export const builtInFunctions = {
 	...transformers,
 };
 
-// internals moved to separate object
+function currentTimestamp(): number {
+	if (typeof process !== 'undefined' && process.hrtime?.bigint !== undefined) {
+		return Number(process.hrtime.bigint() / BigInt(1000));
+	} else if (typeof performance !== 'undefined' && performance.now !== undefined) {
+		return Math.floor(performance.now() * 1000);
+	} else {
+		return Date.now() * 1000;
+	}
+}
+
+function currentTime(): string {
+	return new Date().toISOString();
+}
+
+function random(min?: number, max?: number): number {
+	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
+	else return Math.round(Math.random());
+}
+
+function weightedRandom(object: { [key: string]: number }): string {
+	// https://trekhleb.medium.com/weighted-random-in-javascript-4748ab3a1500
+
+	const objectKeys: string[] = Object.keys(object);
+	const objectWeights: number[] = Object.values(object);
+
+	if (objectKeys.length === 0) throw new Error('Weighted random object is empty');
+
+	for (const value of objectWeights) {
+		if (!Number.isInteger(value)) throw new Error('Weighted random object contains non-integer values');
+		else if (value <= 0) throw new Error('Weighted random object contains values of 0 or less');
+	}
+
+	const weightsSum = objectWeights.reduce((acc, weight) => acc + weight, 0);
+	const cumulativeWeights: number[] = [];
+	let cumulativeWeight = 0;
+	for (let index = 0; index < objectWeights.length; index++) {
+		cumulativeWeight += objectWeights[index]! / weightsSum;
+		cumulativeWeights.push(cumulativeWeight);
+	}
+
+	const randomNumber = Math.random();
+	for (let i = 0; i < cumulativeWeights.length; i++) {
+		if (cumulativeWeights[i]! >= randomNumber) return objectKeys[i]!;
+	}
+	throw new Error('Unexpected error, could not get weighted random value');
+}
+
 export const internalFunctions = {
-	...automataInternals,
-	...pureInternals,
+	currentTimestamp,
+	currentTime,
+	random,
+	weightedRandom,
 };
 
-// only automata internals' names are reserved, codegen needs to be able to discriminate between pure & context-dependent internals
-export const ReservedInternalFunctionNames = Object.keys(automataInternals);
+export const ReservedInternalFunctionNames: string[] = [];
