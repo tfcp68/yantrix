@@ -20,6 +20,7 @@ dist-docs
 
 # Claude Code
 .claude
+CHANGELOG_branch.md
 
 # Miscellaneous
 .tmp
@@ -60,3 +61,4 @@ bun.lockb
 test_reports
 *_generated.*
 **/generated
+
