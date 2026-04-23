@@ -1,5 +1,0 @@
-(action: keyof typeof actionsMap, payload: TAutomataPayload) => {
-  const actionId = <%~ it.className %>.getAction(action);
-  return { action: actionId, payload };
-}
-

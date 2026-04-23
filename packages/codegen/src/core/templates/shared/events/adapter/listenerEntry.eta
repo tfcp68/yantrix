@@ -4,9 +4,8 @@ eventAdapter.addEventListener(
     return {
       action: actionsDictionary["<%~ it.listener.actionName %>"],
       payload: {
-        <%~ include('payloadEntries', { entries: it.listener.payloadEntries }) %>
+        <%~ it.listener.payloadEntries.map((entry) => include('payloadEntry', { entry })).join(',\n        ') %>
       },
     };
   },
 );
-

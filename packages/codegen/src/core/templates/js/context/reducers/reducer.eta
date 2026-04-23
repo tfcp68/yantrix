@@ -1,9 +1,7 @@
 const reducer = {
 <% for (const entry of it.reducer.entries) { %>
-  <%~ include('stateReducerEntry', {
-    stateValue: entry.stateValue,
-    transition: entry.transition,
-  }) %>,
+  <%~ entry.stateValue %>: (prevContext, payload, functionDictionary, automata) => {
+    return <%~ include('../../../shared/context/reducers/contextTransition', { transition: entry.transition }) %>
+  },
 <% } %>
 }
-

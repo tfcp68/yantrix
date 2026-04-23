@@ -1,2 +1,0 @@
-(a: TAutomataBaseActionType) => Object.values(actionsDictionary).includes(a)
-

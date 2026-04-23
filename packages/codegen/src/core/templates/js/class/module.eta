@@ -9,15 +9,18 @@ export class <%~ it.className %> extends GenericAutomata {
     this.init({
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
-      rootReducer: <%~ include('reducer/module', it) %>,
-      stateValidator: <%~ include('validation/stateValidator', it) %>,
-      actionValidator: <%~ include('validation/actionValidator', it) %>,
+      rootReducer: <%~ include('reducer/rootReducer', it) %>,
+      stateValidator: (s) => Object.values(statesDictionary).includes(s),
+      actionValidator: (a) => Object.values(actionsDictionary).includes(a),
       functionRegistry: functionDictionary,
     });
-    <%~ include('lifecycle/initContext', it) %>
+    const initReducer = reducer[this.state];
+    const prev = this.getContext()?.context ?? {};
+    const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+    this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
   }
 
-  isKeyOf = <%~ include('lifecycle/isKeyOf', it) %>;
+  isKeyOf = (key, obj) => key in obj;
 }
 
 <%~ include('../../shared/dictionaries/runtime/runtimeRegistries', it) %>

@@ -1,4 +1,0 @@
-(action, payload) => {
-  const actionId = <%~ it.className %>.getAction(action);
-  return { action: actionId, payload };
-}

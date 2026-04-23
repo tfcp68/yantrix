@@ -1,6 +1,6 @@
 {
   event: eventDictionary["<%~ it.eventCode.eventIdentifier %>"],
   meta: {
-    <%~ include('payloadEntries', { entries: it.eventCode.metaEntries }) %>
+    <%~ it.eventCode.metaEntries.map((entry) => include('payloadEntry', { entry })).join(',\n        ') %>
   },
 }

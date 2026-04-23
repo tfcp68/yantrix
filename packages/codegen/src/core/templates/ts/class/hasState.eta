@@ -1,2 +1,0 @@
-(instance: <%~ it.className %>, state: keyof typeof <%~ it.className %>.states) => instance.state === <%~ it.className %>.getState(state)
-

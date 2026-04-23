@@ -1,6 +1,0 @@
-export const eventDictionary = <%~ JSON.stringify(it.eventDictionary.getDictionary(), null, 2) %>;
-GlobalEventDictionary.addEvents({
-  keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null)
-});
-
-

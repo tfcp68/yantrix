@@ -1,1 +1,0 @@
-<%~ it.entries.map((entry) => include('payloadEntry', { entry })).join(',\n        ') %>

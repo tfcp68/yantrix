@@ -1,6 +1,8 @@
-  static getState = <%~ include('getState', it) %>;
-  static hasState = <%~ include('hasState', it) %>;
-  static getAction = <%~ include('getAction', it) %>;
-  static createAction = <%~ include('createAction', it) %>;
-
+  static getState = (state) => statesDictionary[state];
+  static hasState = (instance, state) => instance.state === <%~ it.className %>.getState(state);
+  static getAction = (action) => actionsDictionary[action];
+  static createAction = (action, payload) => {
+    const actionId = <%~ it.className %>.getAction(action);
+    return { action: actionId, payload };
+  };
 

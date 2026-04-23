@@ -2,10 +2,13 @@ export class <%~ it.className %> extends GenericAutomata {
   static id = '<%~ it.className %>_<%~ Date.now() %>';
   static actions = actionsMap;
   static states = statesMap;
-  static getState = <%~ include('getState', it) %>;
-  static hasState = <%~ include('hasState', it) %>;
-  static getAction = <%~ include('getAction', it) %>;
-  static createAction = <%~ include('createAction', it) %>;
+  static getState = (state: keyof typeof statesMap) => statesDictionary[state];
+  static hasState = (instance: <%~ it.className %>, state: keyof typeof <%~ it.className %>.states) => instance.state === <%~ it.className %>.getState(state);
+  static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
+  static createAction = (action: keyof typeof actionsMap, payload: TAutomataPayload) => {
+    const actionId = <%~ it.className %>.getAction(action);
+    return { action: actionId, payload };
+  };
 
   constructor() {
     super(eventAdapter);
@@ -13,17 +16,19 @@ export class <%~ it.className %> extends GenericAutomata {
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
       rootReducer: <%~ include('rootReducer', it) %>,
-      stateValidator: <%~ include('stateValidator', it) %>,
-      actionValidator: <%~ include('actionValidator', it) %>,
+      stateValidator: (s: TAutomataBaseStateType) => Object.values(statesDictionary).includes(s),
+      actionValidator: (a: TAutomataBaseActionType) => Object.values(actionsDictionary).includes(a),
       functionRegistry: functionDictionary,
     });
-    <%~ include('initContext', it) %>
+    const initReducer = reducer[this.state];
+    const prev = this.getContext()?.context ?? {};
+    const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+    this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
   }
 
-  isKeyOf = <%~ include('isKeyOf', it) %>;
+  isKeyOf = <T extends object>(key: PropertyKey, obj: T): key is keyof T => key in obj;
 }
 
 <%~ include('../../shared/dictionaries/runtime/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;
-
