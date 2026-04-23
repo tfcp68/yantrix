@@ -6,12 +6,12 @@
 		"jsx": "preserve",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"baseUrl": ".",
+		"rootDir": "./src",
 		"paths": {
 			"@/*": ["./src/*"]
 		},
 		"allowJs": true,
 		"noEmit": true,
-		"rootDir": "./src",
 		"outDir": "dist",
 		"esModuleInterop": true,
 		"skipLibCheck": true
