@@ -2,8 +2,8 @@
 
 Demonstrates a timer-driven FSM with configurable tick intervals and `+ByPass` states. Models an analog clock whose hand angles are computed entirely inside the FSM context using built-in math functions. No UI framework — pure TypeScript with a Vite HTML shell.
 
-**States:** `Configuring → StartRun → Ticking ↔ (TickSecond | TickMinute | TickHour) | Paused`  
-**Actions:** `Init`, `UpdateInput`, `Apply`, `TickSecond`, `TickMinute`, `TickHour`, `Stop`, `Start`, `Reset`  
+**States:** `Configuring → StartRun → Ticking ↔ (TickSecond | TickMinute | TickHour) | Paused`
+**Actions:** `Init`, `UpdateInput`, `Apply`, `TickSecond`, `TickMinute`, `TickHour`, `Stop`, `Start`, `Reset`
 **Context:** `secMs`, `minMs`, `hourMs`, `secondAngle`, `minuteAngle`, `hourAngle`
 
 ## Yantrix packages
