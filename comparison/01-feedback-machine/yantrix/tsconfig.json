@@ -5,6 +5,7 @@
 		"incremental": true,
 		"jsx": "preserve",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"]
 		},
@@ -17,10 +18,7 @@
 	"include": [
 		"src/**/*.ts",
 		"src/**/*.tsx",
-		"src/**/*.js",
-		"src/**/*.jsx",
-		"src/**/*.cjs",
-		"src/**/*.mjs"
+		"__tests__/**/*.ts"
 	],
 	"exclude": ["node_modules"]
 }

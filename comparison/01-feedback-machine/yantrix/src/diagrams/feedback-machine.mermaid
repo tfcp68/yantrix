@@ -1,0 +1,25 @@
+stateDiagram-v2
+    [*] --> Closed: Init
+
+    Closed --> Prompt: Restart
+    Prompt --> Form: Bad
+    Prompt --> Thanks: Good
+    Prompt --> Closed: Dismiss
+    Form --> Form: Update
+    Form --> Prompt: Back
+    Form --> Thanks: Submit
+    Form --> Closed: Dismiss
+    Thanks --> Closed: Dismiss
+
+    note right of Closed
+    +Init
+    #{ feedback = "" }
+    end note
+
+    note right of Prompt
+    #{ feedback } <= coalesce($feedback, #feedback)
+    end note
+
+    note right of Form
+    #{ feedback } <= coalesce($value, #feedback)
+    end note

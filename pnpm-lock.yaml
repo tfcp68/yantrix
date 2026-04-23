@@ -116,6 +116,43 @@ importers:
         specifier: ^5.4.10
         version: 5.4.11(@types/node@22.10.1)
 
+  comparison/01-feedback-machine/yantrix:
+    dependencies:
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../../../packages/core
+      '@yantrix/react':
+        specifier: workspace:^
+        version: link:../../../packages/react
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.12
+        version: 18.3.12
+      '@types/react-dom':
+        specifier: ^18.3.1
+        version: 18.3.1
+      '@vitejs/plugin-react-swc':
+        specifier: ^3.5.0
+        version: 3.7.2(vite@5.4.11(@types/node@22.10.1))
+      globals:
+        specifier: ^15.11.0
+        version: 15.12.0
+      typescript:
+        specifier: 5.6.2
+        version: 5.6.2
+      vite:
+        specifier: ^5.4.10
+        version: 5.4.11(@types/node@22.10.1)
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.6(@types/node@22.10.1)(jsdom@25.0.1)
+
   examples/01-traffic-light:
     dependencies:
       '@radix-ui/react-slot':
