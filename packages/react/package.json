@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/react",
 	"type": "module",
-	"version": "0.4.2",
+	"version": "0.4.3",
 	"description": "React integration for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -52,7 +52,7 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
-		"test": "pnpm run create_test_automata && vitest run",
+		"test": "pnpm run create_test_automata && vitest run --outputFile=../../test_reports/react.md",
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"prepack": "pnpm run build && pnpm run lint",

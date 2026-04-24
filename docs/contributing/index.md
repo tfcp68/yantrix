@@ -27,5 +27,25 @@ When working with the repository, do the following steps:
 
 For advanced repository management, you can read [this](01_advanced_managment.html) article.
 
+## Common Operations
+
+| Command | What it does |
+| --- | --- |
+| `pnpm build` | Full monorepo build (all 4 steps) + build summary table |
+| `pnpm test` | Run all tests + print test summary table |
+| `pnpm run build:yantrix` | Build only `@yantrix/*` packages |
+| `pnpm run build:rest` | Build non-`@yantrix` packages |
+| `pnpm run build:affected` | Build packages changed vs `origin/main` |
+| `pnpm run test:affected` | Test packages changed vs `origin/main` |
+| `pnpm turbo run build --filter=@yantrix/<pkg>` | Build a single package |
+| `pnpm turbo run test --filter=@yantrix/<pkg>` | Test a single package |
+| `cd packages/<pkg> && pnpm build` | Build a single package (shorter form) |
+| `cd packages/<pkg> && pnpm test` | Test a single package (shorter form) |
+| `pnpm run summary:build` | Print build stats table without rebuilding |
+| `pnpm run summary:test` | Print test results without re-running tests |
+| `pnpm run lint` | Lint the entire monorepo |
+| `pnpm run format` | Auto-fix lint issues |
+| `pnpm clean` | Remove all `dist/`, `coverage/`, generated outputs |
+
 If you use Claude Code as your AI assistant, optional slash commands for common tasks
 (safe commits, changelog generation) are documented [here](03_claude_commands.html).

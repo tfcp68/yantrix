@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v0.4.3](#v043)
+  - [Other Changes](#other-changes-5)
 - [v0.4.2](#v042)
   - [Breaking Changes](#breaking-changes-4)
   - [New Features](#new-features-4)
@@ -28,6 +30,42 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.3]
+
+A pure tooling patch with no API or behavioral changes. Build and test output is now
+significantly less noisy: all turbo invocations use `--log-order=grouped` so per-package
+logs no longer interleave, vitest switches to the compact `dot` reporter during runs, and
+two new scripts (`pnpm run summary:build`, `pnpm run summary:test`) print quantitative
+tables of source LoC, generated LoC, dist file counts, and test pass/fail totals after
+each full build or test pass. All packages now write test reports to `test_reports/`, and
+the package generator template is updated to match.
+
+### Other Changes
+
+- `turbo run` calls in all root scripts now pass `--log-order=grouped`, eliminating
+  interleaved task output when building or testing with `--concurrency=4`
+- `vitest` reporter changed from `default` to `dot` in the root config; detailed results
+  remain in `test_reports/<pkg>.md` as before
+- `tools/build-summary.mjs` added: post-build table showing src file count, LoC,
+  generated LoC, and dist file count per package
+- `tools/test-summary.mjs` added: post-test table aggregating suites, passed, failed, and
+  total test counts from all `test_reports/*.md` files; exits with code 1 on failures
+- `packages/core`, `packages/functions`, `packages/react` test scripts now write to
+  `test_reports/` via `--outputFile`, completing the aggregate
+- Package generator template (`packages/scripts/turbo/generators/templates/default/package.json.hbs`)
+  updated to include `--outputFile=../../test_reports/{{name}}.md` so new packages are
+  covered automatically
+- `CLAUDE.md` gains a "Debugging Tests" section documenting how to get verbose output
+  and read `test_reports/` for agentic test diagnosis
+- `docs/contributing/index.md` gains a Common Operations table listing all root scripts
+  with per-package and partial build/test variants
+- `docs/contributing/01_advanced_managment.md` notes the `test_reports/` requirement for
+  newly created packages
+- `/commit` slash command added for safe, hook-aware commits with automatic ESLint fix
+  and pre-commit hook recovery
 
 ---
 

@@ -21,6 +21,7 @@ dist-docs
 # Claude Code
 .claude/projects
 .claude/plans
+.claude/settings.local.json
 CHANGELOG_branch.md
 
 # Miscellaneous
