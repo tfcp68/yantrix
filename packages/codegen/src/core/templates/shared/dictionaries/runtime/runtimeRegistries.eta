@@ -1,5 +1,0 @@
-const epoch = { val: 1 };
-const incrementEpoch = () => { epoch.val++ };
-const getEpoch = () => epoch.val;
-
-functionDictionary.register(builtInFunctions);

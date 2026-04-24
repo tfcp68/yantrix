@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v0.4.1](#v041)
+  - [Other Changes](#other-changes-4)
 - [v0.4.0](#v040)
   - [Breaking Changes](#breaking-changes-3)
   - [New Features](#new-features-3)
@@ -23,6 +25,27 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.1]
+
+### Other Changes
+
+#### `@yantrix/codegen` - ETA template structure completion
+
+Completed the migration from template-literal string builders to ETA templates in
+`@yantrix/codegen`. All code generation now goes through `.eta` files exclusively.
+
+- Moved `shared/` templates into `js/shared/` — shared templates are only relevant
+  to JS/TS targets, not future language targets
+- Unified JS and TS context templates via an `it.hasTypes` flag; `ts/context/` removed
+- Shared root reducer implementation (`js/class/reducer/`) used by both JS and TS
+  output via `hasTypes` conditionals, eliminating the duplicate `ts/class/rootReducer.eta`
+- `expressions/core.ts` and `expressions/serializer.ts` now call `eta.render()` instead
+  of producing code via template literals; `setupExpressions()` dispatch pattern preserved
+- Collapsed single-file subfolders, merged files under 15 LoC, split files over 40 LoC
+- Net result: 60 -> 51 template files, all codegen-tests passing
 
 ---
 

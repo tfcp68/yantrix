@@ -1,6 +1,0 @@
-<%~ it.identifier %>: <%~ include('../../expressions/context/defaultPropertyContext', {
-  path: 'prevContext',
-  identifier: it.identifier,
-  expression: it.defaultExpressionValueRight,
-}) %>
-

@@ -1,0 +1,21 @@
+<% if (it.model.isInternal === true) { %>
+<%
+const internalsMap = {
+  currentEpoch: 'getEpoch()',
+  currentStateId: 'automata.state',
+  currentStateName: '(Object.keys(statesDictionary).find(k => statesDictionary[k] === automata.state) ?? null)',
+  currentActionId: 'automata.lastAction',
+  currentActionName: '(Object.keys(actionsDictionary).find(k => actionsDictionary[k] === automata.lastAction) ?? null)',
+  currentCycle: 'automata.currentCycle',
+};
+%><%~ internalsMap[it.model.functionName] ?? 'null' %>
+<% } else { %>
+<%
+const model = it.model;
+const args = (model.args ?? []).map((arg) => include('module', { model: arg }).trim());
+%>
+(function() {
+  const func = functionDictionary.get('<%~ model.functionName %>');
+  return func(<%~ args.join(', ') %>);
+})()
+<% } %>

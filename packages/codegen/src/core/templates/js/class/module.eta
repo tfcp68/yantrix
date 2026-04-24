@@ -2,14 +2,14 @@ export class <%~ it.className %> extends GenericAutomata {
   static id = '<%~ it.className %>_<%~ Date.now() %>';
   static actions = actionsMap;
   static states = statesMap;
-<%~ include('static/module', it) %>
+<%~ include('static', it) %>
 
   constructor() {
     super(eventAdapter);
     this.init({
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
-      rootReducer: <%~ include('reducer/rootReducer', it) %>,
+      rootReducer: <%~ include('reducer/module', it) %>,
       stateValidator: (s) => Object.values(statesDictionary).includes(s),
       actionValidator: (a) => Object.values(actionsDictionary).includes(a),
       functionRegistry: functionDictionary,
@@ -22,7 +22,5 @@ export class <%~ it.className %> extends GenericAutomata {
 
   isKeyOf = (key, obj) => key in obj;
 }
-
-<%~ include('../../shared/dictionaries/runtime/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;

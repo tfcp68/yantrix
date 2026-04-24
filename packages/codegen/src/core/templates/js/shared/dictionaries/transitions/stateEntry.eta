@@ -1,0 +1,10 @@
+<%~ it.stateId %>: {
+<%
+const actionEntries = Object.entries(it.actions ?? {});
+for (let index = 0; index < actionEntries.length; index++) {
+  const [actionId, entry] = actionEntries[index];
+%>
+  <%~ include('entry', { stateId: it.stateId, actionId, entry }) %><% if (index < actionEntries.length - 1) { %>,<% } %>
+<% } %>
+}
+

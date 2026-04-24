@@ -1,0 +1,14 @@
+<%
+const hasInjectRegistration = it.registrations.some((registration) => registration.kind === 'inject');
+const injectIdentifiers = it.functions.userFunctionsCheck.injectIdentifiers;
+%>
+<% if (hasInjectRegistration) { %>
+<%~ include('resolve', { namespace: it.functions.userFunctionsNamespace }) %>
+
+const injectIdentifiers = <%~ JSON.stringify(injectIdentifiers ?? []) %>;
+for (const identifier of injectIdentifiers) {
+  if (typeof userFunctionsDict[identifier] !== 'function') {
+    throw new Error(`Function ${identifier} is not defined in injected functions module`);
+  }
+}
+<% } %>

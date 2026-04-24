@@ -1,4 +1,0 @@
-<%~ include('declarations/module', it) %>
-<%~ include('maps/module', it) %>
-<%~ include('transitions/actionToStateFromStateDict', it) %>
-<%~ include('runtime/module', it) %>

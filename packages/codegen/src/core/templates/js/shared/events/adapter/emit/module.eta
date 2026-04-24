@@ -1,0 +1,3 @@
+<% for (const emitter of it.emitters) { %>
+<%~ include('entry', { emitter }) %>
+<% } %>

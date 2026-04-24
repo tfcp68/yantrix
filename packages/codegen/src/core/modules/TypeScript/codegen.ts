@@ -9,6 +9,10 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 		this.imports['@yantrix/core']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
 	}
 
+	protected override buildTemplateModel(className: string) {
+		return { ...super.buildTemplateModel(className), hasTypes: true };
+	}
+
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
 		const it = this.buildTemplateModel(options.className);
 		const rendered = eta.render('ts/module.eta', it);

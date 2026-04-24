@@ -2,20 +2,14 @@ export class <%~ it.className %> extends GenericAutomata {
   static id = '<%~ it.className %>_<%~ Date.now() %>';
   static actions = actionsMap;
   static states = statesMap;
-  static getState = (state: keyof typeof statesMap) => statesDictionary[state];
-  static hasState = (instance: <%~ it.className %>, state: keyof typeof <%~ it.className %>.states) => instance.state === <%~ it.className %>.getState(state);
-  static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
-  static createAction = (action: keyof typeof actionsMap, payload: TAutomataPayload) => {
-    const actionId = <%~ it.className %>.getAction(action);
-    return { action: actionId, payload };
-  };
+<%~ include('static', it) %>
 
   constructor() {
     super(eventAdapter);
     this.init({
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
-      rootReducer: <%~ include('rootReducer', it) %>,
+      rootReducer: <%~ include('../../js/class/reducer/module', it) %>,
       stateValidator: (s: TAutomataBaseStateType) => Object.values(statesDictionary).includes(s),
       actionValidator: (a: TAutomataBaseActionType) => Object.values(actionsDictionary).includes(a),
       functionRegistry: functionDictionary,
@@ -28,7 +22,5 @@ export class <%~ it.className %> extends GenericAutomata {
 
   isKeyOf = <T extends object>(key: PropertyKey, obj: T): key is keyof T => key in obj;
 }
-
-<%~ include('../../shared/dictionaries/runtime/runtimeRegistries', it) %>
 
 export default <%~ it.className %>;

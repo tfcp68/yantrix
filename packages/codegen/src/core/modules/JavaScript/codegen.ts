@@ -167,6 +167,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		return {
 			className,
+			hasTypes: false,
 			imports: this.imports,
 			importNamespaces: this.importNamespaces,
 			diagram: this.diagram,

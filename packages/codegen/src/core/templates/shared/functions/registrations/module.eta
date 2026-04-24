@@ -1,9 +1,0 @@
-<% for (const registration of it.registrations) { %>
-<% if (registration.kind === 'inject') { %>
-functionDictionary.register('<%~ registration.name %>', userFunctionsDict['<%~ registration.name %>']);
-<% } else { %>
-functionDictionary.register('<%~ registration.name %>', function(<%~ registration.args.join(', ') %>) {
-  return <%~ include('../../expressions/module', { model: registration.bodyModel }) %>;
-});
-<% } %>
-<% } %>

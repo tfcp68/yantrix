@@ -1,4 +1,0 @@
-<% for (const emitter of it.emitters) { %>
-<%~ include('emitterEntry', { emitter }) %>
-<% } %>
-

@@ -1,5 +1,6 @@
 import { ArrayLiteral, Constant, DataObject, DefineArgument, DefineExpression, DefineFunction, Expression, FunctionCall, getNumberValue, getReferenceIdentifier, getReferenceType, getStringValue, isConstant, isDataObject, isFunctionCall, isIntegerLiteral, KeyItem, MAX_NESTED_FUNC_LEVEL, NestedDefineFunction, NumberLiteral, StringLiteral } from '@yantrix/yantrix-parser';
 import { TConstants, TExpressionRecord } from '../../../../../types/common';
+import { eta } from '../../../../eta';
 import { pathRecord } from '../../../../shared';
 import { expressionsSerializer } from './serializer';
 
@@ -38,11 +39,15 @@ export function setupExpressions(props: {
 		},
 		context: (expr: DataObject) => {
 			const identifier = getReferenceIdentifier(expr);
-			return `prevContext === null ||  (prevContext === undefined || prevContext['${identifier}'] === undefined) ? null : prevContext['${identifier}']`;
+			const rendered = eta.render('js/shared/expressions/context/defaultPropertyContext', { path: 'prevContext', identifier, expression: null });
+			if (rendered == null) throw new Error('Eta render returned null for context defaultPropertyContext');
+			return rendered.trim();
 		},
 		payload: (expr: DataObject) => {
 			const identifier = getReferenceIdentifier(expr);
-			return `payload === null || (payload === undefined  || payload['${identifier}'] === undefined) ? null : payload['${identifier}']`;
+			const rendered = eta.render('js/shared/expressions/context/defaultPropertyContext', { path: 'payload', identifier, expression: null });
+			if (rendered == null) throw new Error('Eta render returned null for payload defaultPropertyContext');
+			return rendered.trim();
 		},
 	};
 

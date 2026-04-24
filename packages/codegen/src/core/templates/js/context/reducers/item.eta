@@ -1,0 +1,27 @@
+<% const source = it.boundValue.source; %>
+<% const sourceValue = source.kind === 'defaultProperty'
+  ? include('../../shared/expressions/context/defaultPropertyContext', {
+      path: source.path,
+      identifier: source.identifier,
+      expression: source.fallbackExpression,
+    })
+  : source.kind === 'constant'
+    ? include('constant', { expressionValueRight: source.expressionValueRight })
+    : include('expression', { expressionValueRight: source.expressionValueRight }); %>
+<% if (it.boundValue.defaultExpressionValueRight != null) { %>
+<%~ it.boundValue.targetProperty %>: (function(){
+	const boundValue = <%~ sourceValue %>
+	if(boundValue !== null){
+		return boundValue
+	}
+	else {
+		return <%~ it.boundValue.defaultExpressionValueRight %>
+	}
+}())
+<% } else { %>
+<%~ it.boundValue.targetProperty %>: (function(){
+	const boundValue = <%~ sourceValue %>
+	return boundValue
+}())
+<% } %>
+

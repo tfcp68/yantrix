@@ -1,5 +1,0 @@
-<%~ it.boundValues.map((boundValue) => include('boundValuesItem', {
-  boundValue,
-})).join(',\n\t') %>
-
-

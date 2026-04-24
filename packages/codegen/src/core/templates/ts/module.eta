@@ -1,11 +1,11 @@
-<%~ include('../shared/imports/module', it) %>
-<%~ include('../shared/forks/module', it) %>
-<%~ include('../shared/dictionaries/module', it) %>
+<%~ include('../js/shared/imports/module', it) %>
+<%~ include('../js/shared/forks/module', it) %>
+<%~ include('../js/shared/dictionaries/module', it) %>
 <%~ include('types/module', it) %>
 
 export type TActions<%~ it.className %> = keyof typeof actionsMap;
 
-<%~ include('../shared/functions/module', it) %>
-<%~ include('../shared/events/module', it) %>
-<%~ include('context/module', it) %>
-<%~ include('class/module', it) %>
+<%~ include('../js/shared/functions/module', it) %>
+<%~ include('../js/shared/events/module', it) %>
+<%~ include('../js/context/module', {...it, hasTypes: true}) %>
+<%~ include('class/module', {...it, hasTypes: true}) %>

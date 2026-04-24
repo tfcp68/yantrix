@@ -1,0 +1,16 @@
+<% if (it.transition.kind === 'prevContext') { %>
+prevContext
+<% } else { %>
+{
+<%~ it.transition.items.map((item) => {
+  if (item.kind === 'withReducer') {
+    return item.boundValues.map((bv) => include('item', { boundValue: bv })).join(',\n\t');
+  }
+  return `${item.identifier}: ${include('../../shared/expressions/context/defaultPropertyContext', {
+    path: 'prevContext',
+    identifier: item.identifier,
+    expression: item.defaultExpressionValueRight,
+  })}`;
+}).join(',\n\t') %>
+}
+<% } %>

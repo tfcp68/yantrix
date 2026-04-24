@@ -1,3 +1,0 @@
-const actionsMap = <%~ JSON.stringify(it.dictionaries.actionsMap, null, 2) %>;
-
-const statesMap = <%~ JSON.stringify(it.dictionaries.statesMap, null, 2) %>;

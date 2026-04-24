@@ -1,1 +1,0 @@
-const byPassedStates = new Set([<%~ (it.dictionaries.byPassedList ?? []).join(',') %>]);

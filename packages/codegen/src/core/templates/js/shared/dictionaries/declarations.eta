@@ -1,0 +1,14 @@
+export const statesDictionary = <%~ JSON.stringify(it.stateDictionary.getDictionary(), null, 2) %>;
+
+export const actionsDictionary = <%~ JSON.stringify(it.actionDictionary.getDictionary(), null, 2) %>;
+
+export const eventDictionary = <%~ JSON.stringify(it.eventDictionary.getDictionary(), null, 2) %>;
+GlobalEventDictionary.addEvents({
+  keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null)
+});
+
+export const functionDictionary = new FunctionDictionary();
+
+const actionsMap = <%~ JSON.stringify(it.dictionaries.actionsMap, null, 2) %>;
+
+const statesMap = <%~ JSON.stringify(it.dictionaries.statesMap, null, 2) %>;
