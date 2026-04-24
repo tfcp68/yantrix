@@ -41,6 +41,9 @@ export function buildDependencyGraph(props: {
 	for (const define of defines) {
 		if (defineExpressionIsFunction(define.expression)) {
 			addDependencies(define.expression, define.identifier);
+		} else if (!props.dependencyGraph.has(define.identifier)) {
+			// literal return (e.g. define/f () => 3): no deps, still needs registration
+			props.dependencyGraph.set(define.identifier, new Set());
 		}
 	}
 	return {
