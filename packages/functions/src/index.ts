@@ -59,20 +59,6 @@ export const builtInFunctions = {
 	...transformers,
 };
 
-function currentTimestamp(): number {
-	if (typeof process !== 'undefined' && process.hrtime?.bigint !== undefined) {
-		return Number(process.hrtime.bigint() / BigInt(1000));
-	} else if (typeof performance !== 'undefined' && performance.now !== undefined) {
-		return Math.floor(performance.now() * 1000);
-	} else {
-		return Date.now() * 1000;
-	}
-}
-
-function currentTime(): string {
-	return new Date().toISOString();
-}
-
 function random(min?: number, max?: number): number {
 	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
@@ -107,8 +93,6 @@ function weightedRandom(object: { [key: string]: number }): string {
 }
 
 export const internalFunctions = {
-	currentTimestamp,
-	currentTime,
 	random,
 	weightedRandom,
 };

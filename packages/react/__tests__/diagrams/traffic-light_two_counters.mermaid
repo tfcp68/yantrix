@@ -21,17 +21,17 @@ note left of Off
 end note
 
 
-%% set counter = inc(counter) only when currentActionName() == 'Switch' (otherwise keep counter as is);
-%% set counter2 = inc(counter2) only when currentActionName() == 'Switch_1' (otherwise keep counter2 as is).
+%% set counter = inc(counter) only when _currentActionName() == 'Switch' (otherwise keep counter as is);
+%% set counter2 = inc(counter2) only when _currentActionName() == 'Switch_1' (otherwise keep counter2 as is).
 note right of Red
-#{ counter, counter2 } <= if(isEqual(currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
+#{ counter, counter2 } <= if(isEqual(_currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(_currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
 end note
 note right of RedYellow
-#{ counter, counter2 } <= if(isEqual(currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
+#{ counter, counter2 } <= if(isEqual(_currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(_currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
 end note
 note right of Green
-#{ counter, counter2 } <= if(isEqual(currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
+#{ counter, counter2 } <= if(isEqual(_currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(_currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
 end note
 note right of Yellow
-#{ counter, counter2 } <= if(isEqual(currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
+#{ counter, counter2 } <= if(isEqual(_currentActionName(), 'Switch'), inc(#counter), #counter), if(isEqual(_currentActionName(), 'Switch_1'), inc(#counter2), #counter2)
 end note

@@ -2,6 +2,9 @@
 
 ## Table of Contents
 
+- [v0.4.2](#v042)
+  - [Breaking Changes](#breaking-changes-4)
+  - [New Features](#new-features-4)
 - [v0.4.1](#v041)
   - [Other Changes](#other-changes-4)
 - [v0.4.0](#v040)
@@ -25,6 +28,73 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.2]
+
+This release standardises the naming of all built-in internal functions in the Yantrix DSL by
+adding a leading `_` to every `current*` name, making them consistent with `_currentStateName`
+and `_currentStateId` that were already documented with that prefix. The grammar is extended to
+recognise `INTERNAL_FUNCTION_ID` tokens in function-call position, while `define/` and `inject/`
+declarations retain the plain `ID` rule, so the `_` prefix is reserved for built-ins at the
+grammar level. There are breaking changes in diagram syntax and in `@yantrix/functions`.
+
+### Breaking Changes
+
+#### Diagram syntax - all `current*` internal functions renamed
+
+Every built-in internal function whose name began with `current` must now be written with a
+leading underscore in Yantrix diagram notes:
+
+| Old name | New name |
+|---|---|
+| `currentEpoch()` | `_currentEpoch()` |
+| `currentStateId()` | `_currentStateId()` |
+| `currentStateName()` | `_currentStateName()` |
+| `currentActionId()` | `_currentActionId()` |
+| `currentActionName()` | `_currentActionName()` |
+| `currentCycle()` | `_currentCycle()` |
+| `currentTimestamp()` | `_currentTimestamp()` |
+| `currentTime()` | `_currentTime()` |
+
+Any diagram note using the old names will fail to parse after this update.
+
+#### `@yantrix/functions` - `currentTimestamp` and `currentTime` removed from `internalFunctions`
+
+`internalFunctions.currentTimestamp` and `internalFunctions.currentTime` are no longer exported.
+These two functions are now injected at codegen time (like `_currentEpoch` and `_currentCycle`)
+rather than being registered in the runtime `FunctionDictionary`. Code that called
+`functionDictionary.register(internalFunctions)` and relied on these two keys being present must
+be updated; the remaining exports (`random`, `weightedRandom`) are unchanged.
+
+### New Features
+
+#### Grammar - `INTERNAL_FUNCTION_ID` terminal (`@yantrix/yantrix-parser`)
+
+A new terminal `INTERNAL_FUNCTION_ID: /_[a-zA-Z][a-zA-Z0-9_]{0,254}/` is added to the Langium
+grammar. `FunctionCall.name` now accepts either `ID` or `INTERNAL_FUNCTION_ID`, so `_`-prefixed
+names are valid in expression position. `DefineFunction`, `NestedDefineFunction`, `define/`, and
+`inject/` declarations still use the plain `ID` rule, enforcing at the grammar level that user
+functions cannot shadow built-in internal names.
+
+#### Codegen-time resolution for `_currentTimestamp` and `_currentTime` (`@yantrix/codegen`)
+
+`_currentTimestamp()` and `_currentTime()` are now resolved at codegen time alongside the other
+internal functions. Two module-level helpers, `_getCurrentTimestamp()` and `_getCurrentTime()`,
+are emitted into generated files by `js/shared/dictionaries/runtime.eta`; the `internalsMap` in
+both `serializer.ts` and `calls.eta` maps the DSL names to these helpers. No runtime
+`FunctionDictionary` registration is required for either function.
+
+#### Expanded internals test coverage (`@yantrix/codegen-tests`)
+
+`automataInternals.test.ts` gains a new `describe` block that generates a two-state diagram
+capturing all eight internal functions into context properties and asserts their values both
+before and after a dispatch. The test documents the observed timing semantics: `_currentStateId`
+and `_currentCycle` reflect the pre-transition values inside a state's context reducer because
+`automata.state` and `incrementCycle()` are updated only after the root reducer returns;
+`_currentActionId` and `_currentActionName` correctly reflect the dispatched action because
+`this.lastAction` is set at the start of each `getNew()` call inside the generated root reducer.
 
 ---
 

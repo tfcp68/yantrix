@@ -105,10 +105,10 @@ describe('automata internal functions tests', async () => {
 	StateA --> StateB: Switch
 note right of StateA
 	+Init
-	#{epochSnapshot} <= currentEpoch()
+	#{epochSnapshot} <= _currentEpoch()
 end note
 note right of StateB
-	#{epochSnapshot} <= currentEpoch()
+	#{epochSnapshot} <= _currentEpoch()
 end note
 `;
 		await generateAndSave({ input: epochInput, automataName: 'AutomataInternalsEpochTest', lang: ModuleNames.JavaScript }, 'functions_automataInternalsEpoch');
@@ -125,6 +125,69 @@ end note
 			// fresh instance: its initReducer runs with epoch already at 2, capturing the new value
 			const freshAutomata = new AutomataInternalsEpochTest();
 			expect(freshAutomata.getContext().context.epochSnapshot).toBe(2);
+		});
+	});
+
+	describe('all internals captured via diagram reducers', async () => {
+		const captureInput = `stateDiagram-v2
+	[*] --> StateA: Reset
+	StateA --> StateB: Switch
+note right of StateA
+	+Init
+	#{stateId, stateName, actionId, actionName, cycle, ts, timeStr} <= _currentStateId(), _currentStateName(), _currentActionId(), _currentActionName(), _currentCycle(), _currentTimestamp(), _currentTime()
+end note
+note right of StateB
+	#{stateId, stateName, actionId, actionName, cycle, ts, timeStr} <= _currentStateId(), _currentStateName(), _currentActionId(), _currentActionName(), _currentCycle(), _currentTimestamp(), _currentTime()
+end note
+`;
+		await generateAndSave({ input: captureInput, automataName: 'AutomataInternalsCaptureTest', lang: ModuleNames.JavaScript }, 'functions_automataInternalsCapture');
+		const { AutomataInternalsCaptureTest, statesDictionary: captureStates, actionsDictionary: captureActions } = await import(`./fixtures/generated/functions_automataInternalsCapture_generated.js`);
+
+		let captureAutomata: InstanceType<typeof AutomataInternalsCaptureTest>;
+
+		beforeEach(() => {
+			captureAutomata = new AutomataInternalsCaptureTest();
+		});
+
+		it('captures correct initial stateId and stateName', () => {
+			const ctx = captureAutomata.getContext().context;
+			expect(ctx.stateId).toBe(captureStates.StateA);
+			expect(ctx.stateName).toBe('StateA');
+		});
+
+		it('actionId and actionName are null initially', () => {
+			const ctx = captureAutomata.getContext().context;
+			expect(ctx.actionId).toBeNull();
+			expect(ctx.actionName).toBeNull();
+		});
+
+		it('cycle is 1 initially', () => {
+			expect(captureAutomata.getContext().context.cycle).toBe(1);
+		});
+
+		it('captures actionId, actionName after dispatch; stateId/cycle reflect pre-transition values', () => {
+			captureAutomata.dispatch({ action: captureActions.Switch, payload: {} });
+			const ctx = captureAutomata.getContext().context;
+			// lastAction is set before the context reducer runs -> correct action captured
+			expect(ctx.actionId).toBe(captureActions.Switch);
+			expect(ctx.actionName).toBe('Switch');
+			// automata.state and currentCycle are updated AFTER the rootReducer returns,
+			// so the reducer captures the pre-transition values
+			expect(ctx.stateId).toBe(captureStates.StateA);
+			expect(ctx.stateName).toBe('StateA');
+			expect(ctx.cycle).toBe(1);
+		});
+
+		it('_currentTimestamp returns a positive number', () => {
+			const ctx = captureAutomata.getContext().context;
+			expect(typeof ctx.ts).toBe('number');
+			expect(ctx.ts).toBeGreaterThan(0);
+		});
+
+		it('_currentTime returns an ISO-8601 string', () => {
+			const ctx = captureAutomata.getContext().context;
+			expect(typeof ctx.timeStr).toBe('string');
+			expect(ctx.timeStr).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 		});
 	});
 });

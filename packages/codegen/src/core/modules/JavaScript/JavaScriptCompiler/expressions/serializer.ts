@@ -1,12 +1,14 @@
 import { eta } from '../../../../eta';
 
 const internalsMap: Record<string, string> = {
-	currentEpoch: 'getEpoch()',
-	currentStateId: 'automata.state',
-	currentStateName: '(Object.keys(statesDictionary).find(k => statesDictionary[k] === automata.state) ?? null)',
-	currentActionId: 'automata.lastAction',
-	currentActionName: '(Object.keys(actionsDictionary).find(k => actionsDictionary[k] === automata.lastAction) ?? null)',
-	currentCycle: 'automata.currentCycle',
+	_currentEpoch: 'getEpoch()',
+	_currentStateId: 'automata.state',
+	_currentStateName: '(Object.keys(statesDictionary).find(k => statesDictionary[k] === automata.state) ?? null)',
+	_currentActionId: 'automata.lastAction',
+	_currentActionName: '(Object.keys(actionsDictionary).find(k => actionsDictionary[k] === automata.lastAction) ?? null)',
+	_currentCycle: 'automata.currentCycle',
+	_currentTimestamp: '_getCurrentTimestamp()',
+	_currentTime: '_getCurrentTime()',
 };
 
 function getDefaultPropertyContext(path: string, identifier: string, expression?: string) {
