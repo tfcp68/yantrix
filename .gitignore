@@ -19,7 +19,8 @@ dist
 dist-docs
 
 # Claude Code
-.claude
+.claude/projects
+.claude/plans
 CHANGELOG_branch.md
 
 # Miscellaneous

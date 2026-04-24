@@ -11,6 +11,7 @@ Read all markdowns in ./docs folder just once
 - No sycophantic openers or closing fluff.
 - Keep solutions simple and direct.
 - User instructions always override this file.
+- Prefer /commit skill when making git commits - it handles ESLint autofix and hook recovery.
 
 ## Output
 

@@ -53,6 +53,7 @@
 		"test:affected": "turbo run test --filter=...[origin/main] --concurrency=4",
 		"updeps": "pnpx taze latest --interactive --recursive --write --install",
 		"create-package": "turbo gen create-package --args",
+		"precommit:fix": "pnpm --filter @yantrix/yantrix-parser build",
 		"prepare": "is-ci || husky",
 		"release": "bumpp -r"
 	},

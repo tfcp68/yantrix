@@ -26,3 +26,6 @@ When working with the repository, do the following steps:
 8) Voilà, you're in business.
 
 For advanced repository management, you can read [this](01_advanced_managment.html) article.
+
+If you use Claude Code as your AI assistant, optional slash commands for common tasks
+(safe commits, changelog generation) are documented [here](03_claude_commands.html).
