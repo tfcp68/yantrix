@@ -2,6 +2,9 @@
 
 ## Table of Contents
 
+- [v0.4.4](#v044)
+  - [New Features](#new-features-6)
+  - [Other Changes](#other-changes-6)
 - [v0.4.3](#v043)
   - [Other Changes](#other-changes-5)
 - [v0.4.2](#v042)
@@ -30,6 +33,32 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.4]
+
+A maintenance patch for `@yantrix/codegen` and `@yantrix/automata` addressing code quality, test hygiene, and memory management. The `internalsMap` constant is consolidated into a single Eta template, `AutomataEventAdapter` and the `EventBus` mixin gain `[Symbol.dispose]` support, and `createEventBus` now returns an explicit cleanup function backed by a `FinalizationRegistry`. New test coverage is added for built-in scalar/collection functions, `define`/`inject` directives, and EventBus-driven automata internals.
+
+### New Features
+
+#### `internalExpression.eta` - single source of truth for internal function expressions
+
+The duplicated `internalsMap` object (previously present in both `serializer.ts` and `calls.eta`) is replaced by a new template `js/shared/expressions/internalExpression.eta`. It accepts `{ functionName, automataRef, actionsDictionaryRef, statesDictionaryRef }` and uses a `switch/case` chain - no dictionary key dispatch - making it portable to template languages without first-class object access. `calls.eta` includes it directly; `serializer.ts` calls `eta.render` and uses `ReservedInternalFunctionNames` as the guard.
+
+#### `[Symbol.dispose]` on `AutomataEventAdapter` and `EventBus`
+
+`AutomataEventAdapter` (via the `createEventAdapter` mixin) and the `createEventBus` mixin both implement `[Symbol.dispose]`. The adapter clears all listeners and emitters; the bus pauses, drains the event stack, and clears the subscription map. Enables `using` declarations in scoped contexts such as tests. Requires Node >= 22.
+
+#### `createEventBus` cleanup function and `FinalizationRegistry`
+
+The generated `createEventBus(id, FSMs)` function now tracks every `EventBus.subscribe` call, exposes a `cleanup()` function that unsubscribes all handlers, and registers a `FinalizationRegistry` on the `automatas` object as a safety net. Return signature changes from `[EventBus, automatas]` to `[EventBus, automatas, cleanup]` (non-breaking for existing destructuring).
+
+### Other Changes
+
+- `internalsEventBus.test.ts`: added `afterEach(() => loop.stop())` in all three `CoreLoop` describe blocks; added `afterEach` to the vitest import
+- New test files in `codegen-tests`: EventBus-driven epoch/cycle/chain-reaction tests, builtin scalar/collection function coverage, and advanced `define`/`inject` patterns including composition and fork predicates
+- `package.json` engines bumped from `node >= 18` to `node >= 22` in root, `@yantrix/automata`, and `@yantrix/codegen` (`Symbol.dispose` requires V8 12.x, stable in Node 22)
 
 ---
 

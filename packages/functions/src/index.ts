@@ -97,4 +97,13 @@ export const internalFunctions = {
 	weightedRandom,
 };
 
-export const ReservedInternalFunctionNames: string[] = [];
+export const ReservedInternalFunctionNames: string[] = [
+	'_currentEpoch',
+	'_currentStateId',
+	'_currentStateName',
+	'_currentActionId',
+	'_currentActionName',
+	'_currentCycle',
+	'_currentTimestamp',
+	'_currentTime',
+];

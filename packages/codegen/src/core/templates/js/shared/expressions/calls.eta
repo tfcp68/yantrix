@@ -1,16 +1,10 @@
 <% if (it.model.isInternal === true) { %>
-<%
-const internalsMap = {
-  _currentEpoch: 'getEpoch()',
-  _currentStateId: 'automata.state',
-  _currentStateName: '(Object.keys(statesDictionary).find(k => statesDictionary[k] === automata.state) ?? null)',
-  _currentActionId: 'automata.lastAction',
-  _currentActionName: '(Object.keys(actionsDictionary).find(k => actionsDictionary[k] === automata.lastAction) ?? null)',
-  _currentCycle: 'automata.currentCycle',
-  _currentTimestamp: '_getCurrentTimestamp()',
-  _currentTime: '_getCurrentTime()',
-};
-%><%~ internalsMap[it.model.functionName] ?? 'null' %>
+<%~ include('internalExpression', {
+  functionName: it.model.functionName,
+  automataRef: 'automata',
+  actionsDictionaryRef: 'actionsDictionary',
+  statesDictionaryRef: 'statesDictionary',
+}).trim() %>
 <% } else { %>
 <%
 const model = it.model;

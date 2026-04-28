@@ -7,7 +7,7 @@ import {
 	IAutomataEventBus,
 	waitForEventOnce,
 } from '@yantrix/core';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { generateAndSave } from './fixtures/utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,6 +93,10 @@ describe('automata internals via EventBus', async () => {
 			loop.start();
 		});
 
+		afterEach(() => {
+			loop.stop();
+		});
+
 		it('first bus dispatch captures same epoch as construction (pre-increment semantics)', async () => {
 			// +Init does NOT increment epoch; construction captures epoch=N but leaves counter at N.
 			// First dispatch also captures N (pre-increment), then counter becomes N+1.
@@ -156,6 +160,10 @@ describe('automata internals via EventBus', async () => {
 			loop.start();
 		});
 
+		afterEach(() => {
+			loop.stop();
+		});
+
 		it('both instances process when the same event is dispatched', async () => {
 			const cycleA_before = instanceA.currentCycle;
 			const cycleB_before = instanceB.currentCycle;
@@ -216,6 +224,10 @@ describe('automata internals via EventBus', async () => {
 			loop.registerAutomata('a', instanceA, adapterA);
 			loop.registerAutomata('b', instanceB, adapterB);
 			loop.start();
+		});
+
+		afterEach(() => {
+			loop.stop();
 		});
 
 		it('chain completes: B dispatches after A emits CHAIN', async () => {

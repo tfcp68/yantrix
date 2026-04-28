@@ -142,6 +142,11 @@ export function createEventAdapter<
 					.filter(k => this.#eventEmitters[k]?.length)
 					.filter(this.validateState);
 			}
+
+			public [Symbol.dispose](): void {
+				this.removeAllListeners(null);
+				this.removeAllEmitters(null);
+			}
 		};
 }
 

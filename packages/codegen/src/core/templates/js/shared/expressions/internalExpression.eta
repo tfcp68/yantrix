@@ -1,0 +1,13 @@
+<%
+let result = 'null';
+switch (it.functionName) {
+  case '_currentEpoch':      result = 'getEpoch()'; break;
+  case '_currentStateId':    result = it.automataRef + '.state'; break;
+  case '_currentStateName':  result = '(Object.keys(' + it.statesDictionaryRef + ').find(k => ' + it.statesDictionaryRef + '[k] === ' + it.automataRef + '.state) ?? null)'; break;
+  case '_currentActionId':   result = it.automataRef + '.lastAction'; break;
+  case '_currentActionName': result = '(Object.keys(' + it.actionsDictionaryRef + ').find(k => ' + it.actionsDictionaryRef + '[k] === ' + it.automataRef + '.lastAction) ?? null)'; break;
+  case '_currentCycle':      result = it.automataRef + '.currentCycle'; break;
+  case '_currentTimestamp':  result = '_getCurrentTimestamp()'; break;
+  case '_currentTime':       result = '_getCurrentTime()'; break;
+}
+%><%~ result %>

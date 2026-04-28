@@ -4,9 +4,17 @@ export function createEventBus(id, FSMs) {
 
   const automatas = <%~ include('factory', it) %>;
 
+  const _subscriptions = [];
   <%~ include('subscriptions', it) %>
 
-  return [EventBus, automatas];
+  const cleanup = () => {
+    _subscriptions.forEach(([eventId, fn]) => EventBus.unsubscribe(eventId, fn));
+    _subscriptions.length = 0;
+  };
+  const _registry = new FinalizationRegistry(cleanup);
+  _registry.register(automatas, undefined);
+
+  return [EventBus, automatas, cleanup];
 }
 
 
