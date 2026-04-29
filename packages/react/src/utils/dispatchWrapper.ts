@@ -2,11 +2,9 @@ import {
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
 } from '@yantrix/core';
+import { deepEqual } from '@yantrix/utils';
 import { IYantrixBoundStore } from '../types';
 
-/**
- * Параметры для performAutomataDispatch
- */
 export type TPerformAutomataDispatchParams<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
@@ -26,18 +24,17 @@ export function dispatchWrapper<
 
 	const prevCtx = automata.getContext();
 	const previousState = prevCtx.state;
-	// const previousContext = prevCtx.context;
+	const previousContext = prevCtx.context;
 
 	const reduced = automata.dispatch(action);
 
 	const nextState = reduced.state;
-	// const nextContext = reduced.context;
+	const nextContext = reduced.context;
 
 	const stateChanged = nextState !== previousState;
-	// const contextChanged = !builtInFunctions.isEqual(previousContext, nextContext);
-	// console.log(previousContext, nextContext, previousState, nextState);
+	const contextChanged = !deepEqual(previousContext, nextContext);
 
-	if (stateChanged) {
+	if (stateChanged || contextChanged) {
 		store.changeState();
 	}
 }

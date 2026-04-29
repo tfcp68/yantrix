@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { uniqId } from '@yantrix/core';
 import { act } from 'react';
 import { assert, describe, expect, it } from 'vitest';

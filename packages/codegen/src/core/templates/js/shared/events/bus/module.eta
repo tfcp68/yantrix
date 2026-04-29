@@ -1,0 +1,20 @@
+export function createEventBus(id, FSMs) {
+  const EventBus = new BasicEventBus();
+  EventBus.correlationId = id;
+
+  const automatas = <%~ include('factory', it) %>;
+
+  const _subscriptions = [];
+  <%~ include('subscriptions', it) %>
+
+  const cleanup = () => {
+    _subscriptions.forEach(([eventId, fn]) => EventBus.unsubscribe(eventId, fn));
+    _subscriptions.length = 0;
+  };
+  const _registry = new FinalizationRegistry(cleanup);
+  _registry.register(automatas, undefined);
+
+  return [EventBus, automatas, cleanup];
+}
+
+

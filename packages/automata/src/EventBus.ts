@@ -124,6 +124,12 @@ export function createEventBus<
 			 *
 			 */
 
+			public [Symbol.dispose](): void {
+				this.pause();
+				this.clearEventStack();
+				this.#eventSubscriptions.clear();
+			}
+
 			_processEvents(): Promise<TAutomataEventStack<EventType, EventMetaType>> {
 				if (this.#isProcessing || this.#isPaused) {
 					return Promise.resolve([]);

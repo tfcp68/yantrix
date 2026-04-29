@@ -1,0 +1,7 @@
+<% if (it.importNamespaces) { %>
+<% const nsEntries = Object.entries(it.importNamespaces) %>
+<% for (const [pkg, nsNames] of nsEntries) { %>
+import * as <%~ nsNames[0] %> from '<%~ pkg %>'
+<% } %>
+<% } %>
+

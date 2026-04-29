@@ -1,4 +1,5 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { StartState } from '@yantrix/mermaid-parser';
 import { TNullable } from '@yantrix/utils';
 import {
 	DefineStatement,
@@ -6,7 +7,7 @@ import {
 	getInjectStatements,
 	InjectStatement,
 } from '@yantrix/yantrix-parser';
-import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../constants';
+import { ByPassAction, DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../constants';
 import {
 	ICodegen,
 	TConstants,
@@ -14,7 +15,9 @@ import {
 	TGetCodeOptionsMap,
 	TModuleParams,
 	TStateDiagramMatrixIncludeNotes,
+	TUserFunctionsDict,
 } from '../../../types/common';
+import { eta } from '../../eta';
 import { fillDictionaries, getStatesByPass } from '../../shared';
 import { ModuleNames } from '../index';
 import { JavaScriptCompiler } from './JavaScriptCompiler';
@@ -32,12 +35,13 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 	initialContextKeys: string[];
 	changeStateHandlers: string[];
+	dictionaries: string[];
 	dependencyGraph: Map<string, Set<string>>;
 	constants: TConstants | null;
 	expressions: TExpressionRecord;
 	injectedPath: TNullable<string> = null;
+	injectedFunctions: TUserFunctionsDict;
 
-	dictionaries: string[];
 	protected importNamespaces: TNullable<TImports> = {};
 	protected imports: TImports = {
 		'@yantrix/core': [
@@ -47,7 +51,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			'AutomataEventAdapter',
 			'BasicEventBus',
 			'builtInFunctions',
-			'internalFunctions',
 		],
 	};
 
@@ -57,8 +60,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		this.eventDictionary = new BasicEventDictionary();
 
 		this.diagram = diagram;
-
 		this.constants = constants;
+		this.injectedFunctions = injectedFunctions;
 
 		this.defines = diagram.states.flatMap(state => state.notes ? getDefineStatements(state.notes) : []);
 		this.injects = diagram.states.flatMap(state => state.notes ? getInjectStatements(state.notes) : []);
@@ -73,7 +76,6 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			imports: this.imports,
 		});
 		this.imports = buildDependencyGraphResult.imports;
-
 		this.dependencyGraph = buildDependencyGraphResult.dependencyGraph;
 
 		this.handlersDict = [];
@@ -92,53 +94,124 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		this.dictionaries = JavaScriptCompiler.dictionaries.functions.setupDictionaries({
 			dependencyGraph: this.dependencyGraph,
-			diagram: this.diagram,
-			expressionRecord: this.expressions,
 			actionDictionary: this.actionDictionary,
 			stateDictionary: this.stateDictionary,
 			eventDictionary: this.eventDictionary,
-			injectedFunctions,
-			imports: this.imports,
 		});
 	}
 
-	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
-		const props = {
-			imports: this.imports,
-			importNamespaces: this.importNamespaces,
-			dictionaries: this.dictionaries,
+	protected buildTemplateModel(className: string) {
+		const initialStateId = JavaScriptCompiler.state.functions.getInitialState({ diagram: this.diagram });
+		const initialStateValue = this.stateDictionary.getStateValues({ keys: [initialStateId] })[0];
+		if (initialStateValue == null) throw new Error('Invalid initial state');
+
+		const startCtx = JavaScriptCompiler.context.functions
+			.getInitialContextShape({ diagram: this.diagram, stateName: StartState });
+		const initialCtxForInitialState = JavaScriptCompiler.context.functions
+			.getInitialContextShape({ diagram: this.diagram, stateName: initialStateId });
+		const initialContext = Object.assign({}, startCtx, initialCtxForInitialState);
+
+		const predicates = JavaScriptCompiler.forks.serializer.getPredicatesCode({
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+			expressions: this.expressions,
+		});
+
+		const eventAdapter = JavaScriptCompiler.events.serializer.getEventAdapterModel({
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 			eventDictionary: this.eventDictionary,
 			expressions: this.expressions,
-			byPassedList: getStatesByPass(this.diagram, this.stateDictionary),
-			dictionariesSerializer: JavaScriptCompiler.dictionaries.serializer,
-			classSerializer: JavaScriptCompiler.class.serializer,
-			className: options.className,
-			defines: this.defines,
+		});
+		const createEventBus = JavaScriptCompiler.events.serializer.getCreateEventBusModel();
+
+		const actionToStateFromState = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromStateModel({
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+		});
+		const byPassedList = getStatesByPass(this.diagram, this.stateDictionary);
+		const actionsMap = JavaScriptCompiler.dictionaries.serializer.getActionsMapModel({
+			actionDictionary: this.actionDictionary,
+		});
+		const statesMap = JavaScriptCompiler.dictionaries.serializer.getStatesMapModel({
+			stateDictionary: this.stateDictionary,
+		});
+
+		const reducer = JavaScriptCompiler.context.serializer.getReducerModel({
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			expressions: this.expressions,
+		});
+		const defaultContext = JavaScriptCompiler.context.serializer.getDefaultContextModel({
+			stateDictionary: this.stateDictionary,
+			diagram: this.diagram,
+			expressions: this.expressions,
+		});
+
+		const userFunctionsCheck = JavaScriptCompiler.functions.functions.getUserFunctionsCheckModel({
 			injectedPath: this.injectedPath,
 			injects: this.injects,
+		});
+		const customRegistrations = JavaScriptCompiler.functions.functions.getCustomFunctionRegistrationsVM({
+			diagram: this.diagram,
+			dependencyGraph: this.dependencyGraph,
+			expressions: this.expressions,
+			injectFunctions: this.injectedFunctions,
+		});
+		const userFunctionsNamespace = this.injectedPath && this.importNamespaces?.[this.injectedPath]?.[0]
+			? this.importNamespaces[this.injectedPath]![0] ?? {}
+			: null;
+
+		return {
+			className,
+			hasTypes: false,
+			imports: this.imports,
+			importNamespaces: this.importNamespaces,
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+			eventDictionary: this.eventDictionary,
+			expressions: this.expressions,
+			defines: this.defines,
+			injects: this.injects,
+			injectedPath: this.injectedPath,
+			functions: {
+				userFunctionsCheck,
+				customRegistrations,
+				userFunctionsNamespace,
+			},
+			initialStateId,
+			initialStateValue,
+			initialContext,
+			startStateKey: StartState,
+			byPassAction: ByPassAction,
+			context: {
+				reducer,
+				defaultContext,
+			},
+			forks: {
+				predicates,
+			},
+			events: {
+				eventAdapter,
+				createEventBus,
+			},
+			dictionaries: {
+				actionToStateFromState,
+				byPassedList,
+				actionsMap,
+				statesMap,
+			},
 		};
-		return `
-			${JavaScriptCompiler.imports.serializer.getImportsCode(props)}
-			${JavaScriptCompiler.imports.serializer.importAll(props)}
-			${JavaScriptCompiler.functions.serializer(props)}
-			${JavaScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
-			${JavaScriptCompiler.events.serializer.getEventAdapterCode(props)}
-			${JavaScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}
-			${JavaScriptCompiler.dictionaries.serializer.getActionsMap(props)}
-			${JavaScriptCompiler.dictionaries.serializer.getStatesMap(props)}
-			${JavaScriptCompiler.dictionaries.serializer.getSerializedSetByPassed(props)}
-			${JavaScriptCompiler.context.serializer.getDefaultContext(props)}
-			${JavaScriptCompiler.context.serializer.getStateReducerCode(props)}
-			${JavaScriptCompiler.forks.serializer.getPredicatesCode(props)}
-			${JavaScriptCompiler.dictionaries.serializer.getActionToStateFromState(props)}
-			${JavaScriptCompiler.class.serializer.getClassTemplate(props)}
-			${JavaScriptCompiler.dictionaries.serializer.getAutomataEpochCounterCode()}
-			${JavaScriptCompiler.dictionaries.serializer.getAutomataInternalsRegisterCode(props)}
-			${JavaScriptCompiler.dictionaries.serializer.getFunctionDictionaryInternalRegisterCode()}
-			${JavaScriptCompiler.dictionaries.serializer.getFunctionDictionaryBuiltInRegisterCode()}
-		`;
+	}
+
+	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
+		const it = this.buildTemplateModel(options.className);
+		const rendered = eta.render('js/module.eta', it);
+		if (rendered == null) throw new Error('Eta render returned null/undefined for js/module');
+		return rendered;
 	}
 }

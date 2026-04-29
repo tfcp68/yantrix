@@ -1,0 +1,6 @@
+Object.fromEntries(
+  Object.entries(FSMs).map(([automataId, AutomataClass]) => {
+    return [automataId, new AutomataClass()];
+  }),
+)
+

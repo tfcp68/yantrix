@@ -1,0 +1,13 @@
+<%
+const model = it.model;
+%>
+<% if (model == null) { %>
+null
+<% } else if (model.kind === 'raw') { %>
+<%~ model.value %>
+<% } else if (model.kind === 'functionCall') { %>
+<%~ include('calls', { model }) %>
+<% } else { %>
+null
+<% } %>
+

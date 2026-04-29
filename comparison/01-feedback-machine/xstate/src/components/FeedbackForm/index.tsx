@@ -13,7 +13,7 @@ const stateToComponent: Partial<Record<keyof typeof feedbackMachineStates, React
 function FeedbackProcess() {
 	const state = FeedbackMachineContext.useSelector(state => state.value);
 
-	return stateToComponent[state];
+	return stateToComponent[state] ?? null;
 }
 
 export default FeedbackProcess;

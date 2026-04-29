@@ -2,64 +2,55 @@ import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
 import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
 import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
 import { getObjectKeysMap } from './core';
-import { TDictionaries } from './types';
+import { TActionToStateEntryModel, TActionToStateFromStateModel, TDictionaries } from './types';
 
-export function getActionToStateDict(props: {
+function getActionToStateDictModel(props: {
 	transitions: Record<string, TDiagramAction>;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-	currentState: number;
-}) {
+}): Record<number, TActionToStateEntryModel> {
 	const dict: Record<number, number[]> = {};
 
-	// group all possible states for an action in the dict object
-	Object
-		.entries(props.transitions)
-		.forEach(([key, transition]) => {
-			const newState = props.stateDictionary.getStateValues({ keys: [key] })[0];
+	Object.entries(props.transitions).forEach(([key, transition]) => {
+		const newState = props.stateDictionary.getStateValues({ keys: [key] })[0];
 
-			transition.actionsPath.forEach(({ action }) => {
-				const actionValue = props.actionDictionary.getActionValues({
-					keys: action,
-				})[0];
-				if (!actionValue) throw new Error(`Action ${action} not found`);
-				if (!newState) throw new Error(`State ${key} not found`);
+		transition.actionsPath.forEach(({ action }) => {
+			const actionValue = props.actionDictionary.getActionValues({ keys: action })[0];
+			if (actionValue == null) throw new Error(`Action ${action} not found`);
+			if (newState == null) throw new Error(`State ${key} not found`);
 
-				if (!dict[actionValue]) {
-					dict[actionValue] = [];
-				}
-				if (!dict[actionValue].includes(newState)) {
-					dict[actionValue].push(newState);
-				}
-			});
+			if (dict[actionValue] == null) {
+				dict[actionValue] = [];
+			}
+			if (!dict[actionValue]!.includes(newState)) {
+				dict[actionValue]!.push(newState);
+			}
 		});
+	});
 
-	// if there is more than 1 possible state => insert predicate function using currentState and currentAction IDs
-	const res = Object.entries(dict).map(([actionId, possibleStates]) => {
-		const predicateString = (possibleStates.length > 1) ? `,\npredicate: predicates[${props.currentState}][${actionId}]` : '';
-		return `
-				${actionId}: {
-					state: [${possibleStates}]${predicateString}
-				}
-			`;
-	}).join(',\n');
-
-	return res;
+	return Object.fromEntries(
+		Object.entries(dict).map(([actionId, possibleStates]) => {
+			const numericActionId = Number(actionId);
+			return [numericActionId, {
+				state: possibleStates,
+				withPredicate: possibleStates.length > 1,
+			}];
+		}),
+	);
 }
 
-export function getActionToStateFromStateDict(props: {
+export function getActionToStateFromStateModel(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
-}) {
+}): TActionToStateFromStateModel {
 	const actionToStartStateMatrix: Record<string, TDiagramAction> = {};
 
 	Object.entries(props.diagram.transitions).forEach(([state, transitions]) => {
 		if (state === StartState) {
-			const entries = Object.entries(transitions);
-			entries.forEach(([state, action]) => {
+			Object.entries(transitions).forEach(([targetState, action]) => {
 				action.actionsPath.forEach(({ action }) => {
-					actionToStartStateMatrix[state] = {
+					actionToStartStateMatrix[targetState] = {
 						actionsPath: [{ action, note: [] }],
 					};
 				});
@@ -67,22 +58,34 @@ export function getActionToStateFromStateDict(props: {
 		}
 	});
 
-	return Object.entries(props.diagram.transitions).map(([currentState, transitions]) => {
-		const transitionsWithStartState = {
-			...transitions,
-			...actionToStartStateMatrix,
-		};
+	const model: TActionToStateFromStateModel = {};
 
-		const value = props.stateDictionary.getStateValues({ keys: [currentState] })[0];
-		if (!value) throw new Error(`State ${currentState} not found`);
+	Object.entries(props.diagram.transitions).forEach(([currentState, transitions]) => {
+		const transitionsWithStartState = { ...transitions };
+		for (const [targetState, startAction] of Object.entries(actionToStartStateMatrix)) {
+			if (transitionsWithStartState[targetState]) {
+				transitionsWithStartState[targetState] = {
+					actionsPath: [
+						...transitionsWithStartState[targetState]!.actionsPath,
+						...startAction.actionsPath,
+					],
+				};
+			} else {
+				transitionsWithStartState[targetState] = startAction;
+			}
+		}
 
-		return `${value}: {${getActionToStateDict({
-			currentState: value,
+		const stateId = props.stateDictionary.getStateValues({ keys: [currentState] })[0];
+		if (stateId == null) throw new Error(`State ${currentState} not found`);
+
+		model[stateId] = getActionToStateDictModel({
 			transitions: transitionsWithStartState,
 			stateDictionary: props.stateDictionary,
 			actionDictionary: props.actionDictionary,
-		}).concat('\n\t')}},`;
+		});
 	});
+
+	return model;
 }
 
 export function getDictionariesCode(props: {
@@ -91,80 +94,21 @@ export function getDictionariesCode(props: {
 	return props.dictionaries.join('\n');
 }
 
-export function getActionsMap(props: {
+export function getActionsMapModel(props: {
 	actionDictionary: BasicActionDictionary;
 }) {
-	return `const actionsMap = ${JSON.stringify(getObjectKeysMap(props.actionDictionary.getDictionary()), null, 2)}`;
+	return getObjectKeysMap(props.actionDictionary.getDictionary());
 }
 
-export function getStatesMap(props: {
+export function getStatesMapModel(props: {
 	stateDictionary: BasicStateDictionary;
 }) {
-	return `const statesMap = ${JSON.stringify(getObjectKeysMap(props.stateDictionary.getDictionary()), null, 2)}`;
-}
-
-export const getSerializedSetByPassed = (props: {
-	byPassedList: number[];
-}) => {
-	return `const byPassedStates = new Set([${props.byPassedList.join(',')}])`;
-};
-
-export function getActionToStateFromState(props: {
-	diagram: TStateDiagramMatrixIncludeNotes;
-	stateDictionary: BasicStateDictionary;
-	actionDictionary: BasicActionDictionary;
-	dictionariesSerializer: typeof dictionariesSerializer;
-}) {
-	return `const actionToStateFromStateDict = {${props.dictionariesSerializer.getActionToStateFromStateDict({
-		diagram: props.diagram,
-		stateDictionary: props.stateDictionary,
-		actionDictionary: props.actionDictionary,
-	}).join('\n\t')}}`;
-}
-
-export function getAutomataEpochCounterCode() {
-	const lines: string[] = [];
-	lines.push(`const epoch = { val: 1 };`);
-	lines.push(`const incrementEpoch = () => { epoch.val++ };`);
-	lines.push(`const getEpoch = () => epoch.val;`);
-	return lines.join('\n');
-}
-
-export function getAutomataInternalsRegisterCode(props: {
-	className: string;
-}) {
-	const { className } = props;
-	const lines: string[] = [];
-	lines.push(`const internals = {`);
-	lines.push(`\t...internalFunctions,`);
-	lines.push(`\t"currentStateId": internalFunctions.currentStateId(${className}),`);
-	lines.push(`\t"currentStateName": internalFunctions.currentStateName(${className}, statesDictionary),`);
-	lines.push(`\t"currentActionId": internalFunctions.currentActionId(${className}),`);
-	lines.push(`\t"currentActionName": internalFunctions.currentActionName(${className}, actionsDictionary),`);
-	lines.push(`\t"currentCycle": internalFunctions.currentCycle(${className}),`);
-	lines.push(`\t"currentEpoch": getEpoch,`);
-	lines.push(`}`);
-	return lines.join('\n');
-}
-
-export function getFunctionDictionaryInternalRegisterCode() {
-	return `functionDictionary.register(internals);`;
-}
-
-export function getFunctionDictionaryBuiltInRegisterCode() {
-	return `functionDictionary.register(builtInFunctions);`;
+	return getObjectKeysMap(props.stateDictionary.getDictionary());
 }
 
 export const dictionariesSerializer = {
-	getActionToStateDictCode: getActionToStateDict,
-	getActionToStateFromStateDict,
-	getActionToStateFromState,
+	getActionToStateFromStateModel,
 	getDictionariesCode,
-	getActionsMap,
-	getStatesMap,
-	getSerializedSetByPassed,
-	getAutomataInternalsRegisterCode,
-	getAutomataEpochCounterCode,
-	getFunctionDictionaryInternalRegisterCode,
-	getFunctionDictionaryBuiltInRegisterCode,
+	getActionsMapModel,
+	getStatesMapModel,
 } as const;

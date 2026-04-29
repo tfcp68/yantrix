@@ -4,9 +4,10 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	test: {
 		reporters: [
-			'default',
+			'dot',
 			new VitestMarkdownReporter({ title: 'Test Cases' }),
 		],
+		slowTestThreshold: 10000,
 		exclude: ['**/node_modules', '**/dist', '.idea', '.git', '.cache'],
 		passWithNoTests: true,
 		coverage: {
@@ -16,7 +17,7 @@ export default defineConfig({
 			clean: true,
 			reportsDirectory: './coverage',
 			provider: 'istanbul',
-			reporter: ['text', 'json-summary', 'json', 'html-spa'],
+			reporter: ['json-summary', 'json', 'html-spa'],
 			exclude: [
 				'vitepress',
 				'*/fixtures',
@@ -24,6 +25,7 @@ export default defineConfig({
 				'/{interfaces,types}/*.ts',
 				'/index.{js,ts}',
 				'**/exports/*.{js,ts}',
+				'**/dist/templates/**',
 			],
 		},
 	},

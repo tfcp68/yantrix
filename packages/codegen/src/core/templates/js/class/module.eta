@@ -1,0 +1,26 @@
+export class <%~ it.className %> extends GenericAutomata {
+  static id = '<%~ it.className %>_<%~ Date.now() %>';
+  static actions = actionsMap;
+  static states = statesMap;
+<%~ include('static', it) %>
+
+  constructor() {
+    super(eventAdapter);
+    this.init({
+      state: <%~ it.initialStateValue %>,
+      context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
+      rootReducer: <%~ include('reducer/module', it) %>,
+      stateValidator: (s) => Object.values(statesDictionary).includes(s),
+      actionValidator: (a) => Object.values(actionsDictionary).includes(a),
+      functionRegistry: functionDictionary,
+    });
+    const initReducer = reducer[this.state];
+    const prev = this.getContext()?.context ?? {};
+    const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+    this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
+  }
+
+  isKeyOf = (key, obj) => key in obj;
+}
+
+export default <%~ it.className %>;

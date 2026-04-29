@@ -3,6 +3,12 @@
 	"globalDependencies": ["tsconfig.json"],
 	"remoteCache": { "enabled": true },
 	"tasks": {
+		"generate": {
+			"dependsOn": ["^build"],
+			"inputs": ["src/diagrams/**", "package.json"],
+			"outputs": ["src/generated/**"],
+			"outputLogs": "errors-only"
+		},
 		"build": {
 			"dependsOn": ["^build"],
 			"inputs": [
@@ -17,7 +23,7 @@
 			"outputLogs": "errors-only"
 		},
 		"test": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^build", "^generate"],
 			"inputs": ["__tests__/**", "src/**", "package.json", "tsconfig.json"],
 			"outputs": ["coverage/**", "../../test_reports/**"],
 			"outputLogs": "new-only"

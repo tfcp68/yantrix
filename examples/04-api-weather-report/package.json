@@ -1,7 +1,7 @@
 {
 	"name": "04-api-weather-report",
 	"type": "module",
-	"version": "0.3.0",
+	"version": "0.4.1",
 	"private": true,
 	"description": "",
 	"author": "",
@@ -10,7 +10,8 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build",
+		"prebuild": "pnpm run generate",
+		"build": "tsc --noEmit && vite build",
 		"preview": "vite preview",
 		"lint": "eslint .",
 		"format": "eslint --fix .",

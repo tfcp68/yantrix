@@ -1,0 +1,23 @@
+<% if (it.hasTypes) { %>((input: TRootReducerInput): TRootReducerOutput => {
+  const { action, context, payload, state } = input;
+<% } else { %>({ action, context, payload, state }) => {<% } %>
+  if (<% if (it.hasTypes) { %>action === null<% } else { %>!action<% } %> || payload === null) return { state, context };
+
+  if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.");
+
+  if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
+
+  const transitions<% if (it.hasTypes) { %>: TTransitions<% } %> = actionToStateFromStateDict;
+
+  <%~ include('getNew', it) %>
+
+  let localCtx = getNew(action, state, context, payload);
+
+  while (byPassedStates.has(localCtx.state)) {
+    localCtx = getNew(actionsDictionary['<%~ it.byPassAction %>'], localCtx.state, localCtx.context, {});
+  }
+
+  incrementEpoch();
+
+  return localCtx;
+<% if (it.hasTypes) { %>})<% } else { %>}<% } %>

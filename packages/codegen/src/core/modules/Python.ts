@@ -19,9 +19,9 @@ import {
 } from '@yantrix/yantrix-parser';
 import { TConstants, TExpressionRecord } from '../../types/common';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { PythonTemplate } from '../../utils/Python.js';
 // import { replaceFileContents } from '../../utils/utils.js';
 import { fillDictionaries, pathRecord } from '../shared.js';
-import { PythonTemplate } from '../templates/Python.js';
 import { ModuleNames } from './index';
 
 function getReferenceString(path: string, identifier: string) {

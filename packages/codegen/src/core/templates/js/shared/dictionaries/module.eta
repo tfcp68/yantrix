@@ -1,0 +1,3 @@
+<%~ include('declarations', it) %>
+<%~ include('transitions/module', it) %>
+<%~ include('runtime', it) %>

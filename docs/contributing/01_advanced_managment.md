@@ -16,6 +16,9 @@ This will create a new package under the `packages/` folder according to a prede
 > [!IMPORTANT]
 > You do not need to specify the organization prefix `@yantrix/` in the name of the new package, because the script itself formats the name according to the principle of `<package-name>` → `@yantrix/<package-name>`.
 
+> [!NOTE]
+> The generated `package.json` test script writes output to `test_reports/<name>.md`. This file is required for `pnpm run summary:test` to include the new package in the aggregate report. If the package has no tests yet, the script will still pass - `passWithNoTests: true` is set in the root vitest config.
+
 ## 📝 Local testing
 
 If you want to test your innovations locally (for example, in another cloned repository), do the following:

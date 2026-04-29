@@ -1,0 +1,33 @@
+Object.entries(GlobalEventDictionary.getDictionary()).forEach(([eventName, eventId]) => {
+  const _handler = ({ event, meta }) => {
+    const <%~ it.events.createEventBus.resultVarName %> = [];
+
+    Object.values(automatas).forEach((automata) => {
+      const newActions = automata.eventAdapter?.handleEvent({ event, meta }) ?? [];
+      for (const action of newActions) {
+        automata.dispatch(action);
+        const newAutomataEvents = automata.eventAdapter?.handleTransition(automata.getContext()) ?? [];
+        <%~ it.events.createEventBus.resultVarName %>.push(...newAutomataEvents);
+      }
+    });
+
+    EventBus.dispatch(...<%~ it.events.createEventBus.resultVarName %>);
+
+    return {
+      event,
+      meta,
+      task_id: `event_${eventName}_${eventId}`,
+      result: new Promise((resolve, reject) => {
+        try {
+          resolve(EventBus.getEventStack());
+        } catch {
+          reject(new Error('Error getting event stack'));
+        }
+      }),
+    };
+  };
+  EventBus.subscribe(eventId, _handler);
+  _subscriptions.push([eventId, _handler]);
+});
+
+
