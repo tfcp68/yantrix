@@ -10,4 +10,5 @@ export const TypeScriptCompiler = {
 	state: JavaScriptCompiler.state,
 	events: JavaScriptCompiler.events,
 	forks: JavaScriptCompiler.forks,
+	functions: JavaScriptCompiler.functions,
 };
