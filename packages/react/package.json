@@ -61,6 +61,7 @@
 	"dependencies": {
 		"@yantrix/codegen": "workspace:^",
 		"@yantrix/core": "workspace:^",
+		"@yantrix/utils": "workspace:^",
 		"react": "^18.3.1"
 	},
 	"directories": {
