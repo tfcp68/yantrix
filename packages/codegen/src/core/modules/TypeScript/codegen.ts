@@ -13,6 +13,7 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
 		const props = {
 			imports: this.imports,
+			importNamespaces: this.importNamespaces,
 			dictionaries: this.dictionaries,
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
@@ -23,9 +24,14 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 			dictionariesSerializer: TypeScriptCompiler.dictionaries.serializer,
 			classSerializer: TypeScriptCompiler.class.serializer,
 			className: options.className,
+			defines: this.defines,
+			injectedPath: this.injectedPath,
+			injects: this.injects,
 		};
 		return `
 			${TypeScriptCompiler.imports.serializer.getImportsCode(props)}
+			${TypeScriptCompiler.imports.serializer.importAll(props)}
+			${TypeScriptCompiler.functions.serializer(props)}
 			${TypeScriptCompiler.dictionaries.serializer.getDictionariesCode(props)}
 			${TypeScriptCompiler.events.serializer.getEventAdapterCode(props)}
 			${TypeScriptCompiler.events.serializer.getCreateEventBusFunctionCode()}
