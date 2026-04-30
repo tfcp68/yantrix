@@ -1,0 +1,8 @@
+<%~ include('reducer', {
+  ...it,
+  reducer: it.context.reducer,
+}) %>
+<%~ include('defaultContext', {
+  ...it,
+  defaultContext: it.context.defaultContext,
+}) %>

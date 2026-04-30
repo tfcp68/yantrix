@@ -1,0 +1,3 @@
+<% for (const listener of it.listeners) { %>
+<%~ include('entry', { listener }) %>
+<% } %>

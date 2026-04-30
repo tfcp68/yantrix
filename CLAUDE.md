@@ -11,6 +11,7 @@ Read all markdowns in ./docs folder just once
 - No sycophantic openers or closing fluff.
 - Keep solutions simple and direct.
 - User instructions always override this file.
+- Prefer /commit skill when making git commits - it handles ESLint autofix and hook recovery.
 
 ## Output
 
@@ -38,3 +39,14 @@ Read all markdowns in ./docs folder just once
 - No em dashes, smart quotes, Unicode bullets.
 - Plain hyphens and straight quotes only.
 - Code output must be copy-paste safe.
+
+## Debugging Tests
+
+- `pnpm test` uses the `dot` reporter - output is compact dots only; failures show count but not names
+- To see test names and failure details, run from a package directory:
+  `vitest run --reporter=verbose`
+- After any test run, `test_reports/<pkg>.md` contains the full structured report with names and failure messages - read it to diagnose failures
+- To run a single test file with verbose output:
+  `vitest run --reporter=verbose <path-to-test-file>`
+- For an affected-only pass: `pnpm run test:affected` from repo root
+- To get the aggregate result without re-running: `pnpm run summary:test`

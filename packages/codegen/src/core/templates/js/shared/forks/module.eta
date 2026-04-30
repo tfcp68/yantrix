@@ -1,0 +1,9 @@
+<%
+const predicates = it.forks?.predicates ?? {};
+const stateEntries = Object.entries(predicates);
+%>
+const predicates = {
+<% for (const [stateId, actionPredicates] of stateEntries) { %>
+  <%~ include('stateEntry', { stateId, actionPredicates }) %>
+<% } %>
+};

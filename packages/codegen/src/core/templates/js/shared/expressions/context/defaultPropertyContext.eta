@@ -1,0 +1,9 @@
+(function(){
+  if(<%~ it.path %> !== null && <%~ it.path %>['<%~ it.identifier %>'] !== undefined && <%~ it.path %>['<%~ it.identifier %>'] !== null) {
+	return <%~ it.path %>['<%~ it.identifier %>'];
+  }
+  else {
+	return <%~ it.expression ?? 'null' %>;
+  }
+}())
+

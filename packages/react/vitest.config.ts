@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	test: {
 		reporters: [
-			'default',
+			'dot',
 			new VitestMarkdownReporter({ title: 'Test Cases' }),
 		],
 		exclude: ['**/node_modules', '**/dist'],

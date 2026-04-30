@@ -1,0 +1,7 @@
+<%~ include('shared/imports/module', it) %>
+<%~ include('shared/forks/module', it) %>
+<%~ include('shared/dictionaries/module', it) %>
+<%~ include('shared/functions/module', it) %>
+<%~ include('shared/events/module', it) %>
+<%~ include('context/module', it) %>
+<%~ include('class/module', it) %>

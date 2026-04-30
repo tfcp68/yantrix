@@ -7,101 +7,58 @@ import {
 	getInjectStatements,
 	InjectStatement,
 } from '@yantrix/yantrix-parser';
-import { DEFAULT_USER_FUNCTIONS_NAMESPACE } from '../../../../../constants';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TUserFunctionsDict } from '../../../../../types/common';
-import { TDictionaries } from '../dictionaries';
 import { getExpressionValueDefine } from '../expressions/core';
+import { getFunctionBodyModel, TDefineExpressionModel } from '../expressions/functions';
 import { TDependencyGraph } from '../imports';
+import { TCustomRegistration } from './types';
 
 export function getFunctionBody(props: {
 	expressions: TExpressionRecord;
 	expression: DefineExpression;
-}): string {
+}): TDefineExpressionModel {
 	if (defineExpressionIsFunction(props.expression)) {
-		const { name: FunctionName, args: Arguments } = props.expression;
-
-		const argsList = Arguments.map((arg) => {
-			const argType = '$type' in arg ? arg.$type as string : '';
-			if (argType === 'DefineFunction' || argType === 'NestedDefineFunction') {
-				return getFunctionBody({
-					expression: arg as unknown as DefineExpression,
-					expressions: props.expressions,
-				});
-			} else {
-				return getExpressionValueDefine({
-					expression: arg,
-					expressions: props.expressions,
-				});
-			}
-		}).join(', ');
-
-		return `(function() {
-					const func = functionDictionary.get('${FunctionName}');
-					return func(${argsList});
-				})()`;
-	} else {
-		return getExpressionValueDefine({
+		return getFunctionBodyModel({
 			expression: props.expression,
 			expressions: props.expressions,
 		});
+	} else {
+		return {
+			kind: 'raw',
+			value: getExpressionValueDefine({
+				expression: props.expression,
+				expressions: props.expressions,
+			}),
+		};
 	}
 }
 
-export function checkUserFunctionsDefined(props: {
+export function getUserFunctionsCheckModel(props: {
 	injectedPath: TNullable<string>;
 	injects: InjectStatement[];
 }) {
 	const { injectedPath, injects } = props;
-	const identifiers = injects.map(inject => `'${inject.identifier}'`);
+	if (!injectedPath && injects.length > 0) {
+		throw new TypeError('Function identifier is defined in the diagram but no inject file is provided');
+	}
 
-	if (!injectedPath) return ``;
-
-	return `
-	
-	(function (){
-			const injects = [${identifiers.join(',')}]
-			const defaults = ${DEFAULT_USER_FUNCTIONS_NAMESPACE}?.default ?? null
-
-			if(defaults) {
-				switch(typeof defaults) {
-					case 'function': 
-					  if(!defaults?.name) throw new Error('Default exported user functions must have a name');
-						Object.assign(${DEFAULT_USER_FUNCTIONS_NAMESPACE}, {[defaults.name]: defaults});
-						break;
-					case 'object':
-						if(Array.isArray(defaults)) {
-							throw new Error('Default exported user functions must be an object or a function');
-						} 
-						Object.assign(${DEFAULT_USER_FUNCTIONS_NAMESPACE}, {...defaults});
-						break;
-					default:
-						throw new Error('Default exported user functions must be a function or an object from ${injectedPath}');
-				}
-			}
-
-			injects.forEach((identifier) => {
-				if (!${DEFAULT_USER_FUNCTIONS_NAMESPACE}[identifier]) {
-					throw new Error(\`Function \${identifier}\ is not defined in ${injectedPath}\`);
-				}
-				if(typeof ${DEFAULT_USER_FUNCTIONS_NAMESPACE}[identifier] !== 'function') {
-					throw new Error(\`Function \${identifier}\ is not a function in ${injectedPath}\`);
-				}
-			});
-		})()`;
+	return {
+		hasInjectedPath: Boolean(injectedPath),
+		injectIdentifiers: injects.map(inject => inject.identifier),
+	};
 }
 
-export function registerCustomFunctions(props: {
+export function getCustomFunctionRegistrationsModel(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	dependencyGraph: TDependencyGraph;
-	dictionaries: TDictionaries;
 	expressions: TExpressionRecord;
 	injectFunctions: TUserFunctionsDict;
-}) {
-	const { dictionaries, diagram, injectFunctions, dependencyGraph, expressions } = props;
-	const newDictionary = dictionaries;
+}): TCustomRegistration[] {
+	const { diagram, injectFunctions, dependencyGraph, expressions } = props;
 	const defines = diagram.states.flatMap(state => state.notes ? getDefineStatements(state.notes) : []);
 	const inject = diagram.states.flatMap(state => state.notes ? getInjectStatements(state.notes) : []);
 
+	const registrations: TCustomRegistration[] = [];
 	const registered = new Set<string>();
 
 	const registerFunction = (funcName: string, depth = 0) => {
@@ -127,16 +84,14 @@ export function registerCustomFunctions(props: {
 			}
 		}
 		if (injectFunction) {
-			newDictionary.push(`functionDictionary.register('${funcName}', ${DEFAULT_USER_FUNCTIONS_NAMESPACE}['${funcName}']);`);
+			registrations.push({ kind: 'inject', name: funcName });
 			registered.add(funcName);
 		} else if (defineFunction) {
-			const functionBody = getFunctionBody({
+			const bodyModel = getFunctionBody({
 				expression: defineFunction.expression,
 				expressions,
 			});
-			newDictionary.push(`functionDictionary.register('${funcName}', function(${defineFunction.args.join(', ')}) {
-						return ${functionBody};
-					});`);
+			registrations.push({ kind: 'define', name: funcName, args: defineFunction.args, bodyModel });
 			registered.add(funcName);
 		};
 	};
@@ -147,5 +102,14 @@ export function registerCustomFunctions(props: {
 		}
 	}
 
-	return newDictionary;
+	return registrations;
+}
+
+export function getCustomFunctionRegistrationsVM(props: {
+	diagram: TStateDiagramMatrixIncludeNotes;
+	dependencyGraph: TDependencyGraph;
+	expressions: TExpressionRecord;
+	injectFunctions: TUserFunctionsDict;
+}): TCustomRegistration[] {
+	return getCustomFunctionRegistrationsModel(props);
 }

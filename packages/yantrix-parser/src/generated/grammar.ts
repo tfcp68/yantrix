@@ -313,7 +313,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -448,7 +448,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -460,7 +460,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -591,7 +591,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -610,7 +610,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@30"
+                    "$ref": "#/rules@31"
                   },
                   "arguments": []
                 }
@@ -629,7 +629,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@30"
+                        "$ref": "#/rules@31"
                       },
                       "arguments": []
                     }
@@ -686,7 +686,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -748,7 +748,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -869,7 +869,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -987,7 +987,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -1059,7 +1059,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@30"
+            "$ref": "#/rules@31"
           },
           "arguments": []
         }
@@ -1118,11 +1118,23 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "feature": "name",
             "operator": "=",
             "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@30"
-              },
-              "arguments": []
+              "$type": "Alternatives",
+              "elements": [
+                {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@31"
+                  },
+                  "arguments": []
+                },
+                {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@30"
+                  },
+                  "arguments": []
+                }
+              ]
             }
           },
           {
@@ -1284,7 +1296,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -1315,7 +1327,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -1346,7 +1358,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@30"
+                "$ref": "#/rules@31"
               },
               "arguments": []
             }
@@ -1432,7 +1444,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@31"
+            "$ref": "#/rules@32"
           },
           "arguments": []
         }
@@ -1454,7 +1466,7 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@32"
+            "$ref": "#/rules@33"
           },
           "arguments": []
         }
@@ -1485,6 +1497,16 @@ export const YantrixGrammar = (): Grammar => loadedYantrixGrammar ?? (loadedYant
         "regex": "/[\\\\r\\\\n]+/"
       },
       "fragment": false
+    },
+    {
+      "$type": "TerminalRule",
+      "name": "INTERNAL_FUNCTION_ID",
+      "definition": {
+        "$type": "RegexToken",
+        "regex": "/_[a-zA-Z][a-zA-Z0-9_]{0,254}/"
+      },
+      "fragment": false,
+      "hidden": false
     },
     {
       "$type": "TerminalRule",

@@ -23,7 +23,7 @@ describe('inject functions codegen (TypeScript)', () => {
 		expect(code).toMatch(/import \* as userFunctions from ['"][^'"]+['"];?/);
 	});
 
-	it('registers injected function from userFunctions namespace', async () => {
+	it('registers injected function via userFunctionsDict resolved from namespace import', async () => {
 		const code = await generateAutomata({
 			input: baseTemplate,
 			automataName: 'InjectTS',
@@ -31,7 +31,8 @@ describe('inject functions codegen (TypeScript)', () => {
 			injects: correctFunctionsPath,
 		});
 
-		expect(code).toContain(`functionDictionary.register('isBoolean', userFunctions['isBoolean'])`);
+		expect(code).toContain(`functionDictionary.register('isBoolean', userFunctionsDict['isBoolean'])`);
+		expect(code).toMatch(/const userFunctionsDict = \(function \(\) \{/);
 	});
 
 	it('omits namespace import when functionFilePath is not provided', async () => {

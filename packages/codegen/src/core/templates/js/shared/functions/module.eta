@@ -1,0 +1,14 @@
+<%
+const registrations = it.functions.customRegistrations;
+%>
+
+<%~ include('user/module', {
+  ...it,
+  registrations,
+}) %>
+
+<%~ include('registrations', {
+  ...it,
+  registrations,
+}) %>
+

@@ -1,0 +1,7 @@
+  static getState = (state: keyof typeof statesMap) => statesDictionary[state];
+  static hasState = (instance: <%~ it.className %>, state: keyof typeof <%~ it.className %>.states) => instance.state === <%~ it.className %>.getState(state);
+  static getAction = (action: keyof typeof actionsMap) => actionsDictionary[action];
+  static createAction = (action: keyof typeof actionsMap, payload: TAutomataPayload) => {
+    const actionId = <%~ it.className %>.getAction(action);
+    return { action: actionId, payload };
+  };

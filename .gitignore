@@ -19,7 +19,10 @@ dist
 dist-docs
 
 # Claude Code
-.claude
+.claude/projects
+.claude/plans
+.claude/settings.local.json
+CHANGELOG_branch.md
 
 # Miscellaneous
 .tmp
@@ -60,3 +63,4 @@ bun.lockb
 test_reports
 *_generated.*
 **/generated
+

@@ -1,0 +1,11 @@
+const actionToStateFromStateDict = {
+<%
+const stateEntries = Object.entries(it.dictionaries.actionToStateFromState ?? {});
+for (let index = 0; index < stateEntries.length; index++) {
+  const [stateId, actions] = stateEntries[index];
+%>
+  <%~ include('stateEntry', { stateId, actions }) %><% if (index < stateEntries.length - 1) { %>,<% } %>
+<% } %>
+};
+
+

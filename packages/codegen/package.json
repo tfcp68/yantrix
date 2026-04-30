@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/codegen",
 	"type": "module",
-	"version": "0.3.0",
+	"version": "0.4.4",
 	"description": "Yantrix framework code generator API",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -57,10 +57,11 @@
 		"dist"
 	],
 	"engines": {
-		"node": ">=18"
+		"node": ">=22"
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
+		"postbuild": "bash ./copyTemplates.sh",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
 		"test": "vitest run --outputFile=../../test_reports/codegen.md"
@@ -70,7 +71,8 @@
 		"@yantrix/functions": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/utils": "workspace:^",
-		"@yantrix/yantrix-parser": "workspace:^"
+		"@yantrix/yantrix-parser": "workspace:^",
+		"eta": "^4.5.1"
 	},
 	"publishConfig": {
 		"access": "public",

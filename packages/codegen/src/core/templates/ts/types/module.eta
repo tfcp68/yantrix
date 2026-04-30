@@ -1,0 +1,2 @@
+<%~ include('automata', it) %>
+<%~ include('reducer', it) %>

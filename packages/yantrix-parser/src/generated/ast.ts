@@ -9,6 +9,7 @@ import * as langium from 'langium';
 export const YantrixTerminals = {
     WS: /[\s\t]+/,
     NL: /[\r\n]+/,
+    INTERNAL_FUNCTION_ID: /_[a-zA-Z][a-zA-Z0-9_]{0,254}/,
     ID: /[a-zA-Z][a-zA-Z0-9_]{0,254}/,
     STRING: /'[^']*'|"[^"]*"/,
     NUMBER: /-?[0-9]+(\.[0-9]+)?/,

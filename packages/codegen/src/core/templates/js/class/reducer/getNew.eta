@@ -1,0 +1,35 @@
+const getNew = (
+  localAction<% if (it.hasTypes) { %>: TActionId<% } %>,
+  localState<% if (it.hasTypes) { %>: TStateId<% } %>,
+  localContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>,
+  localPayload<% if (it.hasTypes) { %>: TReducerPayload<% } %>,
+)<% if (it.hasTypes) { %>: TRootReducerOutput<% } %> => {
+  this.lastAction = localAction;
+
+  const stateTransitions = transitions[localState];
+  if (!stateTransitions) return { state: localState, context: localContext };
+
+  const actionMove = stateTransitions[localAction];
+  if (!actionMove) return { state: localState, context: localContext };
+
+  const newStateObject = { state: actionMove.state[0] };
+  const contextWithInitial = getDefaultContext(localContext, localPayload);
+
+  if (actionMove.state.length > 1 && actionMove.predicate != null) {
+    const resolvedPredicateValue = actionMove.predicate(contextWithInitial, localPayload, functionDictionary);
+    if (resolvedPredicateValue == null) return { state: localState, context: localContext };
+    newStateObject.state = resolvedPredicateValue;
+  }
+
+  const newState = newStateObject.state;
+  const newContextFunc = reducer[newState];
+
+  if (typeof newContextFunc !== 'function') {
+    throw new Error('Invalid newContextFunc');
+  }
+
+  return {
+    state: newState,
+    context: newContextFunc(contextWithInitial, localPayload, this.getFunctionRegistry(), this),
+  };
+};

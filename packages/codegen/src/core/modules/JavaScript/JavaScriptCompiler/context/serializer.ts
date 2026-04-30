@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicStateDictionary } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import {
 	ContextStatement,
@@ -15,52 +15,123 @@ import { TExpressionRecord, TStateDiagramMatrixIncludeNotes } from '../../../../
 import { pathRecord } from '../../../../shared';
 import { expressions } from '../expressions';
 
-function getStateReducerCode(props: {
+export type TReducerSourceVM =
+	| {
+		kind: 'defaultProperty';
+		path: string;
+		identifier: string;
+		fallbackExpression: string | null;
+	}
+	| {
+		kind: 'expression';
+		expressionValueRight: string;
+	}
+	| {
+		kind: 'constant';
+		expressionValueRight: string;
+	};
+
+export type TReducerBoundValueVM = {
+	targetProperty: string;
+	source: TReducerSourceVM;
+	defaultExpressionValueRight: string | null;
+};
+
+export type TContextItemVM =
+	| {
+		kind: 'withReducer';
+		boundValues: TReducerBoundValueVM[];
+	}
+	| {
+		kind: 'noReducer';
+		identifier: string;
+		defaultExpressionValueRight: string | null;
+	};
+
+export type TContextTransitionVM =
+	| {
+		kind: 'prevContext';
+	}
+	| {
+		kind: 'object';
+		items: TContextItemVM[];
+	};
+
+export type TStateReducerEntryVM = {
+	stateValue: number;
+	transition: TContextTransitionVM;
+};
+
+function getContextItemModel(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
-	actionDictionary: BasicActionDictionary;
 	expressions: TExpressionRecord;
 }) {
-	return `const reducer = {
-		${getStateToContext(props).join(',\n\t')}
-	}`;
+	return props.diagram.states.map((state) => {
+		const stateValue = props.stateDictionary.getStateValues({ keys: [state.id] })[0];
+
+		if (stateValue == null) {
+			throw new Error('Invalid state');
+		}
+
+		return {
+			stateValue,
+			transition: getContextTransitionModel({
+				value: stateValue,
+				stateDictionary: props.stateDictionary,
+				diagram: props.diagram,
+				expressions: props.expressions,
+			}),
+		};
+	});
 }
 
 function getContextItem(props: {
 	ctx: ContextStatement;
 	expressions: TExpressionRecord;
-}) {
+}): TContextItemVM[] {
 	if (hasReducer(props.ctx)) {
-		const { items, reducer } = props.ctx;
-
-		return getBoundValues({
+		const boundValues = getBoundValuesModel({
 			expressions: props.expressions,
-			arr: mapReducerItems({ reducer, expressions: props.expressions }),
-			context: items,
+			arr: mapReducerItemsModel({ reducer: props.ctx.reducer, expressions: props.expressions }),
+			context: props.ctx.items,
 		});
+
+		return [{
+			kind: 'withReducer',
+			boundValues,
+		}];
 	} else {
 		const { items } = props.ctx;
 		return items.map((rawKeyItem) => {
 			const { identifier, defaultValue } = rawKeyItem;
 			if (defaultValue) {
-				const expressionValue = expressions.functions.getExpressionValue({
+				const defaultExpressionValueRight = expressions.functions.getExpressionValue({
 					expression: defaultValue,
 					expressionRecord: props.expressions,
 				});
 
-				return `${identifier}: ${expressions.serializer.getDefaultPropertyContext('prevContext', identifier, expressionValue)}`;
+				return {
+					kind: 'noReducer',
+					identifier,
+					defaultExpressionValueRight,
+				};
 			} else {
-				return `${identifier}: ${expressions.serializer.getDefaultPropertyContext('prevContext', identifier)}`;
+				return {
+					kind: 'noReducer',
+					identifier,
+					defaultExpressionValueRight: null,
+				};
 			}
 		});
 	}
 };
 
-function mapReducerItems(props: {
+function mapReducerItemsModel(props: {
 	reducer: KeyItem[];
 	sourcePath?: string;
 	expressions: TExpressionRecord;
-}) {
+}): TReducerSourceVM[] {
 	return props.reducer
 		.map((keyItem) => {
 			if (isDataObject(keyItem)) {
@@ -73,9 +144,11 @@ function mapReducerItems(props: {
 						expression: keyItem,
 						expressionRecord: props.expressions,
 					});
-					return `(function(){
-							return ${expressionValueRight}
-							}())`;
+
+					return {
+						kind: 'constant',
+						expressionValueRight,
+					};
 				}
 
 				if (!path) {
@@ -83,34 +156,46 @@ function mapReducerItems(props: {
 				}
 
 				if (keyItem.assignedExpression) {
-					const expressionValueRight = expressions.functions.getExpressionValue({
+					const fallbackExpression = expressions.functions.getExpressionValue({
 						expression: keyItem.assignedExpression,
 						expressionRecord: props.expressions,
 					});
 
-					return expressions.serializer.getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
+					return {
+						kind: 'defaultProperty',
+						path,
+						identifier: boundIdentifier,
+						fallbackExpression,
+					};
 				}
 
-				return expressions.serializer.getDefaultPropertyContext(path, boundIdentifier);
+				return {
+					kind: 'defaultProperty',
+					path,
+					identifier: boundIdentifier,
+					fallbackExpression: null,
+				};
 			} else {
 				const expressionValueRight = expressions.functions.getExpressionValue({
 					expression: keyItem,
 					expressionRecord: props.expressions,
 				});
-				return `(function(){
-						return ${expressionValueRight}
-					}())`;
+
+				return {
+					kind: 'expression',
+					expressionValueRight,
+				};
 			}
 		});
 }
 
-function getBoundValues(props: {
+function getBoundValuesModel(props: {
 	expressions: TExpressionRecord;
-	arr: string[];
+	arr: TReducerSourceVM[];
 	context: RawKeyItem[];
-}) {
+}): TReducerBoundValueVM[] {
 	return props.arr
-		.map((el, index) => {
+		.map((source, index) => {
 			const item = props.context[index];
 			if (!item) {
 				throw new Error('Unexpected index bound property');
@@ -118,38 +203,32 @@ function getBoundValues(props: {
 			const targetProperty = item.identifier;
 
 			if (item.defaultValue) {
-				const expressionValueRight = expressions.functions.getExpressionValue({
+				const defaultExpressionValueRight = expressions.functions.getExpressionValue({
 					expression: item.defaultValue,
 					expressionRecord: props.expressions,
 				});
 
-				return `${targetProperty}: (function(){
-			const boundValue = ${el}
-			if(boundValue !== null){
-				return boundValue
-			}
-			else {
-				return ${expressionValueRight}
-			}
-
-		}())`;
+				return {
+					targetProperty,
+					source,
+					defaultExpressionValueRight,
+				};
 			} else {
-				return `${targetProperty}: (function(){
-			const boundValue = ${el}
-
-			return boundValue
-
-		}())`;
+				return {
+					targetProperty,
+					source,
+					defaultExpressionValueRight: null,
+				};
 			}
 		});
 }
 
-function getContextTransition(props: {
+function getContextTransitionModel(props: {
 	value: number;
 	stateDictionary: BasicStateDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	expressions: TExpressionRecord;
-}) {
+}): TContextTransitionVM {
 	const stateFromDict = props.stateDictionary.getStateKeys({ states: [props.value] })[0];
 
 	if (stateFromDict === null) {
@@ -164,7 +243,7 @@ function getContextTransition(props: {
 		throw new Error(`Invalid state - ${props.value}`);
 	}
 
-	const ctxRes: string[] = [];
+	const ctxRes: TContextItemVM[] = [];
 
 	if (diagramState.notes) {
 		const contextStatements = getContextStatements(diagramState.notes);
@@ -178,79 +257,62 @@ function getContextTransition(props: {
 		});
 	}
 
-	if (ctxRes.length === 0) return 'prevContext';
+	if (ctxRes.length === 0) {
+		return { kind: 'prevContext' };
+	}
 
-	return `{${ctxRes.join(',\n\t')}}`;
+	return {
+		kind: 'object',
+		items: ctxRes,
+	};
 };
 
-const emptyContextFunction = `const getDefaultContext = (prevContext, payload) => prevContext`;
-
-function getStateToContext(props: {
+function getReducerModel(props: {
 	diagram: TStateDiagramMatrixIncludeNotes;
 	stateDictionary: BasicStateDictionary;
-	actionDictionary: BasicActionDictionary;
 	expressions: TExpressionRecord;
 }) {
-	return props.diagram.states.map((state) => {
-		const stateValue = props.stateDictionary.getStateValues({ keys: [state.id] })[0];
-
-		if (!stateValue) {
-			throw new Error('Invalid state');
-		}
-
-		return `${stateValue}: (prevContext, payload, functionDictionary, action) => {
-
-				const _currentStateId    = ${stateValue};
-				const _currentStateName  = '${state.id}';
-				const _currentActionId   = action;
-				const _currentActionName = Object.keys(actionsDictionary).find(k => actionsDictionary[k] === action) ?? null;
-				const currentCycle       = _currentCycle;
-				const currentEpoch       = getEpoch();
-
-				return ${getContextTransition({
-					value: stateValue,
-					stateDictionary: props.stateDictionary,
-					diagram: props.diagram,
-					expressions: props.expressions,
-				})}
-			}`;
-	});
+	return {
+		entries: getContextItemModel({
+			diagram: props.diagram,
+			stateDictionary: props.stateDictionary,
+			expressions: props.expressions,
+		}),
+	};
 }
 
-function getDefaultContext(props: {
+function getDefaultContextModel(props: {
 	stateDictionary: BasicStateDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
 	expressions: TExpressionRecord;
 }) {
-	const state = props.stateDictionary.getStateValues({ keys: [StartState] })[0];
+	const startStateValue = props.stateDictionary.getStateValues({ keys: [StartState] })[0] ?? null;
 
-	if (state) {
-		const ctx = getContextTransition({
+	if (startStateValue != null) {
+		const transition = getContextTransitionModel({
 			diagram: props.diagram,
 			expressions: props.expressions,
 			stateDictionary: props.stateDictionary,
-			value: state,
+			value: startStateValue,
 		});
 
-		if (ctx === 'prevContext') {
-			return emptyContextFunction;
-		}
-
-		return `const getDefaultContext = (prevContext, payload) => {
-				const ctx = ${ctx}
-				return  Object.assign({}, prevContext, ctx);
-			}
-			`;
+		return {
+			startStateValue,
+			transition,
+		};
 	}
 
-	return emptyContextFunction;
+	return {
+		startStateValue: null,
+		transition: null,
+	};
 }
 
 export const contextSerializer = {
-	getStateReducerCode,
+	getReducerModel,
 	getContextItem,
-	mapReducerItems,
-	getBoundValues,
-	getStateToContext,
-	getDefaultContext,
+	mapReducerItemsModel,
+	getBoundValuesModel,
+	getDefaultContextModel,
+	getContextTransitionModel,
 };

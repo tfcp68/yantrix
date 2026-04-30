@@ -1,0 +1,20 @@
+type TReducerFn = (
+  prevContext: TAutomataContext,
+  payload: TReducerPayload,
+  functionDictionary: FunctionDictionary,
+  automata: GenericAutomata,
+) => TAutomataContext;
+
+type TReducerMap = Partial<Record<TStateId, TReducerFn>>;
+
+type TRootReducerInput = {
+  action: TActionId | null;
+  context: TAutomataContext;
+  payload: TAutomataPayload;
+  state: TStateId;
+};
+
+type TRootReducerOutput = {
+  state: TStateId;
+  context: TAutomataContext;
+};

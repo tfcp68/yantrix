@@ -1,0 +1,16 @@
+const byPassedStates = new Set([<%~ (it.dictionaries.byPassedList ?? []).join(',') %>]);
+
+const epoch = { val: 1 };
+const incrementEpoch = () => { epoch.val++ };
+const getEpoch = () => epoch.val;
+
+const _getCurrentTimestamp = () => {
+  if (typeof process !== 'undefined' && process.hrtime?.bigint !== undefined)
+    return Number(process.hrtime.bigint() / BigInt(1000));
+  if (typeof performance !== 'undefined' && performance.now !== undefined)
+    return Math.floor(performance.now() * 1000);
+  return Date.now() * 1000;
+};
+const _getCurrentTime = () => new Date().toISOString();
+
+functionDictionary.register(builtInFunctions);

@@ -1,0 +1,8 @@
+<% if (it.defaultContext.startStateValue != null && it.defaultContext.transition) { %>
+const getDefaultContext = (prevContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>, payload<% if (it.hasTypes) { %>: TReducerPayload<% } %>)<% if (it.hasTypes) { %>: TAutomataContext<% } %> => {
+  const ctx = <%~ include('reducers/module', { transition: it.defaultContext.transition }) %>;
+  return Object.assign({}, prevContext, ctx);
+}
+<% } else { %>
+const getDefaultContext = (prevContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>, payload<% if (it.hasTypes) { %>: TReducerPayload<% } %>)<% if (it.hasTypes) { %>: TAutomataContext<% } %> => prevContext
+<% } %>

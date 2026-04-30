@@ -1,0 +1,17 @@
+<% if (it.model.isInternal === true) { %>
+<%~ include('internalExpression', {
+  functionName: it.model.functionName,
+  automataRef: 'automata',
+  actionsDictionaryRef: 'actionsDictionary',
+  statesDictionaryRef: 'statesDictionary',
+}).trim() %>
+<% } else { %>
+<%
+const model = it.model;
+const args = (model.args ?? []).map((arg) => include('module', { model: arg }).trim());
+%>
+(function() {
+  const func = functionDictionary.get('<%~ model.functionName %>');
+  return func(<%~ args.join(', ') %>);
+})()
+<% } %>
