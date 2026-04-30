@@ -56,7 +56,7 @@
 	},
 	"scripts": {
 		"build": "pnpm langium:generate && tsc --noEmit && tsup",
-		"langium:generate": "langium generate && sed -i 's/\\r//' src/generated/*.ts && eslint --fix --no-ignore src/generated/*.ts",
+		"langium:generate": "langium generate && perl -pi -e 's/\\r//' src/generated/*.ts && eslint --fix --no-ignore src/generated/*.ts",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
 		"test": "vitest run --outputFile=../../test_reports/yantrix-parser.md"
