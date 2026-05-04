@@ -91,17 +91,37 @@ templates:
 
 | Error | Pattern | Eta example |
 |---|---|---|
-| Unused local (`noUnusedLocals`) | `void [x, y, z]` | `void [getEpoch, _getCurrentTime]` |
-| Unused parameter (`noUnusedParameters`) | `_` prefix | `_id: string` |
-| Unused param, but body needs it | `void param` inside fn | `void payload;` |
-| Array index possibly undefined | `!` assertion | `actionMove.state[0]!` |
+| Unused module-level local (`noUnusedLocals`) | `export` the symbol | `export const getEpoch = ...` |
+| Unused parameter (`noUnusedParameters`) | `_` prefix | `_payload: TReducerPayload` |
+| Array index possibly undefined | `?? fallback` | `actionMove.state[0] ?? localState` |
 | `FunctionDictionary.get()` nullable | `!` assertion | `functionDictionary.get('f')!` |
-| Reducer map indexed by nullable state | `!` on state | `reducer[this.state!]` |
+| Nullable state before reducer lookup | explicit null guard + throw | `const s = this.state; if (s == null) throw new Error(...)` |
 | Validator must be type predicate | `: s is TStateId` return + cast | `(s: TBase): s is TStateId => arr.includes(s as TStateId)` |
-| `FinalizationRegistry` missing from ES2020 lib | globalThis cast | `(globalThis as any).FinalizationRegistry` |
+| `FinalizationRegistry` missing from ES2020 lib | intersection cast on `globalThis` | `(globalThis as typeof globalThis & { FinalizationRegistry: new<T>(cb:(v:T)=>void)=>{register(t:object,v:T):void} }).FinalizationRegistry` |
 | `getFunctionRegistry()` returns nullable | cast | `this.getFunctionRegistry() as FunctionDictionary` |
-| Event bus handler type mismatch | `as any` on subscribe | `EventBus.subscribe(id, _handler as any)` |
-| `Set<never>` from empty literal | explicit generic | `new Set<TStateId>([])` |
+| Event bus handler type mismatch | contextual typing via `Parameters<>` | `const _handler: Parameters<BasicEventBus['subscribe']>[1] = (eventMeta) => { ... }` |
+| `Set<never>` from empty literal | explicit generic | `new Set<number>([])` |
+
+---
+
+## `functionDictionary` vs `_functionDictionary`
+
+Reducer functions in generated code always have this signature:
+
+```ts
+stateValue: (prevContext, _payload, _functionDictionary, _automata) => { ... }
+```
+
+`_functionDictionary`, `_payload`, and `_automata` carry `_` prefix because they are always
+unused in the body. Reducer bodies call the **module-level** `functionDictionary` (declared at
+file scope), not the parameter. The parameter exists only to satisfy the `TReducerFn` signature.
+
+If you add an expression template that calls a function, use `functionDictionary.get(...)`,
+not `_functionDictionary.get(...)`. This applies to `getDefaultContext`, fork predicates, and all
+reducer bodies.
+
+`pathRecord['payload']` in `packages/codegen/src/core/shared.ts` is `'_payload'`. Expression
+templates that reference payload fields emit `_payload.key`, matching the generated parameter name.
 
 ---
 

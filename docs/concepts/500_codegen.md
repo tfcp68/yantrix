@@ -186,7 +186,7 @@ sequenceDiagram
     note right of JSGen: outputs code for state/action/event dictionaries and byPass sets used by the automata
 
     JSGen ->> JSGen: serializer.getDefaultContext(props)
-    note right of JSGen: generates function getDefaultContext(prevContext, payload) based on StartState context description
+    note right of JSGen: generates function getDefaultContext(prevContext, _payload) based on StartState context description
 
     %% Detailing the generation of reducers
     JSGen ->> JSGen: serializer.getStateReducerCode(props)
@@ -218,7 +218,7 @@ sequenceDiagram
 			JSGen -->> JSGen: ctx = "{ ...ctxRes }"
 		end
 
-        JSGen -->> JSGen: add "stateValue: (prevContext, payload, functionDictionary, automata) => ctx" to reducer
+        JSGen -->> JSGen: add "stateValue: (prevContext, _payload, _functionDictionary, _automata) => ctx" to reducer
         note right of JSGen: append the constructed reducer function for this state into the reducer object source
     end
 
@@ -261,8 +261,8 @@ All the logic described here corresponds to the implementation in `packages/code
 
 The `contextSerializer` is responsible for generating two main pieces of runtime code:
 
-- `const reducer = { [stateId]: (prevContext, payload, functionDictionary, automata) => newContext }`
-- `const getDefaultContext = (prevContext, payload) => { ... }`
+- `const reducer = { [stateId]: (prevContext, _payload, _functionDictionary, _automata) => newContext }`
+- `const getDefaultContext = (prevContext, _payload) => { ... }`
 
 These are later embedded into the generated automata class and are used at runtime to compute the next context for each state transition.
 
@@ -323,11 +323,11 @@ The result is a reducer object of the form:
 
 ```ts
 const reducer = {
-  // expression reducer: all params potentially used
-  1: (prevContext, payload, functionDictionary, automata) => {
+  // expression reducer: prevContext used; other params unused (body uses module-level functionDictionary)
+  1: (prevContext, _payload, _functionDictionary, _automata) => {
     return { /* compiled context for state 1 */ };
   },
-  // identity reducer (TS mode): unused params are _ -prefixed to satisfy noUnusedParameters
+  // identity reducer: all non-context params unused
   2: (prevContext, _payload, _functionDictionary, _automata) => {
     return prevContext;
   },
@@ -381,7 +381,7 @@ Steps:
 The final reducer function for a state then effectively looks like:
 
 ```ts
-stateValue: (prevContext, payload, functionDictionary, automata) => {
+stateValue: (prevContext, _payload, _functionDictionary, _automata) => {
   return {
     foo: (function(){ ... }()),
     bar: (function(){ ... }()),
@@ -684,7 +684,7 @@ function getDefaultContext(props) {
       value: state,
     });
 
-    return `const getDefaultContext = (prevContext, payload) => {
+    return `const getDefaultContext = (prevContext, _payload) => {
       const ctx = ${ctx}
       return  Object.assign({}, prevContext, ctx);
     }
@@ -702,7 +702,7 @@ function getDefaultContext(props) {
 - It then generates:
 
   ```ts
-  const getDefaultContext = (prevContext, payload) => {
+  const getDefaultContext = (prevContext, _payload) => {
     const ctx = <ctxExprForStartState>;
     return Object.assign({}, prevContext, ctx);
   };
@@ -1163,7 +1163,7 @@ python: {
 | CoreLoop integration | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Epoch tracking (`getEpoch`) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Cycle counter | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Opaque ID types (`TStateId`, `TActionId`) | ❌ | ✅ | ❌ | ✅ | ❌ |
+| Named ID type aliases (`TStateId`, `TActionId`) | ❌ | ✅ | ❌ | ✅ | ❌ |
 | TypeScript declarations | ❌ | ✅ | ❌ | ✅ | ❌ |
 | Pause / resume / disable | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Zero external runtime deps | ❌ | ❌ | ✅ | ✅ | ❌ |
