@@ -1,0 +1,22 @@
+
+# State dictionary
+states_dictionary = <%~ JSON.stringify(it.stateDictionary.getDictionary(), null, 2) + '\n' %>
+# Action dictionary
+actions_dictionary = <%~ JSON.stringify(Object.fromEntries(Object.entries(it.actionDictionary.getDictionary()).filter(([k]) => k !== '[-]')), null, 2) + '\n' %>
+actions_map = <%~ JSON.stringify(Object.fromEntries(Object.keys(it.actionDictionary.getDictionary()).filter(k => k !== '[-]').map(k => [k, k]))) + '\n' %>
+states_map = <%~ JSON.stringify(Object.fromEntries(Object.keys(it.stateDictionary.getDictionary()).map(k => [k, k]))) + '\n' %>
+
+bypassed_states = {<%~ (it.python.byPassedList ?? []).join(', ') %>}
+
+<%
+const preds = it.python.predicates ?? {};
+%>
+action_to_state_from_state_dict = {
+<%~ it.python.transitions.map(t => {
+  const actionLines = t.actions.map(a => {
+    const hasPred = preds[t.fromStateValue] && preds[t.fromStateValue][a.actionValue];
+    const predStr = hasPred ? `, 'predicate': predicates[${t.fromStateValue}][${a.actionValue}]` : '';
+    return `        ${a.actionValue}: {'state': [${a.targetStateValues.join(', ')}]${predStr}},`;
+  }).join('\n');
+  return `    ${t.fromStateValue}: {\n${actionLines}\n    },`;
+}).join('\n') + '\n' %>}

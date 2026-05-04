@@ -1,0 +1,9 @@
+<%~ include('../js/shared/imports/namespace', it) %>
+<%~ it.builtins %>
+<%~ include('runtime/module', it) %>
+<%~ include('functions/module', it) %>
+<%~ include('../js/shared/forks/module', it) %>
+<%~ include('dictionaries/module', it) %>
+<%~ include('events/module', it) %>
+<%~ include('../js/context/module', it) %>
+<%~ include('factory/module', it) %>

@@ -1,19 +1,20 @@
-type TStateId = (typeof statesDictionary)[keyof typeof statesDictionary];
-type TActionId = (typeof actionsDictionary)[keyof typeof actionsDictionary];
+export type TStateId = number;
+export type TActionId = number;
 
-type TAutomataContext = Record<string, unknown>;
-type TAutomataPayload = Record<string, unknown> | null;
-type TReducerPayload = Exclude<TAutomataPayload, null>;
+export type TAutomataContext = Record<string, unknown>;
+export type TAutomataPayload = Record<string, unknown> | null;
+export type TReducerPayload = Exclude<TAutomataPayload, null>;
 
-type TPredicate = (
+export type TPredicate = (
   context: TAutomataContext,
   payload: TReducerPayload,
   functionDictionary: FunctionDictionary,
-) => TStateId | null;
+) => number | null;
 
-type TTransition = {
-  state: TStateId[];
+export type TTransition = {
+  state: number[];
   predicate?: TPredicate;
 };
 
-type TTransitions = Record<TStateId, Partial<Record<TActionId, TTransition>>>;
+export type TTransitions = Record<number, Partial<Record<number, TTransition>>>;
+export type TEventHandler = (...args: unknown[]) => unknown;

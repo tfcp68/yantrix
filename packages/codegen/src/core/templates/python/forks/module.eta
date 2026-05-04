@@ -1,0 +1,27 @@
+<%
+const predicates = it.python.predicates ?? {};
+const stateEntries = Object.entries(predicates);
+%>
+<% if (stateEntries.length > 0) { %>
+# Fork predicates
+<% for (const [stateId, actionPredicates] of stateEntries) { %>
+<% for (const [actionId, predicate] of Object.entries(actionPredicates ?? {})) { %>
+def _predicate_<%~ stateId %>_<%~ actionId %>(prev_context, payload, function_dictionary):
+<% for (const t of (predicate.transitions ?? [])) { const conds = (t.conditions ?? []).filter(c => c !== true); %>
+<%~ conds.length > 0 ? `    if ${conds.join(' and ')}:\n        return ${t.transitionStateId}\n` : `    return ${t.transitionStateId}\n` %>
+<% } %>    return None
+
+<% } %>
+<% } %>
+predicates = {
+<% for (const [stateId, actionPredicates] of stateEntries) { %>
+    <%~ stateId %>: {
+<% for (const [actionId] of Object.entries(actionPredicates ?? {})) { %>
+        <%~ actionId %>: _predicate_<%~ stateId %>_<%~ actionId %>,
+<% } %>
+    },
+<% } %>
+}
+<% } else { %>
+predicates = {}
+<% } %>

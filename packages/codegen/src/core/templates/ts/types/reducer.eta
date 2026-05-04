@@ -1,20 +1,21 @@
-type TReducerFn = (
+export type TReducerFn = (
   prevContext: TAutomataContext,
   payload: TReducerPayload,
   functionDictionary: FunctionDictionary,
   automata: GenericAutomata,
 ) => TAutomataContext;
 
-type TReducerMap = Partial<Record<TStateId, TReducerFn>>;
+// Runtime reducer lookup uses plain numeric keys (core lib passes number, not branded TStateId)
+export type TReducerMap = Record<number, TReducerFn>;
 
-type TRootReducerInput = {
-  action: TActionId | null;
+export type TRootReducerInput = {
+  action: number | null;
   context: TAutomataContext;
   payload: TAutomataPayload;
-  state: TStateId;
+  state: number | null;
 };
 
-type TRootReducerOutput = {
-  state: TStateId;
+export type TRootReducerOutput = {
+  state: number;
   context: TAutomataContext;
 };

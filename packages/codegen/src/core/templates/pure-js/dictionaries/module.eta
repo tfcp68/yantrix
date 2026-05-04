@@ -1,0 +1,26 @@
+export const statesDictionary = <%~ JSON.stringify(it.stateDictionary.getDictionary(), null, 2) %>;
+
+export const actionsDictionary = <%~ JSON.stringify(Object.fromEntries(Object.entries(it.actionDictionary.getDictionary()).filter(([k]) => k !== '[-]')), null, 2) %>;
+
+export const eventDictionary = <%~ JSON.stringify(it.eventDictionary.getDictionary(), null, 2) %>;
+
+export const actionsMap = <%~ JSON.stringify(Object.fromEntries(Object.entries(it.dictionaries.actionsMap).filter(([k]) => k !== '[-]')), null, 2) %>;
+
+export const statesMap = <%~ JSON.stringify(it.dictionaries.statesMap, null, 2) %>;
+
+<%~ include('../../js/shared/dictionaries/transitions/module', it) %>
+
+const byPassedStates = new Set([<%~ (it.dictionaries.byPassedList ?? []).join(',') %>]);
+
+const epoch = { val: 1 };
+const incrementEpoch = () => { epoch.val++; };
+export const getEpoch = () => epoch.val;
+
+const _getCurrentTimestamp = () => {
+  if (typeof process !== 'undefined' && process.hrtime?.bigint !== undefined)
+    return Number(process.hrtime.bigint() / BigInt(1000));
+  if (typeof performance !== 'undefined' && performance.now !== undefined)
+    return Math.floor(performance.now() * 1000);
+  return Date.now() * 1000;
+};
+const _getCurrentTime = () => new Date().toISOString();

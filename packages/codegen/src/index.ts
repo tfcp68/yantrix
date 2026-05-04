@@ -10,9 +10,39 @@
 
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
+import prettier from 'prettier';
 import { CodegenCreator } from './core/Codegen.js';
 import { ModuleNames } from './core/modules/index.js';
-import { IGenerateOptions, TStateIncludingNotes } from './types/common.js';
+import { IGenerateOptions, TCodegenFiles, TStateIncludingNotes } from './types/common.js';
+
+type Tprettier = 'babel' | 'typescript';
+
+const langParserMap: Partial<Record<string, Tprettier>> = {
+	[ModuleNames.JavaScript]: 'babel',
+	[ModuleNames.TypeScript]: 'typescript',
+	[ModuleNames.PureJavaScript]: 'babel',
+	[ModuleNames.PureTypeScript]: 'babel',
+};
+
+const extParserMap: Record<string, Tprettier> = {
+	'.js': 'babel',
+	'.ts': 'typescript',
+};
+
+async function formatCode(code: string, parser: Tprettier): Promise<string> {
+	try {
+		return await prettier.format(code, { parser });
+	} catch {
+		return code;
+	}
+}
+
+function parserForFilename(filename: string): Tprettier | null {
+	if (filename.endsWith('.d.ts')) return 'typescript';
+	const dot = filename.lastIndexOf('.');
+	if (dot === -1) return null;
+	return extParserMap[filename.slice(dot)] ?? null;
+}
 
 export * from './core/modules/index.js';
 export * from './types/common.js';
@@ -62,5 +92,67 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 		functionFilePath: options.functionFilePath ?? null,
 	});
 
-	return codegen.getCode(options);
+	const code = codegen.getCode(options);
+	const parser = langParserMap[options.outLang ?? ModuleNames.TypeScript];
+	return parser ? formatCode(code, parser) : Promise.resolve(code);
+}
+
+/**
+ * Generates a Yantrix FSM as a map of filenames to content (multi-file output).
+ * Dialects that implement `getFiles()` (e.g. pure-javascript, pure-typescript) return
+ * multiple files; all other dialects return a single-entry map keyed by the main filename.
+ */
+export async function generateAutomataFiles(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<TCodegenFiles> {
+	const { states, transitions, actionChains } = diagram;
+	const parserInstance = new YantrixParser();
+
+	const statesIncludingNotes = states.map((state) => {
+		const input = state.notes.flatMap(e => e.join('\n')).join(' ');
+		if (input === '')
+			return { ...state, notes: null };
+		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
+	});
+
+	let constants: Record<string, any> | null = null;
+	if (options?.constants) {
+		constants = JSON.parse(options.constants);
+	}
+	if (constants !== null) {
+		Object.entries(constants).forEach(([key, value]) => {
+			if (typeof value !== 'string' && typeof value !== 'number') {
+				throw new TypeError(`Invalid constant value type. Key: ${key}, value: ${JSON.stringify(value)}`);
+			}
+		});
+	}
+
+	const creator = new CodegenCreator({ states: statesIncludingNotes, transitions, actionChains });
+	const codegen = await creator.createCodegen({
+		language: options.outLang ?? ModuleNames.TypeScript,
+		constants,
+		functionFilePath: options.functionFilePath ?? null,
+	});
+
+	let rawFiles: TCodegenFiles;
+	if ('getFiles' in codegen && typeof (codegen as any).getFiles === 'function') {
+		rawFiles = (codegen as any).getFiles(options) as TCodegenFiles;
+	} else {
+		const lang = options.outLang ?? ModuleNames.TypeScript;
+		const extMap: Record<string, string> = {
+			'javascript': 'js',
+			'typescript': 'ts',
+			'python': 'py',
+			'java': 'java',
+			'pure-javascript': 'js',
+			'pure-typescript': 'js',
+		};
+		const ext = extMap[lang] ?? 'txt';
+		rawFiles = { [`${options.className}.${ext}`]: codegen.getCode(options) };
+	}
+
+	const formatted: TCodegenFiles = {};
+	for (const [filename, content] of Object.entries(rawFiles)) {
+		const parser = parserForFilename(filename);
+		formatted[filename] = parser ? await formatCode(content, parser) : content;
+	}
+	return formatted;
 }

@@ -61,6 +61,7 @@
 		"@yantrix/codegen": "workspace:^",
 		"@yantrix/core": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/utils": "workspace:^",
 		"@yantrix/yantrix-parser": "workspace:^"
 	}
 }

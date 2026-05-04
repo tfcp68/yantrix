@@ -390,6 +390,12 @@ importers:
         specifier: ^7.1.5
         version: 7.1.5(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1)
 
+  examples/05-markov-weather:
+    devDependencies:
+      '@yantrix/cli':
+        specifier: workspace:^
+        version: link:../../packages/cli
+
   examples/06-clock:
     devDependencies:
       '@yantrix/core':
@@ -466,6 +472,13 @@ importers:
       eta:
         specifier: ^4.5.1
         version: 4.5.1
+      prettier:
+        specifier: ^3.5.3
+        version: 3.8.3
+    devDependencies:
+      vite:
+        specifier: ^5.4.11
+        version: 5.4.11(@types/node@22.10.1)
 
   packages/codegen-tests:
     dependencies:
@@ -478,6 +491,9 @@ importers:
       '@yantrix/mermaid-parser':
         specifier: workspace:^
         version: link:../mermaid-parser
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../utils
       '@yantrix/yantrix-parser':
         specifier: workspace:^
         version: link:../yantrix-parser
@@ -2220,7 +2236,7 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
-    deprecated: Security vulnerability fixed in 5.2.0, please upgrade
+    deprecated: Security vulnerability fixed in 5.2.1, please upgrade
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -4753,6 +4769,11 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
+  prettier@3.8.3:
+    resolution: {integrity: sha512-7igPTM53cGHMW8xWuVTydi2KO233VFiTNyF5hLJqpilHfmn8C8gPf+PS7dUT64YcXFbiMGZxS9pCSxL/Dxm/Jw==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   pretty-format@27.5.1:
     resolution: {integrity: sha512-Qb1gy5OrP5+zDf2Bvnzdl3jsTf1qXVMazbvCoKhtKqVs4/YK4ozX4gKQJJVyNe+cajNPn0KoC0MC3FUmaHWEmQ==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
@@ -5607,6 +5628,7 @@ packages:
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
@@ -10505,6 +10527,8 @@ snapshots:
       source-map-js: 1.2.1
 
   prelude-ls@1.2.1: {}
+
+  prettier@3.8.3: {}
 
   pretty-format@27.5.1:
     dependencies:

@@ -1,0 +1,121 @@
+
+# Epoch counter (module-level, shared across all instances)
+_epoch = [1]
+
+
+def get_epoch():
+    return _epoch[0]
+
+
+# Helpers
+def get_state(name):
+    return states_dictionary.get(name)
+
+
+def get_action(name):
+    return actions_dictionary.get(name)
+
+
+def create_action(name, payload):
+    return {'action': actions_dictionary.get(name), 'payload': payload}
+
+
+def has_state(instance, state_name):
+    return instance['state']() == states_dictionary.get(state_name)
+
+
+def <%~ it.python.snakeName %>():
+    _state = [<%~ it.initialStateValue %>]
+    _context = [<%~ JSON.stringify(it.python.initialContext).replace(/null/g, 'None') %>]
+    _last_action = [None]
+    _current_cycle = [0]
+    _paused = [False]
+    _disabled = [False]
+    _queue = [[]]
+
+    def _get_new(local_action, local_state, local_context, local_payload):
+        _last_action[0] = local_action
+        state_transitions = action_to_state_from_state_dict.get(local_state)
+        if state_transitions is None:
+            return {'state': local_state, 'context': local_context}
+        action_move = state_transitions.get(local_action)
+        if action_move is None:
+            return {'state': local_state, 'context': local_context}
+        new_state = action_move['state'][0]
+        context_with_initial = _get_default_context(local_context, local_payload)
+        if len(action_move['state']) > 1 and action_move.get('predicate') is not None:
+            resolved = action_move['predicate'](context_with_initial, local_payload, function_dictionary)
+            if resolved is None:
+                return {'state': local_state, 'context': local_context}
+            new_state = resolved
+        new_context_func = reducer.get(new_state)
+        if not callable(new_context_func):
+            raise Exception('Invalid new_context_func')
+        return {
+            'state': new_state,
+            'context': new_context_func(context_with_initial, local_payload, function_dictionary),
+        }
+
+    def _run_dispatch(action_payload):
+        action = action_payload.get('action')
+        payload = action_payload.get('payload')
+        if not action or payload is None:
+            return {'state': _state[0], 'context': _context[0]}
+        if _state[0] not in action_to_state_from_state_dict:
+            raise Exception('Invalid state, maybe machine isn\'t running.')
+        if action not in action_to_state_from_state_dict[_state[0]]:
+            return {'state': _state[0], 'context': _context[0]}
+        local_ctx = _get_new(action, _state[0], _context[0], payload or {})
+        bypass_action = <%~ it.python.byPassActionValue + '\n' %>        while local_ctx['state'] in bypassed_states:
+            local_ctx = _get_new(bypass_action, local_ctx['state'], local_ctx['context'], {})
+        _state[0] = local_ctx['state']
+        _context[0] = local_ctx['context']
+        _current_cycle[0] += 1
+        _epoch[0] += 1
+        return local_ctx
+
+    def dispatch(action_payload):
+        if _disabled[0]:
+            return {'state': _state[0], 'context': _context[0]}
+        if _paused[0]:
+            _queue[0].append(action_payload)
+            return {'state': _state[0], 'context': _context[0]}
+        return _run_dispatch(action_payload)
+
+    def get_context():
+        return {'state': _state[0], 'context': dict(_context[0])}
+
+    def pause():
+        _paused[0] = True
+
+    def resume():
+        _paused[0] = False
+        queued = list(_queue[0])
+        _queue[0].clear()
+        for ap in queued:
+            _run_dispatch(ap)
+
+    def enable():
+        _disabled[0] = False
+
+    def disable(clear_queue=False):
+        _disabled[0] = True
+        if clear_queue:
+            _queue[0].clear()
+
+    def destroy():
+        _queue[0].clear()
+
+    return {
+        'state': lambda: _state[0],
+        'context': lambda: dict(_context[0]),
+        'last_action': lambda: _last_action[0],
+        'current_cycle': lambda: _current_cycle[0],
+        'dispatch': dispatch,
+        'get_context': get_context,
+        'pause': pause,
+        'resume': resume,
+        'enable': enable,
+        'disable': disable,
+        'destroy': destroy,
+    }

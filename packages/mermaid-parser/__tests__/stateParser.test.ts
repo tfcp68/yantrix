@@ -106,7 +106,7 @@ describe('state Diagram Parser', () => {
 				{ id: 'A', caption: 'A' },
 				{ id: 'B', caption: 'B' },
 			]);
-			expect(parsedDiagram.actions).toEqual([{ from: 'A', to: 'B', id: 'A, B, 0', internal: true, params: null, predicate: false }]);
+			expect(parsedDiagram.actions).toEqual([{ from: 'A', to: 'B', id: 'A, B, 0', internal: true, params: null, guard: null, predicate: false }]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
 			expect(parsedDiagram.forks).toEqual([]);
@@ -122,9 +122,9 @@ describe('state Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			]);
 			expect(parsedDiagram.actions).toEqual([
-				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0', internal: true, params: null, predicate: false },
-				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, predicate: false },
-				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2', internal: true, params: null, predicate: false },
+				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0', internal: true, params: null, guard: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, guard: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2', internal: true, params: null, guard: null, predicate: false },
 			]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
@@ -141,9 +141,9 @@ describe('state Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			]);
 			expect(parsedDiagram.actions).toEqual([
-				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0', internal: true, params: null, predicate: false },
-				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, predicate: false },
-				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2', internal: true, params: null, predicate: false },
+				{ from: '~~~START~~~', to: 'A', id: '~~~START~~~, A, 0', internal: true, params: null, guard: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, guard: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 2', internal: true, params: null, guard: null, predicate: false },
 			]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
@@ -160,9 +160,9 @@ describe('state Diagram Parser', () => {
 				{ id: '~~~END~~~', caption: '~~~END~~~' },
 			]);
 			expect(parsedDiagram.actions).toEqual([
-				{ from: '~~~START~~~', to: 'A', id: 'Start', internal: false, params: null, predicate: false },
-				{ from: 'A', to: 'B', id: 'Transition 1', internal: false, params: null, predicate: false },
-				{ from: 'B', to: '~~~END~~~', id: 'End', internal: false, params: null, predicate: false },
+				{ from: '~~~START~~~', to: 'A', id: 'Start', internal: false, params: null, guard: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'Transition 1', internal: false, params: null, guard: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'End', internal: false, params: null, guard: null, predicate: false },
 			]);
 			expect(parsedDiagram.notes).toEqual([]);
 			expect(parsedDiagram.choices).toEqual([]);
@@ -186,17 +186,19 @@ describe('state Diagram Parser', () => {
 					id: '~~~START~~~, A, 0',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
-				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, predicate: false },
-				{ from: 'A', to: '~~~END~~~', id: 'A, ~~~END~~~, 2', internal: true, params: null, predicate: false },
-				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 3', internal: true, params: null, predicate: false },
+				{ from: 'A', to: 'B', id: 'A, B, 1', internal: true, params: null, guard: null, predicate: false },
+				{ from: 'A', to: '~~~END~~~', id: 'A, ~~~END~~~, 2', internal: true, params: null, guard: null, predicate: false },
+				{ from: 'B', to: '~~~END~~~', id: 'B, ~~~END~~~, 3', internal: true, params: null, guard: null, predicate: false },
 				{
 					from: '~~~START~~~',
 					to: '~~~END~~~',
 					id: '~~~START~~~',
 					internal: false,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 			]);
@@ -212,6 +214,7 @@ describe('state Diagram Parser', () => {
 					to: 'A',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 				{
@@ -220,6 +223,7 @@ describe('state Diagram Parser', () => {
 					to: 'A',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 				{
@@ -228,6 +232,7 @@ describe('state Diagram Parser', () => {
 					to: 'B',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 				{
@@ -236,6 +241,7 @@ describe('state Diagram Parser', () => {
 					to: 'B',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 				{
@@ -244,6 +250,7 @@ describe('state Diagram Parser', () => {
 					to: '~~~END~~~',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 				{
@@ -252,6 +259,7 @@ describe('state Diagram Parser', () => {
 					to: '~~~END~~~',
 					internal: true,
 					params: null,
+					guard: null,
 					predicate: false,
 				},
 			]);

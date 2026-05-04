@@ -105,7 +105,7 @@ sequenceDiagram
     participant CG as CodegenCreator (generateAutomataFromStateDiagram)
     participant YP as YantrixParser
     participant IF as InjectFunctionsProcess
-    participant JSGen as JavaScriptCodegen/TypeScriptCodegen
+    participant JSGen as JavaScriptCodegen/TypeScriptCodegen/PureJavaScriptCodegen/PureTypeScriptCodegen/PythonCodegen
     participant GA as Generated Automata Class
 
     U ->> CLI: yantrix codegen --diagram-file ... --outLang ... --className ... --constants ... --functions-file ...
@@ -323,10 +323,12 @@ The result is a reducer object of the form:
 
 ```ts
 const reducer = {
+  // expression reducer: all params potentially used
   1: (prevContext, payload, functionDictionary, automata) => {
     return { /* compiled context for state 1 */ };
   },
-  2: (prevContext, payload, functionDictionary, automata) => {
+  // identity reducer (TS mode): unused params are _ -prefixed to satisfy noUnusedParameters
+  2: (prevContext, _payload, _functionDictionary, _automata) => {
     return prevContext;
   },
   // ...
@@ -736,3 +738,432 @@ This function:
 Together, `getExpressionValue` and the serializer helpers allow the reducer compiler to stay declarative: it does not hardcode the shape of every expression; instead it relies on `TExpressionRecord` to generate the exact JavaScript code for each case.
 
 This is the complete flow of how textual Yantrix reducer declarations in diagram notes become executable JavaScript/TypeScript reducer functions in the generated automata class.
+
+---
+
+## Template Architecture
+
+### Dialect Overview
+
+| Dialect | Base class | Output | Architecture | Runtime deps | Instance type |
+| ------- | ---------- | ------ | ------------ | ------------ | ------------- |
+| JavaScript | `JavaScriptCodegen` | Single `.js` | Class, extends `GenericAutomata` | `@yantrix/core` | Class instance |
+| TypeScript | `TypeScriptCodegen` | Single `.ts` | Class, extends `GenericAutomata` | `@yantrix/core` | Class instance |
+| PureJavaScript | `PureJavaScriptCodegen` | Single `.js` | Functional factory, zero imports | Inline builtins | Plain object with getters |
+| PureTypeScript | `PureTypeScriptCodegen` | `.js` + `.d.ts` | Functional factory + type declarations | Inline builtins | Typed plain object |
+| Python | `PythonCodegen` (standalone) | Single `.py` | Functional factory, zero imports | `pydash` (runtime peer) | Dict with lambda accessors |
+
+Inheritance: `JavaScriptCodegen` is the base for `TypeScriptCodegen` (adds `hasTypes: true`), `PureJavaScriptCodegen` (adds inlined builtins, no imports), and `PureTypeScriptCodegen` (adds `hasTypes: true` on top of PureJS). `PythonCodegen` is a standalone class with its own expression system.
+
+**`createEventBus` signature differs by dialect group:**
+
+- Class-based (JS, TS): accepts constructors - `FSMs: Record<string, new () => GenericAutomata>`
+- Factory-based (PureJS, PureTS): accepts factory functions - `FSMs: Record<string, () => TInstance>`
+
+---
+
+### JavaScript / TypeScript Template Hierarchy
+
+The `it` object passed to every JS/TS template (built in `buildTemplateModel()`):
+
+```
+it = {
+  className,
+  hasTypes,                         // boolean - true for TS output
+  imports,                          // TImports - { [pkg]: string[] }
+  importNamespaces,                 // TNullable<TImports>
+  diagram,                          // TStateDiagramMatrixIncludeNotes
+  stateDictionary,                  // BasicStateDictionary
+  actionDictionary,                 // BasicActionDictionary
+  eventDictionary,                  // BasicEventDictionary
+  expressions,                      // TExpressionRecord
+  defines,                          // DefineStatement[]
+  injects,                          // InjectStatement[]
+  injectedPath,                     // TNullable<string>
+  functions: {
+    userFunctionsCheck,             // { injectIdentifiers: string[] }
+    customRegistrations,            // TCustomRegistration[]
+    userFunctionsNamespace,         // string | null
+  },
+  initialStateId,                   // string
+  initialStateValue,                // number
+  initialContext,                   // Record<string, unknown>
+  startStateKey,                    // StartState
+  byPassAction,                     // ByPassAction
+  context: {
+    reducer,                        // { entries: { stateValue, transition }[] }
+    defaultContext,                  // { startStateValue, transition }
+  },
+  forks: {
+    predicates,                     // Record<stateId, Record<actionId, { transitions }>>
+  },
+  events: {
+    eventAdapter,                   // { emitters, listeners }
+    createEventBus,                 // { resultVarName }
+  },
+  dictionaries: {
+    actionToStateFromState,         // Record<stateId, Record<actionId, { state, withPredicate }>>
+    byPassedList,                   // number[]
+    actionsMap,                     // Record<string, number>
+    statesMap,                      // Record<string, number>
+  },
+}
+```
+
+#### Full template hierarchy diagram
+
+```mermaid
+flowchart TB
+  classDef entryJs fill:#2d6a4f,color:#fff,stroke:#1b4332
+  classDef entryTs fill:#1d3557,color:#fff,stroke:#0d1b2a
+  classDef shared fill:#7209b7,color:#fff,stroke:#3a0ca3
+  classDef sharedLeaf fill:#b5179e,color:#fff,stroke:#7209b7
+  classDef jsOnly fill:#588157,color:#fff,stroke:#344e41
+  classDef jsLeaf fill:#a3b18a,color:#000,stroke:#588157
+  classDef tsOnly fill:#457b9d,color:#fff,stroke:#1d3557
+  classDef tsLeaf fill:#a8dadc,color:#000,stroke:#457b9d
+
+  JS_MOD["<b>js/module.eta</b><br/><i>Entry point JS</i>"]:::entryJs
+  TS_MOD["<b>ts/module.eta</b><br/><i>Entry point TS</i>"]:::entryTs
+
+  subgraph SHARED_IMPORTS ["js/shared/imports/"]
+    direction TB
+    SH_IMP_MOD["imports/module"]:::shared
+    SH_IMP_NAMED["imports/named<br/><i>it.imports</i>"]:::sharedLeaf
+    SH_IMP_NS["imports/namespace<br/><i>it.importNamespaces</i>"]:::sharedLeaf
+  end
+  SH_IMP_MOD -->|it| SH_IMP_NAMED
+  SH_IMP_MOD -->|it| SH_IMP_NS
+
+  subgraph SHARED_FORKS ["js/shared/forks/"]
+    direction TB
+    SH_FORK_MOD["forks/module"]:::shared
+    SH_FORK_STATE_ENTRY["forks/stateEntry<br/><i>stateId, actionPredicates</i>"]:::sharedLeaf
+    SH_FORK_ACT_ENTRY["forks/actionEntry<br/><i>actionId, predicate</i>"]:::sharedLeaf
+    SH_FORK_TRANS["forks/transition<br/><i>transition, transitionIndex</i>"]:::sharedLeaf
+  end
+  SH_FORK_MOD -->|"{ stateId, actionPredicates }"| SH_FORK_STATE_ENTRY
+  SH_FORK_STATE_ENTRY -->|"{ actionId, predicate }"| SH_FORK_ACT_ENTRY
+  SH_FORK_ACT_ENTRY -->|"{ transition, transitionIndex }"| SH_FORK_TRANS
+
+  subgraph SHARED_DICTS ["js/shared/dictionaries/"]
+    direction TB
+    SH_DICT_MOD["dictionaries/module"]:::shared
+    SH_DICT_DECL["declarations<br/><i>states, actions, events, functionDictionary</i>"]:::sharedLeaf
+    SH_DICT_RUNTIME["runtime<br/><i>byPassedStates, runtimeRegistries, epoch helpers</i>"]:::sharedLeaf
+    subgraph TRANS ["transitions/"]
+      direction TB
+      SH_DICT_TRANS_MOD["transitions/module"]:::shared
+      SH_DICT_A2S_STATE["transitions/stateEntry<br/><i>stateId, actions</i>"]:::sharedLeaf
+      SH_DICT_A2S_ENTRY["transitions/entry<br/><i>stateId, actionId, entry</i>"]:::sharedLeaf
+    end
+  end
+  SH_DICT_MOD -->|it| SH_DICT_DECL
+  SH_DICT_MOD -->|it| SH_DICT_RUNTIME
+  SH_DICT_MOD -->|it| SH_DICT_TRANS_MOD
+  SH_DICT_TRANS_MOD -->|"{ stateId, actions }"| SH_DICT_A2S_STATE
+  SH_DICT_A2S_STATE -->|"{ stateId, actionId, entry }"| SH_DICT_A2S_ENTRY
+
+  subgraph SHARED_FUNCS ["js/shared/functions/"]
+    direction TB
+    SH_FUNC_MOD["functions/module"]:::shared
+    SH_FUNC_REG["registrations"]:::sharedLeaf
+    subgraph USER ["user/"]
+      direction TB
+      SH_FUNC_USER_MOD["user/module"]:::shared
+      SH_FUNC_RESOLVE["user/resolve<br/><i>namespace</i>"]:::sharedLeaf
+    end
+  end
+  SH_FUNC_MOD -->|"{ ...it, registrations }"| SH_FUNC_USER_MOD
+  SH_FUNC_MOD -->|"{ ...it, registrations }"| SH_FUNC_REG
+  SH_FUNC_USER_MOD -->|"{ namespace }"| SH_FUNC_RESOLVE
+
+  subgraph SHARED_EVENTS ["js/shared/events/"]
+    direction TB
+    SH_EVT_MOD["events/module"]:::shared
+    subgraph ADAPTER ["adapter/"]
+      direction TB
+      SH_EVT_ADAPT_MOD["adapter/module"]:::shared
+      SH_EVT_PAYLOAD["adapter/payload"]:::shared
+      SH_EVT_SOURCE["adapter/source"]:::sharedLeaf
+      subgraph EMIT ["emit/"]
+        SH_EVT_EMIT_MOD["emit/module"]:::shared
+        SH_EVT_EMIT_ENTRY["emit/entry"]:::sharedLeaf
+        SH_EVT_EMIT_CODE["emit/code"]:::sharedLeaf
+      end
+      subgraph LISTEN ["listen/"]
+        SH_EVT_LISTEN_MOD["listen/module"]:::shared
+        SH_EVT_LISTEN_ENTRY["listen/entry"]:::sharedLeaf
+      end
+    end
+    subgraph BUS ["bus/"]
+      SH_EVT_BUS_MOD["bus/module"]:::shared
+      SH_EVT_BUS_FACTORY["bus/factory"]:::sharedLeaf
+      SH_EVT_BUS_SUBS["bus/subscriptions"]:::sharedLeaf
+    end
+  end
+  SH_EVT_MOD -->|it| SH_EVT_ADAPT_MOD
+  SH_EVT_MOD -->|it| SH_EVT_BUS_MOD
+  SH_EVT_ADAPT_MOD -->|"{ emitters }"| SH_EVT_EMIT_MOD
+  SH_EVT_ADAPT_MOD -->|"{ listeners }"| SH_EVT_LISTEN_MOD
+  SH_EVT_BUS_MOD -->|it| SH_EVT_BUS_FACTORY
+  SH_EVT_BUS_MOD -->|it| SH_EVT_BUS_SUBS
+
+  subgraph SHARED_EXPR ["js/shared/expressions/"]
+    SH_EXPR_MOD["expressions/module"]:::shared
+    SH_EXPR_CALLS["expressions/calls"]:::shared
+    SH_EXPR_DEF_PROP["expressions/context/defaultPropertyContext"]:::sharedLeaf
+  end
+  SH_EXPR_MOD -->|"{ model }"| SH_EXPR_CALLS
+  SH_EXPR_CALLS -.->|"recursive"| SH_EXPR_MOD
+
+  subgraph JS_CTX ["js/context/"]
+    JS_CTX_MOD["js/context/module"]:::jsOnly
+    JS_CTX_REDUCER["context/reducer"]:::jsOnly
+    JS_CTX_DEFAULT["context/defaultContext"]:::jsLeaf
+    subgraph JS_REDUCERS ["js/context/reducers/"]
+      JS_CTX_RED_MOD["reducers/module"]:::jsOnly
+      JS_CTX_ITEM["reducers/item"]:::jsOnly
+      JS_CTX_BV_CONST["reducers/constant"]:::jsLeaf
+      JS_CTX_BV_EXPR["reducers/expression"]:::jsLeaf
+    end
+  end
+  JS_CTX_MOD -->|"{ reducer }"| JS_CTX_REDUCER
+  JS_CTX_MOD -->|"{ defaultContext }"| JS_CTX_DEFAULT
+  JS_CTX_REDUCER -->|"{ stateValue, transition }"| JS_CTX_RED_MOD
+  JS_CTX_RED_MOD -->|"{ transition }"| JS_CTX_ITEM
+
+  subgraph JS_CLASS ["js/class/"]
+    JS_CLS_MOD["js/class/module"]:::jsOnly
+    JS_CLS_STATIC["class/static"]:::jsOnly
+    subgraph JS_REDUCER_CLS ["js/class/reducer/"]
+      JS_RED_MOD["reducer/module"]:::jsOnly
+      JS_GET_NEW["reducer/getNew"]:::jsOnly
+    end
+  end
+  JS_CLS_MOD -->|it| JS_CLS_STATIC
+  JS_CLS_MOD -->|it| JS_RED_MOD
+
+  subgraph TS_TYPES ["ts/types/"]
+    TS_TYPES_MOD["ts/types/module"]:::tsOnly
+    TS_TYPES_AUTOMATA["ts/types/automata"]:::tsLeaf
+    TS_TYPES_REDUCER["ts/types/reducer"]:::tsLeaf
+  end
+
+  subgraph TS_CLASS ["ts/class/"]
+    TS_CLS_MOD["ts/class/module"]:::tsOnly
+    TS_CLS_STATIC["ts/class/static"]:::tsLeaf
+  end
+
+  JS_MOD -->|it| SH_IMP_MOD
+  JS_MOD -->|it| SH_FORK_MOD
+  JS_MOD -->|it| SH_DICT_MOD
+  JS_MOD -->|it| SH_FUNC_MOD
+  JS_MOD -->|it| SH_EVT_MOD
+  JS_MOD -->|it| JS_CTX_MOD
+  JS_MOD -->|it| JS_CLS_MOD
+
+  TS_MOD -->|it| SH_IMP_MOD
+  TS_MOD -->|it| SH_FORK_MOD
+  TS_MOD -->|it| SH_DICT_MOD
+  TS_MOD -->|it| TS_TYPES_MOD
+  TS_MOD -->|it| SH_FUNC_MOD
+  TS_MOD -->|it| SH_EVT_MOD
+  TS_MOD -->|"it (hasTypes=true)"| JS_CTX_MOD
+  TS_MOD -->|it| TS_CLS_MOD
+```
+
+#### Include order
+
+**`js/module.eta`** (7 steps):
+1. `js/shared/imports/module` - `it.imports`, `it.importNamespaces`
+2. `js/shared/forks/module` - `it.forks.predicates`
+3. `js/shared/dictionaries/module` - `it.stateDictionary`, `it.actionDictionary`, `it.dictionaries.*`
+4. `js/shared/functions/module` - `it.functions.*`
+5. `js/shared/events/module` - `it.events.*`
+6. `js/context/module` - `it.context.*`
+7. `js/class/module` - `it.className`, `it.initialStateValue`, `it.initialContext`, `it.byPassAction`
+
+**`ts/module.eta`** (8 steps):
+1. `js/shared/imports/module`
+2. `js/shared/forks/module`
+3. `js/shared/dictionaries/module`
+4. `ts/types/module` - `TContext`, `TPayload`, `TRootReducer` type exports
+5. `js/shared/functions/module`
+6. `js/shared/events/module`
+7. `js/context/module` (hasTypes=true - adds TS type annotations)
+8. `ts/class/module`
+
+#### Cross-directory includes
+
+| From | To | Data |
+|------|----|------|
+| `js/context/reducers/item` | `js/shared/expressions/context/defaultPropertyContext` | `{ path, identifier, expression }` |
+| `js/context/defaultContext` | `js/context/reducers/item` | `{ transition }` |
+| `js/class/module` | `js/shared/dictionaries/runtime` | `it` |
+| `ts/class/module` | `js/shared/dictionaries/runtime` | `it` |
+| `js/shared/events/adapter/source` | `js/shared/expressions/context/defaultPropertyContext` | `{ path, identifier, expression }` |
+| `js/shared/functions/registrations` | `js/shared/expressions/module` | `{ model: registration.bodyModel }` |
+| `js/shared/expressions/calls` | `js/shared/expressions/module` (recursive) | `{ model: arg }` |
+
+---
+
+### PureJavaScript / PureTypeScript Template Hierarchy
+
+PureJavaScript and PureTypeScript generate self-contained output with no imports from `@yantrix/core`. All built-in functions are bundled inline at build time by `scripts/buildBuiltins.mjs`.
+
+PureTypeScript runs the same code generation as PureJavaScript (same `buildTemplateModel`, same JS templates), and additionally generates a `.d.ts` declaration file from `pure-ts/declarations.eta`.
+
+The `it` object extends the JS/TS base with one extra field:
+
+```
+it = {
+  // ...all base JS/TS fields...
+  builtins,    // string - pre-bundled @yantrix/functions source, inlined verbatim
+}
+```
+
+**Entry: `pure-js/module.eta`** (9 includes in order):
+
+| Step | Template | Purpose |
+|------|----------|---------|
+| 1 | `js/shared/imports/namespace` | Namespace import (only when `functionFilePath` is set) |
+| 2 | `<%~ it.builtins %>` | Inlined functions bundle (raw string, no include) |
+| 3 | `pure-js/runtime/module` | `createFunctionRegistry()`, `createEventAdapter()` |
+| 4 | `pure-js/functions/module` | Function dictionary, user defines, inject registrations |
+| 5 | `js/shared/forks/module` | Predicate map for fork/choice states |
+| 6 | `pure-js/dictionaries/module` | `statesDictionary`, `actionsDictionary`, `eventDictionary`, `epoch`/`incrementEpoch`/`getEpoch` |
+| 7 | `pure-js/events/module` | `eventAdapter`, `createEventBus()` factory |
+| 8 | `js/context/module` | `reducer`, `getDefaultContext` (shared with class-based) |
+| 9 | `pure-js/factory/module` | `create<ClassName>()` factory + `getState`/`getAction`/`createAction`/`hasState` helpers |
+
+**Entry: `pure-ts/declarations.eta`** (`.d.ts` only):
+- Declares all exports: `statesDictionary`, `actionsDictionary`, `eventDictionary`, helpers, factory, `createEventBus`
+- Defines `T<ClassName>Instance` type with all instance methods and getters
+- Defines `TActions<ClassName>` union type
+
+**Module-level exports:**
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `statesDictionary` | `Record<string, number>` | State name to hash mapping |
+| `actionsDictionary` | `Record<string, number>` | Action name to hash mapping |
+| `eventDictionary` | `Record<string, number>` | Event name to hash mapping |
+| `actionsMap`, `statesMap` | `Record<string, string>` | Identity name maps |
+| `functionDictionary` | `{ get, register, call, has }` | Inline function registry |
+| `epoch` | `{ val: number }` | Shared epoch counter (module-level) |
+| `incrementEpoch()` | `() => void` | Increments epoch on each dispatch |
+| `getEpoch()` | `() => number` | Returns current epoch value |
+| `getState(name)` | `(name: string) => number` | Lookup state value by name |
+| `getAction(name)` | `(name: string) => number` | Lookup action value by name |
+| `createAction(name, payload)` | `(name, payload) => { action, payload }` | Build action payload |
+| `hasState(instance, state)` | `(inst, name) => boolean` | Check FSM state by name |
+| `createEventBus(id, factories)` | `(id, Record<string, factory>) => [EventBus, automatas, cleanup]` | Wire FSM instances to a shared event bus |
+| `create<ClassName>()` | `() => Instance` | Factory function |
+| `default` | same as factory | Re-export of factory |
+
+---
+
+### Python Template Hierarchy
+
+Python generates a single self-contained `.py` file. Built-in functions are concatenated from `packages/functions/src/python/` at build time. There is no class, no import of external packages beyond `pydash`.
+
+**`it.python` object** (built in `PythonCodegen.buildTemplateModel()`):
+
+```typescript
+python: {
+  builtins: string,            // contents of builtins.py.tpl (pydash-based functions)
+  functionDict: Array<{        // all function_dictionary entries
+    key: string;               // Yantrix key (e.g. 'coalesce')
+    pyName: string;            // Python binding (e.g. 'coalesce' or '_if')
+  }>,
+  snakeName: string,           // snake_case factory name (e.g. 'traffic_light')
+  initialContext: Record<string, null>,  // all context keys initialised to None
+  reducers: Array<{
+    stateValue: number;
+    bodyLines: string[];       // Python assignment lines for _result dict
+  }>,
+  transitions: Array<{         // action_to_state_from_state_dict structure
+    fromStateValue: number;
+    actions: Array<{
+      actionValue: number;
+      targetStateValues: number[];
+    }>;
+  }>,
+  defaultContextLines: string[],  // Python lines for _get_default_context body
+  defines: Array<{             // user define/fn() => expr directives
+    identifier: string;
+    args: string[];
+    body: string;              // Python lambda body expression
+  }>,
+  injectedCode: string | null, // raw .py inject file content, or null
+}
+```
+
+**Entry: `python/module.eta`** (5 includes in order):
+
+| Step | Template | Purpose |
+|------|----------|---------|
+| 1 | `python/runtime/module` | Emits `it.python.builtins` inline (pydash-based built-in functions) |
+| 2 | `python/functions/module` | `function_dictionary = {...}`, lambda defines, injected code |
+| 3 | `python/dictionaries/module` | `states_dictionary`, `actions_dictionary`, `action_to_state_from_state_dict` |
+| 4 | `python/context/module` | `_reducer_N()` functions, `reducer` dict, `_get_default_context()` |
+| 5 | `python/factory/module` | Helper functions + `create_<name>()` factory |
+
+**Module-level exports:**
+
+| Export | Description |
+|--------|-------------|
+| `states_dictionary` | `{ 'StateName': hash, ... }` |
+| `actions_dictionary` | `{ 'ActionName': hash, ... }` |
+| `actions_map`, `states_map` | Identity name dicts |
+| `action_to_state_from_state_dict` | Nested `{ fromState: { action: { 'state': [targets] } } }` |
+| `function_dictionary` | `{ 'fnName': callable, ... }` |
+| `reducer` | `{ stateValue: _reducer_N, ... }` |
+| `get_state(name)` | Lookup state value by name |
+| `get_action(name)` | Lookup action value by name |
+| `create_action(name, payload)` | Build action payload dict |
+| `has_state(instance, state_value)` | Check FSM state |
+| `create_<name>()` | Factory returning instance dict |
+
+**Instance shape** (dict returned by `create_<name>()`):
+
+```python
+{
+    'state':         lambda: _state[0],
+    'context':       lambda: dict(_context[0]),
+    'last_action':   lambda: _last_action[0],
+    'current_cycle': lambda: _current_cycle[0],
+    'dispatch':      dispatch,
+    'get_context':   get_context,
+    'pause':         pause,
+    'resume':        resume,
+    'enable':        enable,
+    'disable':       disable,
+    'destroy':       destroy,
+}
+```
+
+---
+
+### Feature Support by Dialect
+
+| Feature | JS | TS | PureJS | PureTS | Python |
+| ------- | -- | -- | ------ | ------ | ------ |
+| State transitions | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Context / reducers | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Built-in functions | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `define/fn(args) => expr` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Inject `.ts`/`.js` functions | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Inject `.py` functions | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Forks / predicates | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `subscribe/EventName` | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `emit/EventName` | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `createEventBus()` factory | ✅ | ✅ | ✅ | ✅ | ❌ |
+| CoreLoop integration | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Epoch tracking (`getEpoch`) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cycle counter | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Opaque ID types (`TStateId`, `TActionId`) | ❌ | ✅ | ❌ | ✅ | ❌ |
+| TypeScript declarations | ❌ | ✅ | ❌ | ✅ | ❌ |
+| Pause / resume / disable | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Zero external runtime deps | ❌ | ❌ | ✅ | ✅ | ❌ |

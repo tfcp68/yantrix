@@ -1,0 +1,58 @@
+export type TStateId = number;
+export type TActionId = number;
+export type TAutomataContext = Record<string, unknown>;
+export type TAutomataPayload = Record<string, unknown> | null;
+export type TReducerPayload = Exclude<TAutomataPayload, null>;
+
+export declare const statesDictionary: Record<string, TStateId>;
+export declare const actionsDictionary: Record<string, TActionId>;
+export declare const eventDictionary: Record<string, number>;
+export declare const actionsMap: Record<string, string>;
+export declare const statesMap: Record<string, string>;
+
+export type TActions<%~ it.className %> = keyof typeof actionsMap;
+
+type TFunctionRegistry = {
+  register(nameOrDict: string | Record<string, (...args: unknown[]) => unknown>, fn?: (...args: unknown[]) => unknown): void;
+  get(name: string): ((...args: unknown[]) => unknown) | undefined;
+  call(name: string, ...args: unknown[]): unknown;
+  has(name: string): boolean;
+};
+
+type TEventAdapter = {
+  addEventEmitter(stateId: number, fn: (ctx: { state: number; context: TAutomataContext }) => unknown): void;
+  addEventListener(eventId: number, fn: (ev: { event: number; meta: TAutomataPayload }) => unknown): void;
+  handleEvent(ev: { event: number; meta: TAutomataPayload }): Array<{ action: number; payload: TAutomataPayload }>;
+  handleTransition(ctx: { state: number; context: TAutomataContext }): unknown[];
+};
+
+export type T<%~ it.className %>Instance = {
+  readonly state: TStateId;
+  readonly context: TAutomataContext;
+  readonly lastAction: TActionId | null;
+  readonly currentCycle: number;
+  readonly eventAdapter: TEventAdapter;
+  dispatch(ap: { action: TActionId; payload: TAutomataPayload }): { state: TStateId; context: TAutomataContext };
+  getContext(): { state: TStateId; context: TAutomataContext };
+  pause(): T<%~ it.className %>Instance;
+  resume(): T<%~ it.className %>Instance;
+  enable(): T<%~ it.className %>Instance;
+  disable(clearQueue?: boolean): T<%~ it.className %>Instance;
+  destroy(): void;
+};
+
+export declare function getEpoch(): number;
+export declare function getState(name: string): TStateId;
+export declare function getAction(name: string): TActionId;
+export declare function createAction(name: string, payload: TAutomataPayload): { action: TActionId; payload: TAutomataPayload };
+export declare function hasState(instance: T<%~ it.className %>Instance, state: string): boolean;
+export declare function create<%~ it.className %>(): T<%~ it.className %>Instance;
+export declare function createEventBus(
+  id: string,
+  FSMs: Record<string, () => T<%~ it.className %>Instance>,
+): [unknown, Record<string, T<%~ it.className %>Instance>, () => void];
+export declare function createFunctionRegistry(builtIns: Record<string, (...args: unknown[]) => unknown>): TFunctionRegistry;
+export declare function createEventAdapter(): TEventAdapter;
+
+declare const _default: typeof create<%~ it.className %>;
+export default _default;

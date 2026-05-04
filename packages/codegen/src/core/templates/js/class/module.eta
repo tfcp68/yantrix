@@ -10,17 +10,17 @@ export class <%~ it.className %> extends GenericAutomata {
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
       rootReducer: <%~ include('reducer/module', it) %>,
-      stateValidator: (s) => Object.values(statesDictionary).includes(s),
-      actionValidator: (a) => Object.values(actionsDictionary).includes(a),
+      stateValidator: (s)<% if (it.hasTypes) { %>: s is TStateId<% } %> => Object.values(statesDictionary).includes(s<% if (it.hasTypes) { %> as TStateId<% } %>),
+      actionValidator: (a)<% if (it.hasTypes) { %>: a is TActionId<% } %> => Object.values(actionsDictionary).includes(a<% if (it.hasTypes) { %> as TActionId<% } %>),
       functionRegistry: functionDictionary,
     });
     const initReducer = reducer[this.state];
     const prev = this.getContext()?.context ?? {};
-    const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+    const initContext = initReducer(prev, {}, this.getFunctionRegistry()<% if (it.hasTypes) { %> as FunctionDictionary<% } %>, this);
     this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
   }
 
-  isKeyOf = (key, obj) => key in obj;
+  isKeyOf = <% if (it.hasTypes) { %><T extends object>(key: PropertyKey, obj: T): key is keyof T<% } else { %>(key, obj)<% } %> => key in obj;
 }
 
 export default <%~ it.className %>;

@@ -1,6 +1,6 @@
 from typing import Any, List, Optional, Tuple, Union, TypeVar
 from pydash import find, is_boolean, is_number, is_none, is_list, get
-import random
+import random as _random_stdlib
 
 T = TypeVar('T')
 A = TypeVar('A')
@@ -27,8 +27,10 @@ _case = lambda *args: (
 coalesce = lambda *values: next((v for v in values if v is not None), None)
 
 random = lambda min_=None, max_=None: (
-    random.randint(min_, max_ - 1) if min_ is not None and max_ is not None
-    else random.randint(0, 1)
+    _random_stdlib.randint(min_, max_ - 1) if min_ is not None and max_ is not None
+    else _random_stdlib.randint(0, 1)
 )
 
-__all__ = ['_case', 'coalesce', '_if', 'random']
+_random = _random_stdlib.random
+
+__all__ = ['_case', 'coalesce', '_if', 'random', '_random']

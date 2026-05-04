@@ -1,6 +1,6 @@
 import mermaid from 'mermaid';
 import { EndState, StartState } from '../constants/index.js';
-import { extractActionId, extractActionParams, hasExpressionValues } from '../utils/index.js';
+import { extractActionGuard, extractActionId, extractActionParams, hasExpressionValues } from '../utils/index.js';
 
 import { BlankInputError, InvalidInputError } from './errors/stateErrors.js';
 import {
@@ -268,7 +268,8 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
 			actionIsInternal = true;
 		}
 		const params = extractActionParams(transitions[i]?.[2]);
-		if (params && hasExpressionValues(params)) {
+		const guard = extractActionGuard(transitions[i]?.[2]);
+		if (guard || (params && hasExpressionValues(params))) {
 			actionIsPredicate = true;
 		}
 		const action: TActionWithParams = {
@@ -276,6 +277,7 @@ function getActions(transitions: TTransitionsArray): TActionsStructure {
 			to,
 			id,
 			params,
+			guard,
 			internal: actionIsInternal,
 			predicate: actionIsPredicate,
 		};

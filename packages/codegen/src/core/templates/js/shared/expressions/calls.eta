@@ -1,7 +1,7 @@
 <% if (it.model.isInternal === true) { %>
 <%~ include('internalExpression', {
   functionName: it.model.functionName,
-  automataRef: 'automata',
+  automataRef: '_automata',
   actionsDictionaryRef: 'actionsDictionary',
   statesDictionaryRef: 'statesDictionary',
 }).trim() %>

@@ -1,5 +1,5 @@
 <% const transitions = it.predicate?.transitions ?? []; %>
-<%~ it.actionId %>: (prevContext, payload, functionDictionary) => {
+<%~ it.actionId %>: (prevContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>, _payload<% if (it.hasTypes) { %>: TReducerPayload<% } %>, functionDictionary<% if (it.hasTypes) { %>: FunctionDictionary<% } %>) => {
 <% for (let transitionIndex = 0; transitionIndex < transitions.length; transitionIndex++) { %>
   <%~ include('transition', {
 	transition: transitions[transitionIndex],
