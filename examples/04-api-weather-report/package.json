@@ -1,27 +1,27 @@
 {
-	"name": "04-api-weather-report",
-	"type": "module",
-	"version": "0.4.4",
-	"private": true,
-	"description": "",
-	"author": "",
-	"license": "ISC",
-	"keywords": [],
-	"main": "index.js",
-	"scripts": {
-		"dev": "vite",
-		"prebuild": "pnpm run generate",
-		"build": "tsc --noEmit && vite build",
-		"preview": "vite preview",
-		"lint": "eslint .",
-		"format": "eslint --fix .",
-		"generate": "yantrix codegen ./src/diagrams/WeatherReport.mermaid -l TypeScript -o src/generated/WeatherReportAutomata.ts -c WeatherReportAutomata"
-	},
-	"devDependencies": {
-		"@types/node": "^22.7.3",
-		"@yantrix/core": "workspace:^",
-		"ts-node": "^10.9.2",
-		"typescript": "^5.9.2",
-		"vite": "^7.1.5"
-	}
+  "name": "04-api-weather-report",
+  "type": "module",
+  "version": "0.4.5",
+  "private": true,
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "pnpm run generate",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "eslint --fix .",
+    "generate": "yantrix codegen ./src/diagrams/WeatherReport.mermaid -l TypeScript -o src/generated/WeatherReportAutomata.ts -c WeatherReportAutomata"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.3",
+    "@yantrix/core": "workspace:^",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  }
 }

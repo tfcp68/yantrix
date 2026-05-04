@@ -1,30 +1,30 @@
 {
-	"name": "yantrix-feedback-machine",
-	"type": "module",
-	"version": "0.4.4",
-	"private": true,
-	"scripts": {
-		"dev": "vite",
-		"generate": "yantrix codegen ./src/diagrams/feedback-machine.mermaid -l TypeScript -o src/generated/FeedbackMachineAutomata.ts -c FeedbackMachineAutomata",
-		"prebuild": "pnpm run generate",
-		"build": "tsc -b && vite build",
-		"pretest": "pnpm run generate",
-		"test": "vitest run",
-		"preview": "vite preview"
-	},
-	"dependencies": {
-		"@yantrix/core": "workspace:^",
-		"@yantrix/react": "workspace:^",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1"
-	},
-	"devDependencies": {
-		"@types/react": "^18.3.12",
-		"@types/react-dom": "^18.3.1",
-		"@vitejs/plugin-react-swc": "^3.5.0",
-		"globals": "^15.11.0",
-		"typescript": "5.6.2",
-		"vite": "^5.4.10",
-		"vitest": "^2.1.1"
-	}
+  "name": "yantrix-feedback-machine",
+  "type": "module",
+  "version": "0.4.5",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "generate": "yantrix codegen ./src/diagrams/feedback-machine.mermaid -l TypeScript -o src/generated/FeedbackMachineAutomata.ts -c FeedbackMachineAutomata",
+    "prebuild": "pnpm run generate",
+    "build": "tsc -b && vite build",
+    "pretest": "pnpm run generate",
+    "test": "vitest run",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@yantrix/core": "workspace:^",
+    "@yantrix/react": "workspace:^",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "globals": "^15.11.0",
+    "typescript": "5.6.2",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.1"
+  }
 }

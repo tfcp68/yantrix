@@ -1,64 +1,64 @@
 {
-	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/cli",
-	"type": "module",
-	"version": "0.4.4",
-	"description": "Yantrix framework command line tools",
-	"contributors": [
-		"Alexander Uskov <https://github.com/octaharon>",
-		"Noktomezo <https://github.com/Noktomezo>",
-		"Denis Perevertov <https://github.com/denis-perevertov>",
-		"Nikita Beliaew <https://github.com/Nekitech>",
-		"Sin <https://github.com/Volshebnik09>",
-		"Alexey Geraim <https://github.com/obl1v1onZzz>",
-		"Саша <https://github.com/22sasha>"
-	],
-	"license": "MIT",
-	"homepage": "https://github.com/tfcp68/yantrix",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/cli"
-	},
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"keywords": [
-		"FSM",
-		"Yatrix",
-		"codegen",
-		"cli"
-	],
-	"bin": {
-		"yantrix": "bin/index.js"
-	},
-	"files": [
-		"bin",
-		"dist"
-	],
-	"engines": {
-		"node": ">=18"
-	},
-	"scripts": {
-		"build": "tsc --noEmit && tsup",
-		"format": "eslint --fix .",
-		"lint": "eslint ."
-	},
-	"dependencies": {
-		"@clack/prompts": "^0.7.0",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/codegen": "workspace:^",
-		"@yantrix/mermaid-parser": "workspace:^",
-		"ansis": "^3.3.2",
-		"package-manager-detector": "^0.2.2",
-		"restore-cursor": "^5.1.0",
-		"yargs": "^17.7.2"
-	},
-	"devDependencies": {
-		"@types/yargs": "^17.0.33"
-	},
-	"publishConfig": {
-		"access": "public",
-		"provenance": true
-	}
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@yantrix/cli",
+  "type": "module",
+  "version": "0.4.5",
+  "description": "Yantrix framework command line tools",
+  "contributors": [
+    "Alexander Uskov <https://github.com/octaharon>",
+    "Noktomezo <https://github.com/Noktomezo>",
+    "Denis Perevertov <https://github.com/denis-perevertov>",
+    "Nikita Beliaew <https://github.com/Nekitech>",
+    "Sin <https://github.com/Volshebnik09>",
+    "Alexey Geraim <https://github.com/obl1v1onZzz>",
+    "Саша <https://github.com/22sasha>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/tfcp68/yantrix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tfcp68/yantrix.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/tfcp68/yantrix/issues"
+  },
+  "keywords": [
+    "FSM",
+    "Yatrix",
+    "codegen",
+    "cli"
+  ],
+  "bin": {
+    "yantrix": "bin/index.js"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc --noEmit && tsup",
+    "format": "eslint --fix .",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "@yantrix/automata": "workspace:^",
+    "@yantrix/codegen": "workspace:^",
+    "@yantrix/mermaid-parser": "workspace:^",
+    "ansis": "^3.3.2",
+    "package-manager-detector": "^0.2.2",
+    "restore-cursor": "^5.1.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.33"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

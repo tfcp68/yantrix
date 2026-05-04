@@ -1,71 +1,71 @@
 {
-	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/mermaid-parser",
-	"type": "module",
-	"version": "0.4.4",
-	"description": "Part of Yantrix framework: imports Mermaid state and sequence diagrams",
-	"contributors": [
-		"Alexander Uskov <https://github.com/octaharon>",
-		"Noktomezo <https://github.com/Noktomezo>",
-		"Denis Perevertov <https://github.com/denis-perevertov>",
-		"Nikita Beliaew <https://github.com/Nekitech>",
-		"Sin <https://github.com/Volshebnik09>",
-		"Alexey Geraim <https://github.com/obl1v1onZzz>",
-		"Саша <https://github.com/22sasha>"
-	],
-	"license": "MIT",
-	"homepage": "https://tfcp68.github.io/yantrix",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git",
-		"directory": "packages/mermaid-parser"
-	},
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"keywords": [
-		"FSM",
-		"Yantrix",
-		"Mermaid",
-		"diagrams",
-		"parser"
-	],
-	"exports": {
-		".": {
-			"import": {
-				"types": "./dist/index.d.ts",
-				"default": "./dist/index.js"
-			},
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			}
-		}
-	},
-	"main": "./dist/index.cjs",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"directories": {
-		"lib": "src"
-	},
-	"files": [
-		"dist"
-	],
-	"engines": {
-		"node": ">=18"
-	},
-	"scripts": {
-		"build": "tsc --noEmit && tsup",
-		"format": "eslint --fix .",
-		"lint": "eslint .",
-		"test": "vitest run --outputFile=../../test_reports/mermaid-parser.md"
-	},
-	"dependencies": {
-		"@yantrix/utils": "workspace:^",
-		"mermaid": "11.0.2"
-	},
-	"publishConfig": {
-		"access": "public",
-		"provenance": true
-	}
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@yantrix/mermaid-parser",
+  "type": "module",
+  "version": "0.4.5",
+  "description": "Part of Yantrix framework: imports Mermaid state and sequence diagrams",
+  "contributors": [
+    "Alexander Uskov <https://github.com/octaharon>",
+    "Noktomezo <https://github.com/Noktomezo>",
+    "Denis Perevertov <https://github.com/denis-perevertov>",
+    "Nikita Beliaew <https://github.com/Nekitech>",
+    "Sin <https://github.com/Volshebnik09>",
+    "Alexey Geraim <https://github.com/obl1v1onZzz>",
+    "Саша <https://github.com/22sasha>"
+  ],
+  "license": "MIT",
+  "homepage": "https://tfcp68.github.io/yantrix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tfcp68/yantrix.git",
+    "directory": "packages/mermaid-parser"
+  },
+  "bugs": {
+    "url": "https://github.com/tfcp68/yantrix/issues"
+  },
+  "keywords": [
+    "FSM",
+    "Yantrix",
+    "Mermaid",
+    "diagrams",
+    "parser"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "directories": {
+    "lib": "src"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc --noEmit && tsup",
+    "format": "eslint --fix .",
+    "lint": "eslint .",
+    "test": "vitest run --outputFile=../../test_reports/mermaid-parser.md"
+  },
+  "dependencies": {
+    "@yantrix/utils": "workspace:^",
+    "mermaid": "11.0.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

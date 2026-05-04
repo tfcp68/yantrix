@@ -1,93 +1,93 @@
 {
-	"$schema": "https://json.schemastore.org/package.json",
-	"name": "@yantrix/monorepo",
-	"type": "module",
-	"version": "0.4.4",
-	"private": true,
-	"packageManager": "pnpm@9.11.0",
-	"description": "Event-Driven FSM Framework",
-	"contributors": [
-		"Alexander Uskov <https://github.com/octaharon>",
-		"Noktomezo <https://github.com/Noktomezo>",
-		"Denis Perevertov <https://github.com/denis-perevertov>",
-		"Nikita Beliaew <https://github.com/Nekitech>",
-		"Sin <https://github.com/Volshebnik09>",
-		"Alexey Geraim <https://github.com/obl1v1onZzz>",
-		"Саша <https://github.com/22sasha>"
-	],
-	"license": "MIT",
-	"homepage": "https://tfcp68.github.io/yantrix",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tfcp68/yantrix.git"
-	},
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"keywords": [
-		"fsm",
-		"typescript",
-		"state",
-		"management",
-		"eda",
-		"uml",
-		"mermaidjs"
-	],
-	"engines": {
-		"node": ">=22"
-	},
-	"scripts": {
-		"build": "node tools/build.mjs && pnpm run summary:build",
-		"build:affected": "turbo run build --filter=...[origin/main] --concurrency=4 --log-order=grouped",
-		"build:yantrix": "turbo run build --filter=@yantrix/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
-		"build:rest": "turbo run build --filter=./packages/* --filter=!@yantrix/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
-		"build:examples": "turbo run build --filter=./examples/* --filter=./comparison/** --concurrency=4 --log-order=grouped --output-logs=errors-only",
-		"generate:packages": "turbo run generate --filter=./packages/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
-		"generate:affected": "turbo run generate --filter=...[origin/main] --concurrency=4 --log-order=grouped",
-		"clean": "rimraf --glob **/dist **/coverage **/*_generated.*",
-		"format": "turbo run format --concurrency=4 --log-order=grouped",
-		"format:affected": "turbo run format --filter=...[origin/main] --concurrency=4 --log-order=grouped",
-		"lint": "turbo run lint --concurrency=4 --log-order=grouped",
-		"lint:affected": "turbo run lint --filter=...[origin/main] --concurrency=4 --log-order=grouped",
-		"test": "node tools/test.mjs && pnpm run summary:test",
-		"test:affected": "turbo run test --filter=...[origin/main] --concurrency=4 --log-order=grouped",
-		"summary:build": "node tools/build-summary.mjs",
-		"summary:test": "node tools/test-summary.mjs",
-		"updeps": "pnpx taze latest --interactive --recursive --write --install",
-		"create-package": "turbo gen create-package --args",
-		"precommit:fix": "pnpm --filter @yantrix/yantrix-parser build",
-		"prepare": "is-ci || husky",
-		"release": "bumpp -r"
-	},
-	"dependencies": {
-		"turbo": "^2.1.2",
-		"vitest": "^2.1.1"
-	},
-	"devDependencies": {
-		"@antfu/eslint-config": "^3.7.3",
-		"@commitlint/cli": "^19.5.0",
-		"@commitlint/config-conventional": "^19.5.0",
-		"@commitlint/types": "^19.5.0",
-		"@types/node": "^22.7.3",
-		"@vitest/coverage-istanbul": "^2.1.1",
-		"bumpp": "^9.6.1",
-		"cross-env": "^7.0.3",
-		"eslint": "^9.11.1",
-		"eslint-formatter-compact": "^8.40.0",
-		"husky": "^9.1.6",
-		"is-ci": "^3.0.1",
-		"listr2": "^8.2.5",
-		"lint-staged": "^15.2.10",
-		"rimraf": "^6.0.1",
-		"tsup": "^8.3.0",
-		"typescript": "^5.6.2",
-		"vitest-markdown-reporter": "^0.1.2"
-	},
-	"pnpm": {
-		"peerDependencyRules": {
-			"ignoreMissing": [
-				"*"
-			]
-		}
-	}
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@yantrix/monorepo",
+  "type": "module",
+  "version": "0.4.5",
+  "private": true,
+  "packageManager": "pnpm@9.11.0",
+  "description": "Event-Driven FSM Framework",
+  "contributors": [
+    "Alexander Uskov <https://github.com/octaharon>",
+    "Noktomezo <https://github.com/Noktomezo>",
+    "Denis Perevertov <https://github.com/denis-perevertov>",
+    "Nikita Beliaew <https://github.com/Nekitech>",
+    "Sin <https://github.com/Volshebnik09>",
+    "Alexey Geraim <https://github.com/obl1v1onZzz>",
+    "Саша <https://github.com/22sasha>"
+  ],
+  "license": "MIT",
+  "homepage": "https://tfcp68.github.io/yantrix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tfcp68/yantrix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tfcp68/yantrix/issues"
+  },
+  "keywords": [
+    "fsm",
+    "typescript",
+    "state",
+    "management",
+    "eda",
+    "uml",
+    "mermaidjs"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node tools/build.mjs && pnpm run summary:build",
+    "build:affected": "turbo run build --filter=...[origin/main] --concurrency=4 --log-order=grouped",
+    "build:yantrix": "turbo run build --filter=@yantrix/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
+    "build:rest": "turbo run build --filter=./packages/* --filter=!@yantrix/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
+    "build:examples": "turbo run build --filter=./examples/* --filter=./comparison/** --concurrency=4 --log-order=grouped --output-logs=errors-only",
+    "generate:packages": "turbo run generate --filter=./packages/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
+    "generate:affected": "turbo run generate --filter=...[origin/main] --concurrency=4 --log-order=grouped",
+    "clean": "rimraf --glob **/dist **/coverage **/*_generated.*",
+    "format": "turbo run format --concurrency=4 --log-order=grouped",
+    "format:affected": "turbo run format --filter=...[origin/main] --concurrency=4 --log-order=grouped",
+    "lint": "turbo run lint --concurrency=4 --log-order=grouped",
+    "lint:affected": "turbo run lint --filter=...[origin/main] --concurrency=4 --log-order=grouped",
+    "test": "node tools/test.mjs && pnpm run summary:test",
+    "test:affected": "turbo run test --filter=...[origin/main] --concurrency=4 --log-order=grouped",
+    "summary:build": "node tools/build-summary.mjs",
+    "summary:test": "node tools/test-summary.mjs",
+    "updeps": "pnpx taze latest --interactive --recursive --write --install",
+    "create-package": "turbo gen create-package --args",
+    "precommit:fix": "pnpm --filter @yantrix/yantrix-parser build",
+    "prepare": "is-ci || husky",
+    "release": "bumpp -r"
+  },
+  "dependencies": {
+    "turbo": "^2.1.2",
+    "vitest": "^2.1.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.7.3",
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/types": "^19.5.0",
+    "@types/node": "^22.7.3",
+    "@vitest/coverage-istanbul": "^2.1.1",
+    "bumpp": "^9.6.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.11.1",
+    "eslint-formatter-compact": "^8.40.0",
+    "husky": "^9.1.6",
+    "is-ci": "^3.0.1",
+    "listr2": "^8.2.5",
+    "lint-staged": "^15.2.10",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2",
+    "vitest-markdown-reporter": "^0.1.2"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "*"
+      ]
+    }
+  }
 }

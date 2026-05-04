@@ -1,53 +1,52 @@
 {
-	"name": "@yantrix/redux",
-	"type": "module",
-	"version": "0.4.4",
-	"description": "Redux integration for Yantrix framework",
-	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
-	"license": "MIT",
-	"homepage": "https://tfcp68.github.io/yantrix",
-	"repository": {
-		"directory": "packages/redux",
-		"type": "git",
-		"url": "git+https://github.com/tfcp68/yantrix.git"
-	},
-	"bugs": {
-		"url": "https://github.com/tfcp68/yantrix/issues"
-	},
-	"keywords": [
-		"FSM",
-		"Redux",
-		"Yantrix"
-	],
-	"exports": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
-	},
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"files": [
-		"dist"
-	],
-	"scripts": {
-		"dev": "npm run build && node dist/index.js",
-		"build": "tsc --noEmit && tsup",
-		"format": "eslint --fix .",
-		"lint": "eslint .",
-		"test": "vitest run --outputFile=../../test_reports/redux.md",
-		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
-	},
-	"directories": {
-		"lib": "src",
-		"test": "__tests__"
-	},
-	"dependencies": {
-		"@reduxjs/toolkit": "^2.2.7",
-		"@yantrix/automata": "workspace:^",
-		"@yantrix/cli": "workspace:^",
-		"@yantrix/codegen": "workspace:^",
-		"@yantrix/core": "workspace:^",
-		"@yantrix/functions": "workspace:^",
-		"@yantrix/utils": "workspace:^"
-
-	}
+  "name": "@yantrix/redux",
+  "type": "module",
+  "version": "0.4.5",
+  "description": "Redux integration for Yantrix framework",
+  "author": "Alexander Uskov <neolord.tmb@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://tfcp68.github.io/yantrix",
+  "repository": {
+    "directory": "packages/redux",
+    "type": "git",
+    "url": "git+https://github.com/tfcp68/yantrix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tfcp68/yantrix/issues"
+  },
+  "keywords": [
+    "FSM",
+    "Redux",
+    "Yantrix"
+  ],
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "default": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "npm run build && node dist/index.js",
+    "build": "tsc --noEmit && tsup",
+    "format": "eslint --fix .",
+    "lint": "eslint .",
+    "test": "vitest run --outputFile=../../test_reports/redux.md",
+    "create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
+  },
+  "directories": {
+    "lib": "src",
+    "test": "__tests__"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.2.7",
+    "@yantrix/automata": "workspace:^",
+    "@yantrix/cli": "workspace:^",
+    "@yantrix/codegen": "workspace:^",
+    "@yantrix/core": "workspace:^",
+    "@yantrix/functions": "workspace:^",
+    "@yantrix/utils": "workspace:^"
+  }
 }
