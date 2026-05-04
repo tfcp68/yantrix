@@ -2,6 +2,9 @@
 
 ## Table of Contents
 
+- [v0.4.5](#v045)
+  - [New Features](#new-features-7)
+  - [Other Changes](#other-changes-7)
 - [v0.4.4](#v044)
   - [New Features](#new-features-6)
   - [Other Changes](#other-changes-6)
@@ -33,6 +36,36 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.5]
+
+This patch adds three new codegen dialects (`PureJavaScript`, `PureTypeScript`, `Python`), a universal cross-dialect behavioral test suite, and a comprehensive typing cleanup across all generated TypeScript output. No breaking changes are introduced; existing `JavaScript` and `TypeScript` dialect consumers are unaffected.
+
+### New Features
+
+#### PureJavaScript and PureTypeScript dialects
+
+`@yantrix/codegen` now exposes `ModuleNames.PureJavaScript` and `ModuleNames.PureTypeScript`. Both emit self-contained output with zero runtime imports from `@yantrix/core` — built-in functions are bundled inline at build time via `scripts/buildBuiltins.mjs`. PureTypeScript additionally emits a `.d.ts` declaration file alongside the `.js` module. The factory pattern (`create<ClassName>()`) replaces the class pattern; the returned instance is a plain object with `dispatch`, `getContext`, `state`, `lastAction`, `currentCycle`, `pause`, `resume`, `enable`, `disable`, and `destroy` accessors. Module-level helpers `getState`, `getAction`, `createAction`, `hasState`, `getEpoch`, `incrementEpoch`, and `createEventBus` are exported.
+
+#### Python dialect
+
+`ModuleNames.Python` generates a single self-contained `.py` file backed by `pydash`. Built-in functions are concatenated from `packages/functions/src/python/` at build time. The factory `create_<snake_name>()` returns a dict of lambda accessors. Module-level exports mirror the JS/TS API in snake_case: `states_dictionary`, `actions_dictionary`, `get_state`, `get_action`, `create_action`, `has_state`, `get_epoch`. Context reducers and `_get_default_context` are compiled from Yantrix notes. Inject `.py` functions are supported; forks/events/CoreLoop are not.
+
+#### Universal behavioral test suite (`shared.test.ts`)
+
+`packages/codegen-tests` gains `src/shared.test.ts`, which runs an identical 3-state circular automata through all five dialects and asserts the same state-sequence and dispatch behavior. PureTypeScript output is now saved into a subdirectory to preserve relative `./runtime.js` imports. Python tests run in a `describeExec` block guarded by `pythonCmd != null`. New fixture helpers: `behaviorSuite.ts` (`TBehaviorSpec`, `runBehaviorSuite`, `wrapClassFactory`, `wrapFunctoryFactory`) and updated `utils.ts` (`TFSMAdapter`, `IFSMInstanceBase`, `wrapInstance`, `generateAndSaveFiles`).
+
+#### TypeScript strict-mode typing cleanup
+
+All generated TypeScript output now satisfies `strict`, `noUnusedLocals`, `noUnusedParameters`, and `noUncheckedIndexedAccess`. Key changes: reducer parameters renamed to `_payload`, `_functionDictionary`, `_automata` (body uses module-level `functionDictionary`); `void` suppression replaced with `export` for module-level helpers; unsafe `!` assertions on state replaced with explicit null guards; `as any` on `FinalizationRegistry` replaced with intersection cast; event bus handler typed via `Parameters<BasicEventBus['subscribe']>[1]` contextual inference; `TStateId`/`TActionId` are named `number` aliases (not branded types).
+
+### Other Changes
+
+- `chore(hooks)`: pre-commit hook now only builds and tests packages with changed files; post-merge hook wired up
+- `docs(codegen)`: patching guide updated with current strict-mode patterns; `void`/`!`/`as any` rows replaced with `export`/`??`/null-guard/intersection-cast/`Parameters<>` equivalents; new `functionDictionary` vs `_functionDictionary` sub-section added
+- `docs(codegen)`: concept doc (`500_codegen.md`) updated — reducer signatures, `getDefaultContext` signature, and feature support table ("Opaque ID types" → "Named ID type aliases") reflect actual generated output
 
 ---
 
