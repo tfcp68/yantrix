@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v0.4.6](#v046)
+  - [Other Changes](#other-changes-8)
 - [v0.4.5](#v045)
   - [New Features](#new-features-7)
   - [Other Changes](#other-changes-7)
@@ -36,6 +38,17 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.6]
+
+This patch releases two fixes for `@yantrix/codegen` and `@yantrix/codegen-tests`. `@yantrix/codegen` gains an opt-in `beautify` flag (exposed on `IGenerateOptions` and via `--beautify` on the CLI) that post-processes generated output through Prettier for JS/TS dialects and ruff for Python, eliminating the mixed-tabs-and-spaces ESLint errors previously produced in example projects. The same release corrects a long-standing parser misconfiguration where the `PureTypeScript` dialect was formatted with Prettier's `babel` parser instead of `typescript`. No breaking changes are introduced.
+
+### Other Changes
+
+- `fix(codegen-tests)`: corrected `.d.ts` test path in `pureTypeScript.test.ts` — `generateAndSaveFiles` writes to `generated/pts_dts/TrafficLightDTS.d.ts` (subdirectory) but the 8 affected tests constructed a flat path `generated/pts_dts_TrafficLightDTS.d.ts`; CI always failed with ENOENT because the flat artifact is never generated from scratch
+- `docs(codegen)`: Python `forks/predicates` row in the feature support table corrected from ❌ to ✅; the `forks/module` template has been included in `python/module.eta` since v0.4.5
 
 ---
 
