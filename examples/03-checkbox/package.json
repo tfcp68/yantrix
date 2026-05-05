@@ -10,7 +10,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"preview": "vite preview",
-		"generate": "yantrix codegen ./src/diagrams/checkbox.mermaid -l JavaScript -o src/generated/checkbox_controller.js -c Checkbox"
+		"generate": "yantrix codegen ./src/diagrams/checkbox.mermaid -l JavaScript -o src/generated/checkbox_controller.js -c Checkbox --beautify"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.1.0",

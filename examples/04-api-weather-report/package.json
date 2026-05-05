@@ -15,7 +15,7 @@
 		"preview": "vite preview",
 		"lint": "eslint .",
 		"format": "eslint --fix .",
-		"generate": "yantrix codegen ./src/diagrams/WeatherReport.mermaid -l TypeScript -o src/generated/WeatherReportAutomata.ts -c WeatherReportAutomata"
+		"generate": "yantrix codegen ./src/diagrams/WeatherReport.mermaid -l TypeScript -o src/generated/WeatherReportAutomata.ts -c WeatherReportAutomata --beautify"
 	},
 	"devDependencies": {
 		"@types/node": "^22.7.3",

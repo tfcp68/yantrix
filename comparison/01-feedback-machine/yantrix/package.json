@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "generate": "yantrix codegen ./src/diagrams/feedback-machine.mermaid -l TypeScript -o src/generated/FeedbackMachineAutomata.ts -c FeedbackMachineAutomata",
+    "generate": "yantrix codegen ./src/diagrams/feedback-machine.mermaid -l TypeScript -o src/generated/FeedbackMachineAutomata.ts -c FeedbackMachineAutomata --beautify",
     "prebuild": "pnpm run generate",
     "build": "tsc -b && vite build",
     "pretest": "pnpm run generate",
