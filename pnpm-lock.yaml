@@ -475,6 +475,9 @@ importers:
       prettier:
         specifier: ^3.5.3
         version: 3.8.3
+      ruff:
+        specifier: '>=0.4'
+        version: 1.5.4
     devDependencies:
       vite:
         specifier: ^5.4.11
@@ -2954,6 +2957,9 @@ packages:
   elliptic@6.6.1:
     resolution: {integrity: sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==}
 
+  emitify@3.1.0:
+    resolution: {integrity: sha512-pucUCyaeC8TJoRXniRiNb81Odoqlf2lMaFARA8tci2PaORFIeXBoIQHEzuA3dxPsU1l7AVb7xmFra4iJwVU8wg==}
+
   emoji-regex@10.4.0:
     resolution: {integrity: sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw==}
 
@@ -4993,6 +4999,9 @@ packages:
 
   rrweb-cssom@0.7.1:
     resolution: {integrity: sha512-TrEMa7JGdVm0UThDJSx7ddw5nVm3UJS9o9CCIZ72B1vSyEZoziDqBYP3XIoi/12lKrJR8rE3jeFHMok2F/Mnsg==}
+
+  ruff@1.5.4:
+    resolution: {integrity: sha512-42kBjp78DFDAgZw8ywPpB3bo0oZrSifukCRMB49dnFeGPbg1s4jdtXZug06mkxue1JrD3dP/ng2mxPYg7gx3Jw==}
 
   run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
@@ -8319,6 +8328,8 @@ snapshots:
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
 
+  emitify@3.1.0: {}
+
   emoji-regex@10.4.0: {}
 
   emoji-regex@8.0.0: {}
@@ -10812,6 +10823,10 @@ snapshots:
       points-on-path: 0.2.1
 
   rrweb-cssom@0.7.1: {}
+
+  ruff@1.5.4:
+    dependencies:
+      emitify: 3.1.0
 
   run-async@2.4.1: {}
 

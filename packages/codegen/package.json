@@ -67,6 +67,14 @@
 		"lint": "eslint .",
 		"test": "vitest run --outputFile=../../test_reports/codegen.md"
 	},
+	"peerDependencies": {
+		"ruff": ">=0.4"
+	},
+	"peerDependenciesMeta": {
+		"ruff": {
+			"optional": true
+		}
+	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/functions": "workspace:^",
@@ -75,14 +83,6 @@
 		"@yantrix/yantrix-parser": "workspace:^",
 		"eta": "^4.5.1",
 		"prettier": "^3.5.3"
-	},
-	"peerDependencies": {
-		"ruff": ">=0.4"
-	},
-	"peerDependenciesMeta": {
-		"ruff": {
-			"optional": true
-		}
 	},
 	"devDependencies": {
 		"vite": "^5.4.11"
