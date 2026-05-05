@@ -10,39 +10,10 @@
 
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { YantrixParser } from '@yantrix/yantrix-parser';
-import prettier from 'prettier';
 import { CodegenCreator } from './core/Codegen.js';
 import { ModuleNames } from './core/modules/index.js';
+import { formatByDialect, formatByFilename } from './postprocess.js';
 import { IGenerateOptions, TCodegenFiles, TStateIncludingNotes } from './types/common.js';
-
-type Tprettier = 'babel' | 'typescript';
-
-const langParserMap: Partial<Record<string, Tprettier>> = {
-	[ModuleNames.JavaScript]: 'babel',
-	[ModuleNames.TypeScript]: 'typescript',
-	[ModuleNames.PureJavaScript]: 'babel',
-	[ModuleNames.PureTypeScript]: 'babel',
-};
-
-const extParserMap: Record<string, Tprettier> = {
-	'.js': 'babel',
-	'.ts': 'typescript',
-};
-
-async function formatCode(code: string, parser: Tprettier): Promise<string> {
-	try {
-		return await prettier.format(code, { parser });
-	} catch {
-		return code;
-	}
-}
-
-function parserForFilename(filename: string): Tprettier | null {
-	if (filename.endsWith('.d.ts')) return 'typescript';
-	const dot = filename.lastIndexOf('.');
-	if (dot === -1) return null;
-	return extParserMap[filename.slice(dot)] ?? null;
-}
 
 export * from './core/modules/index.js';
 export * from './types/common.js';
@@ -93,8 +64,8 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 	});
 
 	const code = codegen.getCode(options);
-	const parser = langParserMap[options.outLang ?? ModuleNames.TypeScript];
-	return parser ? formatCode(code, parser) : Promise.resolve(code);
+	const dialect = options.outLang ?? ModuleNames.TypeScript;
+	return options.beautify ? formatByDialect(code, dialect) : Promise.resolve(code);
 }
 
 /**
@@ -149,10 +120,11 @@ export async function generateAutomataFiles(diagram: TStateDiagramMatrix, option
 		rawFiles = { [`${options.className}.${ext}`]: codegen.getCode(options) };
 	}
 
+	if (!options.beautify) return rawFiles;
+
 	const formatted: TCodegenFiles = {};
 	for (const [filename, content] of Object.entries(rawFiles)) {
-		const parser = parserForFilename(filename);
-		formatted[filename] = parser ? await formatCode(content, parser) : content;
+		formatted[filename] = await formatByFilename(content, filename);
 	}
 	return formatted;
 }

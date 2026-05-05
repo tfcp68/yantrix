@@ -8,7 +8,7 @@
 		"prebuild": "pnpm run generate",
 		"build": "tsc --noEmit && vite build",
 		"preview": "vite preview",
-		"generate": "yantrix codegen ./src/diagrams/ClockAutomata.mermaid -l TypeScript -o src/generated/ClockAutomata.ts -c ClockAutomata",
+		"generate": "yantrix codegen ./src/diagrams/ClockAutomata.mermaid -l TypeScript -o src/generated/ClockAutomata.ts -c ClockAutomata --beautify",
 		"lint": "eslint .",
 		"format": "eslint --fix ."
 	},

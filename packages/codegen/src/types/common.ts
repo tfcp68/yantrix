@@ -43,6 +43,8 @@ export interface IGenerateOptions {
 	 */
 	constants?: string;
 	functionFilePath?: string;
+	/** Format generated code using Prettier (JS/TS) or ruff (Python). */
+	beautify?: boolean;
 }
 
 export interface ITypedObjectProps {

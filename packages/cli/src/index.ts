@@ -172,6 +172,11 @@ yargs(hideBin(process.argv))
 					alias: 'i',
 					describe: 'Enter interactive mode',
 					type: 'boolean',
+				})
+				.option('beautify', {
+					describe: 'Format generated code (Prettier for JS/TS, ruff for Python)',
+					type: 'boolean',
+					default: false,
 				});
 		},
 		async (argv) => {

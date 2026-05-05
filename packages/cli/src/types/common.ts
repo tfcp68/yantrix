@@ -30,6 +30,8 @@ export interface IArgv {
 	'interactive'?: boolean;
 	/** Evaluate the given state diagram. */
 	'eval'?: string;
+	/** Format generated code using Prettier (JS/TS) or ruff (Python). */
+	'beautify'?: boolean;
 	/** Additional arguments. */
 	'_': (string | number)[];
 	'$0': string;

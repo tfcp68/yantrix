@@ -76,6 +76,14 @@
 		"eta": "^4.5.1",
 		"prettier": "^3.5.3"
 	},
+	"peerDependencies": {
+		"ruff": ">=0.4"
+	},
+	"peerDependenciesMeta": {
+		"ruff": {
+			"optional": true
+		}
+	},
 	"devDependencies": {
 		"vite": "^5.4.11"
 	},

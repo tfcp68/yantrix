@@ -1156,7 +1156,7 @@ python: {
 | `define/fn(args) => expr` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Inject `.ts`/`.js` functions | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Inject `.py` functions | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Forks / predicates | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Forks / predicates | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `subscribe/EventName` | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `emit/EventName` | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `createEventBus()` factory | ✅ | ✅ | ✅ | ✅ | ❌ |
