@@ -144,37 +144,37 @@ describe('pure-typescript codegen - .d.ts declarations', async () => {
 	);
 
 	it('generates a .d.ts file', () => {
-		const dtsPath = path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts');
+		const dtsPath = path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts');
 		expect(fs.existsSync(dtsPath)).toBe(true);
 	});
 
 	it('.d.ts exports statesDictionary', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('export declare const statesDictionary');
 	});
 
 	it('.d.ts exports actionsDictionary', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('export declare const actionsDictionary');
 	});
 
 	it('.d.ts exports factory function', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('export declare function createTrafficLightDTS');
 	});
 
 	it('.d.ts exports instance type', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('TTrafficLightDTSInstance');
 	});
 
 	it('.d.ts has default export', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('export default');
 	});
 
 	it('.d.ts exports helper functions', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('export declare function getState');
 		expect(dts).toContain('export declare function getAction');
 		expect(dts).toContain('export declare function createAction');
@@ -182,7 +182,7 @@ describe('pure-typescript codegen - .d.ts declarations', async () => {
 	});
 
 	it('.d.ts exports createEventBus', () => {
-		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts_TrafficLightDTS.d.ts'), 'utf8');
+		const dts = fs.readFileSync(path.join(generatedDir, 'pts_dts', 'TrafficLightDTS.d.ts'), 'utf8');
 		expect(dts).toContain('export declare function createEventBus');
 	});
 });
