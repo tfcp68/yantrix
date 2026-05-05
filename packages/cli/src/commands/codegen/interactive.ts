@@ -108,6 +108,10 @@ export async function interactive() {
 
 			return cn;
 		},
+		beautify: () => p.confirm({
+			message: 'Format generated code? (Prettier for JS/TS, ruff for Python)',
+			initialValue: false,
+		}),
 		constants: async () => {
 			const choice = await p.select({
 				initialValue: 'skip',
@@ -222,6 +226,7 @@ export async function interactive() {
 		outLang: <TLanguage>results.language,
 		className: results.className,
 		constants: results.constants,
+		beautify: results.beautify === true,
 	}).catch((err) => {
 		const msg1 = 'An error occurred while generating Automata';
 		const msg2 = err instanceof Error ? `\n${err.message}` : '';
@@ -231,7 +236,8 @@ export async function interactive() {
 
 	spinner.message(`Writing Automata to file ${results.outfile}...`);
 
-	const writeable = `${DISABLE_FLAGS.join('\n')}\n${automata}`;
+	const isJsLike = ['JavaScript', 'TypeScript', 'PureJavaScript', 'PureTypeScript'].includes(results.language as string);
+	const writeable = isJsLike ? `${DISABLE_FLAGS.join('\n')}\n\n${automata}` : automata;
 
 	try {
 		if (!existsSync(dirname(results.outfile))) mkdirSync(dirname(results.outfile), { recursive: true });

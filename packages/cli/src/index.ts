@@ -55,15 +55,19 @@ Positionals:
                                                                         [string]
 
 Options:
-  -l, --language      Output file language. Currently supported: javascript, typ
-                      escript, python, java                             [string]
+  -l, --language      Output file language. Currently supported: javascript,
+                      typescript, pure-javascript, pure-typescript, python, java
+                                                                        [string]
   -o, --outfile       Output Automata file path                         [string]
   -c, --className     Name of the generated Automata class              [string]
   -j, --constants     Stringified JSON with constants to be used in generated Au
                       tomata                                            [string]
   -J, --constantFile  Path to JSON file with constants to be used in generated A
                       utomata                                           [string]
-  -e, --eval          Evaluate the given state diagram                  [string]
+  -e, --eval          Provide diagram text inline instead of reading a file
+                                                                        [string]
+      --beautify      Format generated code (Prettier for JS/TS, ruff for Py)
+                                                                       [boolean]
       --verbose       Verbose mode                                     [boolean]
   -i, --interactive   Enter interactive mode                           [boolean]
   -h, --help          Show help                                        [boolean]
@@ -161,7 +165,7 @@ yargs(hideBin(process.argv))
 				})
 				.option('eval', {
 					alias: 'e',
-					describe: 'Evaluate the given state diagram',
+					describe: 'Provide diagram text inline instead of reading a file',
 					type: 'string',
 				})
 				.option('verbose', {

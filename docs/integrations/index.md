@@ -14,6 +14,14 @@ Yantrix is supposed to be used as an intermediary tool that provides your more c
 See [Language Support](100_language_support.html) for details.
 For the generated API of pure dialects and Python, see [Pure Dialects & Python API](160_pureAPI.html).
 
+## Tooling
+
+| Tool | Description |
+| ---- | ----------- |
+| [CLI](050_cli.html) | Command-line code generation via `yantrix codegen` |
+
+## Library integrations
+
 The bundle version comes with out-of-box integrations with popular libraries:
 
 | Library                 | Language(s)            | Readiness | Features                                                 |
