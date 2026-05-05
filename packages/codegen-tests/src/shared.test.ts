@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
 import { describe, expect, it } from 'vitest';
-import { runBehaviorSuite, TBehaviorSpec, wrapClassFactory, wrapFunctoryFactory } from './fixtures/behaviorSuite.js';
+import { runBehaviorSuite, TBehaviorSpec, wrapFunctoryFactory } from './fixtures/behaviorSuite.js';
 import { generateAndSave, generateAndSaveFiles, IFSMInstanceBase, wrapInstance } from './fixtures/utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));

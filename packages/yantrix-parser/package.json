@@ -1,91 +1,91 @@
 {
-  "$schema": "https://json.schemastore.org/package.json",
-  "name": "@yantrix/yantrix-parser",
-  "type": "module",
-  "version": "0.4.5",
-  "description": "DSL parser for Yantrix framework",
-  "contributors": [
-    "Alexander Uskov <https://github.com/octaharon>",
-    "Noktomezo <https://github.com/Noktomezo>",
-    "Denis Perevertov <https://github.com/denis-perevertov>",
-    "Nikita Beliaew <https://github.com/Nekitech>",
-    "Sin <https://github.com/Volshebnik09>",
-    "Alexey Geraim <https://github.com/obl1v1onZzz>",
-    "Саша <https://github.com/22sasha>"
-  ],
-  "license": "MIT",
-  "homepage": "https://tfcp68.github.io/yantrix",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tfcp68/yantrix.git",
-    "directory": "packages/yantrix-parser"
-  },
-  "bugs": {
-    "url": "https://github.com/tfcp68/yantrix/issues"
-  },
-  "keywords": [
-    "DSL",
-    "langium",
-    "FSM",
-    "Yantrix"
-  ],
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "directories": {
-    "lib": "src",
-    "test": "__tests__"
-  },
-  "files": [
-    "dist"
-  ],
-  "engines": {
-    "node": ">=18"
-  },
-  "scripts": {
-    "build": "pnpm langium:generate && tsc --noEmit && tsup",
-    "langium:generate": "langium generate && perl -pi -e 's/\\r//' src/generated/*.ts && eslint --fix --no-ignore src/generated/*.ts",
-    "format": "eslint --fix .",
-    "lint": "eslint .",
-    "test": "vitest run --outputFile=../../test_reports/yantrix-parser.md"
-  },
-  "dependencies": {
-    "@yantrix/utils": "workspace:^",
-    "langium": "^3.2.0",
-    "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.12"
-  },
-  "devDependencies": {
-    "langium-cli": "^3.2.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
-  "langium": {
-    "projectName": "Yantrix",
-    "languages": [
-      {
-        "id": "yantrix",
-        "grammar": "src/grammar/yantrix.langium",
-        "fileExtensions": [
-          ".yantrix",
-          ".yx"
-        ]
-      }
-    ],
-    "out": "src/generated"
-  }
+	"$schema": "https://json.schemastore.org/package.json",
+	"name": "@yantrix/yantrix-parser",
+	"type": "module",
+	"version": "0.4.5",
+	"description": "DSL parser for Yantrix framework",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/yantrix-parser"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"DSL",
+		"langium",
+		"FSM",
+		"Yantrix"
+	],
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"build": "pnpm langium:generate && tsc --noEmit && tsup",
+		"langium:generate": "langium generate && perl -pi -e 's/\\r//' src/generated/*.ts && eslint --fix --no-ignore src/generated/*.ts",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
+		"test": "vitest run --outputFile=../../test_reports/yantrix-parser.md"
+	},
+	"dependencies": {
+		"@yantrix/utils": "workspace:^",
+		"langium": "^3.2.0",
+		"vscode-languageserver": "^9.0.1",
+		"vscode-languageserver-textdocument": "^1.0.12"
+	},
+	"devDependencies": {
+		"langium-cli": "^3.2.0"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"langium": {
+		"projectName": "Yantrix",
+		"languages": [
+			{
+				"id": "yantrix",
+				"grammar": "src/grammar/yantrix.langium",
+				"fileExtensions": [
+					".yantrix",
+					".yx"
+				]
+			}
+		],
+		"out": "src/generated"
+	}
 }
