@@ -69,3 +69,12 @@ When fixing TypeScript errors in generated files, read
 [Patching Codegen Dialects](06_patching_codegen_dialects.html) first. It covers the `hasTypes`
 pipeline, the expression serializer chain, strict-mode suppression patterns, turbo cache
 cascade behavior, and the rule against patching core libraries to fix generated output.
+
+## Codegen Internals
+
+For architecture diagrams and dialect-specific implementation references, see:
+
+- [Codegen Architecture Overview](07_codegen_overview.html) - Dialect comparison and the full code generation pipeline
+- [JS / TS Dialect Template Reference](08_codegen_js_ts.html) - Template hierarchy, `it` object schema, include order, and reducer compilation
+- [PureJS / PureTS Dialect Template Reference](09_codegen_pure.html) - Self-contained factory output: template steps, module-level exports, and instance shape
+- [Python Dialect Template Reference](10_codegen_python.html) - `it.python` object, template steps, module-level exports, and instance shape
