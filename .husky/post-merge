@@ -1,0 +1,12 @@
+CHANGED=$(git diff --name-only ORIG_HEAD HEAD)
+
+[ -z "$CHANGED" ] && exit 0
+
+if echo "$CHANGED" | grep -qE '(^|/)package\.json$|^pnpm-lock\.yaml$'; then
+  pnpm install --frozen-lockfile
+fi
+
+if echo "$CHANGED" | grep -qvE '\.(md|mdx)$|^docs/|^vitepress/'; then
+  pnpm build
+  pnpm test:affected
+fi

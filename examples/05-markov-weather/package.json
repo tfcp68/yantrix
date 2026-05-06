@@ -1,0 +1,20 @@
+{
+  "name": "05-markov-weather",
+  "type": "module",
+  "version": "0.4.6",
+  "private": true,
+  "description": "Markov chain weather simulation using Yantrix Python codegen",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "scripts": {
+    "learn": "python src/learn.py src/data/sample_events.csv --decay-time 86400000 -o src/data/matrix.json",
+    "build": "python src/builder.py src/data/matrix.json -o src/diagrams/WeatherMarkov.mermaid",
+    "generate": "yantrix codegen ./src/diagrams/WeatherMarkov.mermaid -l Python -o src/generated/weather_markov_automata.py -c WeatherMarkovAutomata --beautify",
+    "start": "python src/main.py",
+    "start:steps": "python src/main.py 50"
+  },
+  "devDependencies": {
+    "@yantrix/cli": "workspace:^"
+  }
+}

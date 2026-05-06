@@ -1,704 +1,648 @@
-// eslint-disable-next-line ts/ban-ts-comment
-// @ts-nocheck
-// TODO: This file needs to be updated to work with the new Langium AST
-import { BasicActionDictionary, BasicStateDictionary } from '@yantrix/automata';
-import { StartState, TDiagramAction } from '@yantrix/mermaid-parser';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { StartState } from '@yantrix/mermaid-parser';
 import {
 	ContextStatement,
-	DefineExpression,
+	DataObject,
 	defineExpressionIsFunction,
 	DefineFunction,
+	FunctionCall,
 	getContextStatements,
 	getDefineStatements,
+	getEmitStatements,
+	getFunctionArgs,
+	getFunctionName,
+	getNumberValue,
 	getReferenceIdentifier,
 	getReferenceType,
+	getStringValue,
+	getSubscribeStatements,
 	hasInitialState,
 	hasReducer,
 	isConstant,
 	isDataObject,
+	isFunctionCall,
+	KeyItem,
+	MAX_NESTED_FUNC_LEVEL,
+	NumberLiteral,
+	RawKeyItem,
+	StringLiteral,
 } from '@yantrix/yantrix-parser';
-import { TConstants, TExpressionRecord } from '../../types/common';
-import { ICodegen, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
-import { PythonTemplate } from '../../utils/Python.js';
-// import { replaceFileContents } from '../../utils/utils.js';
-import { fillDictionaries, pathRecord } from '../shared.js';
-import { ModuleNames } from './index';
+import { ByPassAction } from '../../constants.js';
+import { ICodegen, TConstants, TExpressionRecord, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
+import { eta, etaViewsPath } from '../eta.js';
+import { fillDictionaries, getStatesByPass } from '../shared.js';
+import { ModuleNames } from './index.js';
+import { getExpressionValue } from './JavaScript/JavaScriptCompiler/expressions/core.js';
+import { getPredicates } from './JavaScript/JavaScriptCompiler/forks/core.js';
 
-function getReferenceString(path: string, identifier: string) {
-	return `${path}['${identifier}']`;
+const pythonPathRecord: Record<string, string> = {
+	constant: 'constant',
+	context: 'prev_context',
+	payload: 'payload',
+};
+
+const YANTRIX_TO_PYTHON: Record<string, string> = {
+	if: '_if',
+	case: '_case',
+	coalesce: 'coalesce',
+	and: 'and_',
+	or: 'or_',
+	none: 'none',
+	not: 'not_',
+	isGreater: 'is_greater',
+	isGreaterOrEqual: 'is_greater_or_equal',
+	isLess: 'is_less',
+	isLessOrEqual: 'is_less_or_equal',
+	isEven: 'is_even',
+	isOdd: 'is_odd',
+	isInteger: 'is_integer',
+	isNegative: 'is_negative',
+	isPositive: 'is_positive',
+	isNull: 'is_none',
+	isEqual: 'is_equal',
+	has: 'has',
+	add: 'add',
+	diff: 'diff',
+	mult: 'mult',
+	div: 'div',
+	pow: 'pow_',
+	inc: 'inc',
+	dec: 'dec',
+	neg: 'neg',
+	inv: 'inv',
+	mod: 'mod',
+	trunc: 'trunc',
+	ceil: 'ceil',
+	round: 'round_',
+	sin: 'sin',
+	cos: 'cos',
+	sqrt: 'sqrt',
+	log: 'log',
+	ln: 'ln',
+	lg: 'lg',
+	deg: 'deg',
+	rad: 'rad',
+	len: 'len_',
+	left: 'left',
+	right: 'right',
+	indexOf: 'index_of',
+	reverse: 'reverse_',
+	sort: 'sort',
+	lookup: 'lookup',
+	repeat: 'repeat',
+	substr: 'substr',
+	pluck: 'pluck',
+	filterBy: 'filter_by',
+	_random: '_random',
+};
+
+// ---------------------------------------------------------------------------
+// Builtin filtering
+// ---------------------------------------------------------------------------
+
+function filterBuiltins(raw: string, used: Set<string>): string {
+	const lines = raw.split('\n');
+	const result: string[] = [];
+	let inBlock = false;
+	let blockName = '';
+	let preambleDone = false;
+
+	for (const line of lines) {
+		const beginMatch = line.match(/^# @@begin: (.+)$/);
+		const endMatch = line.match(/^# @@end: (.+)$/);
+
+		if (beginMatch) {
+			blockName = beginMatch[1]!;
+			inBlock = true;
+			preambleDone = true;
+			if (used.has(blockName)) {
+				result.push(line);
+			}
+			continue;
+		}
+
+		if (endMatch) {
+			if (used.has(blockName)) {
+				result.push(line);
+				result.push('');
+			}
+			inBlock = false;
+			blockName = '';
+			continue;
+		}
+
+		if (!preambleDone) {
+			result.push(line);
+		} else if (inBlock && used.has(blockName)) {
+			result.push(line);
+		}
+	}
+
+	return result.join('\n');
 }
 
-function getFunctionFromDictionary(name: string) {
-	return `functionDictionary.get('${name}')`;
+// ---------------------------------------------------------------------------
+// Expression-level serializers (produce Python expression strings)
+// ---------------------------------------------------------------------------
+
+function pyNull(path: string, identifier: string, fallback: string | null): string {
+	const val = `${path}.get('${identifier}')`;
+	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
+	return `(${val} if ${check} else ${fallback ?? 'None'})`;
 }
 
-function getDefaultPropertyContext(
-	path: string,
-	identifier: string,
-	expression?: string,
-) {
-	const fullPath = getReferenceString(path, identifier);
-
-	return `(lambda: ${path} is not None and ${fullPath} is not None and ${fullPath} or ${expression ?? 'None'})()`;
+function makePyFuncCall(track: Set<string>) {
+	return function pyFuncCall(name: string, args: string[]): string {
+		const pyName = YANTRIX_TO_PYTHON[name] ?? name;
+		track.add(pyName);
+		return `function_dictionary['${pyName}'](${args.join(', ')})`;
+	};
 }
+
+function setupPythonExpressions(constants: TConstants | null, track: Set<string>): TExpressionRecord {
+	const pyFuncCall = makePyFuncCall(track);
+
+	const expressionRecord: TExpressionRecord = {
+		array: () => '[]',
+		constant: (expr: DataObject) => {
+			if (constants === null) throw new Error('Missing constants');
+			const id = getReferenceIdentifier(expr);
+			if (constants[id] === undefined) throw new Error(`Missing constant: ${id}`);
+			if (typeof constants[id] === 'string') return `'${constants[id]}'`;
+			return `${constants[id]}`;
+		},
+		function: () => 'None',
+		decimal: (expr: NumberLiteral) => `${getNumberValue(expr)}`,
+		integer: (expr: NumberLiteral) => `${getNumberValue(expr)}`,
+		string: (expr: StringLiteral) => `'${getStringValue(expr)}'`,
+		context: (expr: DataObject) => pyNull('prev_context', getReferenceIdentifier(expr), null),
+		payload: (expr: DataObject) => pyNull('payload', getReferenceIdentifier(expr), null),
+	};
+
+	expressionRecord.function = (func: FunctionCall) => {
+		let level = 0;
+		const recursive = (func: FunctionCall): string => {
+			const name = getFunctionName(func);
+			const args = getFunctionArgs(func);
+			const res: string[] = [];
+			if (level >= MAX_NESTED_FUNC_LEVEL) throw new Error(`Max nested func level reached`);
+			args.forEach((item: KeyItem) => {
+				if (isDataObject(item)) {
+					const refType = getReferenceType(item);
+					const identifier = getReferenceIdentifier(item);
+					const path = pythonPathRecord[refType];
+					if (!path) throw new Error(`Unknown ref type: ${refType}`);
+					if (item.assignedExpression) {
+						if (isFunctionCall(item.assignedExpression)) {
+							level++;
+							res.push(recursive(item.assignedExpression));
+							return;
+						}
+						const fallback = getExpressionValue({ expressionRecord, expression: item.assignedExpression });
+						res.push(pyNull(path, identifier, fallback));
+					} else {
+						if (isConstant(item.reference)) {
+							res.push(getExpressionValue({ expressionRecord, expression: item }));
+						} else {
+							res.push(pyNull(path, identifier, null));
+						}
+					}
+				} else if (isFunctionCall(item)) {
+					res.push(recursive(item));
+				} else {
+					res.push(getExpressionValue({ expressionRecord, expression: item }));
+				}
+			});
+			return pyFuncCall(name, res);
+		};
+		return recursive(func);
+	};
+
+	return expressionRecord;
+}
+
+function renderContextItem(item: RawKeyItem, expressions: TExpressionRecord): string {
+	const { identifier, defaultValue } = item;
+	if (defaultValue) {
+		const fallback = getExpressionValue({ expressionRecord: expressions, expression: defaultValue });
+		return `    _result['${identifier}'] = ${pyNull('prev_context', identifier, fallback)}`;
+	}
+	return `    _result['${identifier}'] = ${pyNull('prev_context', identifier, null)}`;
+}
+
+function renderBoundValue(
+	source: string,
+	target: string,
+	defaultVal: string | null,
+	indent: string,
+): string[] {
+	const lines: string[] = [];
+	lines.push(`${indent}_bound_${target.replace(/\W/g, '_')} = ${source}`);
+	const ref = `_bound_${target.replace(/\W/g, '_')}`;
+	if (defaultVal != null) {
+		lines.push(`${indent}_result['${target}'] = ${ref} if ${ref} is not None else ${defaultVal}`);
+	} else {
+		lines.push(`${indent}_result['${target}'] = ${ref}`);
+	}
+	return lines;
+}
+
+function renderContextStatement(ctx: ContextStatement, expressions: TExpressionRecord, indent: string): string[] {
+	const lines: string[] = [];
+	if (hasReducer(ctx)) {
+		const { items, reducer } = ctx;
+		reducer.forEach((keyItem, index) => {
+			const item = items[index];
+			if (!item) throw new Error('Unexpected index');
+			const target = item.identifier;
+			const defaultVal = item.defaultValue
+				? getExpressionValue({ expressionRecord: expressions, expression: item.defaultValue })
+				: null;
+
+			let sourceExpr: string;
+			if (isDataObject(keyItem)) {
+				const refType = getReferenceType(keyItem);
+				const id = getReferenceIdentifier(keyItem);
+				if (!refType || !id) throw new Error(`Invalid reference in context`);
+				const path = pythonPathRecord[refType];
+				if (!path) throw new Error(`Unknown ref type: ${refType}`);
+				if (isConstant(keyItem.reference)) {
+					sourceExpr = getExpressionValue({ expressionRecord: expressions, expression: keyItem });
+				} else if (keyItem.assignedExpression) {
+					const fallback = getExpressionValue({ expressionRecord: expressions, expression: keyItem.assignedExpression });
+					sourceExpr = pyNull(path, id, fallback);
+				} else {
+					sourceExpr = pyNull(path, id, null);
+				}
+			} else {
+				sourceExpr = getExpressionValue({ expressionRecord: expressions, expression: keyItem });
+			}
+
+			lines.push(...renderBoundValue(sourceExpr, target, defaultVal, indent));
+		});
+	} else {
+		for (const item of ctx.items) {
+			lines.push(renderContextItem(item, expressions));
+		}
+	}
+	return lines;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers shared across data builders
+// ---------------------------------------------------------------------------
+
+function getInitialState(diagram: TStateDiagramMatrixIncludeNotes): string {
+	const found = diagram.states.find(s => s.notes && hasInitialState(s.notes));
+	if (found) return found.id;
+	const first = diagram.states[0]?.id;
+	if (!first) throw new Error('Invalid state');
+	return first;
+}
+
+function getInitialContextShape(diagram: TStateDiagramMatrixIncludeNotes, stateName: string): Record<string, null> {
+	const states = diagram.states.filter(s => s.id === stateName);
+	if (!states.length) return {};
+	return states.reduce((acc, curr) => {
+		if (!curr.notes) return acc;
+		const ctxStatements = getContextStatements(curr.notes);
+		ctxStatements.forEach((ctx) => {
+			ctx.items.forEach((item) => {
+				acc[item.identifier] = null;
+			});
+		});
+		return acc;
+	}, {} as Record<string, null>);
+}
+
+function camelToSnake(name: string): string {
+	return name.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+}
+
+// ---------------------------------------------------------------------------
+// Data extraction functions (block-level generation moved to templates)
+// ---------------------------------------------------------------------------
+
+function buildReducerModelData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+	stateDictionary: BasicStateDictionary,
+	expressions: TExpressionRecord,
+): Array<{ stateValue: number; bodyLines: string[] }> {
+	return diagram.states.map((state) => {
+		const sv = stateDictionary.getStateValues({ keys: [state.id] })[0];
+		if (sv == null) throw new Error(`State not found: ${state.id}`);
+		const bodyLines: string[] = [];
+		if (state.notes) {
+			const ctxStatements = getContextStatements(state.notes);
+			for (const ctx of ctxStatements) {
+				bodyLines.push(...renderContextStatement(ctx, expressions, '    '));
+			}
+		}
+		return { stateValue: sv, bodyLines };
+	});
+}
+
+function buildTransitionData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+	stateDictionary: BasicStateDictionary,
+	actionDictionary: BasicActionDictionary,
+): Array<{ fromStateValue: number; actions: Array<{ actionValue: number; targetStateValues: number[] }> }> {
+	const actionToStartStateMatrix: Record<string, { actionsPath: { action: string[]; note: string[][] }[] }> = {};
+	Object.entries(diagram.transitions).forEach(([fromState, toStates]) => {
+		if (fromState === StartState) {
+			Object.entries(toStates).forEach(([targetState, action]) => {
+				action.actionsPath.forEach(({ action: act }) => {
+					actionToStartStateMatrix[targetState] = { actionsPath: [{ action: act, note: [] }] };
+				});
+			});
+		}
+	});
+
+	const result: Array<{ fromStateValue: number; actions: Array<{ actionValue: number; targetStateValues: number[] }> }> = [];
+
+	Object.entries(diagram.transitions).forEach(([fromState, toStates]) => {
+		const fromStateValue = stateDictionary.getStateValues({ keys: [fromState] })[0];
+		if (fromStateValue == null) return;
+
+		const merged = { ...toStates };
+		for (const [targetState, startAction] of Object.entries(actionToStartStateMatrix)) {
+			if (merged[targetState]) {
+				merged[targetState] = {
+					actionsPath: [...merged[targetState]!.actionsPath, ...startAction.actionsPath],
+				};
+			} else {
+				merged[targetState] = startAction;
+			}
+		}
+
+		const actionMap: Record<number, number[]> = {};
+		Object.entries(merged).forEach(([targetState, action]) => {
+			const targetValue = stateDictionary.getStateValues({ keys: [targetState] })[0];
+			if (targetValue == null) return;
+			action.actionsPath.forEach(({ action: act }) => {
+				const actionValue = actionDictionary.getActionValues({ keys: act })[0];
+				if (actionValue == null) return;
+				if (!actionMap[actionValue]) actionMap[actionValue] = [];
+				if (!actionMap[actionValue]!.includes(targetValue)) actionMap[actionValue]!.push(targetValue);
+			});
+		});
+
+		result.push({
+			fromStateValue,
+			actions: Object.entries(actionMap).map(([actionValue, states]) => ({
+				actionValue: Number(actionValue),
+				targetStateValues: states,
+			})),
+		});
+	});
+
+	return result;
+}
+
+function buildDefaultContextLines(
+	startStateValue: number | null,
+	diagram: TStateDiagramMatrixIncludeNotes,
+	expressions: TExpressionRecord,
+): string[] {
+	if (startStateValue == null) return [];
+	const startKey = diagram.states.find(s => s.id === StartState);
+	if (!startKey?.notes) return [];
+	const ctxStatements = getContextStatements(startKey.notes);
+	if (ctxStatements.length === 0) return [];
+	const lines: string[] = [];
+	for (const ctx of ctxStatements) {
+		lines.push(...renderContextStatement(ctx, expressions, '    '));
+	}
+	return lines;
+}
+
+function renderDefineBody(expr: any, expressions: TExpressionRecord, pyFuncCall: (n: string, a: string[]) => string): string {
+	if (defineExpressionIsFunction(expr)) {
+		const fn = expr as DefineFunction;
+		const args = fn.args.map((a: any) => renderDefineBody(a, expressions, pyFuncCall));
+		return pyFuncCall(fn.name, args);
+	}
+	if ('identifier' in expr && !('$type' in expr && (expr as any).$type !== 'IdentifierRef')) {
+		return (expr as { identifier: string }).identifier;
+	}
+	return getExpressionValue({ expressionRecord: expressions, expression: expr as any });
+}
+
+function buildDefinesData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+	expressions: TExpressionRecord,
+	pyFuncCall: (n: string, a: string[]) => string,
+): Array<{ identifier: string; args: string[]; body: string }> {
+	const defines = diagram.states.flatMap(s => s.notes ? getDefineStatements(s.notes) : []);
+	const registered = new Set<string>();
+	const result: Array<{ identifier: string; args: string[]; body: string }> = [];
+	for (const def of defines) {
+		if (registered.has(def.identifier)) continue;
+		registered.add(def.identifier);
+		result.push({
+			identifier: def.identifier,
+			args: def.args,
+			body: renderDefineBody(def.expression, expressions, pyFuncCall),
+		});
+	}
+	return result;
+}
+
+// ---------------------------------------------------------------------------
+// Event model builders
+// ---------------------------------------------------------------------------
+
+type TPythonEmitterVM = {
+	stateId: string;
+	stateValue: number;
+	events: Array<{ eventIdentifier: string; metaLines: string[] }>;
+};
+
+type TPythonListenerVM = {
+	eventIdentifier: string;
+	actionName: string;
+	payloadLines: string[];
+};
+
+function pyNullMeta(identifier: string, fallback: string | null): string {
+	const path = '_meta_inner';
+	const val = `${path}.get('${identifier}')`;
+	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
+	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+}
+
+function pyNullCtx(identifier: string, fallback: string | null): string {
+	const path = '_ctx_inner';
+	const val = `${path}.get('${identifier}')`;
+	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
+	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+}
+
+function buildEventEmittersData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+	stateDictionary: BasicStateDictionary,
+): TPythonEmitterVM[] {
+	const result: TPythonEmitterVM[] = [];
+	for (const state of diagram.states) {
+		if (!state.notes) continue;
+		const emits = getEmitStatements(state.notes);
+		if (emits.length === 0) continue;
+		const sv = stateDictionary.getStateValues({ keys: [state.id] })[0];
+		if (sv == null) continue;
+
+		const events = emits.map((emit) => {
+			const metaLines: string[] = [];
+			if ('meta' in emit && Array.isArray((emit as any).meta)) {
+				for (const item of (emit as any).meta as RawKeyItem[]) {
+					const val = pyNullCtx(item.identifier, null);
+					metaLines.push(`'${item.identifier}': ${val}`);
+				}
+			}
+			return { eventIdentifier: emit.identifier, metaLines };
+		});
+
+		result.push({ stateId: state.id, stateValue: sv, events });
+	}
+	return result;
+}
+
+function buildEventListenersData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+): TPythonListenerVM[] {
+	const result: TPythonListenerVM[] = [];
+	for (const state of diagram.states) {
+		if (!state.notes) continue;
+		const subs = getSubscribeStatements(state.notes);
+		for (const sub of subs) {
+			const payloadLines: string[] = [];
+			if ('metaItems' in sub && Array.isArray((sub as any).metaItems)) {
+				const targets = 'payload' in sub && Array.isArray((sub as any).payload)
+					? (sub as any).payload as RawKeyItem[]
+					: (sub as any).metaItems as RawKeyItem[];
+				const sources = (sub as any).metaItems as RawKeyItem[];
+				sources.forEach((src: RawKeyItem, i: number) => {
+					const target = targets[i] ?? src;
+					const val = pyNullMeta(src.identifier, null);
+					payloadLines.push(`'${target.identifier}': ${val}`);
+				});
+			}
+			result.push({
+				eventIdentifier: sub.identifier,
+				actionName: sub.actionName,
+				payloadLines,
+			});
+		}
+	}
+	return result;
+}
+
+// ---------------------------------------------------------------------------
+// Codegen class
+// ---------------------------------------------------------------------------
 
 export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	stateDictionary: BasicStateDictionary;
 	actionDictionary: BasicActionDictionary;
+	eventDictionary: BasicEventDictionary;
 	diagram: TStateDiagramMatrixIncludeNotes;
-	handlersDict: string[];
-
-	initialContextKeys: string[];
-	changeStateHandlers: string[];
-	dependencyGraph: Map<string, Set<string>>;
 	constants: TConstants | null;
 	expressions: TExpressionRecord;
-	dictionaries: string[];
-	protected imports = {
-		'yantrix.automata': ['GenericAutomata', 'FunctionDictionary'],
-		'yantrix.codegen': ['builtInFunctions'],
-	};
+	private injectedFunctionPath: string | null;
+	private _usedFunctions: Set<string> = new Set();
 
-	constructor({ diagram, constants }: TModuleParams) {
-		this.actionDictionary = new BasicActionDictionary();
+	constructor({ diagram, constants, injectedFunctions }: TModuleParams) {
 		this.stateDictionary = new BasicStateDictionary();
-
+		this.actionDictionary = new BasicActionDictionary();
+		this.eventDictionary = new BasicEventDictionary();
 		this.diagram = diagram;
-
 		this.constants = constants;
-
-		this.expressions = this.setupExpressions();
-
-		this.dependencyGraph = new Map();
-		this.buildDependencyGraph();
-
-		this.handlersDict = [];
-		this.changeStateHandlers = [];
-		this.dictionaries = [];
-		this.initialContextKeys = [];
-
-		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary);
-
-		this.setupDictionaries();
+		this.injectedFunctionPath = injectedFunctions.path ?? null;
+		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary, this.eventDictionary);
+		this.expressions = setupPythonExpressions(constants, this._usedFunctions);
 	}
 
-	public getImports() {
-		const imports = '';
-		// for (const [key, value] of Object.entries(this.imports)) {
-		// 	imports += `from ${key} import ${value.join(', ')}\n`;
-		// }
-		return imports;
-	}
-
-	public getDictionaries(): string {
-		return this.dictionaries.join('\n');
-	}
-
-	setupDictionaries() {
-		this.dictionaries.push(
-			`statesDictionary = ${JSON.stringify(this.stateDictionary.getDictionary(), null, 2)}`,
-		);
-		this.dictionaries.push(
-			`actionsDictionary = ${JSON.stringify(this.actionDictionary.getDictionary(), null, 2)}`,
-		);
-		this.dictionaries.push(`reducer = {\n${this.getStateToContext().join(',\n')}\n}`);
-		this.dictionaries.push(`functionDictionary = FunctionDictionary()`);
-		this.dictionaries.push(`functionDictionary.register(builtInFunctions)`);
-
-		this.checkForCyclicDependencies();
-		this.registerCustomFunctions();
-	}
-
-	private getFunctionBody(expression: DefineExpression): string {
-		if (defineExpressionIsFunction(expression)) {
-			const { name: FunctionName, args: Arguments } = expression;
-
-			const argsList = Arguments.map((arg) => {
-				if ('$type' in arg && (arg.$type === 'DefineFunction' || arg.$type === 'NestedDefineFunction')) {
-					return this.getFunctionBody(arg as DefineExpression);
-				} else {
-					return this.getExpressionValueDefine(arg);
-				}
-			}).join(', ');
-
-			return `(lambda: functionDictionary.get('${FunctionName}')(${argsList}))()`;
-		} else {
-			return this.getExpressionValueDefine(expression);
-		}
-	}
-
-	getClassTemplate(className: string) {
-		const initialState = this.getInitialState();
-
-		const stateValue = this.stateDictionary.getStateValues({ keys: [initialState] })[0];
-
-		if (stateValue === null) {
-			throw new Error('GetClassTemplate: Invalid state');
-		}
-
-		const a = this.getInitialContextShape(StartState);
-		const b = this.getInitialContextShape(initialState);
-
-		const initialContext = Object.assign({}, a, b);
-
-		return this.replaceFileContents(
-			{
-				'%CLASSNAME%': className,
-				'%ID%': `'${className}'`,
-				'%ACTIONS_MAP%': 'actionsMap',
-				'%STATES_MAP%': 'statesMap',
-				'%GET_STATE%': this.getGetStateFunc().toString(),
-				'%HAS_STATE%': this.getHasStateFunc().toString(),
-				'%GET_ACTION%': this.getGetActionFunc().toString(),
-				'%CREATE_ACTION%': this.getCreateActionFunc().toString(),
-				'%STATE%': (stateValue ?? -1).toString(),
-				'%CONTEXT%': JSON.stringify(initialContext).replace(/null/g, 'None'),
-				'%REDUCER%': this.getRootReducer().toString(),
-				'%S_VALIDATOR%': this.getStateValidator().toString(),
-				'%A_VALIDATOR%': this.getActionValidator().toString(),
-				'%F_REGISTRY%': 'functionDictionary',
-				'%IS_KEY_OF%': this.getIsKeyOf().toString(),
-			},
-		);
-	}
-
-	replaceFileContents(replacementMap: Record<string, string>): string {
-		let res = PythonTemplate;
-		Object.entries(replacementMap).forEach(([template, str]) => {
-			res = res.replaceAll(template, str);
-		});
-		return res;
-	}
-
-	protected getHasStateFunc() {
-		const content = [`def hasState(self, instance, state):`, `\treturn instance.state == self.getState(state)`];
-		return content.join('\n');
-	}
-
-	protected getGetStateFunc() {
-		const content = [`def getState(self, state):`, `\treturn statesDictionary[state]`];
-		return content.join('\n');
-	}
-
-	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]) {
-		return `
-${this.getImports()}
-${this.getDictionaries()}
-actionsMap = ${JSON.stringify(this.getActionsMap(), null, 2)}
-statesMap = ${JSON.stringify(this.getStatesMap(), null, 2)}
-${this.getDefaultContext()}
-${this.getActionToStateFromState()}
-${this.getClassTemplate(options.className)}
-		`;
-	}
-
-	getObjectKeysMap(dict: Record<any, any>) {
-		const obj: Record<string, string> = {};
-		Object.keys(dict).forEach((key: string) => {
-			obj[key] = key;
-		});
-		return obj;
-	}
-
-	getActionsMap() {
-		return this.getObjectKeysMap(this.actionDictionary.getDictionary());
-	}
-
-	getStatesMap() {
-		return this.getObjectKeysMap(this.stateDictionary.getDictionary());
-	}
-
-	protected getGetActionFunc() {
-		const content = [`def getAction(self, action):`, `\treturn actionsDictionary[action]`];
-		return content.join('\n');
-	}
-
-	protected getCreateActionFunc() {
-		const content = [`def createAction(self, action, payload):`, `\treturn {"action": self.getAction(action), "payload": payload}`];
-		return content.join('\n');
-	}
-
-	public getActionToStateFromState() {
-		return `actionToStateFromStateDict = {\n${this.getActionToStateFromStateDict().join('\n')}\n}`;
-	}
-
-	getStateToContext() {
-		return this.diagram.states.map((state) => {
-			const stateValue = this.stateDictionary.getStateValues({
-				keys: [state.id],
-			})[0];
-
-			if (!stateValue) {
-				throw new Error('Invalid state');
-			}
-
-			return `${stateValue}: lambda prevContext, payload, functionDictionary: ${this.getContextTransition(stateValue)}`;
-		});
-	}
-
-	getActionToStateDict(transitions: Record<string, TDiagramAction>) {
-		return Object.entries(transitions)
-			.map(([key, transition]) => {
-				const newState = this.stateDictionary.getStateValues({
-					keys: [key],
-				})[0];
-				return transition.actionsPath.map(({ action }) => {
-					const actionValue = this.actionDictionary.getActionValues({
-						keys: action,
-					})[0];
-					if (!actionValue) throw new Error(`Action ${action} not found`);
-					if (!newState) throw new Error(`State ${key} not found`);
-
-					return `
-    ${actionValue}: {
-        "state": ${newState},
-    },
-`;
-				});
-			})
-			.flatMap(el => `${el.join('\n')}`);
-	}
-
-	protected getIsKeyOf() {
-		const content = [`def isKeyOf(self, key, obj):`, `return key in obj`];
-		return content.join('\n\t\t');
-	}
-
-	public getDefaultContext() {
-		const state = this.stateDictionary.getStateValues({
-			keys: [StartState],
-		})[0];
-
-		if (state) {
-			const ctx = this.getContextTransition(state);
-			const content = [`def getDefaultContext(prevContext, payload):`, `ctx = ${ctx}`, `return {**prevContext, **ctx}`];
-			return content.join('\n\t');
-		}
-		const content = [`def getDefaultContext(prevContext, payload):`, `return prevContext`];
-		return content.join('\n\t');
-	}
-
-	protected getRootReducer() {
-		const content = [
-			`def rootReducer(self, action, context, payload, state):`,
-			`if (not action) or (payload is None):`,
-			`\treturn {'state': state, 'context': context}`,
-			`${this.getRootReducerStateValidation()}`,
-			`${this.getRootReducerActionValidation()}`,
-			`newState = actionToStateFromStateDict[state][action]["state"]`,
-			`contextWithInitial = getDefaultContext(context, payload)`,
-			`newContextFunc = reducer[newState]`,
-			`if not callable(newContextFunc):`,
-			`\traise Exception('Invalid newContextFunc')`,
-			`return {"state": newState, "context": newContextFunc(contextWithInitial, payload, self.getFunctionRegistry())}`, // TODO self.getFunctionRegistry поправить
-		];
-		return content.join('\n\t');
-	}
-
-	protected getRootReducerStateValidation() {
-		const context = [
-			`${this.getRootReducerStateValidationHead()}`,
-			`\t\t${this.getRootReducerStateValidationError()}`,
-		];
-		return context.join('\n');
-	}
-
-	protected getRootReducerStateValidationHead() {
-		return `if not self.isKeyOf(state, actionToStateFromStateDict)`;
-	}
-
-	protected getRootReducerStateValidationError() {
-		return `raise Exception("Invalid state, maybe machine isn't running.")`;
-	}
-
-	protected getRootReducerActionValidation() {
-		const content = [
-			`if not self.isKeyOf(action, actionToStateFromStateDict[state]):`,
-			`return {'state': state, 'context': context }`,
-		];
-		return content.join('\n\t\t');
-	}
-
-	protected getStateValidator() {
-		const content = [`def stateValidator(self, s):`, `return s in statesDictionary.values()`];
-		return content.join('\n\t\t');
-	}
-
-	private buildDependencyGraph(): void {
-		const defines = this.diagram.states.flatMap(
-			state => state.notes ? getDefineStatements(state.notes) : [],
-		);
-
-		const addDependencies = (expression: DefineFunction, currentFunc: string) => {
-			const { name: FunctionName, args: Arguments } = expression;
-
-			if (!this.dependencyGraph.has(currentFunc)) {
-				this.dependencyGraph.set(currentFunc, new Set());
-			}
-
-			this.dependencyGraph.get(currentFunc)!.add(FunctionName);
-
-			for (const arg of Arguments) {
-				if ('$type' in arg && (arg.$type === 'DefineFunction' || arg.$type === 'NestedDefineFunction')) {
-					addDependencies(arg as DefineFunction, currentFunc);
-				}
-			}
-		};
-
-		for (const define of defines) {
-			if (defineExpressionIsFunction(define.expression)) {
-				addDependencies(define.expression, define.identifier);
-			}
-		}
-	}
-
-	private detectCycles(): string[][] {
-		const visited = new Set<string>();
-		const recursionStack = new Set<string>();
-		const cycles: string[][] = [];
-
-		const dfs = (node: string, path: string[] = []): boolean => {
-			if (!visited.has(node)) {
-				visited.add(node);
-				recursionStack.add(node);
-
-				const neighbors = this.dependencyGraph.get(node) || new Set();
-				for (const neighbor of neighbors) {
-					if (!visited.has(neighbor)) {
-						if (dfs(neighbor, [...path, node])) {
-							return true;
-						}
-					} else if (recursionStack.has(neighbor)) {
-						cycles.push([...path, node, neighbor]);
-						return true;
-					}
-				}
-			}
-
-			recursionStack.delete(node);
-			return false;
-		};
-
-		for (const node of this.dependencyGraph.keys()) {
-			if (!visited.has(node)) {
-				dfs(node);
-			}
-		}
-
-		return cycles;
-	}
-
-	private checkForCyclicDependencies() {
-		const cycles = this.detectCycles();
-		if (cycles.length > 0) {
-			const cycleStrings = cycles.map(cycle => cycle.join(' -> '));
-			throw new Error(`Cyclic dependencies detected in function definitions:\n${cycleStrings.join('\n')}`);
-		}
-	}
-
-	private registerCustomFunctions() {
-		const defines = this.diagram.states.flatMap(
-			state => state.notes ? getDefineStatements(state.notes) : [],
-		);
-		const registered = new Set<string>();
-
-		const registerFunction = (funcName: string) => {
-			if (registered.has(funcName)) return;
-
-			const funcDef = defines.find(def => def.identifier === funcName);
-			if (!funcDef) return;
-
-			const dependencies = this.dependencyGraph
-				.get(funcName) || new Set();
-			for (const dep of dependencies) {
-				if (!registered.has(dep)) {
-					registerFunction(dep);
-				}
-			}
-
-			const functionBody = this.getFunctionBody(funcDef.expression);
-			this.dictionaries.push(`functionDictionary.register('${funcName}', lambda ${funcDef.args.join(', ')}: ${functionBody})`);
-			registered.add(funcName);
-		};
-
-		for (const funcName of this.dependencyGraph.keys()) {
-			if (!registered.has(funcName)) {
-				registerFunction(funcName);
-			}
-		}
-	}
-
-	protected getActionValidator() {
-		const content = [`def actionValidator(self, a):`, `return a in actionsDictionary.values()`];
-		return content.join('\n\t\t');
-	}
-
-	protected getActionToStateFromStateDict() {
-		const actionToStartStateMatrix: Record<string, TDiagramAction> = {};
-
-		Object.entries(this.diagram.transitions).forEach(
-			([state, transitions]) => {
-				if (state === StartState) {
-					const entries = Object.entries(transitions);
-					entries.forEach(([state, action]) => {
-						action.actionsPath.forEach(({ action }) => {
-							actionToStartStateMatrix[state] = {
-								actionsPath: [{ action, note: [] }],
-							};
-						});
-					});
-				}
-			},
-		);
-
-		const isExistsStartState = Object.keys(
-			actionToStartStateMatrix,
-		).length > 0;
-
-		return Object.entries(this.diagram.transitions).map(
-			([state, transitions]) => {
-				const value = this.stateDictionary.getStateValues({
-					keys: [state],
-				})[0];
-				if (!value) throw new Error(`State ${state} not found`);
-				if (isExistsStartState && state !== StartState) {
-					transitions = {
-						...transitions,
-						...actionToStartStateMatrix,
-					};
-				}
-
-				return `${value}: {\n${this.getActionToStateDict(transitions).join('\n')}\n},`;
-			},
-		);
-	}
-
-	protected getContextTransition = (value: number) => {
-		const stateFromDict = this.stateDictionary.getStateKeys({
-			states: [value],
-		})[0];
-
-		if (stateFromDict === null) {
-			throw new Error(`Invalid state - ${value}`);
-		}
-
-		const diagramState = this.diagram.states.find((diagramState) => {
-			return diagramState.id === stateFromDict;
+	private buildTemplateModel(className: string) {
+		this._usedFunctions = new Set<string>();
+		const expressions = setupPythonExpressions(this.constants, this._usedFunctions);
+		const pyFuncCall = makePyFuncCall(this._usedFunctions);
+
+		const initialStateId = getInitialState(this.diagram);
+		const initialStateValue = this.stateDictionary.getStateValues({ keys: [initialStateId] })[0];
+		if (initialStateValue == null) throw new Error('Invalid initial state');
+
+		const startCtx = getInitialContextShape(this.diagram, StartState);
+		const initialCtxForState = getInitialContextShape(this.diagram, initialStateId);
+		const initialContext = { ...startCtx, ...initialCtxForState };
+
+		const startStateValue = this.stateDictionary.getStateValues({ keys: [StartState] })[0] ?? null;
+
+		const rawBuiltins = readFileSync(resolve(etaViewsPath, 'python/runtime/builtins.py.tpl'), 'utf8');
+		const eventBusRuntime = readFileSync(resolve(etaViewsPath, 'python/runtime/event_bus.py.tpl'), 'utf8');
+		const injectedCode = this.injectedFunctionPath
+			? readFileSync(this.injectedFunctionPath, 'utf8')
+			: null;
+
+		const byPassedList = getStatesByPass(this.diagram, this.stateDictionary);
+		const predicates = getPredicates({
+			diagram: this.diagram,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+			expressions,
 		});
 
-		if (!diagramState) {
-			throw new Error(`Invalid state - ${value}`);
-		}
+		const reducers = buildReducerModelData(this.diagram, this.stateDictionary, expressions);
+		const transitions = buildTransitionData(this.diagram, this.stateDictionary, this.actionDictionary);
+		const defaultContextLines = buildDefaultContextLines(startStateValue, this.diagram, expressions);
+		const defines = buildDefinesData(this.diagram, expressions, pyFuncCall);
 
-		const ctxRes: string[] = [];
+		const emitters = buildEventEmittersData(this.diagram, this.stateDictionary);
+		const listeners = buildEventListenersData(this.diagram);
 
-		if (diagramState.notes) {
-			const contextStatements = getContextStatements(diagramState.notes);
-			contextStatements.forEach((ctx) => {
-				const newContext = this.getContextItem(ctx);
-				ctxRes.push(...newContext);
-			});
-		}
+		const builtins = injectedCode
+			? rawBuiltins
+			: filterBuiltins(rawBuiltins, this._usedFunctions);
 
-		if (ctxRes.length === 0) return 'prevContext';
+		const filteredFunctionDict = injectedCode
+			? Object.entries(YANTRIX_TO_PYTHON).map(([key, pyName]) => ({ key, pyName }))
+			: Object.entries(YANTRIX_TO_PYTHON)
+				.filter(([, pyName]) => this._usedFunctions.has(pyName))
+				.map(([key, pyName]) => ({ key, pyName }));
 
-		return `{\n${ctxRes.join(',\n')}\n}`;
-	};
-
-	private getInitialState() {
-		const stateWithInitial = this.diagram.states.find((state) => {
-			return state.notes && hasInitialState(state.notes);
-		});
-
-		if (stateWithInitial) {
-			return stateWithInitial.id;
-		}
-
-		const firstState = this.diagram.states[0]?.id;
-
-		if (!firstState) {
-			throw new Error('Invalid state');
-		}
-
-		return firstState;
-	}
-
-	private getContextItem = (ctx: ContextStatement) => {
-		if (hasReducer(ctx)) {
-			const { items, reducer } = ctx;
-
-			return reducer
-				.map((keyItem) => {
-					if (isDataObject(keyItem)) {
-						const refType = getReferenceType(keyItem);
-						const boundIdentifier = getReferenceIdentifier(keyItem);
-						const path = pathRecord[refType];
-
-						if (isConstant(keyItem.reference)) {
-							const expressionValueRight = this.getExpressionValue(keyItem);
-							return `(lambda: ${expressionValueRight})()`;
-						}
-
-						if (keyItem.assignedExpression) {
-							const expressionValueRight = this.getExpressionValue(keyItem.assignedExpression);
-							return getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
-						} else {
-							return getDefaultPropertyContext(path, boundIdentifier);
-						}
-					} else {
-						// ImmutableValue or FunctionCall
-						const expressionValueRight = this.getExpressionValue(keyItem);
-						return `(lambda: ${expressionValueRight})()`;
-					}
-				})
-				.map((el, index) => {
-					const item = items[index];
-					if (!item) {
-						throw new Error('Unexpected index bound property');
-					}
-					const targetProperty = item.identifier;
-
-					if (item.defaultValue) {
-						const expressionValueRight = this.getExpressionValue(item.defaultValue);
-						return `'${targetProperty}': (lambda: boundValue = ${el}; boundValue if boundValue is not None else ${expressionValueRight})()`;
-					} else {
-						return `'${targetProperty}': (lambda: boundValue = ${el}; boundValue)()`;
-					}
-				});
-		} else {
-			const { items } = ctx;
-			return items.map((rawKeyItem) => {
-				const { identifier, defaultValue } = rawKeyItem;
-				if (defaultValue) {
-					const expressionValue = this.getExpressionValue(defaultValue);
-					return `'${identifier}': ${getDefaultPropertyContext('prevContext', identifier, expressionValue)}`;
-				} else {
-					return `'${identifier}': ${getDefaultPropertyContext('prevContext', identifier)}`;
-				}
-			});
-		}
-	};
-
-	private getInitialContextShape = (stateName: string) => {
-		const states = this.diagram.states.filter(
-			state => state.id === stateName,
-		);
-
-		if (states.length) {
-			return states.reduce(
-				(acc, curr) => {
-					curr.notes?.contextDescription.forEach((el) => {
-						el.context.forEach((el) => {
-							acc[el.keyItem.identifier] = null;
-						});
-					});
-					return acc;
-				},
-				{} as Record<string, null>,
-			);
-		}
-
-		return null;
-	};
-
-	private getExpressionValue<T extends TMappedKeys>(
-		expression: TExpression<T>,
-	) {
-		return this.expressions[expression.expressionType](expression);
-	}
-
-	private getExpressionValueDefine(expression: TExpressionDefineMap) {
-		switch (expression.expressionType) {
-			case ExpressionTypes.Identifier:
-				return expression.identifier;
-			case ExpressionTypes.Function:
-				return this.getFunctionBody(expression);
-			default:
-				return this.getExpressionValue(expression);
-		}
-	}
-
-	private setupExpressions(): TExpressionRecord {
 		return {
-			[ExpressionTypes.ArrayDeclaration]: () => '[]',
-			[ExpressionTypes.Constant]: ({ identifier }) => {
-				if (this.constants === null) {
-					throw new Error('Missing dictionary with constants');
-				}
-
-				if (this.constants[identifier] === undefined) {
-					throw new Error(`The identifier is missing in the const dictionary: ${identifier}`);
-				}
-				if (typeof this.constants[identifier] === 'string') return `"${this.constants[identifier]}"`;
-
-				return `${this.constants[identifier]}`;
+			className,
+			initialStateValue,
+			stateDictionary: this.stateDictionary,
+			actionDictionary: this.actionDictionary,
+			eventDictionary: this.eventDictionary,
+			python: {
+				builtins,
+				eventBusRuntime,
+				functionDict: filteredFunctionDict,
+				snakeName: `create_${camelToSnake(className)}`,
+				initialContext,
+				reducers,
+				transitions,
+				defaultContextLines,
+				defines,
+				injectedCode,
+				byPassedList,
+				byPassActionValue: this.actionDictionary.getActionValues({ keys: [ByPassAction] })[0] ?? 0,
+				predicates,
+				events: {
+					emitters,
+					listeners,
+					hasEvents: emitters.length > 0 || listeners.length > 0,
+				},
 			},
-			[ExpressionTypes.Function]: (func) => {
-				let currentRecLevel = 0;
-				const recursive = (func: TExpressionFunction) => {
-					const { FunctionDeclaration } = func;
-					const { FunctionName, Arguments } = FunctionDeclaration;
+		};
+	}
 
-					const res: string[] = [];
-
-					if (currentRecLevel < maxNestedFuncLevel) {
-						Arguments.forEach((item) => {
-							if (isKeyItemReference(item)) {
-								const { expressionType, identifier } = item;
-								const path = pathRecord[expressionType];
-								if (isKeyItemWithExpression(item)) {
-									const { expression } = item;
-
-									if (expression.expressionType === ExpressionTypes.Function) {
-										currentRecLevel++;
-										res.push(recursive(expression));
-									}
-
-									const valueExpression = this.getExpressionValue(expression);
-
-									res.push(`${getDefaultPropertyContext(path, identifier, valueExpression)}`);
-								} else {
-									if (item.expressionType === ExpressionTypes.Constant) {
-										const expressionValueRight = this.getExpressionValue(item);
-										res.push(expressionValueRight);
-									} else {
-										res.push(`${getDefaultPropertyContext(path, identifier)}`);
-									}
-								}
-							} else {
-								if (item.expressionType === ExpressionTypes.Function) {
-									res.push(recursive(item));
-								} else {
-									const valueExpression = this.getExpressionValue(item);
-									res.push(valueExpression);
-								}
-							}
-						});
-					} else {
-						throw new Error(`Max level of nested functions reached ${maxNestedFuncLevel}`);
-					}
-
-					return `${getFunctionFromDictionary(FunctionName)}(${res.join(', ')})`;
-				};
-
-				const res = recursive(func);
-				return res;
-			},
-			[ExpressionTypes.DecimalDeclaration]: ({ NumberDeclaration }) => {
-				return `${NumberDeclaration}`;
-			},
-			[ExpressionTypes.IntegerDeclaration]: ({ NumberDeclaration }) => {
-				return `${NumberDeclaration}`;
-			},
-			[ExpressionTypes.StringDeclaration]: ({ StringDeclaration }) => {
-				return `'${StringDeclaration}'`;
-			},
-			[ExpressionTypes.Context]: ({ identifier }) => {
-				return `prevContext.get('${identifier}')`;
-			},
-			[ExpressionTypes.Payload]: ({ identifier }) => {
-				return `payload.get('${identifier}')`;
-			},
-		} as const;
+	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]): string {
+		const it = this.buildTemplateModel(options.className);
+		const rendered = eta.render('python/module.eta', it);
+		if (rendered == null) throw new Error('Eta render returned null/undefined for python/module');
+		return rendered;
 	}
 }

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
+import { generateAutomataFiles, generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 
 const filename = fileURLToPath(import.meta.url);
@@ -13,7 +13,38 @@ const langToExt: Record<TOutLang, string> = {
 	[ModuleNames.TypeScript]: 'ts',
 	[ModuleNames.Java]: 'java',
 	[ModuleNames.Python]: 'py',
+	[ModuleNames.PureJavaScript]: 'js',
+	[ModuleNames.PureTypeScript]: 'js',
 };
+
+export type TFSMAdapter = {
+	dispatch: (ap: { action: number; payload: Record<string, unknown> | null }) => { state: number; context: Record<string, unknown> };
+	getContext: () => { state: number; context: Record<string, unknown> };
+	readonly state: number;
+	readonly lastAction: number | null;
+	readonly currentCycle: number;
+};
+
+export interface IFSMInstanceBase {
+	dispatch: (ap: { action: number; payload: Record<string, unknown> | null }) => { state: number; context: Record<string, unknown> };
+	getContext: () => { state: number; context: Record<string, unknown> };
+	state: number | null;
+	lastAction: number | null;
+	currentCycle: number;
+}
+
+export function wrapInstance(inst: IFSMInstanceBase): TFSMAdapter {
+	return {
+		dispatch: ap => inst.dispatch(ap),
+		getContext: () => inst.getContext(),
+		get state() { return inst.state ?? 0; },
+		get lastAction() { return inst.lastAction; },
+		get currentCycle() { return inst.currentCycle; },
+	};
+}
+
+export const wrapClassInstance = wrapInstance;
+export const wrapFunctionalInstance = wrapInstance;
 
 type TGenerateAutomataParams = {
 	input: string;
@@ -51,7 +82,32 @@ export async function generateAndSave(options: TGenerateAutomataParams, fileName
 	saveFile(fileName, automata, ext);
 }
 
-export function mapFromObjectToString(a: Record<string, any>, startSymbol: string = '') {
+export async function generateAndSaveFiles(options: TGenerateAutomataParams, fileName: string): Promise<string> {
+	const stateDiagramStructure = await parseStateDiagram(options.input);
+	const stateDiagram = await createStateDiagram(stateDiagramStructure);
+
+	const files = await generateAutomataFiles(stateDiagram, {
+		className: options.automataName,
+		outLang: options.lang,
+		constants: options.constants!,
+		functionFilePath: options.injects,
+	});
+
+	const dir = path.resolve(pathSave, 'generated', fileName);
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+	let entryPath = '';
+	for (const [relName, content] of Object.entries(files)) {
+		const outPath = path.join(dir, relName);
+		fs.writeFileSync(outPath, content);
+		if (!entryPath && !relName.startsWith('runtime')) {
+			entryPath = outPath;
+		}
+	}
+	return entryPath;
+}
+
+export function mapFromObjectToString(a: Record<string, unknown>, startSymbol: string = '') {
 	return Object
 		.entries(a)
 		.map(([key, value]) => {
@@ -60,7 +116,7 @@ export function mapFromObjectToString(a: Record<string, any>, startSymbol: strin
 			}
 			if (typeof value === 'string') return `${startSymbol}${key}="${value}"`;
 
-			return `${startSymbol}${key}=${value}`;
+			return `${startSymbol}${key}=${String(value)}`;
 		})
 		.join(',');
 }
@@ -73,7 +129,7 @@ export function mapFromStringToObject(a: string) {
 	}, Object.create(null));
 }
 
-export function objectKeysToString(obj: Record<string, any>, startSymbol: string = '') {
+export function objectKeysToString(obj: Record<string, unknown>, startSymbol: string = '') {
 	return Object
 		.keys(obj)
 		.map(el => `${startSymbol}${el}`)

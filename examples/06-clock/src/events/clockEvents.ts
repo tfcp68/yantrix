@@ -8,23 +8,19 @@ export enum ClockEvents {
 	UI_RESET = 5,
 	CLOCK_TIMERS_RESTART = 6,
 	CLOCK_TIMERS_STOP = 7,
-	CLOCK_TICK_SECOND = 8,
-	CLOCK_TICK_MINUTE = 9,
-	CLOCK_TICK_HOUR = 10,
-	UI_RENDER = 11,
+	CLOCK_TICK = 8,
+	UI_RENDER = 9,
 }
 
 export type TClockMeta = {
-	[ClockEvents.UI_UPDATE_INTERVALS]: { secMs?: number; minMs?: number; hourMs?: number };
+	[ClockEvents.UI_UPDATE_INTERVALS]: { startTs?: number };
 	[ClockEvents.UI_APPLY]: object;
 	[ClockEvents.UI_START]: object;
 	[ClockEvents.UI_STOP]: object;
 	[ClockEvents.UI_RESET]: object;
-	[ClockEvents.CLOCK_TIMERS_RESTART]: { secMs: number; minMs: number; hourMs: number };
+	[ClockEvents.CLOCK_TIMERS_RESTART]: object;
 	[ClockEvents.CLOCK_TIMERS_STOP]: object;
-	[ClockEvents.CLOCK_TICK_SECOND]: { ts: number };
-	[ClockEvents.CLOCK_TICK_MINUTE]: { ts: number };
-	[ClockEvents.CLOCK_TICK_HOUR]: { ts: number };
+	[ClockEvents.CLOCK_TICK]: object;
 	[ClockEvents.UI_RENDER]: object;
 };
 
@@ -38,9 +34,7 @@ export function registerClockEvents(): void {
 			'ui/reset',
 			'clock/timersRestart',
 			'clock/timersStop',
-			'clock/tickSecond',
-			'clock/tickMinute',
-			'clock/tickHour',
+			'clock/tick',
 			'ui/render',
 		],
 	});

@@ -188,6 +188,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			initialContext,
 			startStateKey: StartState,
 			byPassAction: ByPassAction,
+			byPassActionValue: this.actionDictionary.getActionValues({ keys: [ByPassAction] })[0] ?? 0,
 			context: {
 				reducer,
 				defaultContext,

@@ -77,6 +77,9 @@ note left of Coll
 	#{pick_r}     <= pick($cObj, $cKey)
 	#{merge_r}    <= merge($mBase, $mPatch)
 	#{pluck_r}    <= pluck($cItems=[], $cProp)
+	#{filterBy_r} <= filterBy($cItems=[], $cProp, $cFilterVal)
+	#{find_r}     <= find($cItems=[], $cProp, $cFilterVal)
+	#{sample_r}   <= sample($cArr=[], $cN)
 	#{sort_r}     <= sort($cArr=[])
 	#{left_r}     <= left($cArr=[], $cN)
 	#{right_r}    <= right($cArr=[], $cN)
@@ -396,6 +399,7 @@ describe('builtin functions codegen', async () => {
 				mPatch: { b: 2 },
 				cItems: [{ n: 1 }, { n: 2 }, { n: 3 }],
 				cProp: 'n',
+				cFilterVal: 2,
 				// cArr: shared by sort/left/right/indexOf/len (none mutate in-place)
 				cArr: [1, 2, 3],
 				cN: 2,
@@ -461,6 +465,28 @@ describe('builtin functions codegen', async () => {
 			it('pluck([{n:1},{n:2}], n) = [1,2]', () => expect(dispatch({ cItems: [{ n: 1 }, { n: 2 }], cProp: 'n' }).pluck_r).toStrictEqual([1, 2]));
 			it('pluck(null, n) = [] (not a collection)', () => expect(dispatch({ cItems: null, cProp: 'n' }).pluck_r).toStrictEqual([]));
 			it('pluck([], n) = []', () => expect(dispatch({ cItems: [], cProp: 'n' }).pluck_r).toStrictEqual([]));
+		});
+
+		describe('filterBy', () => {
+			it('filterBy([{n:1},{n:2},{n:1}], n, 1) = [{n:1},{n:1}]', () => expect(dispatch({ cItems: [{ n: 1 }, { n: 2 }, { n: 1 }], cProp: 'n', cFilterVal: 1 }).filterBy_r).toStrictEqual([{ n: 1 }, { n: 1 }]));
+			it('filterBy(items, n, 99) = [] (no match)', () => expect(dispatch({ cItems: [{ n: 1 }, { n: 2 }], cProp: 'n', cFilterVal: 99 }).filterBy_r).toStrictEqual([]));
+			it('filterBy(null, n, 1) = []', () => expect(dispatch({ cItems: null, cProp: 'n', cFilterVal: 1 }).filterBy_r).toStrictEqual([]));
+		});
+
+		describe('find', () => {
+			it('find([{n:1},{n:2}], n, 2) = {n:2}', () => expect(dispatch({ cItems: [{ n: 1 }, { n: 2 }], cProp: 'n', cFilterVal: 2 }).find_r).toStrictEqual({ n: 2 }));
+			it('find(items, n, 99) = null (no match)', () => expect(dispatch({ cItems: [{ n: 1 }, { n: 2 }], cProp: 'n', cFilterVal: 99 }).find_r).toBeNull());
+			it('find(null, n, 1) = null', () => expect(dispatch({ cItems: null, cProp: 'n', cFilterVal: 1 }).find_r).toBeNull());
+		});
+
+		describe('sample', () => {
+			it('sample([1,2,3,4,5], 2) returns 2 items from source', () => {
+				const source = [1, 2, 3, 4, 5];
+				const result = dispatch({ cArr: source, cN: 2 }).sample_r as number[];
+				expect(result).toHaveLength(2);
+				for (const item of result) expect(source).toContain(item);
+			});
+			it('sample([], 2) = []', () => expect(dispatch({ cArr: [], cN: 2 }).sample_r).toStrictEqual([]));
 		});
 
 		describe('sort', () => {

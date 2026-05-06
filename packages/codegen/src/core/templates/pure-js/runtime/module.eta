@@ -1,0 +1,40 @@
+function createFunctionRegistry(builtIns) {
+  const _fns = new Map(Object.entries(builtIns));
+  return {
+    register(nameOrDict, fn) {
+      if (typeof nameOrDict === 'string') {
+        _fns.set(nameOrDict, fn);
+      } else {
+        for (const [k, v] of Object.entries(nameOrDict)) _fns.set(k, v);
+      }
+    },
+    get(name) { return _fns.get(name); },
+    call(name, ...args) {
+      const fn = _fns.get(name);
+      if (!fn) throw new Error(`Function "${name}" not registered`);
+      return fn(...args);
+    },
+    has(name) { return _fns.has(name); },
+  };
+}
+
+function createEventAdapter() {
+  const _emitters = new Map();
+  const _listeners = new Map();
+  return {
+    addEventEmitter(stateId, fn) { _emitters.set(stateId, fn); },
+    addEventListener(eventId, fn) { _listeners.set(eventId, fn); },
+    handleEvent({ event, meta }) {
+      const handler = _listeners.get(event);
+      if (!handler) return [];
+      const result = handler({ event, meta });
+      return result ? [result] : [];
+    },
+    handleTransition(context) {
+      const emitter = _emitters.get(context.state);
+      if (!emitter) return [];
+      const result = emitter(context);
+      return result ? [result] : [];
+    },
+  };
+}

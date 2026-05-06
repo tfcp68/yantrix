@@ -1,7 +1,7 @@
 {
 	"name": "@yantrix/scripts",
 	"type": "commonjs",
-	"version": "0.4.4",
+	"version": "0.5.0",
 	"private": true,
 	"description": "Utility scripts for Yantrix",
 	"contributors": [
@@ -11,7 +11,7 @@
 		"Nikita Beliaew <https://github.com/Nekitech>",
 		"Sin <https://github.com/Volshebnik09>",
 		"Alexey Geraim <https://github.com/obl1v1onZzz>",
-		"Саша <https://github.com/22sasha>"
+		"РЎР°С€Р° <https://github.com/22sasha>"
 	],
 	"license": "MIT",
 	"funding": "https://github.com/tfcp68/yantrix?sponsor",

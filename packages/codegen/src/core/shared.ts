@@ -103,5 +103,5 @@ export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateD
 export const pathRecord: Record<string, string> = {
 	constant: 'constant',
 	context: 'prevContext',
-	payload: 'payload',
+	payload: '_payload',
 };

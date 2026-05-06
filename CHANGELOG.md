@@ -2,6 +2,16 @@
 
 ## Table of Contents
 
+- [v0.5.0](#v050)
+  - [New Features](#new-features-8)
+  - [Other Changes](#other-changes-10)
+- [v0.4.7](#v047)
+  - [Other Changes](#other-changes-9)
+- [v0.4.6](#v046)
+  - [Other Changes](#other-changes-8)
+- [v0.4.5](#v045)
+  - [New Features](#new-features-7)
+  - [Other Changes](#other-changes-7)
 - [v0.4.4](#v044)
   - [New Features](#new-features-6)
   - [Other Changes](#other-changes-6)
@@ -33,6 +43,88 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.5.0]
+
+This minor release completes the `inject/` user-function pipeline for all supported dialects, extends the Python built-in function set, and exposes the `--functionFile` CLI flag that was previously only reachable via the programmatic API. `@yantrix/codegen` gains a Python event-bus runtime and selective built-in emission for the `pure-js`/`pure-ts` dialects; `@yantrix/functions` ships corrected collection transformer signatures (`filterBy`, `find`, `sample`) with matching Python implementations. No breaking changes are introduced to existing consumers.
+
+### New Features
+
+#### `--functionFile` / `-f` CLI flag (`@yantrix/cli`)
+
+`yantrix codegen` now accepts `--functionFile <path>` (alias `-f`) to supply a file of injectable user-defined functions. For JS/TS dialects the file is namespace-imported and each declared `inject/<name>` identifier is registered in `functionDictionary` at runtime. For the Python dialect the file is read verbatim and embedded in the generated module. Passing `--functionFile` with the `java` dialect throws a build-time error, consistent with the codegen-API behaviour. The interactive prompt mode (`-i`) also gained a corresponding step. Docs updated in `docs/integrations/050_cli.md` and `packages/cli/README.md`.
+
+#### Python `find` and `sample` builtins (`@yantrix/functions`)
+
+`packages/functions/src/python/transformers.py` now exports `find(collection, prop, value)` — returning the first dict in a list/dict-of-dicts where `dict[prop] == value`, or `None` — and `sample(iterable, n)` — returning `n` unique items sampled without replacement from a list, or `n` unique characters from a string. Both are included in the auto-generated `builtins.py.tpl` used by the Python codegen dialect. The existing `filter_by` function already matched the corrected TypeScript semantics.
+
+#### Corrected collection transformer signatures (`@yantrix/functions`, `@yantrix/codegen`)
+
+`filterBy`, `find`, and `sample` in the TypeScript runtime (`src/typescript/collections.ts`) were previously lodash re-exports with incompatible call signatures. They are now custom implementations accepting `(collection, prop, value)` for `filterBy`/`find` and `(iterable, n)` for `sample`, matching the Yantrix DSL semantics. The `builtins.js.tpl` (JS/TS/Pure dialects) was rebuilt to reflect these signatures.
+
+#### Python event bus and selective built-in emission (`@yantrix/codegen`)
+
+The Python dialect gained a full event-bus runtime (`event_bus.py.tpl`), enabling `emit/` and `subscribe/` statements in Python-targeted diagrams. Pure-JS and Pure-TS dialects now emit only the built-in functions referenced by the diagram rather than the full bundle, reducing output size. The codegen contributing documentation (`docs/contributing/`) was restructured into discrete concept pages.
+
+### Other Changes
+
+- `docs(syntax)`: expanded `subscribe` and `emit` reference pages; corrected fork syntax example
+- `docs(codegen)`: `500_codegen.md` restructured into `05_testing_codegen.md` and concept-level contributing pages; Python dialect reference updated for event bus and pure-stdlib changes
+- `docs(syntax/160_transformers)`: added `first`, `last`, `pluck`, `reverse`, `sort`, `round` precision entries carried in from the `more_function` branch
+
+---
+
+## [v0.4.7]
+
+This patch refactors the `06-clock` example FSM from seven states and three separate tick actions (`TickSecond`, `TickMinute`, `TickHour`) down to four states and a single `Tick` action. Hand angles are now derived mathematically from a single `startTs` timestamp using `_currentTimestamp()` internally, so the consumer dispatches `Tick` at any frequency and the automata computes all three angles without conditional branching. No core package APIs are changed.
+
+### Other Changes
+
+- `refactor(examples/06-clock)`: replace three-timer architecture with a single 100 ms `IntervalTimerDataSource`; `CLOCK_TICK_SECOND`, `CLOCK_TICK_MINUTE`, `CLOCK_TICK_HOUR` events collapsed into `CLOCK_TICK`; `secMs`/`minMs`/`hourMs` removed from FSM state and event payloads
+- `refactor(examples/06-clock)`: `ClockAutomata.mermaid` redesigned - `StartRun`, `TickSecond`, `TickMinute`, `TickHour` bypass states removed; new `TickProcess` bypass computes `secondAngle`, `minuteAngle`, `hourAngle` via `mod(div(mult(diff(#startTs, _currentTimestamp()), 360), periodUs), 360)`; `startTs` defaults to `_currentTimestamp()` via right-side default syntax
+
+---
+
+## [v0.4.6]
+
+This patch releases two fixes for `@yantrix/codegen` and `@yantrix/codegen-tests`. `@yantrix/codegen` gains an opt-in `beautify` flag (exposed on `IGenerateOptions` and via `--beautify` on the CLI) that post-processes generated output through Prettier for JS/TS dialects and ruff for Python, eliminating the mixed-tabs-and-spaces ESLint errors previously produced in example projects. The same release corrects a long-standing parser misconfiguration where the `PureTypeScript` dialect was formatted with Prettier's `babel` parser instead of `typescript`. No breaking changes are introduced.
+
+### Other Changes
+
+- `fix(codegen-tests)`: corrected `.d.ts` test path in `pureTypeScript.test.ts` — `generateAndSaveFiles` writes to `generated/pts_dts/TrafficLightDTS.d.ts` (subdirectory) but the 8 affected tests constructed a flat path `generated/pts_dts_TrafficLightDTS.d.ts`; CI always failed with ENOENT because the flat artifact is never generated from scratch
+- `docs(codegen)`: Python `forks/predicates` row in the feature support table corrected from ❌ to ✅; the `forks/module` template has been included in `python/module.eta` since v0.4.5
+
+---
+
+## [v0.4.5]
+
+This patch adds three new codegen dialects (`PureJavaScript`, `PureTypeScript`, `Python`), a universal cross-dialect behavioral test suite, and a comprehensive typing cleanup across all generated TypeScript output. No breaking changes are introduced; existing `JavaScript` and `TypeScript` dialect consumers are unaffected.
+
+### New Features
+
+#### PureJavaScript and PureTypeScript dialects
+
+`@yantrix/codegen` now exposes `ModuleNames.PureJavaScript` and `ModuleNames.PureTypeScript`. Both emit self-contained output with zero runtime imports from `@yantrix/core` — built-in functions are bundled inline at build time via `scripts/buildBuiltins.mjs`. PureTypeScript additionally emits a `.d.ts` declaration file alongside the `.js` module. The factory pattern (`create<ClassName>()`) replaces the class pattern; the returned instance is a plain object with `dispatch`, `getContext`, `state`, `lastAction`, `currentCycle`, `pause`, `resume`, `enable`, `disable`, and `destroy` accessors. Module-level helpers `getState`, `getAction`, `createAction`, `hasState`, `getEpoch`, `incrementEpoch`, and `createEventBus` are exported.
+
+#### Python dialect
+
+`ModuleNames.Python` generates a single self-contained `.py` file backed by `pydash`. Built-in functions are concatenated from `packages/functions/src/python/` at build time. The factory `create_<snake_name>()` returns a dict of lambda accessors. Module-level exports mirror the JS/TS API in snake_case: `states_dictionary`, `actions_dictionary`, `get_state`, `get_action`, `create_action`, `has_state`, `get_epoch`. Context reducers and `_get_default_context` are compiled from Yantrix notes. Inject `.py` functions are supported; forks/events/CoreLoop are not.
+
+#### Universal behavioral test suite (`shared.test.ts`)
+
+`packages/codegen-tests` gains `src/shared.test.ts`, which runs an identical 3-state circular automata through all five dialects and asserts the same state-sequence and dispatch behavior. PureTypeScript output is now saved into a subdirectory to preserve relative `./runtime.js` imports. Python tests run in a `describeExec` block guarded by `pythonCmd != null`. New fixture helpers: `behaviorSuite.ts` (`TBehaviorSpec`, `runBehaviorSuite`, `wrapClassFactory`, `wrapFunctoryFactory`) and updated `utils.ts` (`TFSMAdapter`, `IFSMInstanceBase`, `wrapInstance`, `generateAndSaveFiles`).
+
+#### TypeScript strict-mode typing cleanup
+
+All generated TypeScript output now satisfies `strict`, `noUnusedLocals`, `noUnusedParameters`, and `noUncheckedIndexedAccess`. Key changes: reducer parameters renamed to `_payload`, `_functionDictionary`, `_automata` (body uses module-level `functionDictionary`); `void` suppression replaced with `export` for module-level helpers; unsafe `!` assertions on state replaced with explicit null guards; `as any` on `FinalizationRegistry` replaced with intersection cast; event bus handler typed via `Parameters<BasicEventBus['subscribe']>[1]` contextual inference; `TStateId`/`TActionId` are named `number` aliases (not branded types).
+
+### Other Changes
+
+- `chore(hooks)`: pre-commit hook now only builds and tests packages with changed files; post-merge hook wired up
+- `docs(codegen)`: patching guide updated with current strict-mode patterns; `void`/`!`/`as any` rows replaced with `export`/`??`/null-guard/intersection-cast/`Parameters<>` equivalents; new `functionDictionary` vs `_functionDictionary` sub-section added
+- `docs(codegen)`: concept doc (`500_codegen.md`) updated — reducer signatures, `getDefaultContext` signature, and feature support table ("Opaque ID types" → "Named ID type aliases") reflect actual generated output
 
 ---
 

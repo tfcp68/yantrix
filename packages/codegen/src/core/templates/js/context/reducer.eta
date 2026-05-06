@@ -1,6 +1,6 @@
 const reducer<% if (it.hasTypes) { %>: TReducerMap<% } %> = {
 <% for (const entry of it.reducer.entries) { %>
-  <%~ entry.stateValue %>: (prevContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>, payload<% if (it.hasTypes) { %>: TReducerPayload<% } %>, functionDictionary<% if (it.hasTypes) { %>: FunctionDictionary<% } %>, automata<% if (it.hasTypes) { %>: GenericAutomata<% } %>) => {
+  <%~ entry.stateValue %>: (prevContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>, _payload<% if (it.hasTypes) { %>: TReducerPayload<% } %>, _functionDictionary<% if (it.hasTypes) { %>: FunctionDictionary<% } %>, _automata<% if (it.hasTypes) { %>: GenericAutomata<% } %>) => {
     return <%~ include('reducers/module', { transition: entry.transition }) %>
   },
 <% } %>

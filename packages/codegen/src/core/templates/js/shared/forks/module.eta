@@ -1,9 +1,13 @@
 <%
 const predicates = it.forks?.predicates ?? {};
 const stateEntries = Object.entries(predicates);
+const hasForkTransitions = Object.values(it.dictionaries?.actionToStateFromState ?? {})
+  .some(actions => Object.values(actions).some(entry => entry.withPredicate));
 %>
-const predicates = {
+<% if (stateEntries.length > 0 && hasForkTransitions) { %>
+const _forkPredicates = {
 <% for (const [stateId, actionPredicates] of stateEntries) { %>
-  <%~ include('stateEntry', { stateId, actionPredicates }) %>
+  <%~ include('stateEntry', { stateId, actionPredicates, hasTypes: it.hasTypes }) %>
 <% } %>
 };
+<% } %>

@@ -43,6 +43,8 @@ export interface IGenerateOptions {
 	 */
 	constants?: string;
 	functionFilePath?: string;
+	/** Format generated code using Prettier (JS/TS) or ruff (Python). */
+	beautify?: boolean;
 }
 
 export interface ITypedObjectProps {
@@ -75,12 +77,20 @@ export type TGetCodeOptionsMap = {
 	[ModuleNames.Python]: IGetCodePythonOptions;
 	[ModuleNames.TypeScript]: IGetCodeTSOptions;
 	[ModuleNames.Java]: IGetCodeJavaOptions;
+	[ModuleNames.PureJavaScript]: IGetCodeJSOptions;
+	[ModuleNames.PureTypeScript]: IGetCodeTSOptions;
 };
+
+/**
+ * Map of relative filenames to file contents for multi-file codegen output.
+ */
+export type TCodegenFiles = Record<string, string>;
 
 /**
  * Interface that is implemented by all code generators.
  * @template T - The output language.
  * @property getCode - The function that returns the generated code, following all the conventions established by the output language `T`.
+ * @property getFiles - Optional multi-file output. When present, returns a map of relative filenames to content.
  */
 export interface ICodegen<T extends TOutLang> {
 	/**
@@ -89,6 +99,11 @@ export interface ICodegen<T extends TOutLang> {
 	 * @returns The generated code.
 	 */
 	getCode: (options: TGetCodeOptionsMap[T]) => string;
+	/**
+	 * Optional multi-file output. When defined, returns all files for the dialect including the main entry.
+	 * Keys are relative filenames (e.g. 'runtime.js', 'MyAutomata.js').
+	 */
+	getFiles?: (options: TGetCodeOptionsMap[T]) => TCodegenFiles;
 }
 
 export type TOutLang = keyof typeof Modules;

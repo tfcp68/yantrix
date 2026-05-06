@@ -128,14 +128,16 @@ export async function codegen(argv: IArgv) {
 			outLang: <TLanguage>argv.language,
 			className,
 			constants,
+			functionFilePath: argv.functionFile,
+			beautify: argv.beautify,
 		}).catch((err) => {
 			p.log.error('An error occurred while generating Automata');
 			if (err instanceof Error) p.log.error(err.message);
 			process.exit(EXIT_ERROR_CODE);
 		});
 
-		const disableFlagLines = DISABLE_FLAGS.join('\n');
-		const writeable = `${disableFlagLines}\n\n${automata}`;
+		const isJsLike = ['JavaScript', 'TypeScript', 'PureJavaScript', 'PureTypeScript'].includes(argv.language as string);
+		const writeable = isJsLike ? `${DISABLE_FLAGS.join('\n')}\n\n${automata}` : automata;
 		const outputFilePath = path.resolve(argv.outfile);
 
 		try {

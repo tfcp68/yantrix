@@ -1,11 +1,11 @@
 # First of all
 
-Read all markdowns in ./docs folder just once
+To approach the implementation of any feature, first grep through `/docs` folder and read `/docs/contributing/index.md` regarding to design patterns
 
 ## Approach
 
-- Think before acting. Read existing files before writing code.
-- Be concise in output but clear in reasoning.
+- Think before acting. Read existing files before writing code. Read through `/docs` also when looking for "how".
+- Be concise in output but clear in reasoning. Ignore grammar in favor of token efficiency.
 - Prefer editing over rewriting whole files.
 - Do not re-read files you have already read.
 - No sycophantic openers or closing fluff.
@@ -42,7 +42,7 @@ Read all markdowns in ./docs folder just once
 
 ## Debugging Tests
 
-- `pnpm test` uses the `dot` reporter - output is compact dots only; failures show count but not names
+- `pnpm test` with `dot` reporter - look for coverage, verbose output and reports; investigate failures, do not disable tests of functionality
 - To see test names and failure details, run from a package directory:
   `vitest run --reporter=verbose`
 - After any test run, `test_reports/<pkg>.md` contains the full structured report with names and failure messages - read it to diagnose failures

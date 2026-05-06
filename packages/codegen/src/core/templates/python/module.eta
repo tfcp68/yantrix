@@ -1,0 +1,7 @@
+<%~ include('runtime/module', it) %>
+<%~ include('forks/module', it) %>
+<%~ include('dictionaries/module', it) %>
+<%~ include('functions/module', it) %>
+<%~ include('context/module', it) %>
+<%~ include('factory/module', it) %>
+<%~ include('events/bus/module', it) %>

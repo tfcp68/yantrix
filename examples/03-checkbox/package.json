@@ -1,7 +1,7 @@
 {
 	"name": "03-checkbox-react",
 	"type": "module",
-	"version": "0.4.4",
+	"version": "0.4.6",
 	"private": true,
 	"scripts": {
 		"dev": "vite",
@@ -10,7 +10,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"preview": "vite preview",
-		"generate": "yantrix codegen ./src/diagrams/checkbox.mermaid -l JavaScript -o src/generated/checkbox_controller.js -c Checkbox"
+		"generate": "yantrix codegen ./src/diagrams/checkbox.mermaid -l JavaScript -o src/generated/checkbox_controller.js -c Checkbox --beautify"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.1.0",
