@@ -180,9 +180,11 @@ describe("pure-javascript codegen - execution", async () => {
 
 ```typescript
 const forksInput = `stateDiagram-v2
-  [*] --> Check: Start
-  Check --> High: Eval [isGreater($score, 50)]
-  Check --> Low: Eval
+  [*] --> Init: Start
+  state check <<choice>>
+  Init --> check: Eval (score)
+  check --> High: isGreater($score, 50)
+  check --> Low
 note left of [*]
   +Init
 end note
@@ -320,7 +322,7 @@ print('ok')
 - Keep diagrams minimal: one feature per `describe` block, one diagram per feature.
 - Use linear chains for transition tests (`A --> B --> C`).
 - Use self-loops for reducer/context tests (`A --> A: update`).
-- Fork guard syntax: `State --> Target: Action [predicate($payload_key, literal)]`
+- Fork syntax: declare `state check <<choice>>`, route `State --> check: Action (payload_key)`, label outgoing edges with predicates: `check --> Target: predicate($payload_key, literal)`, default (no predicate): `check --> Other`
 - Subscribe syntax (in note): `subscribe/eventName ACTION_NAME`
 - Emit syntax (in note): `emit/eventName`
 
