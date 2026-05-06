@@ -2,6 +2,9 @@
 
 ## Table of Contents
 
+- [v0.5.0](#v050)
+  - [New Features](#new-features-8)
+  - [Other Changes](#other-changes-10)
 - [v0.4.7](#v047)
   - [Other Changes](#other-changes-9)
 - [v0.4.6](#v046)
@@ -40,6 +43,36 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.5.0]
+
+This minor release completes the `inject/` user-function pipeline for all supported dialects, extends the Python built-in function set, and exposes the `--functionFile` CLI flag that was previously only reachable via the programmatic API. `@yantrix/codegen` gains a Python event-bus runtime and selective built-in emission for the `pure-js`/`pure-ts` dialects; `@yantrix/functions` ships corrected collection transformer signatures (`filterBy`, `find`, `sample`) with matching Python implementations. No breaking changes are introduced to existing consumers.
+
+### New Features
+
+#### `--functionFile` / `-f` CLI flag (`@yantrix/cli`)
+
+`yantrix codegen` now accepts `--functionFile <path>` (alias `-f`) to supply a file of injectable user-defined functions. For JS/TS dialects the file is namespace-imported and each declared `inject/<name>` identifier is registered in `functionDictionary` at runtime. For the Python dialect the file is read verbatim and embedded in the generated module. Passing `--functionFile` with the `java` dialect throws a build-time error, consistent with the codegen-API behaviour. The interactive prompt mode (`-i`) also gained a corresponding step. Docs updated in `docs/integrations/050_cli.md` and `packages/cli/README.md`.
+
+#### Python `find` and `sample` builtins (`@yantrix/functions`)
+
+`packages/functions/src/python/transformers.py` now exports `find(collection, prop, value)` — returning the first dict in a list/dict-of-dicts where `dict[prop] == value`, or `None` — and `sample(iterable, n)` — returning `n` unique items sampled without replacement from a list, or `n` unique characters from a string. Both are included in the auto-generated `builtins.py.tpl` used by the Python codegen dialect. The existing `filter_by` function already matched the corrected TypeScript semantics.
+
+#### Corrected collection transformer signatures (`@yantrix/functions`, `@yantrix/codegen`)
+
+`filterBy`, `find`, and `sample` in the TypeScript runtime (`src/typescript/collections.ts`) were previously lodash re-exports with incompatible call signatures. They are now custom implementations accepting `(collection, prop, value)` for `filterBy`/`find` and `(iterable, n)` for `sample`, matching the Yantrix DSL semantics. The `builtins.js.tpl` (JS/TS/Pure dialects) was rebuilt to reflect these signatures.
+
+#### Python event bus and selective built-in emission (`@yantrix/codegen`)
+
+The Python dialect gained a full event-bus runtime (`event_bus.py.tpl`), enabling `emit/` and `subscribe/` statements in Python-targeted diagrams. Pure-JS and Pure-TS dialects now emit only the built-in functions referenced by the diagram rather than the full bundle, reducing output size. The codegen contributing documentation (`docs/contributing/`) was restructured into discrete concept pages.
+
+### Other Changes
+
+- `docs(syntax)`: expanded `subscribe` and `emit` reference pages; corrected fork syntax example
+- `docs(codegen)`: `500_codegen.md` restructured into `05_testing_codegen.md` and concept-level contributing pages; Python dialect reference updated for event bus and pure-stdlib changes
+- `docs(syntax/160_transformers)`: added `first`, `last`, `pluck`, `reverse`, `sort`, `round` precision entries carried in from the `more_function` branch
 
 ---
 

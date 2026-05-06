@@ -32,6 +32,9 @@ export interface IArgv {
 	'eval'?: string;
 	/** Format generated code using Prettier (JS/TS) or ruff (Python). */
 	'beautify'?: boolean;
+	/** Path to .js/.ts (or .py) file containing injectable user-defined functions. */
+	'functionFile'?: string;
+	'function-file'?: string;
 	/** Additional arguments. */
 	'_': (string | number)[];
 	'$0': string;

@@ -128,6 +128,7 @@ export async function codegen(argv: IArgv) {
 			outLang: <TLanguage>argv.language,
 			className,
 			constants,
+			functionFilePath: argv.functionFile,
 			beautify: argv.beautify,
 		}).catch((err) => {
 			p.log.error('An error occurred while generating Automata');

@@ -163,6 +163,11 @@ yargs(hideBin(process.argv))
 					describe: 'Path to JSON file with constants to be used in generated Automata',
 					type: 'string',
 				})
+				.option('functionFile', {
+					alias: 'f',
+					describe: 'Path to file with injectable user-defined functions (.js/.ts or .py)',
+					type: 'string',
+				})
 				.option('eval', {
 					alias: 'e',
 					describe: 'Provide diagram text inline instead of reading a file',

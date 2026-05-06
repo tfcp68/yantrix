@@ -194,6 +194,41 @@ export async function interactive() {
 				return '{}';
 			}
 		},
+		functionFile: async () => {
+			const choice = await p.select({
+				initialValue: 'skip',
+				message: 'Inject custom functions from a file?',
+				options: [
+					{ value: 'skip', label: 'No, skip this step' },
+					{ value: 'file', label: 'Yes, provide a function file' },
+				],
+			});
+
+			if (choice === 'file') {
+				const path = await p.text({
+					placeholder: './functions.ts',
+					message: 'Enter path to function file (.js/.ts or .py)',
+				});
+
+				if (typeof path === 'symbol') {
+					p.cancel('Automata generation cancelled');
+					process.exit(EXIT_SUCCESS_CODE);
+				}
+
+				if (!path || path.trim() === '') {
+					return p.log.warn('Path to function file is empty, skipping this step...');
+				}
+
+				if (!existsSync(resolve(path))) {
+					p.cancel('Provided function file path does not exist');
+					process.exit(EXIT_ERROR_CODE);
+				}
+
+				return path;
+			}
+
+			return null;
+		},
 	}, {
 		onCancel: () => {
 			p.cancel('Automata generation cancelled');
@@ -226,6 +261,7 @@ export async function interactive() {
 		outLang: <TLanguage>results.language,
 		className: results.className,
 		constants: results.constants,
+		functionFilePath: results.functionFile ?? undefined,
 		beautify: results.beautify === true,
 	}).catch((err) => {
 		const msg1 = 'An error occurred while generating Automata';

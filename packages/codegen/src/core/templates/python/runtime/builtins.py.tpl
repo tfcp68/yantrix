@@ -309,10 +309,28 @@ pluck = lambda collection, prop: [
 ]
 # @@end: pluck
 
+# @@begin: find
+find = lambda collection, prop, value: next(
+    (item for item in (collection.values() if isinstance(collection, dict) else collection)
+     if isinstance(item, dict) and item.get(prop) == value),
+    None
+)
+# @@end: find
+
+# @@begin: sample
+def sample(iterable, n):
+    if isinstance(iterable, str):
+        chars = list(iterable)
+        return ''.join(_random_stdlib.sample(chars, min(n, len(chars))))
+    items = list(iterable)
+    return _random_stdlib.sample(items, min(n, len(items)))
+# @@end: sample
+
 __all__ = [
     'add', 'diff', 'mult', 'div', 'pow_', 'inc', 'dec', 'neg', 'inv',
     'mod', 'trunc', 'ceil', 'round_', 'sin', 'cos', 'sqrt',
     'log', 'ln', 'lg', 'deg', 'rad',
     'len_', 'left', 'right', 'index_of', 'reverse_',
     'sort', 'lookup', 'repeat', 'substr', 'filter_by', 'pluck',
+    'find', 'sample',
 ]
