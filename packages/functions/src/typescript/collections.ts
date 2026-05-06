@@ -96,6 +96,50 @@ export function pluck(collection: TCollection, prop: string): any[] {
 	return isCollection(collection) ? _.map(collection, item => item[prop]) : [];
 }
 
+/**
+ * Filters a collection by matching a property to a value.
+ *
+ * @category Collection Transformers
+ * @param collection - The collection to filter.
+ * @param prop - The property name to match.
+ * @param value - The value to match against.
+ */
+export function filterBy(collection: TCollection, prop: string, value: unknown): TCollection {
+	return isCollection(collection)
+		? collection.filter(obj => prop in obj && obj[prop as keyof typeof obj] === value)
+		: [];
+}
+
+/**
+ * Returns the first item in a collection where a property equals a value.
+ *
+ * @category Collection Transformers
+ * @param collection - The collection to search.
+ * @param prop - The property name to match.
+ * @param value - The value to match against.
+ */
+export function find(collection: TCollection, prop: string, value: unknown): Record<string, unknown> | null {
+	return isCollection(collection)
+		? collection.find(obj => prop in obj && obj[prop as keyof typeof obj] === value) ?? null
+		: null;
+}
+
+/**
+ * Returns N random items from a list, or N random characters from a string.
+ *
+ * @category List/String Transformers
+ * @param iterable - The string or array to sample from.
+ * @param n - The number of items to return.
+ */
+export function sample(str: string, n: number): string;
+export function sample<T>(list: T[], n: number): T[];
+export function sample<T>(iterable: string | T[], n: number): string | T[] {
+	if (_.isString(iterable)) {
+		return _.sampleSize(iterable.split(''), n).join('');
+	}
+	return _.sampleSize(iterable as T[], n);
+}
+
 // ┌───────────────────────────────────────────────────────────────────────────┐
 // │                              Lodash Re-exports                            │
 // └───────────────────────────────────────────────────────────────────────────┘
@@ -105,11 +149,9 @@ export const right = _.takeRight;
 export const reverse = _.reverse;
 export const indexOf = _.indexOf;
 export const repeat = _.repeat;
-export const filterBy = _.filter;
 export const sort = _.sortBy;
 export const shuffle = _.shuffle;
 export const concat = _.concat;
-export const find = _.find;
 export const every = _.every;
 export const intersect = _.intersection;
 export const keys = _.keys;
@@ -118,7 +160,6 @@ export const omit = _.omit;
 export const padRight = _.padEnd;
 export const padLeft = _.padStart;
 export const pick = _.pick;
-export const sample = _.sample;
 export const setAttr = _.set;
 export const unsetAttr = _.unset;
 export const values = _.values;

@@ -339,11 +339,11 @@ function copyObject(source, props, object, customizer) {
   }
   return object;
 }
-var nativeMax$3 = Math.max;
+var nativeMax$2 = Math.max;
 function overRest(func, start, transform) {
-  start = nativeMax$3(start === void 0 ? func.length - 1 : start, 0);
+  start = nativeMax$2(start === void 0 ? func.length - 1 : start, 0);
   return function() {
-    var args = arguments, index = -1, length = nativeMax$3(args.length - start, 0), array = Array(length);
+    var args = arguments, index = -1, length = nativeMax$2(args.length - start, 0), array = Array(length);
     while (++index < length) {
       array[index] = args[start + index];
     }
@@ -845,6 +845,17 @@ function unicodeToArray(string) {
 }
 function stringToArray(string) {
   return hasUnicode(string) ? unicodeToArray(string) : asciiToArray(string);
+}
+function baseClamp(number, lower, upper) {
+  if (number === number) {
+    if (upper !== void 0) {
+      number = number <= upper ? number : upper;
+    }
+    {
+      number = number >= lower ? number : lower;
+    }
+  }
+  return number;
 }
 function stackClear() {
   this.__data__ = new ListCache();
@@ -1625,46 +1636,6 @@ function every$1(collection, predicate, guard) {
   }
   return func(collection, baseIteratee(predicate));
 }
-function baseFilter(collection, predicate) {
-  var result = [];
-  baseEach(collection, function(value, index, collection2) {
-    if (predicate(value, index, collection2)) {
-      result.push(value);
-    }
-  });
-  return result;
-}
-function filter(collection, predicate) {
-  var func = isArray(collection) ? arrayFilter : baseFilter;
-  return func(collection, baseIteratee(predicate));
-}
-function createFind(findIndexFunc) {
-  return function(collection, predicate, fromIndex) {
-    var iterable = Object(collection);
-    if (!isArrayLike(collection)) {
-      var iteratee = baseIteratee(predicate);
-      collection = keys$1(collection);
-      predicate = function(key) {
-        return iteratee(iterable[key], key, iterable);
-      };
-    }
-    var index = findIndexFunc(collection, predicate, fromIndex);
-    return index > -1 ? iterable[iteratee ? collection[index] : index] : void 0;
-  };
-}
-var nativeMax$2 = Math.max;
-function findIndex(array, predicate, fromIndex) {
-  var length = array == null ? 0 : array.length;
-  if (!length) {
-    return -1;
-  }
-  var index = fromIndex == null ? 0 : toInteger(fromIndex);
-  if (index < 0) {
-    index = nativeMax$2(length + index, 0);
-  }
-  return baseFindIndex(array, baseIteratee(predicate), index);
-}
-var find$1 = createFind(findIndex);
 function baseMap(collection, iteratee) {
   var index = -1, result = isArrayLike(collection) ? Array(collection.length) : [];
   baseEach(collection, function(value, key, collection2) {
@@ -1962,17 +1933,6 @@ var nativeReverse = arrayProto.reverse;
 function reverse$1(array) {
   return array == null ? array : nativeReverse.call(array);
 }
-function arraySample(array) {
-  var length = array.length;
-  return length ? array[baseRandom(0, length - 1)] : void 0;
-}
-function baseSample(collection) {
-  return arraySample(values$1(collection));
-}
-function sample$1(collection) {
-  var func = isArray(collection) ? arraySample : baseSample;
-  return func(collection);
-}
 function shuffleSelf(array, size) {
   var index = -1, length = array.length, lastIndex = length - 1;
   size = size === void 0 ? length : size;
@@ -1983,6 +1943,22 @@ function shuffleSelf(array, size) {
   }
   array.length = size;
   return array;
+}
+function arraySampleSize(array, n) {
+  return shuffleSelf(copyArray(array), baseClamp(n, 0, array.length));
+}
+function baseSampleSize(collection, n) {
+  var array = values$1(collection);
+  return shuffleSelf(array, baseClamp(n, 0, array.length));
+}
+function sampleSize(collection, n, guard) {
+  if (n === void 0) {
+    n = 1;
+  } else {
+    n = toInteger(n);
+  }
+  var func = isArray(collection) ? arraySampleSize : baseSampleSize;
+  return func(collection, n);
 }
 function set(object, path, value) {
   return object == null ? object : baseSet(object, path, value);
@@ -2235,16 +2211,26 @@ function substr(str, start, end) {
 function pluck(collection, prop) {
   return isCollection(collection) ? map(collection, (item) => item[prop]) : [];
 }
+function filterBy(collection, prop, value) {
+  return isCollection(collection) ? collection.filter((obj) => prop in obj && obj[prop] === value) : [];
+}
+function find(collection, prop, value) {
+  return isCollection(collection) ? collection.find((obj) => prop in obj && obj[prop] === value) ?? null : null;
+}
+function sample(iterable, n) {
+  if (isString(iterable)) {
+    return sampleSize(iterable.split(""), n).join("");
+  }
+  return sampleSize(iterable, n);
+}
 const left = take;
 const right = takeRight;
 const reverse = reverse$1;
 const indexOf = indexOf$1;
 const repeat = repeat$1;
-const filterBy = filter;
 const sort = sortBy;
 const shuffle = shuffle$1;
 const concat = concat$1;
-const find = find$1;
 const every = every$1;
 const intersect = intersection;
 const keys = keys$1;
@@ -2253,7 +2239,6 @@ const omit = omit$1;
 const padRight = padEnd;
 const padLeft = padStart;
 const pick = pick$1;
-const sample = sample$1;
 const setAttr = set;
 const unsetAttr = unset;
 const values = values$1;
