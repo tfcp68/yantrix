@@ -32,7 +32,7 @@ def <%~ it.python.snakeName %>():
     _paused = [False]
     _disabled = [False]
     _queue = [[]]
-
+<%~ include('../events/adapter/module', it) %>
     def _get_new(local_action, local_state, local_context, local_payload):
         _last_action[0] = local_action
         state_transitions = action_to_state_from_state_dict.get(local_state)
@@ -111,6 +111,7 @@ def <%~ it.python.snakeName %>():
         'context': lambda: dict(_context[0]),
         'last_action': lambda: _last_action[0],
         'current_cycle': lambda: _current_cycle[0],
+        'event_adapter': event_adapter,
         'dispatch': dispatch,
         'get_context': get_context,
         'pause': pause,

@@ -1,0 +1,7 @@
+    event_adapter.add_event_listener(
+        event_dictionary['<%~ it.listener.eventIdentifier %>'],
+        lambda event_meta: {
+            'action': actions_dictionary['<%~ it.listener.actionName %>'],
+            'payload': {<%~ it.listener.payloadLines.length > 0 ? it.listener.payloadLines.map(l => `\n                ${l}`).join(',') + '\n            ' : '' %>},
+        }
+    )

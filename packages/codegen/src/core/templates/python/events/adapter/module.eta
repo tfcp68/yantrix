@@ -1,0 +1,11 @@
+<% if (it.python.events.hasEvents) { %>
+    event_adapter = _EventAdapter()
+<% for (const emitter of it.python.events.emitters) { %>
+<%~ include('emit/entry', {...it, emitter}) %>
+<% } %>
+<% for (const listener of it.python.events.listeners) { %>
+<%~ include('listen/entry', {...it, listener}) %>
+<% } %>
+<% } else { %>
+    event_adapter = None
+<% } %>

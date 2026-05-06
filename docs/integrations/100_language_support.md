@@ -16,16 +16,16 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | `define/fn(args) => expr` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | User function injection<sup>4</sup> | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Forks / predicates | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Event subscription | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Event emission | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| `createEventBus()` factory | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Event subscription | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Event emission | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `createEventBus()` factory | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `@yantrix/core` compatible<sup>5</sup> | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Epoch tracking | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Cycle counter | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Named ID type aliases | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
 | TypeScript declarations | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
 | Pause / resume / disable | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Zero external runtime deps | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Zero external runtime deps | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
 | Side effects | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 > [!NOTE]

@@ -28,11 +28,6 @@ function isPythonAvailable(): string | null {
 	for (const cmd of ['python3', 'python']) {
 		try {
 			execSync(`${cmd} --version`, { stdio: 'ignore' });
-			try {
-				execSync(`${cmd} -c "import pydash; from pydash import gt, lt"`, { stdio: 'ignore' });
-			} catch {
-				return null;
-			}
 			return cmd;
 		} catch {
 			// try next
@@ -108,6 +103,63 @@ describe('python codegen - structural validation', async () => {
 	});
 });
 
+describe('python codegen - no pydash, selective functions', async () => {
+	const fnInput = `stateDiagram-v2
+	[*] --> Active: Start
+	Active --> Active: Update
+note left of Active
+	+Init
+	#{ doubled = 0 } <= mult($val, 2)
+end note
+`;
+	const code = await generateAutomata({
+		input: fnInput,
+		automataName: 'SelectiveFns',
+		lang: ModuleNames.Python,
+	});
+
+	it('no pydash import in output', () => {
+		expect(code).not.toContain('pydash');
+	});
+
+	it('mult is present in function_dictionary', () => {
+		expect(code).toContain('\'mult\': mult');
+	});
+
+	it('unused functions not emitted (sort not used)', () => {
+		expect(code).not.toContain('\'sort\': sort');
+	});
+
+	it('event_dictionary is emitted', () => {
+		expect(code).toContain('event_dictionary = {');
+	});
+
+	it('_EventBus class is emitted', () => {
+		expect(code).toContain('class _EventBus:');
+	});
+
+	it('_EventAdapter class is emitted', () => {
+		expect(code).toContain('class _EventAdapter:');
+	});
+
+	it('create_event_bus function is emitted', () => {
+		expect(code).toContain('def create_event_bus(');
+	});
+
+	it('factory returns event_adapter key', () => {
+		expect(code).toContain('\'event_adapter\': event_adapter');
+	});
+
+	it('no pydash in traffic input either', async () => {
+		const trafficCode = await generateAutomata({
+			input: trafficInput,
+			automataName: 'TrafficLight',
+			lang: ModuleNames.Python,
+		});
+		expect(trafficCode).not.toContain('pydash');
+	});
+});
+
 describe('python codegen - builtin functions structural', async () => {
 	const fnInput = `stateDiagram-v2
 	[*] --> Active: Start
@@ -179,6 +231,62 @@ describe('python codegen - inject functions', async () => {
 
 	it('injected function body references mult', () => {
 		expect(code).toContain('function_dictionary[\'mult\']');
+	});
+});
+
+const eventAdapterInput = `stateDiagram-v2
+	[*] --> Idle: Reset
+	Idle --> Active: Trigger
+note left of Idle
+	+Init
+	subscribe/BusReady Trigger
+end note
+note left of Active
+	emit/FsmDone
+end note
+`;
+
+describe('python codegen - event adapter structural', async () => {
+	const code = await generateAutomata({
+		input: eventAdapterInput,
+		automataName: 'EventFsm',
+		lang: ModuleNames.Python,
+	});
+
+	it('emits event_adapter = _EventAdapter()', () => {
+		expect(code).toContain('event_adapter = _EventAdapter()');
+	});
+
+	it('wires add_event_listener for subscribe', () => {
+		expect(code).toContain('event_adapter.add_event_listener');
+	});
+
+	it('wires add_event_emitter for emit', () => {
+		expect(code).toContain('event_adapter.add_event_emitter');
+	});
+
+	it('event_adapter in factory return dict', () => {
+		expect(code).toContain('\'event_adapter\': event_adapter');
+	});
+
+	it('create_event_bus function is emitted', () => {
+		expect(code).toContain('def create_event_bus(');
+	});
+
+	it('_EventBus class is emitted', () => {
+		expect(code).toContain('class _EventBus:');
+	});
+
+	it('_EventAdapter class is emitted', () => {
+		expect(code).toContain('class _EventAdapter:');
+	});
+
+	it('busReady event in event_dictionary', () => {
+		expect(code).toContain('BusReady');
+	});
+
+	it('fsmDone event in event_dictionary', () => {
+		expect(code).toContain('FsmDone');
 	});
 });
 
@@ -478,6 +586,139 @@ sys.path.insert(0, r'${generatedDir}')
 from py_traffic_generated import create_traffic_light, has_state
 fsm = create_traffic_light()
 assert has_state(fsm, 'Red') == False, f"Expected False"
+print('ok')
+`.trim();
+		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+});
+
+// Diagrams for event bus tests
+// Sender: Off -> On (Send action); On state emits FsmSignal
+const senderInput = `stateDiagram-v2
+	[*] --> Off: Reset
+	Off --> On: Send
+note left of Off
+	+Init
+end note
+note left of On
+	emit/FsmSignal
+end note
+`;
+
+// Receiver: Idle -> Active (Trigger action); subscribes to FsmSignal -> Trigger
+const receiverInput = `stateDiagram-v2
+	[*] --> Idle: Reset
+	Idle --> Active: Trigger
+note left of Idle
+	+Init
+	subscribe/FsmSignal Trigger
+end note
+`;
+
+describeExec('python codegen - event bus execution: subscribe triggers transition', async () => {
+	await generateAndSave(
+		{ input: senderInput, automataName: 'Sender', lang: ModuleNames.Python },
+		'py_sender',
+	);
+	await generateAndSave(
+		{ input: receiverInput, automataName: 'Receiver', lang: ModuleNames.Python },
+		'py_receiver',
+	);
+
+	it('create_event_bus wires two automatas', () => {
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_receiver_generated import create_receiver, states_dictionary, create_event_bus
+bus, autos, cleanup = create_event_bus('test', {'r': create_receiver})
+assert autos['r']['state']() == states_dictionary['Idle'], f"Expected Idle"
+print('ok')
+`.trim();
+		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+
+	it('dispatching FsmSignal event triggers Receiver Trigger action', () => {
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_receiver_generated import create_receiver, states_dictionary, event_dictionary, create_event_bus
+bus, autos, cleanup = create_event_bus('test', {'r': create_receiver})
+bus.dispatch({'event': event_dictionary['FsmSignal'], 'meta': {}})
+assert autos['r']['state']() == states_dictionary['Active'], f"Expected Active, got {autos['r']['state']()}"
+print('ok')
+`.trim();
+		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+
+	it('cleanup unsubscribes all handlers - dispatch after cleanup has no effect', () => {
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_receiver_generated import create_receiver, states_dictionary, event_dictionary, create_event_bus
+bus, autos, cleanup = create_event_bus('test', {'r': create_receiver})
+cleanup()
+bus.dispatch({'event': event_dictionary['FsmSignal'], 'meta': {}})
+assert autos['r']['state']() == states_dictionary['Idle'], f"Expected Idle after cleanup, got {autos['r']['state']()}"
+print('ok')
+`.trim();
+		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+});
+
+describeExec('python codegen - event bus execution: emit propagates to second FSM', async () => {
+	it('dispatching Send action on Sender emits FsmSignal which transitions Receiver', () => {
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_sender_generated import create_sender, actions_dictionary as sender_actions, event_dictionary
+from py_receiver_generated import create_receiver, states_dictionary as recv_states, create_event_bus
+bus, autos, cleanup = create_event_bus('test', {'s': create_sender, 'r': create_receiver})
+autos['s']['dispatch']({'action': sender_actions['Send'], 'payload': {}})
+emitted = autos['s']['event_adapter'].handle_transition(autos['s']['get_context']())
+bus.dispatch(*emitted)
+assert autos['r']['state']() == recv_states['Active'], f"Expected Active, got {autos['r']['state']()}"
+print('ok')
+`.trim();
+		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+});
+
+describeExec('python codegen - event dispatch sequence', async () => {
+	it('cascading: Sender dispatch -> emit -> Receiver transition in one bus.dispatch call', () => {
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_sender_generated import create_sender, actions_dictionary as sa, event_dictionary
+from py_receiver_generated import create_receiver, states_dictionary as rs, create_event_bus
+bus, autos, cleanup = create_event_bus('combined', {'s': create_sender, 'r': create_receiver})
+before_r_cycle = autos['r']['current_cycle']()
+autos['s']['dispatch']({'action': sa['Send'], 'payload': {}})
+emits = autos['s']['event_adapter'].handle_transition(autos['s']['get_context']())
+bus.dispatch(*emits)
+after_r_cycle = autos['r']['current_cycle']()
+assert after_r_cycle == before_r_cycle + 1, f'Receiver cycle did not increment: {before_r_cycle} -> {after_r_cycle}'
+print('ok')
+`.trim();
+		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+
+	it('no infinite loop: single dispatch causes exactly one transition, no cascade', () => {
+		// Receiver subscribes to FsmSignal -> Trigger; Active has no emitter.
+		// One dispatch must result in exactly one cycle - no cascading loop.
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_receiver_generated import create_receiver, states_dictionary, event_dictionary, create_event_bus
+bus, autos, cleanup = create_event_bus('test', {'r': create_receiver})
+bus.dispatch({'event': event_dictionary['FsmSignal'], 'meta': {}})
+assert autos['r']['current_cycle']() == 1, f'Expected 1 cycle, got {autos["r"]["current_cycle"]()}'
+assert autos['r']['state']() == states_dictionary['Active'], f'Expected Active'
 print('ok')
 `.trim();
 		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });

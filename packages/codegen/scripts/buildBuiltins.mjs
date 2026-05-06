@@ -3,7 +3,7 @@
  *  - src/core/templates/pure-js/runtime/builtins.js.tpl
  *    Bundled, self-contained JS block (no imports) that defines `builtInFunctions`.
  *  - src/core/templates/python/runtime/builtins.py.tpl
- *    Concatenated Python source from @yantrix/functions/src/python/ (requires pydash at runtime).
+ *    Concatenated Python source from @yantrix/functions/src/python/ (pure Python, no external deps).
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -155,7 +155,6 @@ else {
 
 	const pyContent = [
 		'# --- Python builtins (auto-generated from @yantrix/functions/src/python/) ---',
-		'# Requires: pydash (pip install pydash)',
 		'',
 		...[...importLines],
 		'',

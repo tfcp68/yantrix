@@ -10,12 +10,14 @@ import {
 	FunctionCall,
 	getContextStatements,
 	getDefineStatements,
+	getEmitStatements,
 	getFunctionArgs,
 	getFunctionName,
 	getNumberValue,
 	getReferenceIdentifier,
 	getReferenceType,
 	getStringValue,
+	getSubscribeStatements,
 	hasInitialState,
 	hasReducer,
 	isConstant,
@@ -86,7 +88,7 @@ const YANTRIX_TO_PYTHON: Record<string, string> = {
 	left: 'left',
 	right: 'right',
 	indexOf: 'index_of',
-	reverse: 'reverse',
+	reverse: 'reverse_',
 	sort: 'sort',
 	lookup: 'lookup',
 	repeat: 'repeat',
@@ -95,6 +97,51 @@ const YANTRIX_TO_PYTHON: Record<string, string> = {
 	filterBy: 'filter_by',
 	_random: '_random',
 };
+
+// ---------------------------------------------------------------------------
+// Builtin filtering
+// ---------------------------------------------------------------------------
+
+function filterBuiltins(raw: string, used: Set<string>): string {
+	const lines = raw.split('\n');
+	const result: string[] = [];
+	let inBlock = false;
+	let blockName = '';
+	let preambleDone = false;
+
+	for (const line of lines) {
+		const beginMatch = line.match(/^# @@begin: (.+)$/);
+		const endMatch = line.match(/^# @@end: (.+)$/);
+
+		if (beginMatch) {
+			blockName = beginMatch[1]!;
+			inBlock = true;
+			preambleDone = true;
+			if (used.has(blockName)) {
+				result.push(line);
+			}
+			continue;
+		}
+
+		if (endMatch) {
+			if (used.has(blockName)) {
+				result.push(line);
+				result.push('');
+			}
+			inBlock = false;
+			blockName = '';
+			continue;
+		}
+
+		if (!preambleDone) {
+			result.push(line);
+		} else if (inBlock && used.has(blockName)) {
+			result.push(line);
+		}
+	}
+
+	return result.join('\n');
+}
 
 // ---------------------------------------------------------------------------
 // Expression-level serializers (produce Python expression strings)
@@ -106,12 +153,17 @@ function pyNull(path: string, identifier: string, fallback: string | null): stri
 	return `(${val} if ${check} else ${fallback ?? 'None'})`;
 }
 
-function pyFuncCall(name: string, args: string[]): string {
-	const pyName = YANTRIX_TO_PYTHON[name] ?? name;
-	return `function_dictionary['${pyName}'](${args.join(', ')})`;
+function makePyFuncCall(track: Set<string>) {
+	return function pyFuncCall(name: string, args: string[]): string {
+		const pyName = YANTRIX_TO_PYTHON[name] ?? name;
+		track.add(pyName);
+		return `function_dictionary['${pyName}'](${args.join(', ')})`;
+	};
 }
 
-function setupPythonExpressions(constants: TConstants | null): TExpressionRecord {
+function setupPythonExpressions(constants: TConstants | null, track: Set<string>): TExpressionRecord {
+	const pyFuncCall = makePyFuncCall(track);
+
 	const expressionRecord: TExpressionRecord = {
 		array: () => '[]',
 		constant: (expr: DataObject) => {
@@ -366,12 +418,11 @@ function buildDefaultContextLines(
 	return lines;
 }
 
-function renderDefineBody(expr: any, expressions: TExpressionRecord): string {
+function renderDefineBody(expr: any, expressions: TExpressionRecord, pyFuncCall: (n: string, a: string[]) => string): string {
 	if (defineExpressionIsFunction(expr)) {
 		const fn = expr as DefineFunction;
-		const pyFn = YANTRIX_TO_PYTHON[fn.name] ?? fn.name;
-		const args = fn.args.map((a: any) => renderDefineBody(a, expressions)).join(', ');
-		return `function_dictionary['${pyFn}'](${args})`;
+		const args = fn.args.map((a: any) => renderDefineBody(a, expressions, pyFuncCall));
+		return pyFuncCall(fn.name, args);
 	}
 	if ('identifier' in expr && !('$type' in expr && (expr as any).$type !== 'IdentifierRef')) {
 		return (expr as { identifier: string }).identifier;
@@ -382,6 +433,7 @@ function renderDefineBody(expr: any, expressions: TExpressionRecord): string {
 function buildDefinesData(
 	diagram: TStateDiagramMatrixIncludeNotes,
 	expressions: TExpressionRecord,
+	pyFuncCall: (n: string, a: string[]) => string,
 ): Array<{ identifier: string; args: string[]; body: string }> {
 	const defines = diagram.states.flatMap(s => s.notes ? getDefineStatements(s.notes) : []);
 	const registered = new Set<string>();
@@ -392,8 +444,96 @@ function buildDefinesData(
 		result.push({
 			identifier: def.identifier,
 			args: def.args,
-			body: renderDefineBody(def.expression, expressions),
+			body: renderDefineBody(def.expression, expressions, pyFuncCall),
 		});
+	}
+	return result;
+}
+
+// ---------------------------------------------------------------------------
+// Event model builders
+// ---------------------------------------------------------------------------
+
+type TPythonEmitterVM = {
+	stateId: string;
+	stateValue: number;
+	events: Array<{ eventIdentifier: string; metaLines: string[] }>;
+};
+
+type TPythonListenerVM = {
+	eventIdentifier: string;
+	actionName: string;
+	payloadLines: string[];
+};
+
+function pyNullMeta(identifier: string, fallback: string | null): string {
+	const path = '_meta_inner';
+	const val = `${path}.get('${identifier}')`;
+	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
+	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+}
+
+function pyNullCtx(identifier: string, fallback: string | null): string {
+	const path = '_ctx_inner';
+	const val = `${path}.get('${identifier}')`;
+	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
+	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+}
+
+function buildEventEmittersData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+	stateDictionary: BasicStateDictionary,
+): TPythonEmitterVM[] {
+	const result: TPythonEmitterVM[] = [];
+	for (const state of diagram.states) {
+		if (!state.notes) continue;
+		const emits = getEmitStatements(state.notes);
+		if (emits.length === 0) continue;
+		const sv = stateDictionary.getStateValues({ keys: [state.id] })[0];
+		if (sv == null) continue;
+
+		const events = emits.map((emit) => {
+			const metaLines: string[] = [];
+			if ('meta' in emit && Array.isArray((emit as any).meta)) {
+				for (const item of (emit as any).meta as RawKeyItem[]) {
+					const val = pyNullCtx(item.identifier, null);
+					metaLines.push(`'${item.identifier}': ${val}`);
+				}
+			}
+			return { eventIdentifier: emit.identifier, metaLines };
+		});
+
+		result.push({ stateId: state.id, stateValue: sv, events });
+	}
+	return result;
+}
+
+function buildEventListenersData(
+	diagram: TStateDiagramMatrixIncludeNotes,
+): TPythonListenerVM[] {
+	const result: TPythonListenerVM[] = [];
+	for (const state of diagram.states) {
+		if (!state.notes) continue;
+		const subs = getSubscribeStatements(state.notes);
+		for (const sub of subs) {
+			const payloadLines: string[] = [];
+			if ('metaItems' in sub && Array.isArray((sub as any).metaItems)) {
+				const targets = 'payload' in sub && Array.isArray((sub as any).payload)
+					? (sub as any).payload as RawKeyItem[]
+					: (sub as any).metaItems as RawKeyItem[];
+				const sources = (sub as any).metaItems as RawKeyItem[];
+				sources.forEach((src: RawKeyItem, i: number) => {
+					const target = targets[i] ?? src;
+					const val = pyNullMeta(src.identifier, null);
+					payloadLines.push(`'${target.identifier}': ${val}`);
+				});
+			}
+			result.push({
+				eventIdentifier: sub.identifier,
+				actionName: sub.actionName,
+				payloadLines,
+			});
+		}
 	}
 	return result;
 }
@@ -410,6 +550,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	constants: TConstants | null;
 	expressions: TExpressionRecord;
 	private injectedFunctionPath: string | null;
+	private _usedFunctions: Set<string> = new Set();
 
 	constructor({ diagram, constants, injectedFunctions }: TModuleParams) {
 		this.stateDictionary = new BasicStateDictionary();
@@ -417,12 +558,16 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		this.eventDictionary = new BasicEventDictionary();
 		this.diagram = diagram;
 		this.constants = constants;
-		this.expressions = setupPythonExpressions(constants);
 		this.injectedFunctionPath = injectedFunctions.path ?? null;
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary, this.eventDictionary);
+		this.expressions = setupPythonExpressions(constants, this._usedFunctions);
 	}
 
 	private buildTemplateModel(className: string) {
+		this._usedFunctions = new Set<string>();
+		const expressions = setupPythonExpressions(this.constants, this._usedFunctions);
+		const pyFuncCall = makePyFuncCall(this._usedFunctions);
+
 		const initialStateId = getInitialState(this.diagram);
 		const initialStateValue = this.stateDictionary.getStateValues({ keys: [initialStateId] })[0];
 		if (initialStateValue == null) throw new Error('Invalid initial state');
@@ -433,7 +578,8 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 
 		const startStateValue = this.stateDictionary.getStateValues({ keys: [StartState] })[0] ?? null;
 
-		const builtins = readFileSync(resolve(etaViewsPath, 'python/runtime/builtins.py.tpl'), 'utf8');
+		const rawBuiltins = readFileSync(resolve(etaViewsPath, 'python/runtime/builtins.py.tpl'), 'utf8');
+		const eventBusRuntime = readFileSync(resolve(etaViewsPath, 'python/runtime/event_bus.py.tpl'), 'utf8');
 		const injectedCode = this.injectedFunctionPath
 			? readFileSync(this.injectedFunctionPath, 'utf8')
 			: null;
@@ -443,8 +589,26 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 			diagram: this.diagram,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
-			expressions: this.expressions,
+			expressions,
 		});
+
+		const reducers = buildReducerModelData(this.diagram, this.stateDictionary, expressions);
+		const transitions = buildTransitionData(this.diagram, this.stateDictionary, this.actionDictionary);
+		const defaultContextLines = buildDefaultContextLines(startStateValue, this.diagram, expressions);
+		const defines = buildDefinesData(this.diagram, expressions, pyFuncCall);
+
+		const emitters = buildEventEmittersData(this.diagram, this.stateDictionary);
+		const listeners = buildEventListenersData(this.diagram);
+
+		const builtins = injectedCode
+			? rawBuiltins
+			: filterBuiltins(rawBuiltins, this._usedFunctions);
+
+		const filteredFunctionDict = injectedCode
+			? Object.entries(YANTRIX_TO_PYTHON).map(([key, pyName]) => ({ key, pyName }))
+			: Object.entries(YANTRIX_TO_PYTHON)
+				.filter(([, pyName]) => this._usedFunctions.has(pyName))
+				.map(([key, pyName]) => ({ key, pyName }));
 
 		return {
 			className,
@@ -454,17 +618,23 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 			eventDictionary: this.eventDictionary,
 			python: {
 				builtins,
-				functionDict: Object.entries(YANTRIX_TO_PYTHON).map(([key, pyName]) => ({ key, pyName })),
+				eventBusRuntime,
+				functionDict: filteredFunctionDict,
 				snakeName: `create_${camelToSnake(className)}`,
 				initialContext,
-				reducers: buildReducerModelData(this.diagram, this.stateDictionary, this.expressions),
-				transitions: buildTransitionData(this.diagram, this.stateDictionary, this.actionDictionary),
-				defaultContextLines: buildDefaultContextLines(startStateValue, this.diagram, this.expressions),
-				defines: buildDefinesData(this.diagram, this.expressions),
+				reducers,
+				transitions,
+				defaultContextLines,
+				defines,
 				injectedCode,
 				byPassedList,
 				byPassActionValue: this.actionDictionary.getActionValues({ keys: [ByPassAction] })[0] ?? 0,
 				predicates,
+				events: {
+					emitters,
+					listeners,
+					hasEvents: emitters.length > 0 || listeners.length > 0,
+				},
 			},
 		};
 	}
