@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v0.4.7](#v047)
+  - [Other Changes](#other-changes-9)
 - [v0.4.6](#v046)
   - [Other Changes](#other-changes-8)
 - [v0.4.5](#v045)
@@ -38,6 +40,17 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.4.7]
+
+This patch refactors the `06-clock` example FSM from seven states and three separate tick actions (`TickSecond`, `TickMinute`, `TickHour`) down to four states and a single `Tick` action. Hand angles are now derived mathematically from a single `startTs` timestamp using `_currentTimestamp()` internally, so the consumer dispatches `Tick` at any frequency and the automata computes all three angles without conditional branching. No core package APIs are changed.
+
+### Other Changes
+
+- `refactor(examples/06-clock)`: replace three-timer architecture with a single 100 ms `IntervalTimerDataSource`; `CLOCK_TICK_SECOND`, `CLOCK_TICK_MINUTE`, `CLOCK_TICK_HOUR` events collapsed into `CLOCK_TICK`; `secMs`/`minMs`/`hourMs` removed from FSM state and event payloads
+- `refactor(examples/06-clock)`: `ClockAutomata.mermaid` redesigned - `StartRun`, `TickSecond`, `TickMinute`, `TickHour` bypass states removed; new `TickProcess` bypass computes `secondAngle`, `minuteAngle`, `hourAngle` via `mod(div(mult(diff(#startTs, _currentTimestamp()), 360), periodUs), 360)`; `startTs` defaults to `_currentTimestamp()` via right-side default syntax
 
 ---
 
