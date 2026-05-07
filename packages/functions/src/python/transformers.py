@@ -168,11 +168,22 @@ def sample(iterable, n):
     return _random_stdlib.sample(items, min(n, len(items)))
 # @@end: sample
 
+# @@begin: shuffle
+def shuffle(iterable):
+    if isinstance(iterable, str):
+        chars = list(iterable)
+        _random_stdlib.shuffle(chars)
+        return ''.join(chars)
+    items = list(iterable)
+    _random_stdlib.shuffle(items)
+    return items
+# @@end: shuffle
+
 __all__ = [
     'add', 'diff', 'mult', 'div', 'pow_', 'inc', 'dec', 'neg', 'inv',
     'mod', 'trunc', 'ceil', 'round_', 'sin', 'cos', 'sqrt',
     'log', 'ln', 'lg', 'deg', 'rad',
     'len_', 'left', 'right', 'index_of', 'reverse_',
     'sort', 'lookup', 'repeat', 'substr', 'filter_by', 'pluck',
-    'find', 'sample',
+    'find', 'sample', 'shuffle',
 ]

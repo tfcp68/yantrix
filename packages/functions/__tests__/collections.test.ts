@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Transformers } from '../src';
 
 describe('collection Transformers', () => {
-	const { filterBy, find, sample } = Transformers;
+	const { filterBy, find, sample, sort, shuffle } = Transformers;
 
 	describe('filterBy()', () => {
 		const items = [{ n: 1 }, { n: 2 }, { n: 3 }, { n: 1 }];
@@ -84,6 +84,71 @@ describe('collection Transformers', () => {
 		it('no duplicate items when n <= source length', () => {
 			const result = sample([1, 2, 3, 4, 5], 5);
 			expect(new Set(result).size).toBe(5);
+		});
+	});
+
+	describe('sort()', () => {
+		it('sorts numbers ascending', () => {
+			expect(sort([3, 1, 4, 1, 5])).toStrictEqual([1, 1, 3, 4, 5]);
+		});
+
+		it('sorts strings ascending', () => {
+			expect(sort(['banana', 'apple', 'cherry'])).toStrictEqual(['apple', 'banana', 'cherry']);
+		});
+
+		it('returns empty array for empty input', () => {
+			expect(sort([])).toStrictEqual([]);
+		});
+
+		it('returns empty array for null input', () => {
+			expect(sort(null as any)).toStrictEqual([]);
+		});
+
+		it('does not mutate original array', () => {
+			const input = [3, 1, 2];
+			sort(input);
+			expect(input).toStrictEqual([3, 1, 2]);
+		});
+
+		it('sorts collection by keyName', () => {
+			const col = [{ id: 3 }, { id: 1 }, { id: 2 }];
+			expect(sort(col, 'id')).toStrictEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+		});
+
+		it('sorts collection by keyName with defaultValue for missing keys', () => {
+			const col = [{ id: 3 }, { name: 'x' }, { id: 1 }];
+			expect(sort(col as any, 'id', 0)).toStrictEqual([{ name: 'x' }, { id: 1 }, { id: 3 }]);
+		});
+	});
+
+	describe('shuffle()', () => {
+		it('returns string of same length with same characters', () => {
+			const result = shuffle('hello');
+			expect(typeof result).toBe('string');
+			expect(result).toHaveLength(5);
+			expect(result.split('').sort()
+				.join('')).toBe('ehllo');
+		});
+
+		it('returns array with same items in some order', () => {
+			const input = [1, 2, 3, 4, 5];
+			const result = shuffle(input);
+			expect(result).toHaveLength(5);
+			expect(result.slice().sort((a, b) => a - b)).toStrictEqual([1, 2, 3, 4, 5]);
+		});
+
+		it('does not mutate original array', () => {
+			const input = [1, 2, 3];
+			shuffle(input);
+			expect(input).toStrictEqual([1, 2, 3]);
+		});
+
+		it('returns empty string for empty string', () => {
+			expect(shuffle('')).toBe('');
+		});
+
+		it('returns empty array for empty array', () => {
+			expect(shuffle([])).toStrictEqual([]);
 		});
 	});
 });

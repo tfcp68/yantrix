@@ -65,11 +65,28 @@ is_none = lambda x: x is None
 # @@end: is_none
 
 # @@begin: contains
-contains = lambda container, value: _deep_get(container, value) is not None
+def contains(container, value):
+    if isinstance(container, str):
+        return isinstance(value, str) and value in container
+    if isinstance(container, list):
+        return value in container
+    if isinstance(container, dict):
+        return value in container.values()
+    return False
 # @@end: contains
 
 # @@begin: has
-has = _deep_has
+def has(container, key):
+    if container is None or key is None:
+        return False
+    if isinstance(container, list):
+        try:
+            return 0 <= int(key) < len(container)
+        except (ValueError, TypeError):
+            return False
+    if isinstance(container, dict):
+        return str(key) in container
+    return False
 # @@end: has
 
 __all__ = [

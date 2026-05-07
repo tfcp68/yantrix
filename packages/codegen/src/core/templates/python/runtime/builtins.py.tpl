@@ -142,11 +142,28 @@ is_none = lambda x: x is None
 # @@end: is_none
 
 # @@begin: contains
-contains = lambda container, value: _deep_get(container, value) is not None
+def contains(container, value):
+    if isinstance(container, str):
+        return isinstance(value, str) and value in container
+    if isinstance(container, list):
+        return value in container
+    if isinstance(container, dict):
+        return value in container.values()
+    return False
 # @@end: contains
 
 # @@begin: has
-has = _deep_has
+def has(container, key):
+    if container is None or key is None:
+        return False
+    if isinstance(container, list):
+        try:
+            return 0 <= int(key) < len(container)
+        except (ValueError, TypeError):
+            return False
+    if isinstance(container, dict):
+        return str(key) in container
+    return False
 # @@end: has
 
 __all__ = [
@@ -326,11 +343,22 @@ def sample(iterable, n):
     return _random_stdlib.sample(items, min(n, len(items)))
 # @@end: sample
 
+# @@begin: shuffle
+def shuffle(iterable):
+    if isinstance(iterable, str):
+        chars = list(iterable)
+        _random_stdlib.shuffle(chars)
+        return ''.join(chars)
+    items = list(iterable)
+    _random_stdlib.shuffle(items)
+    return items
+# @@end: shuffle
+
 __all__ = [
     'add', 'diff', 'mult', 'div', 'pow_', 'inc', 'dec', 'neg', 'inv',
     'mod', 'trunc', 'ceil', 'round_', 'sin', 'cos', 'sqrt',
     'log', 'ln', 'lg', 'deg', 'rad',
     'len_', 'left', 'right', 'index_of', 'reverse_',
     'sort', 'lookup', 'repeat', 'substr', 'filter_by', 'pluck',
-    'find', 'sample',
+    'find', 'sample', 'shuffle',
 ]

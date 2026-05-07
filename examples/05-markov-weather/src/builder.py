@@ -116,10 +116,12 @@ def main():
     diagram = build_diagram(states, matrix)
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
+        with open(args.output, "w", encoding="utf-8", newline="\n") as f:
             f.write(diagram)
     else:
-        print(diagram, end="")
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(newline="\n")
+        sys.stdout.write(diagram)
 
 
 if __name__ == "__main__":
