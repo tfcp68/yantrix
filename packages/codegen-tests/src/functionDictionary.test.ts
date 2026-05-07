@@ -11,7 +11,10 @@ const { add, mult, pow, sumsq, substr, and, contains, isGreater } = builtInFunct
 const testFunctionsExamples = [
 	(x: number, y: number) => add(pow(x, 2), pow(y, 2)),
 	(str: string) => substr(str, 1, 5),
-	(arr: number[]) => { const sq = sumsq(...arr); return sq !== null ? mult(sq, 10) : null; },
+	(arr: number[]) => {
+		const sq = sumsq(...arr);
+		return sq !== null ? mult(sq, 10) : null;
+	},
 	(obj: { property: number }) => and(contains(obj, 'property'), isGreater(obj.property, 10)),
 ] as TAutomataFunction[];
 

@@ -11,7 +11,13 @@ To approach the implementation of any feature, first grep through `/docs` folder
 - No sycophantic openers or closing fluff.
 - Keep solutions simple and direct.
 - User instructions always override this file.
-- Prefer /commit skill when making git commits - it handles ESLint autofix and hook recovery.
+- Never commit without permission
+
+## System independence
+
+- Use Linux paths for bash commands on Windows
+- Never use CRLF endings, `\n` only
+- Custom developer tooling you create must be compatible with any environment
 
 ## Output
 

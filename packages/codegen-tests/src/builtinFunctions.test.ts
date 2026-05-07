@@ -189,7 +189,8 @@ describe('builtin functions codegen', async () => {
 			expect(dispatchFn({ dA: 3, dB: 5 }).diff_r).toBe(2);
 		});
 		it('diff(null, 3) throws TypeError', () => {
-			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, dA: null } })).toThrow(TypeError);
+			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, dA: null } }))
+				.toThrow(TypeError);
 		});
 	});
 
@@ -198,7 +199,8 @@ describe('builtin functions codegen', async () => {
 			expect(dispatchFn({ mA: 10, mB: 3 }).mod_r).toBe(1);
 		});
 		it('mod(null, 3) throws TypeError', () => {
-			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, mA: null } })).toThrow(TypeError);
+			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, mA: null } }))
+				.toThrow(TypeError);
 		});
 	});
 
@@ -239,7 +241,8 @@ describe('builtin functions codegen', async () => {
 		it('isGreater(3, 5) = false', () => expect(dispatchFn({ cmpA: 3, cmpB: 5 }).isGt_r).toBe(false));
 		it('isGreater(3, 3) = false (boundary)', () => expect(dispatchFn({ cmpA: 3, cmpB: 3 }).isGt_r).toBe(false));
 		it('isGreater(null, 3) throws', () => {
-			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, cmpA: null } })).toThrow(TypeError);
+			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, cmpA: null } }))
+				.toThrow(TypeError);
 		});
 	});
 
@@ -267,7 +270,8 @@ describe('builtin functions codegen', async () => {
 		it('isOdd(3) = true', () => expect(dispatchFn({ pn: 3 }).isOdd_r).toBe(true));
 		it('isOdd(4) = false', () => expect(dispatchFn({ pn: 4 }).isOdd_r).toBe(false));
 		it('isEven(null) throws', () => {
-			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, pn: null } })).toThrow(TypeError);
+			expect(() => vInstance.dispatch({ action: vActions.eval, payload: { ...fnBase, pn: null } }))
+				.toThrow(TypeError);
 		});
 	});
 

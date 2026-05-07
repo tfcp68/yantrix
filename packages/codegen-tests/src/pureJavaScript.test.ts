@@ -86,7 +86,13 @@ describe('pure-javascript codegen - state transitions and context', async () => 
 	});
 
 	it('multiple dispatches cycle through states', () => {
-		const states = [statesDictionary.Red, statesDictionary.RedYellow, statesDictionary.Green, statesDictionary.Yellow, statesDictionary.Red];
+		const states = [
+			statesDictionary.Red,
+			statesDictionary.RedYellow,
+			statesDictionary.Green,
+			statesDictionary.Yellow,
+			statesDictionary.Red,
+		];
 		for (const expected of states) {
 			fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
 			expect(fsm.state).toBe(expected);
@@ -380,7 +386,12 @@ end note
 		'pjs_subscribe',
 	);
 	const subMod = await import(getGeneratedPath('pjs_subscribe_generated.js'));
-	const { createPJSSubscribeTest, createEventBus: createSubBus, eventDictionary: subEvents, statesDictionary: subStates } = subMod;
+	const {
+		createPJSSubscribeTest,
+		createEventBus: createSubBus,
+		eventDictionary: subEvents,
+		statesDictionary: subStates,
+	} = subMod;
 
 	it('createEventBus returns [EventBus, automatas, cleanup] tuple', () => {
 		const result = createSubBus('t1', { sub: createPJSSubscribeTest });
@@ -425,7 +436,12 @@ end note
 		'pjs_emit',
 	);
 	const emitMod = await import(getGeneratedPath('pjs_emit_generated.js'));
-	const { createPJSEmitTest, createEventBus: createEmitBus, eventDictionary: emitEvents, statesDictionary: emitStates } = emitMod;
+	const {
+		createPJSEmitTest,
+		createEventBus: createEmitBus,
+		eventDictionary: emitEvents,
+		statesDictionary: emitStates,
+	} = emitMod;
 
 	it('emitter transitions to EMIT_TRIGGER on subscribed event', () => {
 		const [EventBus, automatas] = createEmitBus('t4', { emit: createPJSEmitTest });
@@ -515,5 +531,36 @@ end note
 		const before = fsm.getContext().context.cycle;
 		fsm.dispatch({ action: -999, payload: {} });
 		expect(fsm.getContext().context.cycle).toBe(before);
+	});
+});
+
+// ============================================================
+// Tree-shaking: only used builtins appear in the output
+// ============================================================
+const addOnlyInput = `stateDiagram-v2
+	[*] --> A: go
+note left of A
+	#{total} <= add($x, $y)
+end note
+`;
+
+describe('pure-javascript codegen - builtin tree-shaking', async () => {
+	const { generateAutomata } = await import('./fixtures/utils.js');
+	const code = await generateAutomata({ input: addOnlyInput, automataName: 'AddOnly', lang: ModuleNames.PureJavaScript });
+
+	it('includes used builtin \'add\'', () => {
+		expect(code).toContain('builtInFunctions[\'add\']');
+	});
+
+	it('excludes unused builtin \'mult\'', () => {
+		expect(code).not.toContain('builtInFunctions[\'mult\']');
+	});
+
+	it('excludes unused builtin \'diff\'', () => {
+		expect(code).not.toContain('builtInFunctions[\'diff\']');
+	});
+
+	it('excludes unused builtin \'isOdd\'', () => {
+		expect(code).not.toContain('builtInFunctions[\'isOdd\']');
 	});
 });

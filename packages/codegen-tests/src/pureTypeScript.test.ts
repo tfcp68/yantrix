@@ -87,7 +87,13 @@ describe('pure-typescript codegen - state transitions and context', async () => 
 	});
 
 	it('multiple dispatches cycle through states', () => {
-		const states = [statesDictionary.Red, statesDictionary.RedYellow, statesDictionary.Green, statesDictionary.Yellow, statesDictionary.Red];
+		const states = [
+			statesDictionary.Red,
+			statesDictionary.RedYellow,
+			statesDictionary.Green,
+			statesDictionary.Yellow,
+			statesDictionary.Red,
+		];
 		for (const expected of states) {
 			fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 			expect(fsm.state).toBe(expected);
@@ -289,7 +295,12 @@ end note
 		'pts_subscribe',
 	);
 	const subMod = await import(`./fixtures/generated/pts_subscribe_generated.js`);
-	const { createPTSSubscribeTest, createEventBus: createSubBus, eventDictionary: subEvents, statesDictionary: subStates } = subMod;
+	const {
+		createPTSSubscribeTest,
+		createEventBus: createSubBus,
+		eventDictionary: subEvents,
+		statesDictionary: subStates,
+	} = subMod;
 
 	it('createEventBus returns [EventBus, automatas, cleanup] tuple', () => {
 		const result = createSubBus('t1', { sub: createPTSSubscribeTest });
@@ -305,7 +316,7 @@ end note
 
 	it('subscribe transitions FSM on EventBus.dispatch', () => {
 		const [EventBus, automatas] = createSubBus('t2', { sub: createPTSSubscribeTest });
-		const sub = automatas['sub'];
+		const sub = automatas.sub;
 		if (sub === undefined) throw new Error('sub FSM not found');
 		expect(sub.state).toBe(subStates.INIT);
 		EventBus.dispatch({ event: subEvents.specialEvent!, meta: {} });
@@ -336,11 +347,16 @@ end note
 		'pts_emit',
 	);
 	const emitMod = await import(`./fixtures/generated/pts_emit_generated.js`);
-	const { createPTSEmitTest, createEventBus: createEmitBus, eventDictionary: emitEvents, statesDictionary: emitStates } = emitMod;
+	const {
+		createPTSEmitTest,
+		createEventBus: createEmitBus,
+		eventDictionary: emitEvents,
+		statesDictionary: emitStates,
+	} = emitMod;
 
 	it('emitter transitions to EMIT_TRIGGER on subscribed event', () => {
 		const [EventBus, automatas] = createEmitBus('t4', { emit: createPTSEmitTest });
-		const emit = automatas['emit'];
+		const emit = automatas.emit;
 		if (emit === undefined) throw new Error('emit FSM not found');
 		EventBus.dispatch({ event: emitEvents.eventFromBus!, meta: {} });
 		expect(emit.state).toBe(emitStates.EMIT_TRIGGER);

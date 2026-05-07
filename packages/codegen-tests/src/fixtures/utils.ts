@@ -18,7 +18,8 @@ const langToExt: Record<TOutLang, string> = {
 };
 
 export type TFSMAdapter = {
-	dispatch: (ap: { action: number; payload: Record<string, unknown> | null }) => { state: number; context: Record<string, unknown> };
+	dispatch: (ap: { action: number; payload: Record<string, unknown> | null }) =>
+	{ state: number; context: Record<string, unknown> };
 	getContext: () => { state: number; context: Record<string, unknown> };
 	readonly state: number;
 	readonly lastAction: number | null;
@@ -26,7 +27,8 @@ export type TFSMAdapter = {
 };
 
 export interface IFSMInstanceBase {
-	dispatch: (ap: { action: number; payload: Record<string, unknown> | null }) => { state: number; context: Record<string, unknown> };
+	dispatch: (ap: { action: number; payload: Record<string, unknown> | null }) =>
+	{ state: number; context: Record<string, unknown> };
 	getContext: () => { state: number; context: Record<string, unknown> };
 	state: number | null;
 	lastAction: number | null;

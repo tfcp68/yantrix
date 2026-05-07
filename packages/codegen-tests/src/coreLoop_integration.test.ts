@@ -113,8 +113,9 @@ function createMockSource(events: Array<TAutomataEventMetaType<TestEvents, TTest
  * @param spy - A function called with the event meta when WEATHER_RESOLVED is observed
  * @returns A Destination-like object
  */
-function createMockDestination(spy:
-(event: TAutomataEventMetaType<TestEvents, TTestMeta>) => TEventBusTask<TestEvents, TTestMeta>): IEventDestination<TestEvents, TTestMeta> {
+function createMockDestination(
+	spy: (event: TAutomataEventMetaType<TestEvents, TTestMeta>) => TEventBusTask<TestEvents, TTestMeta>,
+): IEventDestination<TestEvents, TTestMeta> {
 	return {
 		bind: (bus: IAutomataEventBus<TestEvents, TTestMeta>) => {
 			const handler

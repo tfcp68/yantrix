@@ -148,7 +148,9 @@ describeExec('shared behavior - Python', async () => {
 	await generateAndSave({ input: diagram, automataName: AUTOMATA_NAME, lang: ModuleNames.Python }, 'shared_py');
 
 	function runPy(script: string): string {
-		const normalized = script.trim().replace(/\n/g, '; ').replace(/"/g, '\\"');
+		const normalized = script.trim()
+			.replace(/\n/g, '; ')
+			.replace(/"/g, '\\"');
 		return execSync(`${pythonCmd} -c "${normalized}"`, { encoding: 'utf8', timeout: 10000 }).trim();
 	}
 

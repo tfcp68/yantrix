@@ -268,7 +268,12 @@ describe('automata Events', () => {
 			const { SubscribeWithMetaAutomata, createEventBus, statesDictionary: subscribeStates } = await import(
 				getGeneratedFixturePath('event_subscribeWithMeta_generated.js')
 			);
-			const { EmitWithMetaFromContextAutomata, statesDictionary: emitStates, actionsDictionary: emitActions, eventDictionary } = await import(
+			const {
+				EmitWithMetaFromContextAutomata,
+				statesDictionary: emitStates,
+				actionsDictionary: emitActions,
+				eventDictionary,
+			} = await import(
 				getGeneratedFixturePath('event_emitWithMetaFromContext_generated.js')
 			);
 
