@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v0.5.1](#v051)
+  - [Other Changes](#other-changes-11)
 - [v0.5.0](#v050)
   - [New Features](#new-features-8)
   - [Other Changes](#other-changes-10)
@@ -43,6 +45,19 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## [v0.5.1]
+
+This patch release ships four improvements across `@yantrix/codegen`, `@yantrix/functions`, and `@yantrix/react`. The headline change is builtin tree-shaking for the `pure-javascript` and `pure-typescript` dialects: generated files now embed only the builtin functions actually referenced in the diagram notes and fork conditions, instead of the full ~750-line bundle. Lodash-es is removed as a runtime dependency of `@yantrix/functions`, replaced with native JS equivalents. No breaking changes are introduced.
+
+### Other Changes
+
+- `feat(codegen)`: `pure-js`/`pure-ts` generated output now tree-shakes builtins — `buildBuiltins.mjs` annotates each function block with `// @@begin: name` / `// @@end: name` markers at build time; `PureJavaScriptCodegen` collects referenced names from state notes and fork-condition chains, expands transitive inter-builtin dependencies, and passes the reduced set through `filterBuiltinsJS` before embedding; `PureTypeScriptCodegen` inherits the filtering for free; `getAllReferencedFunctions` added to `@yantrix/yantrix-parser`
+- `feat(functions,codegen)`: replaced `lodash-es` with native builtins across `@yantrix/functions` and updated Python dialect codegen accordingly; eliminates the lodash peer dependency from generated `pure-js`/`pure-ts` bundles
+- `fix(react,tests)`: replaced the bash-based fixture generation script with a portable `.mjs` equivalent and made the Python availability probe more robust across environments
+- `fix(codegen,tests)`: corrected `formatByDialect` curry signature, resolved TypeScript type errors, switched Python test runner to `execFileSync`
 
 ---
 
