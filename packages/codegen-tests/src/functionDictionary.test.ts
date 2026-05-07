@@ -11,7 +11,7 @@ const { add, mult, pow, sumsq, substr, and, contains, isGreater } = builtInFunct
 const testFunctionsExamples = [
 	(x: number, y: number) => add(pow(x, 2), pow(y, 2)),
 	(str: string) => substr(str, 1, 5),
-	(arr: number[]) => mult(sumsq(...arr), 10),
+	(arr: number[]) => { const sq = sumsq(...arr); return sq !== null ? mult(sq, 10) : null; },
 	(obj: { property: number }) => and(contains(obj, 'property'), isGreater(obj.property, 10)),
 ] as TAutomataFunction[];
 
@@ -91,7 +91,11 @@ describe('jS/TS Function Dictionary', async () => {
 	});
 
 	it('custom functions return the same result before and after being added to a dictionary', () => {
-		const customFunction = (x: number) => add(mult(x, 2), pow(x, 3));
+		const customFunction = (x: number) => {
+			const m = mult(x, 2);
+			const p = pow(x, 3);
+			return m !== null && p !== null ? add(m, p) : null;
+		};
 		for (let i = 0; i < 20; i++) {
 			const num = randomInteger(1, 15);
 			const expectedResult = customFunction(num);

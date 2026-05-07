@@ -1,5 +1,7 @@
 import { execSync } from 'node:child_process';
 import prettier from 'prettier';
+import { ModuleNames } from './core/modules/index.js';
+import { TOutLang } from './types/common.js';
 
 const UNIVERSAL = {
 	printWidth: 100,
@@ -37,10 +39,17 @@ function formatPython(code: string): Promise<string> {
 	});
 }
 
-export async function formatByDialect(code: string, dialect: string): Promise<string> {
-	if (dialect === 'Python') return formatPython(code);
-	const parser = dialect.toLowerCase().includes('typescript') ? 'typescript' : 'babel';
-	return formatJS(code, parser);
+const FORMAT_BY_DIALECT: Record<TOutLang, (code: string) => Promise<string>> = {
+	[ModuleNames.JavaScript]: (code) => formatJS(code, 'babel'),
+	[ModuleNames.TypeScript]: (code) => formatJS(code, 'typescript'),
+	[ModuleNames.Python]: formatPython,
+	[ModuleNames.Java]: (code) => formatJS(code, 'babel'),
+	[ModuleNames.PureJavaScript]: (code) => formatJS(code, 'babel'),
+	[ModuleNames.PureTypeScript]: (code) => formatJS(code, 'typescript'),
+};
+
+export function formatByDialect(dialect: TOutLang): (code: string) => Promise<string> {
+	return FORMAT_BY_DIALECT[dialect];
 }
 
 export async function formatByFilename(code: string, filename: string): Promise<string> {

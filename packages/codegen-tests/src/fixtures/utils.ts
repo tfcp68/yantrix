@@ -77,9 +77,23 @@ export async function generateAutomata(options: TGenerateAutomataParams) {
 
 export async function generateAndSave(options: TGenerateAutomataParams, fileName: string) {
 	const ext = langToExt[options.lang];
-	const automata = await generateAutomata(options);
+	const stateDiagramStructure = await parseStateDiagram(options.input);
+	const stateDiagram = await createStateDiagram(stateDiagramStructure);
+	const codegenOptions = {
+		className: options.automataName,
+		outLang: options.lang,
+		constants: options.constants!,
+		functionFilePath: options.injects,
+	};
 
+	const automata = await generateAutomataFromStateDiagram(stateDiagram, codegenOptions);
 	saveFile(fileName, automata, ext);
+
+	if (options.lang === ModuleNames.PureTypeScript) {
+		const files = await generateAutomataFiles(stateDiagram, codegenOptions);
+		const dts = files[`${options.automataName}.d.ts`];
+		if (dts != null) saveFile(fileName, dts, 'd.ts');
+	}
 }
 
 export async function generateAndSaveFiles(options: TGenerateAutomataParams, fileName: string): Promise<string> {

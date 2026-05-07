@@ -26,6 +26,14 @@ type TEventAdapter = {
   handleTransition(ctx: { state: number; context: TAutomataContext }): unknown[];
 };
 
+type TEventBus = {
+  correlationId: string;
+  subscribe(eventId: number, fn: (ev: { event: number; meta: TAutomataPayload }) => unknown): void;
+  unsubscribe(eventId: number, fn: (ev: { event: number; meta: TAutomataPayload }) => unknown): void;
+  dispatch(...events: Array<{ event: number; meta: TAutomataPayload }>): void;
+  getEventStack(): Array<{ event: number; meta: TAutomataPayload }>;
+};
+
 export type T<%~ it.className %>Instance = {
   readonly state: TStateId;
   readonly context: TAutomataContext;
@@ -50,7 +58,7 @@ export declare function create<%~ it.className %>(): T<%~ it.className %>Instanc
 export declare function createEventBus(
   id: string,
   FSMs: Record<string, () => T<%~ it.className %>Instance>,
-): [unknown, Record<string, T<%~ it.className %>Instance>, () => void];
+): [TEventBus, Record<string, T<%~ it.className %>Instance>, () => void];
 export declare function createFunctionRegistry(builtIns: Record<string, (...args: unknown[]) => unknown>): TFunctionRegistry;
 export declare function createEventAdapter(): TEventAdapter;
 

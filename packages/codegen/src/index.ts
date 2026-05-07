@@ -65,7 +65,7 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 
 	const code = codegen.getCode(options);
 	const dialect = options.outLang ?? ModuleNames.TypeScript;
-	return options.beautify ? formatByDialect(code, dialect) : Promise.resolve(code);
+	return options.beautify ? formatByDialect(dialect)(code) : Promise.resolve(code);
 }
 
 /**

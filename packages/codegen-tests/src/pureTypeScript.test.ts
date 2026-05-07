@@ -59,23 +59,23 @@ describe('pure-typescript codegen - state transitions and context', async () => 
 	});
 
 	it('dispatch transitions state from Off to Red', () => {
-		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+		fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 		expect(fsm.state).toBe(statesDictionary.Red);
 	});
 
 	it('dispatch updates lastAction', () => {
-		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+		fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 		expect(fsm.lastAction).toBe(actionsDictionary.Switch);
 	});
 
 	it('dispatch increments currentCycle', () => {
-		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+		fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 		expect(fsm.currentCycle).toBe(1);
 	});
 
 	it('counter increments on each dispatch', () => {
-		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
-		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+		fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
+		fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 		expect(fsm.getContext().context.counter).toBe(2);
 	});
 
@@ -89,7 +89,7 @@ describe('pure-typescript codegen - state transitions and context', async () => 
 	it('multiple dispatches cycle through states', () => {
 		const states = [statesDictionary.Red, statesDictionary.RedYellow, statesDictionary.Green, statesDictionary.Yellow, statesDictionary.Red];
 		for (const expected of states) {
-			fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+			fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 			expect(fsm.state).toBe(expected);
 		}
 	});
@@ -103,13 +103,13 @@ describe('pure-typescript codegen - state transitions and context', async () => 
 	describe('pause / resume', () => {
 		it('paused machine queues dispatches', () => {
 			fsm.pause();
-			fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+			fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 			expect(fsm.state).toBe(statesDictionary.Off);
 		});
 
 		it('resume flushes queued dispatches', () => {
 			fsm.pause();
-			fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+			fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 			fsm.resume();
 			expect(fsm.state).toBe(statesDictionary.Red);
 		});
@@ -118,21 +118,21 @@ describe('pure-typescript codegen - state transitions and context', async () => 
 	describe('disable / enable', () => {
 		it('disabled machine ignores dispatches', () => {
 			fsm.disable();
-			fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+			fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 			expect(fsm.state).toBe(statesDictionary.Off);
 		});
 
 		it('enabled machine resumes accepting dispatches', () => {
 			fsm.disable();
 			fsm.enable();
-			fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+			fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 			expect(fsm.state).toBe(statesDictionary.Red);
 		});
 	});
 
 	it('destroy clears queue without throwing', () => {
 		fsm.pause();
-		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
+		fsm.dispatch({ action: actionsDictionary.Switch!, payload: {} });
 		expect(() => fsm.destroy()).not.toThrow();
 	});
 });
@@ -258,19 +258,19 @@ end note
 
 	it('score > 50 routes to High', () => {
 		const fsm = createPTSForksTest();
-		fsm.dispatch({ action: forksActions.Eval, payload: { score: 80 } });
+		fsm.dispatch({ action: forksActions.Eval!, payload: { score: 80 } });
 		expect(fsm.state).toBe(forksStates.High);
 	});
 
 	it('score <= 50 routes to Low', () => {
 		const fsm = createPTSForksTest();
-		fsm.dispatch({ action: forksActions.Eval, payload: { score: 30 } });
+		fsm.dispatch({ action: forksActions.Eval!, payload: { score: 30 } });
 		expect(fsm.state).toBe(forksStates.Low);
 	});
 
 	it('score exactly 50 routes to Low', () => {
 		const fsm = createPTSForksTest();
-		fsm.dispatch({ action: forksActions.Eval, payload: { score: 50 } });
+		fsm.dispatch({ action: forksActions.Eval!, payload: { score: 50 } });
 		expect(fsm.state).toBe(forksStates.Low);
 	});
 });
@@ -305,14 +305,16 @@ end note
 
 	it('subscribe transitions FSM on EventBus.dispatch', () => {
 		const [EventBus, automatas] = createSubBus('t2', { sub: createPTSSubscribeTest });
-		expect(automatas.sub.state).toBe(subStates.INIT);
-		EventBus.dispatch({ event: subEvents.specialEvent, meta: {} });
-		expect(automatas.sub.state).toBe(subStates.EVENT_RECEIVED);
+		const sub = automatas['sub'];
+		if (sub === undefined) throw new Error('sub FSM not found');
+		expect(sub.state).toBe(subStates.INIT);
+		EventBus.dispatch({ event: subEvents.specialEvent!, meta: {} });
+		expect(sub.state).toBe(subStates.EVENT_RECEIVED);
 	});
 
 	it('getEventStack records dispatched events', () => {
 		const [EventBus] = createSubBus('t3', { sub: createPTSSubscribeTest });
-		EventBus.dispatch({ event: subEvents.specialEvent, meta: {} });
+		EventBus.dispatch({ event: subEvents.specialEvent!, meta: {} });
 		expect(EventBus.getEventStack().length).toBeGreaterThan(0);
 	});
 });
@@ -338,15 +340,17 @@ end note
 
 	it('emitter transitions to EMIT_TRIGGER on subscribed event', () => {
 		const [EventBus, automatas] = createEmitBus('t4', { emit: createPTSEmitTest });
-		EventBus.dispatch({ event: emitEvents.eventFromBus, meta: {} });
-		expect(automatas.emit.state).toBe(emitStates.EMIT_TRIGGER);
+		const emit = automatas['emit'];
+		if (emit === undefined) throw new Error('emit FSM not found');
+		EventBus.dispatch({ event: emitEvents.eventFromBus!, meta: {} });
+		expect(emit.state).toBe(emitStates.EMIT_TRIGGER);
 	});
 
 	it('emit dispatches specialEvent back to EventBus', () => {
 		const [EventBus] = createEmitBus('t5', { emit: createPTSEmitTest });
 		const received: unknown[] = [];
-		EventBus.subscribe(emitEvents.specialEvent, (ev: unknown) => received.push(ev));
-		EventBus.dispatch({ event: emitEvents.eventFromBus, meta: {} });
+		EventBus.subscribe(emitEvents.specialEvent!, (ev: unknown) => received.push(ev));
+		EventBus.dispatch({ event: emitEvents.eventFromBus!, meta: {} });
 		expect(received.length).toBeGreaterThan(0);
 	});
 });
@@ -361,7 +365,7 @@ describe('pure-typescript codegen - epoch tracking', async () => {
 	it('epoch increments on each successful dispatch', () => {
 		const before = epochMod.getEpoch();
 		const fsm = epochMod.createTrafficLightTS();
-		fsm.dispatch({ action: epochMod.actionsDictionary.Switch, payload: {} });
+		fsm.dispatch({ action: epochMod.actionsDictionary.Switch!, payload: {} });
 		expect(epochMod.getEpoch()).toBe(before + 1);
 	});
 
@@ -369,8 +373,8 @@ describe('pure-typescript codegen - epoch tracking', async () => {
 		const before = epochMod.getEpoch();
 		const fsm1 = epochMod.createTrafficLightTS();
 		const fsm2 = epochMod.createTrafficLightTS();
-		fsm1.dispatch({ action: epochMod.actionsDictionary.Switch, payload: {} });
-		fsm2.dispatch({ action: epochMod.actionsDictionary.Switch, payload: {} });
+		fsm1.dispatch({ action: epochMod.actionsDictionary.Switch!, payload: {} });
+		fsm2.dispatch({ action: epochMod.actionsDictionary.Switch!, payload: {} });
 		expect(epochMod.getEpoch()).toBe(before + 2);
 	});
 
@@ -405,22 +409,23 @@ end note
 
 	it('context.cycle reflects pre-dispatch cycle (currentCycle - 1)', () => {
 		const fsm = createPTSInternalsTest();
-		fsm.dispatch({ action: intActions.step, payload: {} });
+		fsm.dispatch({ action: intActions.step!, payload: {} });
 		expect(fsm.getContext().context.cycle).toBe(fsm.currentCycle - 1);
 	});
 
 	it('context.cycle increments on each successful dispatch', () => {
 		const fsm = createPTSInternalsTest();
-		fsm.dispatch({ action: intActions.step, payload: {} });
+		fsm.dispatch({ action: intActions.step!, payload: {} });
 		const after1 = fsm.getContext().context.cycle;
-		fsm.dispatch({ action: intActions.step, payload: {} });
+		if (typeof after1 !== 'number') throw new Error('cycle should be a number');
+		fsm.dispatch({ action: intActions.step!, payload: {} });
 		const after2 = fsm.getContext().context.cycle;
 		expect(after2).toBe(after1 + 1);
 	});
 
 	it('context.cycle does not change on impossible action', () => {
 		const fsm = createPTSInternalsTest();
-		fsm.dispatch({ action: intActions.step, payload: {} });
+		fsm.dispatch({ action: intActions.step!, payload: {} });
 		const before = fsm.getContext().context.cycle;
 		fsm.dispatch({ action: -999, payload: {} });
 		expect(fsm.getContext().context.cycle).toBe(before);

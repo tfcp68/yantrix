@@ -23,13 +23,17 @@ export function runBehaviorSuite(
 	adapterFactory: () => TFSMAdapter,
 	dicts: { statesDictionary: Record<string, number>; actionsDictionary: Record<string, number> },
 ): void {
+	const firstState = spec.stateSequence[0];
+	if (firstState === undefined) return;
+
 	it('starts in initial state', () => {
 		const adapter = adapterFactory();
-		expect(adapter.state).toBe(dicts.statesDictionary[spec.stateSequence[0]]);
+		expect(adapter.state).toBe(dicts.statesDictionary[firstState]);
 	});
 
 	for (let step = 1; step < spec.stateSequence.length; step++) {
 		const expectedState = spec.stateSequence[step];
+		if (expectedState === undefined) continue;
 		it(`after ${step} dispatch(${spec.actionName}): state is ${expectedState}`, () => {
 			const adapter = adapterFactory();
 			for (let j = 0; j < step; j++) {

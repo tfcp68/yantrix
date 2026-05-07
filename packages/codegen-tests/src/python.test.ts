@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -312,7 +312,7 @@ result = function_dictionary['triple'](3)
 assert result == 9, f"Expected 9, got {result}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -338,7 +338,7 @@ fsm = create_traffic_light()
 assert fsm['state']() == states_dictionary['Off'], f"Expected Off, got {fsm['state']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -352,7 +352,7 @@ fsm['dispatch']({'action': actions_dictionary['Switch'], 'payload': {}})
 assert fsm['state']() == states_dictionary['Red'], f"Expected Red, got {fsm['state']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -366,7 +366,7 @@ fsm['dispatch']({'action': actions_dictionary['Switch'], 'payload': {}})
 assert fsm['current_cycle']() == 1, f"Expected 1, got {fsm['current_cycle']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -382,7 +382,7 @@ ctx = fsm['get_context']()['context']
 assert ctx['counter'] == 2, f"Expected 2, got {ctx['counter']}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -397,7 +397,7 @@ fsm['dispatch']({'action': -999, 'payload': {}})
 assert fsm['state']() == before, f"State changed unexpectedly"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -412,7 +412,7 @@ fsm['dispatch']({'action': actions_dictionary['Switch'], 'payload': {}})
 assert fsm['state']() == states_dictionary['Off'], f"Expected Off while paused"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -428,7 +428,7 @@ fsm['resume']()
 assert fsm['state']() == states_dictionary['Red'], f"Expected Red after resume, got {fsm['state']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -443,7 +443,7 @@ fsm['dispatch']({'action': actions_dictionary['Switch'], 'payload': {}})
 assert fsm['state']() == states_dictionary['Off'], f"Expected Off while disabled"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -474,7 +474,7 @@ ctx = fsm['get_context']()['context']
 assert ctx['doubled'] == 10, f"Expected 10, got {ctx['doubled']}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -489,7 +489,7 @@ ctx = fsm['get_context']()['context']
 assert ctx['clamped'] == 100, f"Expected 100, got {ctx['clamped']}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -520,7 +520,7 @@ ctx = fsm['get_context']()['context']
 assert ctx['result'] == 14, f"Expected 14, got {ctx['result']}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -535,7 +535,7 @@ result = get_state('Off')
 assert result == states_dictionary['Off'], f"Expected Off hash, got {result}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -548,7 +548,7 @@ result = get_action('Switch')
 assert result == actions_dictionary['Switch'], f"Expected Switch hash, got {result}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -562,7 +562,7 @@ assert ap['action'] == actions_dictionary['Switch'], f"Expected Switch action"
 assert ap['payload'] == {'x': 1}, f"Expected payload"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -575,7 +575,7 @@ fsm = create_traffic_light()
 assert has_state(fsm, 'Off') == True, f"Expected True"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -588,7 +588,7 @@ fsm = create_traffic_light()
 assert has_state(fsm, 'Red') == False, f"Expected False"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -635,7 +635,7 @@ bus, autos, cleanup = create_event_bus('test', {'r': create_receiver})
 assert autos['r']['state']() == states_dictionary['Idle'], f"Expected Idle"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -649,7 +649,7 @@ bus.dispatch({'event': event_dictionary['FsmSignal'], 'meta': {}})
 assert autos['r']['state']() == states_dictionary['Active'], f"Expected Active, got {autos['r']['state']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -664,7 +664,7 @@ bus.dispatch({'event': event_dictionary['FsmSignal'], 'meta': {}})
 assert autos['r']['state']() == states_dictionary['Idle'], f"Expected Idle after cleanup, got {autos['r']['state']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -683,7 +683,7 @@ bus.dispatch(*emitted)
 assert autos['r']['state']() == recv_states['Active'], f"Expected Active, got {autos['r']['state']()}"
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
@@ -704,7 +704,7 @@ after_r_cycle = autos['r']['current_cycle']()
 assert after_r_cycle == before_r_cycle + 1, f'Receiver cycle did not increment: {before_r_cycle} -> {after_r_cycle}'
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 
@@ -721,7 +721,7 @@ assert autos['r']['current_cycle']() == 1, f'Expected 1 cycle, got {autos["r"]["
 assert autos['r']['state']() == states_dictionary['Active'], f'Expected Active'
 print('ok')
 `.trim();
-		const out = execSync(`${pythonCmd} -c "${script.replace(/"/g, '\\"').replace(/\n/g, '; ')}"`, { encoding: 'utf8', timeout: 10000 });
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
 	});
 });
