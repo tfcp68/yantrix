@@ -25,9 +25,12 @@ end note
 `;
 
 function isPythonAvailable(): string | null {
-	for (const cmd of ['python3', 'python']) {
+	const candidates = process.env.PYTHON
+		? [process.env.PYTHON]
+		: ['python', 'py', 'python3'];
+	for (const cmd of candidates) {
 		try {
-			execSync(`${cmd} --version`, { stdio: 'ignore' });
+			execFileSync(cmd, ['--version'], { stdio: 'ignore' });
 			return cmd;
 		} catch {
 			// try next

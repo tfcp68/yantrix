@@ -546,9 +546,6 @@ importers:
 
   packages/react:
     dependencies:
-      '@yantrix/codegen':
-        specifier: workspace:^
-        version: link:../codegen
       '@yantrix/core':
         specifier: workspace:^
         version: link:../core
@@ -568,6 +565,12 @@ importers:
       '@types/use-sync-external-store':
         specifier: ^0.0.6
         version: 0.0.6
+      '@yantrix/codegen':
+        specifier: workspace:^
+        version: link:../codegen
+      '@yantrix/mermaid-parser':
+        specifier: workspace:^
+        version: link:../mermaid-parser
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1

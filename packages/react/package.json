@@ -11,7 +11,7 @@
 		"Nikita Beliaew <https://github.com/Nekitech>",
 		"Sin <https://github.com/Volshebnik09>",
 		"Alexey Geraim <https://github.com/obl1v1onZzz>",
-		"РЎР°С€Р° <https://github.com/22sasha>"
+		"Саша <https://github.com/22sasha>"
 	],
 	"license": "MIT",
 	"funding": "https://github.com/tfcp68/yantrix?sponsor",
@@ -56,10 +56,9 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"prepack": "pnpm run build && pnpm run lint",
-		"create_test_automata": "bash __tests__/generate_automata_fixtures.sh"
+		"create_test_automata": "node __tests__/generate_automata_fixtures.mjs"
 	},
 	"dependencies": {
-		"@yantrix/codegen": "workspace:^",
 		"@yantrix/core": "workspace:^",
 		"@yantrix/utils": "workspace:^",
 		"react": "^18.3.1"
@@ -76,6 +75,8 @@
 		"@testing-library/react": "^14.3.1",
 		"@types/react": "^18.3.5",
 		"@types/use-sync-external-store": "^0.0.6",
+		"@yantrix/codegen": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^",
 		"jsdom": "^25.0.1"
 	}
 }
