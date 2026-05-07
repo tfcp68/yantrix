@@ -40,12 +40,12 @@ function formatPython(code: string): Promise<string> {
 }
 
 const FORMAT_BY_DIALECT: Record<TOutLang, (code: string) => Promise<string>> = {
-	[ModuleNames.JavaScript]: (code) => formatJS(code, 'babel'),
-	[ModuleNames.TypeScript]: (code) => formatJS(code, 'typescript'),
+	[ModuleNames.JavaScript]: code => formatJS(code, 'babel'),
+	[ModuleNames.TypeScript]: code => formatJS(code, 'typescript'),
 	[ModuleNames.Python]: formatPython,
-	[ModuleNames.Java]: (code) => formatJS(code, 'babel'),
-	[ModuleNames.PureJavaScript]: (code) => formatJS(code, 'babel'),
-	[ModuleNames.PureTypeScript]: (code) => formatJS(code, 'typescript'),
+	[ModuleNames.Java]: code => formatJS(code, 'babel'),
+	[ModuleNames.PureJavaScript]: code => formatJS(code, 'babel'),
+	[ModuleNames.PureTypeScript]: code => formatJS(code, 'typescript'),
 };
 
 export function formatByDialect(dialect: TOutLang): (code: string) => Promise<string> {
