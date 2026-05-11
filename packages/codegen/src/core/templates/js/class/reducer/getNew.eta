@@ -1,6 +1,6 @@
 const getNew = (
-  localAction<% if (it.hasTypes) { %>: TActionId<% } %>,
-  localState<% if (it.hasTypes) { %>: TStateId<% } %>,
+  localAction<% if (it.hasTypes) { %>: number<% } %>,
+  localState<% if (it.hasTypes) { %>: number<% } %>,
   localContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>,
   localPayload<% if (it.hasTypes) { %>: TReducerPayload<% } %>,
 )<% if (it.hasTypes) { %>: TRootReducerOutput<% } %> => {
@@ -12,7 +12,7 @@ const getNew = (
   const actionMove = stateTransitions[localAction];
   if (!actionMove) return { state: localState, context: localContext };
 
-  const newStateObject = { state: actionMove.state[0] };
+  const newStateObject = { state: actionMove.state[0] ?? localState };
   const contextWithInitial = getDefaultContext(localContext, localPayload);
 
   if (actionMove.state.length > 1 && actionMove.predicate != null) {
@@ -30,6 +30,6 @@ const getNew = (
 
   return {
     state: newState,
-    context: newContextFunc(contextWithInitial, localPayload, this.getFunctionRegistry(), this),
+    context: newContextFunc(contextWithInitial, localPayload, this.getFunctionRegistry()<% if (it.hasTypes) { %> as FunctionDictionary<% } %>, this),
   };
 };

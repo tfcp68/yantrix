@@ -31,7 +31,7 @@ describe('inject functions codegen (TypeScript)', () => {
 			injects: correctFunctionsPath,
 		});
 
-		expect(code).toContain(`functionDictionary.register('isBoolean', userFunctionsDict['isBoolean'])`);
+		expect(code).toMatch(/functionDictionary\.register\(["']isBoolean["'],\s*userFunctionsDict\[["']isBoolean["']\]\)/);
 		expect(code).toMatch(/const userFunctionsDict = \(function \(\) \{/);
 	});
 

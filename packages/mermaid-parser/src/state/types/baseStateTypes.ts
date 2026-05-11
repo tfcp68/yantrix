@@ -43,6 +43,7 @@ export type TAction = {
 };
 export type TActionParams = {
 	params: string | null;
+	guard: string | null;
 	predicate: boolean;
 	internal: boolean;
 } | null;

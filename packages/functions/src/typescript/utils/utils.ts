@@ -1,4 +1,3 @@
-import * as _ from 'lodash-es';
 import { TNestedArray } from '../types/common';
 
 /**
@@ -21,19 +20,19 @@ import { TNestedArray } from '../types/common';
  * flatMapUntilLength([1, [2]])       // Returns [1, [2]]
  */
 export function flattenWhileNested<T>(input: TNestedArray<T>): TNestedArray<T> {
-	if (!_.isArray(input)) return [input];
-	if (_.isEmpty(input)) return input;
+	if (!Array.isArray(input)) return [input];
+	if (input.length === 0) return input;
 
 	if (input.length === 1) {
-		const firstElement = _.first(input);
-		if (_.isArray(firstElement)) return flattenWhileNested(firstElement);
+		const firstElement = input[0];
+		if (Array.isArray(firstElement)) return flattenWhileNested(firstElement);
 		return input;
 	}
 
-	const hasNonArrayElement = _.some(input, element => !_.isArray(element));
+	const hasNonArrayElement = input.some(element => !Array.isArray(element));
 	if (hasNonArrayElement) return input;
 
-	return _.map(input, element => flattenWhileNested(element as TNestedArray<T>));
+	return input.map(element => flattenWhileNested(element as TNestedArray<T>));
 }
 
 /**

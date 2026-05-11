@@ -1,0 +1,125 @@
+stateDiagram-v2
+    direction LR
+
+    [*] --> SUNNY: RESET (step=0)
+
+    SUNNY --> ROLLING_SUNNY: TICK
+    state fork_sunny_0 <<choice>>
+    state fork_sunny_1 <<choice>>
+    state fork_sunny_2 <<choice>>
+    state fork_sunny_3 <<choice>>
+    ROLLING_SUNNY --> fork_sunny_0: [-]
+    fork_sunny_0 --> SUNNY: isLess(#prob, 0.441)
+    fork_sunny_0 --> fork_sunny_1
+    fork_sunny_1 --> CLOUDY: isLess(#prob, 0.693)
+    fork_sunny_1 --> fork_sunny_2
+    fork_sunny_2 --> FOGGY: isLess(#prob, 0.858)
+    fork_sunny_2 --> fork_sunny_3
+    fork_sunny_3 --> RAINY: isLess(#prob, 0.984)
+    fork_sunny_3 --> STORMY
+
+    CLOUDY --> ROLLING_CLOUDY: TICK
+    state fork_cloudy_0 <<choice>>
+    state fork_cloudy_1 <<choice>>
+    state fork_cloudy_2 <<choice>>
+    state fork_cloudy_3 <<choice>>
+    ROLLING_CLOUDY --> fork_cloudy_0: [-]
+    fork_cloudy_0 --> SUNNY: isLess(#prob, 0.442)
+    fork_cloudy_0 --> fork_cloudy_1
+    fork_cloudy_1 --> RAINY: isLess(#prob, 0.684)
+    fork_cloudy_1 --> fork_cloudy_2
+    fork_cloudy_2 --> CLOUDY: isLess(#prob, 0.832)
+    fork_cloudy_2 --> fork_cloudy_3
+    fork_cloudy_3 --> FOGGY: isLess(#prob, 0.918)
+    fork_cloudy_3 --> STORMY
+
+    RAINY --> ROLLING_RAINY: TICK
+    state fork_rainy_0 <<choice>>
+    state fork_rainy_1 <<choice>>
+    state fork_rainy_2 <<choice>>
+    ROLLING_RAINY --> fork_rainy_0: [-]
+    fork_rainy_0 --> RAINY: isLess(#prob, 0.306)
+    fork_rainy_0 --> fork_rainy_1
+    fork_rainy_1 --> STORMY: isLess(#prob, 0.594)
+    fork_rainy_1 --> fork_rainy_2
+    fork_rainy_2 --> CLOUDY: isLess(#prob, 0.819)
+    fork_rainy_2 --> SUNNY
+
+    STORMY --> ROLLING_STORMY: TICK
+    state fork_stormy_0 <<choice>>
+    state fork_stormy_1 <<choice>>
+    state fork_stormy_2 <<choice>>
+    ROLLING_STORMY --> fork_stormy_0: [-]
+    fork_stormy_0 --> RAINY: isLess(#prob, 0.372)
+    fork_stormy_0 --> fork_stormy_1
+    fork_stormy_1 --> CLOUDY: isLess(#prob, 0.636)
+    fork_stormy_1 --> fork_stormy_2
+    fork_stormy_2 --> STORMY: isLess(#prob, 0.833)
+    fork_stormy_2 --> SUNNY
+
+    FOGGY --> ROLLING_FOGGY: TICK
+    state fork_foggy_0 <<choice>>
+    state fork_foggy_1 <<choice>>
+    state fork_foggy_2 <<choice>>
+    ROLLING_FOGGY --> fork_foggy_0: [-]
+    fork_foggy_0 --> CLOUDY: isLess(#prob, 0.363)
+    fork_foggy_0 --> fork_foggy_1
+    fork_foggy_1 --> SUNNY: isLess(#prob, 0.722)
+    fork_foggy_1 --> fork_foggy_2
+    fork_foggy_2 --> FOGGY: isLess(#prob, 0.912)
+    fork_foggy_2 --> RAINY
+
+    note right of [*]
+        #{step = 0, weather = 'unknown', prob = 0}
+    end note
+
+    note left of SUNNY
+        +Init
+        #{step} <= coalesce($step, inc(#step))
+        #{weather} <= 'sunny'
+    end note
+
+    note right of ROLLING_SUNNY
+        +ByPass
+        #{prob} <= _random()
+    end note
+
+    note right of CLOUDY
+        #{step} <= inc(#step)
+        #{weather} <= 'cloudy'
+    end note
+
+    note right of ROLLING_CLOUDY
+        +ByPass
+        #{prob} <= _random()
+    end note
+
+    note left of RAINY
+        #{step} <= inc(#step)
+        #{weather} <= 'rainy'
+    end note
+
+    note right of ROLLING_RAINY
+        +ByPass
+        #{prob} <= _random()
+    end note
+
+    note right of STORMY
+        #{step} <= inc(#step)
+        #{weather} <= 'stormy'
+    end note
+
+    note right of ROLLING_STORMY
+        +ByPass
+        #{prob} <= _random()
+    end note
+
+    note left of FOGGY
+        #{step} <= inc(#step)
+        #{weather} <= 'foggy'
+    end note
+
+    note right of ROLLING_FOGGY
+        +ByPass
+        #{prob} <= _random()
+    end note

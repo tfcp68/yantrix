@@ -6,8 +6,16 @@
  * Functions that compare numerical values and return either 'true' or 'false'.
  */
 
-import { every, isEqual, isNil, isNull, some } from 'lodash-es';
 import { invalid } from './utils/errors';
+
+function isEqual(a: unknown, b: unknown): boolean {
+	if (a === b) return true;
+	if (a == null || b == null || typeof a !== typeof b) return false;
+	if (typeof a !== 'object') return false;
+	if (Array.isArray(a) !== Array.isArray(b)) return false;
+	const ka = Object.keys(a as object);
+	return ka.length === Object.keys(b as object).length && ka.every(k => isEqual((a as any)[k], (b as any)[k]));
+}
 
 // ==============================
 // Logical (binary) predicates
@@ -20,7 +28,7 @@ import { invalid } from './utils/errors';
  * @param conditions - An array of boolean conditions to evaluate.
  * @returns True if all conditions are true, otherwise false.
  */
-export const and = (...conditions: any[]): boolean => every((conditions || []), Boolean) ?? false;
+export const and = (...conditions: any[]): boolean => (conditions || []).every(Boolean) ?? false;
 /**
  * {@inheritDoc and}
  * @category Binary Predicates
@@ -34,7 +42,7 @@ export const all = and;
  * @param conditions - An array of boolean conditions to evaluate.
  * @returns True if at least one condition is true, otherwise false.
  */
-export const or = (...conditions: any[]): boolean => some((conditions || []), Boolean) ?? false;
+export const or = (...conditions: any[]): boolean => (conditions || []).some(Boolean) ?? false;
 /**
  * {@inheritDoc or}
  * @category Binary Predicates
@@ -48,7 +56,7 @@ export const any = or;
  * @param condition - The condition to negate.
  * @returns The negated condition.
  */
-export const not = (condition: any): boolean => isNil(condition) ? invalid('INVALID_BINARY_ARGUMENT') : !condition;
+export const not = (condition: any): boolean => condition == null ? invalid('INVALID_BINARY_ARGUMENT') : !condition;
 
 /**
  * Evaluates a series of conditions and returns true if none of the conditions are true.
@@ -57,7 +65,7 @@ export const not = (condition: any): boolean => isNil(condition) ? invalid('INVA
  * @param conditions - An array of boolean conditions to evaluate.
  * @returns True if none of the conditions are true, otherwise false.
  */
-export const none = (...conditions: any[]): boolean => every((conditions || []), t => !t) ?? false;
+export const none = (...conditions: any[]): boolean => (conditions || []).every(t => !t) ?? false;
 
 // ==============================
 // Numeric predicates
@@ -247,7 +255,7 @@ export function has<T extends object>(obj: T, key: any): key is keyof T;
 
 export function has(container: object | any[], key: any): boolean {
 	if (!container) return false;
-	if (isNil(key))
+	if (key == null)
 		return invalid('INVALID_ARGUMENTS');
 	try {
 		return Object.keys(container).includes(String(key));
@@ -256,4 +264,5 @@ export function has(container: object | any[], key: any): boolean {
 	}
 }
 
-export { isEqual, isNull };
+export { isEqual };
+export const isNull = (v: unknown): v is null => v === null;

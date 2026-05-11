@@ -101,7 +101,7 @@ describe('eventBus', () => {
 				},
 			};
 			const sampleEventMeta2 = {
-				event: randomInteger(1, 100),
+				event: randomInteger(101, 200),
 				meta: {
 					meta: randomString(10),
 				},

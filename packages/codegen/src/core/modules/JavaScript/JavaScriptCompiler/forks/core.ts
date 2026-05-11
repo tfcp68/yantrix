@@ -111,10 +111,8 @@ function getStateTransitionConditions(
 	const conditions = chain
 		.map(segment => resolveChainSegment(segment, { expressionRecord: props.expressions }));
 
-	if (conditions.length === 0) return null;
-
 	return {
-		conditions,
+		conditions: conditions.length === 0 ? [true] : conditions,
 		transitionStateId,
 	};
 }

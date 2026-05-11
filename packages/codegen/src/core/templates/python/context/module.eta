@@ -1,0 +1,10 @@
+
+<% for (const r of it.python.reducers) { %>
+def _reducer_<%~ r.stateValue %>(prev_context, payload, function_dictionary):
+<%~ r.bodyLines.length === 0 ? '    return prev_context\n' : '    _result = {}\n' + r.bodyLines.join('\n') + '\n    return {**prev_context, **_result}\n' %>
+<% } %>
+reducer = {
+<%~ it.python.reducers.map(r => `    ${r.stateValue}: _reducer_${r.stateValue},`).join('\n') + '\n' %>}
+
+def _get_default_context(prev_context, payload):
+<%~ it.python.defaultContextLines.length === 0 ? '    return prev_context\n' : '    _result = {}\n' + it.python.defaultContextLines.join('\n') + '\n    return {**prev_context, **_result}\n' %>

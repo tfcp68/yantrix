@@ -1,0 +1,13 @@
+# Function dictionary
+function_dictionary = {
+<%~ it.python.functionDict.map(({ key, pyName }) => `    '${pyName}': ${pyName},`).join('\n') + '\n' %>}
+<% if (it.python.defines.length > 0) { %>
+
+# User-defined functions
+<%~ it.python.defines.map(d => `function_dictionary['${d.identifier}'] = lambda ${d.args.join(', ')}: ${d.body}`).join('\n') + '\n' %>
+<% } %>
+<% if (it.python.injectedCode) { %>
+
+# Injected functions
+<%~ it.python.injectedCode %>
+<% } %>

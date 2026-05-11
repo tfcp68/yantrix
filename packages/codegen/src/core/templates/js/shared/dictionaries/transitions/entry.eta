@@ -1,6 +1,6 @@
 <%~ it.actionId %>: {
   state: [<%~ it.entry.state.join(', ') %>]<% if (it.entry.withPredicate) { %>,
-  predicate: predicates[<%~ it.stateId %>][<%~ it.actionId %>]
+  predicate: _forkPredicates[<%~ it.stateId %>][<%~ it.actionId %>]
 <% } %>
 }
 

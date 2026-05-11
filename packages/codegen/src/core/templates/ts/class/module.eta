@@ -10,13 +10,16 @@ export class <%~ it.className %> extends GenericAutomata {
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
       rootReducer: <%~ include('../../js/class/reducer/module', it) %>,
-      stateValidator: (s: TAutomataBaseStateType) => Object.values(statesDictionary).includes(s),
-      actionValidator: (a: TAutomataBaseActionType) => Object.values(actionsDictionary).includes(a),
+      stateValidator: (s: TAutomataBaseStateType): s is TStateId => Object.values(statesDictionary).includes(s as TStateId),
+      actionValidator: (a: TAutomataBaseActionType): a is TActionId => Object.values(actionsDictionary).includes(a as TActionId),
       functionRegistry: functionDictionary,
     });
-    const initReducer = reducer[this.state];
+    const initState = this.state;
+    if (initState == null) throw new Error('<%~ it.className %>: state not initialized');
+    const initReducer = reducer[initState];
+    if (typeof initReducer !== 'function') throw new Error('<%~ it.className %>: no reducer for initial state');
     const prev = this.getContext()?.context ?? {};
-    const initContext = initReducer(prev, {}, this.getFunctionRegistry(), this);
+    const initContext = initReducer(prev, {}, this.getFunctionRegistry() as FunctionDictionary, this);
     this.setContext({ state: this.state, context: Object.assign({}, prev, initContext) });
   }
 

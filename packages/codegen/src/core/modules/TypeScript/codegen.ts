@@ -2,11 +2,16 @@ import { ICodegen, TGetCodeOptionsMap, TModuleParams } from '../../../types/comm
 import { eta } from '../../eta';
 import { ModuleNames } from '../index';
 import { JavaScriptCodegen } from '../JavaScript';
+import { JavaScriptCompiler } from '../JavaScript/JavaScriptCompiler';
 
 export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typeof ModuleNames.TypeScript> {
 	constructor(params: TModuleParams) {
 		super(params);
-		this.imports['@yantrix/core']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType', 'TValidator');
+		this.imports['@yantrix/core']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType');
+		this.expressions = JavaScriptCompiler.expressions.functions.setupExpressions({
+			constants: this.constants,
+			hasTypes: true,
+		});
 	}
 
 	protected override buildTemplateModel(className: string) {

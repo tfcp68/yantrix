@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/yantrix-parser",
 	"type": "module",
-	"version": "0.4.4",
+	"version": "0.5.1",
 	"description": "DSL parser for Yantrix framework",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -80,7 +80,10 @@
 			{
 				"id": "yantrix",
 				"grammar": "src/grammar/yantrix.langium",
-				"fileExtensions": [".yantrix", ".yx"]
+				"fileExtensions": [
+					".yantrix",
+					".yx"
+				]
 			}
 		],
 		"out": "src/generated"

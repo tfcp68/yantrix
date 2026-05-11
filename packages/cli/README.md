@@ -57,6 +57,8 @@ Options:
                       tomata                                            [string]
   -J, --constantFile  Path to JSON file with constants to be used in generated A
                       utomata                                           [string]
+  -f, --functionFile  Path to file with injectable user-defined functions (.js/
+                      .ts or .py)                                       [string]
   -e, --eval          Evaluate the given state diagram                  [string]
       --verbose       Verbose mode                                     [boolean]
   -i, --interactive   Enter interactive mode                           [boolean]

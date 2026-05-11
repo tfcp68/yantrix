@@ -1,17 +1,16 @@
-export function createEventBus(id, FSMs) {
+export function createEventBus(<% if (it.hasTypes) { %>_id: string, FSMs: Record<string, new () => GenericAutomata><% } else { %>id, FSMs<% } %>) {
   const EventBus = new BasicEventBus();
-  EventBus.correlationId = id;
+<% if (!it.hasTypes) { %>  EventBus.correlationId = id;
+<% } %>  const automatas<% if (it.hasTypes) { %>: Record<string, GenericAutomata><% } %> = <%~ include('factory', it) %>;
 
-  const automatas = <%~ include('factory', it) %>;
-
-  const _subscriptions = [];
+  const _subscriptions<% if (it.hasTypes) { %>: Array<[number, Parameters<BasicEventBus['subscribe']>[1]]><% } %> = [];
   <%~ include('subscriptions', it) %>
 
   const cleanup = () => {
     _subscriptions.forEach(([eventId, fn]) => EventBus.unsubscribe(eventId, fn));
     _subscriptions.length = 0;
   };
-  const _registry = new FinalizationRegistry(cleanup);
+  const _registry = new <% if (it.hasTypes) { %>(globalThis as typeof globalThis & { FinalizationRegistry: new<T>(cb: (v: T) => void) => { register(t: object, v: T): void } }).<% } %>FinalizationRegistry(cleanup);
   _registry.register(automatas, undefined);
 
   return [EventBus, automatas, cleanup];

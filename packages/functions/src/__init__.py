@@ -2,8 +2,9 @@ from .python.transformers import (
     add, diff, mult, div, pow_, inc, dec, neg, inv,
     mod, trunc, ceil, round_, sin, cos, sqrt,
     log, ln, lg, deg, rad,
-    len_, left, right, index_of, shuffle, reverse,
-    sort, lookup, repeat, substr, filter_by, pluck
+    len_, left, right, index_of, reverse_,
+    sort, lookup, repeat, substr, filter_by, pluck,
+    find, sample, shuffle
 )
 
 from .python.conditionals import (
@@ -33,11 +34,12 @@ BUILT_IN_FUNCTIONS = {
 
     # List/String transformers
     'len_': len_, 'left': left, 'right': right,
-    'index_of': index_of, 'shuffle': shuffle, 'reverse': reverse,
+    'index_of': index_of, 'reverse_': reverse_,
 
     # Collection transformers
     'sort': sort, 'lookup': lookup, 'repeat': repeat,
     'substr': substr, 'filter_by': filter_by, 'pluck': pluck,
+    'find': find, 'sample': sample, 'shuffle': shuffle,
 
     # Conditionals
     '_if': _if, '_case': _case, 'coalesce': coalesce, 'random': random,

@@ -1,7 +1,7 @@
 {
 	"name": "02-traffic-light-react",
 	"type": "module",
-	"version": "0.4.4",
+	"version": "0.4.6",
 	"private": true,
 	"scripts": {
 		"dev": "vite",
@@ -10,7 +10,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"preview": "vite preview",
-		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata"
+		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata --beautify"
 	},
 	"dependencies": {
 		"@radix-ui/react-slot": "^1.1.0",

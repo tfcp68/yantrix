@@ -1,1 +1,22 @@
-pnpm install --frozen-lockfile && pnpm build
+PREV=$1
+NEW=$2
+CHECKOUT_TYPE=$3
+
+[ "$CHECKOUT_TYPE" = "0" ] && exit 0
+
+NULL_SHA="0000000000000000000000000000000000000000"
+if [ "$PREV" = "$NULL_SHA" ]; then
+  pnpm install --frozen-lockfile
+  pnpm build
+  exit 0
+fi
+
+CHANGED=$(git diff --name-only "$PREV" "$NEW")
+
+if echo "$CHANGED" | grep -qE '(^|/)package\.json$|^pnpm-lock\.yaml$'; then
+  pnpm install --frozen-lockfile
+fi
+
+if echo "$CHANGED" | grep -qvE '\.(md|mdx)$|^docs/|^vitepress/'; then
+  pnpm build
+fi

@@ -1,0 +1,7 @@
+<%
+const registrations = it.functions.customRegistrations;
+%>
+export const functionDictionary = createFunctionRegistry(builtInFunctions);
+
+<%~ include('../../js/shared/functions/user/module', { ...it, registrations }) %>
+<%~ include('../../js/shared/functions/registrations', { ...it, registrations }) %>

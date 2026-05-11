@@ -3,7 +3,6 @@
 // └───────────────────────────────────────────────────────────────────────────┘
 
 import { isPositiveInteger } from '@yantrix/utils';
-import * as _ from 'lodash-es';
 import { invalid } from './utils/errors';
 
 /**
@@ -175,7 +174,7 @@ export function ceil(n: number) {
  * @returns The rounded number.
  */
 export function round(n: number, precision: number = 0) {
-	if (_.isNil(n)) return null;
+	if (n == null) return null;
 	if (!Number.isFinite(n)) return invalid('INVALID_NUMERIC_ARGUMENT');
 	if (!isPositiveInteger(precision) && precision !== 0)
 		return invalid('INVALID_PRECISION_ARGUMENT');

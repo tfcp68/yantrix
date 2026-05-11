@@ -11,18 +11,18 @@ function getDefaultPropertyContext(path: string, identifier: string, expression?
 	return rendered.trim();
 }
 
-function getFunctionFromDictionary(name: string) {
+function getFunctionFromDictionary(name: string, hasTypes?: boolean) {
 	if (ReservedInternalFunctionNames.includes(name)) {
 		const expr = eta.render('js/shared/expressions/internalExpression', {
 			functionName: name,
-			automataRef: 'automata',
+			automataRef: '_automata',
 			actionsDictionaryRef: 'actionsDictionary',
 			statesDictionaryRef: 'statesDictionary',
 		});
 		if (expr == null) throw new Error(`Eta render returned null for internalExpression: ${name}`);
 		return `(() => ${expr.trim()})`;
 	}
-	return `functionDictionary.get('${name}')`;
+	return `functionDictionary.get('${name}')${hasTypes ? '!' : ''}`;
 }
 
 export const expressionsSerializer = {

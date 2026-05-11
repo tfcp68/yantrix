@@ -1,0 +1,93 @@
+export const getState = (name) => statesDictionary[name];
+export const getAction = (name) => actionsDictionary[name];
+export const createAction = (name, payload) => ({ action: actionsDictionary[name], payload });
+export const hasState = (instance, state) => instance.state === statesDictionary[state];
+
+export function create<%~ it.className %>() {
+  let _state = <%~ it.initialStateValue %>;
+  let _context = <%~ JSON.stringify(it.initialContext ?? {}) %>;
+  let _lastAction = null;
+  let _currentCycle = 0;
+  let _paused = false;
+  let _disabled = false;
+  let _queue = [];
+
+  const _getNew = (localAction, localState, localContext, localPayload) => {
+    _lastAction = localAction;
+    const stateTransitions = actionToStateFromStateDict[localState];
+    if (!stateTransitions) return { state: localState, context: localContext };
+    const actionMove = stateTransitions[localAction];
+    if (!actionMove) return { state: localState, context: localContext };
+    const newStateObject = { state: actionMove.state[0] };
+    const contextWithInitial = getDefaultContext(localContext, localPayload);
+    if (actionMove.state.length > 1 && actionMove.predicate != null) {
+      const resolvedPredicateValue = actionMove.predicate(contextWithInitial, localPayload, functionDictionary);
+      if (resolvedPredicateValue == null) return { state: localState, context: localContext };
+      newStateObject.state = resolvedPredicateValue;
+    }
+    const newState = newStateObject.state;
+    const newContextFunc = reducer[newState];
+    if (typeof newContextFunc !== 'function') throw new Error('Invalid newContextFunc');
+    return {
+      state: newState,
+      context: newContextFunc(contextWithInitial, localPayload, functionDictionary, instance),
+    };
+  };
+
+  const _runDispatch = ({ action, payload }) => {
+    if (!action || payload === null) return { state: _state, context: _context };
+    if (!(_state in actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.");
+    if (!(action in actionToStateFromStateDict[_state])) return { state: _state, context: _context };
+    let localCtx = _getNew(action, _state, _context, payload ?? {});
+    while (byPassedStates.has(localCtx.state)) {
+      localCtx = _getNew(<%~ it.byPassActionValue %>, localCtx.state, localCtx.context, {});
+    }
+    incrementEpoch();
+    _state = localCtx.state;
+    _context = localCtx.context;
+    _currentCycle++;
+    return { state: _state, context: _context };
+  };
+
+  const dispatch = (actionPayload) => {
+    if (_disabled) return { state: _state, context: _context };
+    if (_paused) { _queue.push(actionPayload); return { state: _state, context: _context }; }
+    return _runDispatch(actionPayload);
+  };
+
+  const getContext = () => ({ state: _state, context: { ..._context } });
+
+  const pause = () => { _paused = true; return instance; };
+  const resume = () => {
+    _paused = false;
+    const queued = _queue.splice(0);
+    for (const ap of queued) _runDispatch(ap);
+    return instance;
+  };
+  const enable = () => { _disabled = false; return instance; };
+  const disable = (clearQueue) => {
+    _disabled = true;
+    if (clearQueue) _queue = [];
+    return instance;
+  };
+  const destroy = () => { _queue = []; };
+
+  const instance = {
+    get state() { return _state; },
+    get context() { return { ..._context }; },
+    get lastAction() { return _lastAction; },
+    get currentCycle() { return _currentCycle; },
+    dispatch,
+    getContext,
+    pause,
+    resume,
+    enable,
+    disable,
+    destroy,
+    eventAdapter,
+  };
+
+  return instance;
+}
+
+export default create<%~ it.className %>;

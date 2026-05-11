@@ -318,8 +318,9 @@ function getTransitions(stateDiagramStructure: TStateDiagramStructure): TDiagram
 			transitions[from]![to] = action;
 		}
 
+		const guard = (actions[i] as TActionWithParams)?.guard;
 		transitions[from]?.[to]?.actionsPath.push({
-			action: [actionId],
+			action: guard ? [actionId, guard] : [actionId],
 			note: [],
 		});
 	}
@@ -437,17 +438,36 @@ function checkValidStates(states: TDiagramStatesArray) {
 	this structure binds action paths with the exact state that the automata should transition to,
 	when every single segment in the chain resolves to TRUE
 */
+function getReachableChoices(sourceState: string, stateDiagramStructure: TStateDiagramStructure, choicesId: string[]): Set<string> {
+	const reachable = new Set<string>();
+	const queue = [sourceState];
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+		for (const action of stateDiagramStructure.actions) {
+			if (action.from === current && choicesId.includes(action.to) && !reachable.has(action.to)) {
+				reachable.add(action.to);
+				queue.push(action.to);
+			}
+		}
+	}
+	return reachable;
+}
+
 function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramStructure, transitions: TDiagramTransitions): TDiagramActionChains {
 	const chains: TDiagramActionChains = {};
+	const choicesId = getChoicesId(stateDiagramStructure);
+	const allActions = stateDiagramStructure.actions as TActionWithParams[];
+
 	for (const state in transitions) {
 		const stateTransitions = transitions[state]!;
 		const chain: Record<string, TActionChainParams> = {};
+		const reachableChoices = getReachableChoices(state, stateDiagramStructure, choicesId);
 
 		for (const transition in stateTransitions) {
 			const actions: string[] | undefined = stateTransitions[transition]?.actionsPath[0]?.action;
 			if (actions) {
 				const actionName = actions[0]!;
-				const actionInStructure = stateDiagramStructure.actions.find(a => a.id === actionName) as TActionWithParams;
+				const actionInStructure = allActions.find(a => a.id === actionName);
 				if (!chain[actionName]) {
 					chain[actionName] = {
 						chains: [],
@@ -456,9 +476,15 @@ function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramS
 				}
 				chain[actionName].chains.push({
 					chain: actions.slice(1).map((actionId) => {
-						const actionInStructure = stateDiagramStructure.actions.find(a => a.id === actionId) as TActionWithParams;
-						if (actionInStructure && actionInStructure.predicate === true) {
-							return `${actionInStructure.id}(${actionInStructure.params})`;
+						const specific = allActions.find(
+							a => a.id === actionId && a.predicate === true && a.to === transition && reachableChoices.has(a.from),
+						);
+						if (specific) {
+							return `${specific.id}(${specific.params})`;
+						}
+						const fallback = allActions.find(a => a.id === actionId && a.predicate === true);
+						if (fallback) {
+							return `${fallback.id}(${fallback.params})`;
 						}
 						return actionId;
 					}),
@@ -506,17 +532,14 @@ function sortActionChains(actionChains: TActionChain[]) {
 
 function validateActions(stateDiagramStructure: TStateDiagramStructure) {
 	const actions = stateDiagramStructure.actions;
-	const map: Record<string, Set<string>> = {};
+	const seen = new Set<string>();
 	for (const action of actions) {
-		if (!map[action.from]) {
-			map[action.from] = new Set();
-		}
-
-		if (map[action.from]?.has(action.id)) {
+		const guard = (action as TActionWithParams)?.guard ?? null;
+		const key = `${action.from}|${action.id}|${guard}`;
+		if (seen.has(key)) {
 			throw new Error(`Duplicate action ${action.id} identified in state ${action.from}`);
-		} else {
-			map[action.from]?.add(action.id);
 		}
+		seen.add(key);
 	}
 }
 

@@ -1,7 +1,7 @@
 {
 	"name": "04-api-weather-report",
 	"type": "module",
-	"version": "0.4.4",
+	"version": "0.4.6",
 	"private": true,
 	"description": "",
 	"author": "",
@@ -15,7 +15,7 @@
 		"preview": "vite preview",
 		"lint": "eslint .",
 		"format": "eslint --fix .",
-		"generate": "yantrix codegen ./src/diagrams/WeatherReport.mermaid -l TypeScript -o src/generated/WeatherReportAutomata.ts -c WeatherReportAutomata"
+		"generate": "yantrix codegen ./src/diagrams/WeatherReport.mermaid -l TypeScript -o src/generated/WeatherReportAutomata.ts -c WeatherReportAutomata --beautify"
 	},
 	"devDependencies": {
 		"@types/node": "^22.7.3",

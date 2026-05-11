@@ -1,8 +1,9 @@
 import { EndState, StartState } from '../constants';
 
 const validStateRegex = /^[a-z][\w-]{0,254}$/i;
-const validFunctionRegex = /^[a-z]\w{0,254}\([\w, $#]+\)$/i;
-const actionParamsRegex = /\(([\w=, $#]+)\)/;
+const validFunctionRegex = /^[a-z]\w{0,254}\([\w, $#.]+\)$/i;
+const actionParamsRegex = /\(([\w=, $#.]+)\)/;
+const actionGuardRegex = /\[([^\]]+)\]/;
 const expressionValueRegex = /[$#]\w{0,254}(=\w+)?/;
 export function isValidStateId(state: string): boolean {
 	return state === StartState || state === EndState || validStateRegex.test(state);
@@ -48,7 +49,16 @@ export function compareActionChains(a: string[], b: string[]) {
 
 export function extractActionId(str: string | undefined) {
 	if (!str) return '';
-	else return str.split('\(')[0]!.trim();
+	const trimmed = str.trim();
+	if (trimmed.startsWith('[')) return trimmed.split('(')[0]!.trim();
+	return trimmed.replace(/\s*\[[^\]]*\]/, '').split('(')[0]!.trim();
+}
+
+export function extractActionGuard(str: string | undefined): string | null {
+	if (!str) return null;
+	if (str.trim().startsWith('[')) return null;
+	const match = str.match(actionGuardRegex);
+	return match ? match[1]!.trim() : null;
 }
 
 export function extractActionParams(str: string | undefined) {

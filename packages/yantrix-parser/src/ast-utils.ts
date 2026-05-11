@@ -1,3 +1,4 @@
+import { AstUtils } from 'langium';
 import {
 	ByPass,
 	ContextStatement,
@@ -26,6 +27,7 @@ import {
 	isFunctionCall,
 	isInitialState,
 	isInjectStatement,
+	isNestedDefineFunction,
 	isNumberLiteral,
 	isPayloadReference,
 	isStringLiteral,
@@ -218,4 +220,14 @@ export function validateFunctionNesting(expr: Expression | KeyItem): void {
 	if (depth > MAX_NESTED_FUNC_LEVEL) {
 		throw new Error(`Nested function limit exceeded: ${depth} > ${MAX_NESTED_FUNC_LEVEL}`);
 	}
+}
+
+export function getAllReferencedFunctions(doc: Document): Set<string> {
+	const names = new Set<string>();
+	for (const node of AstUtils.streamAllContents(doc)) {
+		if (isFunctionCall(node) || isDefineFunction(node) || isNestedDefineFunction(node)) {
+			names.add((node as FunctionCall | DefineFunction).name);
+		}
+	}
+	return names;
 }

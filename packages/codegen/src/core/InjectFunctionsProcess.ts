@@ -20,12 +20,22 @@ const processFileTS = async (filePath: TNullable<string>): Promise<TUserFunction
 	};
 };
 
+const processFilePy = async (filePath: TNullable<string>): Promise<TUserFunctionsDict> => {
+	if (!filePath) return { path: null };
+	if (path.extname(filePath) !== '.py') throw new Error('Only .py files are supported for Python inject');
+	return { path: filePath };
+};
+
 const processFileDict: Record<TOutLang, (filePath: TNullable<string>) => Promise<TUserFunctionsDict>> = {
 	[ModuleNames.JavaScript]: processFileTS,
 	[ModuleNames.TypeScript]: processFileTS,
-	[ModuleNames.Python]: () => { throw new TypeError('Python is not supported yet inject functions'); },
-	[ModuleNames.Java]: () => { throw new TypeError('Java is not supported yet inject functions'); },
-
+	[ModuleNames.PureJavaScript]: processFileTS,
+	[ModuleNames.PureTypeScript]: processFileTS,
+	[ModuleNames.Python]: processFilePy,
+	[ModuleNames.Java]: (filePath) => {
+		if (filePath) throw new TypeError('Java does not support inject functions via file path');
+		return Promise.resolve({ path: null });
+	},
 } as const;
 
 export const processFile = (language: TOutLang) => {

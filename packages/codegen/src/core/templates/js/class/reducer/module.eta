@@ -1,7 +1,7 @@
 <% if (it.hasTypes) { %>((input: TRootReducerInput): TRootReducerOutput => {
   const { action, context, payload, state } = input;
 <% } else { %>({ action, context, payload, state }) => {<% } %>
-  if (<% if (it.hasTypes) { %>action === null<% } else { %>!action<% } %> || payload === null) return { state, context };
+  if (<% if (it.hasTypes) { %>action === null || state === null<% } else { %>!action || !state<% } %> || payload === null) return { state: <% if (it.hasTypes) { %>(state ?? 0)<% } else { %>state<% } %>, context };
 
   if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.");
 
@@ -14,7 +14,7 @@
   let localCtx = getNew(action, state, context, payload);
 
   while (byPassedStates.has(localCtx.state)) {
-    localCtx = getNew(actionsDictionary['<%~ it.byPassAction %>'], localCtx.state, localCtx.context, {});
+    localCtx = getNew(<%~ it.byPassActionValue %>, localCtx.state, localCtx.context, {});
   }
 
   incrementEpoch();

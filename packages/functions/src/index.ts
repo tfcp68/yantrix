@@ -11,7 +11,6 @@
  * @module BuiltInFunctions
  */
 
-import { isNumber } from 'lodash-es';
 import * as conditionals from './typescript/conditionals';
 import * as predicates from './typescript/predicates';
 import * as transformers from './typescript/transformers';
@@ -60,7 +59,7 @@ export const builtInFunctions = {
 };
 
 function random(min?: number, max?: number): number {
-	if (isNumber(min) && isNumber(max)) return Math.floor(Math.random() * (max - min) + min);
+	if (typeof min === 'number' && typeof max === 'number') return Math.floor(Math.random() * (max - min) + min);
 	else return Math.round(Math.random());
 }
 
