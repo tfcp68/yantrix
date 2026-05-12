@@ -38,7 +38,7 @@ enum UActions {
  * Event meta contract for unit tests
  */
 type TMeta = {
-	[UEvents.EVT_IN]: { n?: number };
+	[UEvents.EVT_IN]: { n?: number; id?: string };
 	[UEvents.EVT_OUT]: object;
 };
 
@@ -339,6 +339,24 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 
 		expect(() => loop.unregisterAutomata(automataId)).not.toThrow();
 		expect(() => loop.unregisterAutomata(automataId)).not.toThrow();
+	});
+
+	it('shared EventAdapter dispatches action only to automata with matching event meta id', async () => {
+		const automataA = new AutomataStub();
+		const automataB = new AutomataStub();
+		const sharedAdapter = new AutomataEventAdapter();
+
+		sharedAdapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }), 'light-1');
+		sharedAdapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }), 'light-2');
+
+		loop.registerAutomata('light-1', automataA, sharedAdapter);
+		loop.registerAutomata('light-2', automataB, sharedAdapter);
+
+		bus.dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, { id: 'light-1' }));
+		await Promise.resolve();
+
+		expect(automataA.lastAction).toBe(UActions.DO);
+		expect(automataB.lastAction).toBeNull();
 	});
 
 	it('rejects registering sources/destinations without non-empty ids', () => {
