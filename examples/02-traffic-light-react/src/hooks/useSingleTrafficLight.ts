@@ -1,16 +1,16 @@
-import { TTrafficLightProps } from '@/components/TrafficLight';
-import TLA from '@/generated/TrafficLightAutomata';
+import { TTrafficLightActions, TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
+import TLA, { statesDictionary } from '@/generated/TrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
 
-export function useSingleTrafficLight(): TTrafficLightProps {
-	const { dispatch, getContext, getState, state } = useFSM(TLA);
+export function useSingleTrafficLight(): TTrafficLightDisplayProps & TTrafficLightActions {
+	const { dispatch, getContext, state } = useFSM(TLA);
 	const { context } = getContext();
 
 	return {
-		counter: (context.counter ?? null) as number | null,
-		isGreenOn: getState('Green') === state,
-		isRedOn: state != null && [getState('Red'), getState('RedYellow')].includes(state),
-		isYellowOn: state != null && [getState('Yellow'), getState('RedYellow')].includes(state),
+		counter: (context.counter ?? null),
+		isGreenOn: state === statesDictionary.Green,
+		isRedOn: state != null && [statesDictionary.Red, statesDictionary.RedYellow].includes(state as number),
+		isYellowOn: state != null && [statesDictionary.Yellow, statesDictionary.RedYellow].includes(state as number),
 		onReset: () => dispatch({ action: TLA.getAction('Reset'), payload: { initialCounter: 0 } }),
 		onSwitch: () => dispatch({ action: TLA.getAction('Switch'), payload: {} }),
 	};

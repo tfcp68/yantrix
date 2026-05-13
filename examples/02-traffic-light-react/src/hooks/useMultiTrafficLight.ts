@@ -1,15 +1,13 @@
-import { TTrafficLightProps } from '@/components/TrafficLight';
-import TLA from '@/generated/TrafficLightAutomata';
+import { TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
+import TLA, { statesDictionary } from '@/generated/TrafficLightAutomata';
 import { RESET_EVENT, SWITCH_EVENT, trafficLightBus } from '@/lib/trafficLightBus';
 import { useFSM } from '@yantrix/react';
 import { useEffect } from 'react';
 
 type TBusHandler = Parameters<typeof trafficLightBus.subscribe>[1];
 
-export type TTrafficLightState = Omit<TTrafficLightProps, 'onSwitch' | 'onReset'>;
-
-export function useMultiTrafficLight(id: string): TTrafficLightState {
-	const { dispatch, getContext, getInstanceAutomata, getState, state } = useFSM({ Automata: TLA, id });
+export function useMultiTrafficLight(id: string): TTrafficLightDisplayProps {
+	const { dispatch, getContext, getInstanceAutomata, state } = useFSM({ Automata: TLA, id });
 	const { context } = getContext();
 
 	useEffect(() => {
@@ -52,8 +50,8 @@ export function useMultiTrafficLight(id: string): TTrafficLightState {
 
 	return {
 		counter: (context.counter ?? null),
-		isGreenOn: getState('Green') === state,
-		isRedOn: state != null && [getState('Red'), getState('RedYellow')].includes(state),
-		isYellowOn: state != null && [getState('Yellow'), getState('RedYellow')].includes(state),
+		isGreenOn: state === statesDictionary.Green,
+		isRedOn: state != null && [statesDictionary.Red, statesDictionary.RedYellow].includes(state as number),
+		isYellowOn: state != null && [statesDictionary.Yellow, statesDictionary.RedYellow].includes(state as number),
 	};
 }
