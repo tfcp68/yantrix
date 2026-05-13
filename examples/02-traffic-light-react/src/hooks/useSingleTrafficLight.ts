@@ -1,5 +1,5 @@
 import { TTrafficLightActions, TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
-import TLA, { statesDictionary } from '@/generated/TrafficLightAutomata';
+import TLA, { actionsMap, statesDictionary } from '@/generated/TrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
 
 export function useSingleTrafficLight(): TTrafficLightDisplayProps & TTrafficLightActions {
@@ -9,9 +9,9 @@ export function useSingleTrafficLight(): TTrafficLightDisplayProps & TTrafficLig
 	return {
 		counter: (context.counter ?? null),
 		isGreenOn: state === statesDictionary.Green,
-		isRedOn: state != null && [statesDictionary.Red, statesDictionary.RedYellow].includes(state as number),
-		isYellowOn: state != null && [statesDictionary.Yellow, statesDictionary.RedYellow].includes(state as number),
-		onReset: () => dispatch({ action: TLA.getAction('Reset'), payload: { initialCounter: 0 } }),
-		onSwitch: () => dispatch({ action: TLA.getAction('Switch'), payload: {} }),
+		isRedOn: state != null && [statesDictionary.Red, statesDictionary.RedYellow].includes(state),
+		isYellowOn: state != null && [statesDictionary.Yellow, statesDictionary.RedYellow].includes(state),
+		onReset: () => dispatch({ action: TLA.getAction(actionsMap.Reset), payload: { initialCounter: 0 } }),
+		onSwitch: () => dispatch({ action: TLA.getAction(actionsMap.Switch), payload: {} }),
 	};
 }

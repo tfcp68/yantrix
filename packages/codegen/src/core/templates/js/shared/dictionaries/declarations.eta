@@ -9,6 +9,6 @@ GlobalEventDictionary.addEvents({
 
 export const functionDictionary = new FunctionDictionary();
 
-const actionsMap = <%~ JSON.stringify(it.dictionaries.actionsMap, null, 2) %>;
+export const actionsMap = <%~ JSON.stringify(it.dictionaries.actionsMap, null, 2) %><% if (it.hasTypes) { %> as const<% } %>;
 
-const statesMap = <%~ JSON.stringify(it.dictionaries.statesMap, null, 2) %>;
+export const statesMap = <%~ JSON.stringify(it.dictionaries.statesMap, null, 2) %><% if (it.hasTypes) { %> as const<% } %>;

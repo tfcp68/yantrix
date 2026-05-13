@@ -7,8 +7,8 @@ export type TReducerPayload = Exclude<TAutomataPayload, null>;
 export declare const statesDictionary: Record<string, TStateId>;
 export declare const actionsDictionary: Record<string, TActionId>;
 export declare const eventDictionary: Record<string, number>;
-export declare const actionsMap: Record<string, string>;
-export declare const statesMap: Record<string, string>;
+export declare const actionsMap: Readonly<Record<string, string>>;
+export declare const statesMap: Readonly<Record<string, string>>;
 
 export type TActions<%~ it.className %> = keyof typeof actionsMap;
 

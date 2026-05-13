@@ -7,7 +7,7 @@ import { useTrafficLightActions } from '@/hooks/useTrafficLightActions';
 import React, { useState } from 'react';
 
 const MULTI_LIGHTS = Array.from({ length: 3 }, (_, i) => ({
-	id: crypto.randomUUID() as string,
+	id: crypto.randomUUID(),
 	label: `Light ${i + 1}`,
 }));
 
