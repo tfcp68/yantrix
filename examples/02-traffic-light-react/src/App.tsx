@@ -1,8 +1,8 @@
 import { MultiTrafficLight } from '@/components/MultiTrafficLight';
 import { SingleTrafficLight } from '@/components/SingleTrafficLight';
-import { ThemeProvider } from '@/components/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 
 function App() {
 	return (
