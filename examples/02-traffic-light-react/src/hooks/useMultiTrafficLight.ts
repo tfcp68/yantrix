@@ -6,7 +6,9 @@ import { useEffect } from 'react';
 
 type TBusHandler = Parameters<typeof trafficLightBus.subscribe>[1];
 
-export function useMultiTrafficLight(id: string): TTrafficLightProps {
+export type TTrafficLightState = Omit<TTrafficLightProps, 'onSwitch' | 'onReset'>;
+
+export function useMultiTrafficLight(id: string): TTrafficLightState {
 	const { dispatch, getContext, getInstanceAutomata, getState, state } = useFSM({ Automata: TLA, id });
 	const { context } = getContext();
 
@@ -29,12 +31,12 @@ export function useMultiTrafficLight(id: string): TTrafficLightProps {
 		const busHandlerSwitch: TBusHandler = (eventMeta) => {
 			const actions = adapter.handleEvent(eventMeta, id);
 			actions.forEach((action: (typeof actions)[number]) => dispatch(action));
-			return { event: eventMeta.event, meta: eventMeta.meta, task_id: `switch_${id}`, result: null } as const;
+			return { event: eventMeta.event, meta: eventMeta.meta, task_id: id, result: null } as const;
 		};
 		const busHandlerReset: TBusHandler = (eventMeta) => {
 			const actions = adapter.handleEvent(eventMeta, id);
 			actions.forEach((action: (typeof actions)[number]) => dispatch(action));
-			return { event: eventMeta.event, meta: eventMeta.meta, task_id: `reset_${id}`, result: null } as const;
+			return { event: eventMeta.event, meta: eventMeta.meta, task_id: id, result: null } as const;
 		};
 
 		trafficLightBus.subscribe(SWITCH_EVENT, busHandlerSwitch);
@@ -49,11 +51,9 @@ export function useMultiTrafficLight(id: string): TTrafficLightProps {
 	}, [id]);
 
 	return {
-		counter: (context.counter ?? null) as number | null,
+		counter: (context.counter ?? null),
 		isGreenOn: getState('Green') === state,
 		isRedOn: state != null && [getState('Red'), getState('RedYellow')].includes(state),
 		isYellowOn: state != null && [getState('Yellow'), getState('RedYellow')].includes(state),
-		onReset: () => trafficLightBus.dispatch({ event: RESET_EVENT, meta: { id } }),
-		onSwitch: () => trafficLightBus.dispatch({ event: SWITCH_EVENT, meta: { id } }),
 	};
 }
