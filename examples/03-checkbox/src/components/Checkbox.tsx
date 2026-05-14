@@ -1,7 +1,7 @@
 'use client';
 import { Card } from '@/components/ui/card';
 import { useFSM } from '@yantrix/react';
-import TLA from '../generated/checkbox_controller';
+import TLA, { actionsMap } from '../generated/checkbox_controller';
 
 const checkboxesData = [
 	{ id: 1, label: 'Example checkbox 1' },
@@ -13,7 +13,7 @@ export function Checkbox() {
 	const { dispatch: dispatchAutomata, state } = useFSM(TLA);
 
 	const toggleCheckbox = (id: number) => {
-		dispatchAutomata(TLA.createAction('TOGGLE', { id }));
+		dispatchAutomata(TLA.createAction(actionsMap.TOGGLE, { id }));
 	};
 
 	const isChecked = (id: number) => TLA.getState(state)?.[id];
