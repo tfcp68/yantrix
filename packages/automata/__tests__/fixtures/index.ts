@@ -6,7 +6,7 @@ export type TTestEvent = number;
 export type TTestAction = number;
 export type TTestState = number;
 export type TTestEventMeta<T extends TTestEvent> = {
-	[key in T]: { meta: string };
+	[key in T]: { meta: string; id?: string | null };
 };
 export type TTestPayload<T extends TTestAction> = {
 	[key in T]: Record<string, number>;

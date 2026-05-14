@@ -32,7 +32,10 @@ export function createEventAdapter<
 			EventMetaType
 		>()(Base) {
 			#eventListeners: {
-				[T in EventType]?: Array<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>;
+				[T in EventType]?: Array<{
+					handler: TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>;
+					targetId: PropertyKey | null;
+				}>;
 			};
 
 			#eventEmitters: {
@@ -67,15 +70,17 @@ export function createEventAdapter<
 			public addEventListener<T extends EventType>(
 				type: T,
 				handler: TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>,
+				targetId: PropertyKey | null = null,
 			): (() => void) | null {
 				if (type === null || type === undefined || !(handler instanceof Function) || !this.validateEvent(type))
 					return null;
+				const listener = { handler, targetId };
 				this.#eventListeners = Object.assign(this.#eventListeners ?? {}, {
-					[type]: [...(this.#eventListeners?.[type] ?? []), handler],
+					[type]: [...(this.#eventListeners?.[type] ?? []), listener],
 				});
 				return () => {
 					if (this.#eventListeners?.[type]) {
-						const newHandlers = (this.#eventListeners[type] || []).filter(v => v !== handler);
+						const newHandlers = (this.#eventListeners[type] || []).filter(v => v !== listener);
 						if (!newHandlers.length)
 							delete this.#eventListeners[type];
 						else this.#eventListeners[type] = newHandlers;
@@ -83,13 +88,29 @@ export function createEventAdapter<
 				};
 			}
 
+			#matchesEventTarget(meta: unknown, targetId: PropertyKey | null): boolean {
+				if (targetId === null || meta === null || typeof meta !== 'object' || !('id' in meta))
+					return true;
+
+				return meta.id == null || meta.id === targetId;
+			}
+
+			#matchesListenerTarget(listenerTargetId: PropertyKey | null, targetId: PropertyKey | null): boolean {
+				if (listenerTargetId === null)
+					return true;
+
+				return targetId !== null && listenerTargetId === targetId;
+			}
+
 			public handleEvent<T extends EventType>(
 				event: TAutomataEventMetaType<T, EventMetaType>,
+				targetId: PropertyKey | null = null,
 			): Array<ReturnType<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>> {
-				if (!this.validateEventMeta(event))
+				if (!this.validateEventMeta(event) || !this.#matchesEventTarget(event.meta, targetId))
 					return [];
 				return (this.#eventListeners?.[event.event] || [])
-					.map(handler => handler(event))
+					.filter(({ targetId: listenerTargetId }) => this.#matchesListenerTarget(listenerTargetId, targetId))
+					.map(({ handler }) => handler(event))
 					.filter(action => this.validateAction(action.action));
 			}
 

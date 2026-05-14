@@ -1,6 +1,8 @@
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { TrafficLight } from '@/components/TrafficLight';
+import { MultiTrafficLight } from '@/components/MultiTrafficLight';
+import { SingleTrafficLight } from '@/components/SingleTrafficLight';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 
 function App() {
 	return (
@@ -11,7 +13,22 @@ function App() {
 						<CardTitle>Traffic light</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<TrafficLight />
+						<Tabs defaultValue="single">
+							<TabsList className="w-full mb-4">
+								<TabsTrigger value="single" className="flex-1">
+									Single Traffic Light
+								</TabsTrigger>
+								<TabsTrigger value="multi" className="flex-1">
+									Multi Traffic Light
+								</TabsTrigger>
+							</TabsList>
+							<TabsContent value="single" className="flex justify-center">
+								<SingleTrafficLight />
+							</TabsContent>
+							<TabsContent value="multi">
+								<MultiTrafficLight />
+							</TabsContent>
+						</Tabs>
 					</CardContent>
 				</Card>
 			</div>
