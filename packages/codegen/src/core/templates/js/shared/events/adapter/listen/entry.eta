@@ -1,6 +1,6 @@
 eventAdapter.addEventListener(
   eventDictionary["<%~ it.listener.eventIdentifier %>"],
-  ({ event, meta }) => {
+  <% if (it.listener.payloadEntries.length > 0) { %>({ event: _event, meta })<% } else { %>()<% } %> => {
     return {
       action: actionsDictionary["<%~ it.listener.actionName %>"],
       payload: {

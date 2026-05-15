@@ -15,14 +15,14 @@ export type TTrafficLightActions = {
 export const TrafficLightContext = createContext<TTrafficLightDisplayProps | null>(null);
 export const TrafficLightActionsContext = createContext<TTrafficLightActions | null>(null);
 
-export function useTrafficLight(): TTrafficLightDisplayProps {
+export const useTrafficLight = (): TTrafficLightDisplayProps => {
 	const ctx = useContext(TrafficLightContext);
 	if (!ctx) throw new Error('useTrafficLight must be used within TrafficLightContext.Provider');
 	return ctx;
-}
+};
 
-export function useTrafficLightActions(): TTrafficLightActions {
+export const useTrafficLightActions = (): TTrafficLightActions => {
 	const ctx = useContext(TrafficLightActionsContext);
 	if (!ctx) throw new Error('useTrafficLightActions must be used within TrafficLightActionsContext.Provider');
 	return ctx;
-}
+};

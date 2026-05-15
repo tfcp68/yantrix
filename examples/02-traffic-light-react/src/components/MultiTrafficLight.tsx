@@ -11,16 +11,21 @@ const MULTI_LIGHTS = Array.from({ length: 3 }, (_, i) => ({
 	label: `Light ${i + 1}`,
 }));
 
-function MultiTrafficLightItemProvider({ id, children }: { id: string; children: React.ReactNode }) {
+type TMultiTrafficLightItemProviderProps = {
+	id: string;
+	children: React.ReactNode;
+};
+
+const MultiTrafficLightItemProvider = ({ id, children }: TMultiTrafficLightItemProviderProps) => {
 	const trafficLightValues = useMultiTrafficLight(id);
 	return (
 		<TrafficLightContext.Provider value={trafficLightValues}>
 			{children}
 		</TrafficLightContext.Provider>
 	);
-}
+};
 
-export function MultiTrafficLight() {
+export const MultiTrafficLight = () => {
 	const [selectedId, setSelectedId] = useState<string>(MULTI_LIGHTS[0]!.id);
 	const actions = useTrafficLightActions(selectedId);
 
@@ -48,4 +53,4 @@ export function MultiTrafficLight() {
 			</TrafficLightActionsContext.Provider>
 		</div>
 	);
-}
+};

@@ -2,7 +2,7 @@ import { TTrafficLightActions, TTrafficLightDisplayProps } from '@/context/Traff
 import TLA, { actionsMap, statesDictionary } from '@/generated/TrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
 
-export function useSingleTrafficLight(): TTrafficLightDisplayProps & TTrafficLightActions {
+export const useSingleTrafficLight = (): TTrafficLightDisplayProps & TTrafficLightActions => {
 	const { dispatch, getContext, state } = useFSM(TLA);
 	const { context } = getContext();
 
@@ -14,4 +14,4 @@ export function useSingleTrafficLight(): TTrafficLightDisplayProps & TTrafficLig
 		onReset: () => dispatch({ action: TLA.getAction(actionsMap.Reset), payload: { initialCounter: 0 } }),
 		onSwitch: () => dispatch({ action: TLA.getAction(actionsMap.Switch), payload: {} }),
 	};
-}
+};

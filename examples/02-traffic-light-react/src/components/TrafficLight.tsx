@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useTrafficLight } from '@/context/TrafficLightContext';
 
-export function TrafficLight() {
+export const TrafficLight = () => {
 	const { counter, isGreenOn, isRedOn, isYellowOn } = useTrafficLight();
 	return (
 		<div className="relative">
@@ -26,4 +26,4 @@ export function TrafficLight() {
 			<Badge className="absolute -top-2 -right-2 bg-zinc-800 text-zinc-200 text-xs">{counter}</Badge>
 		</div>
 	);
-}
+};

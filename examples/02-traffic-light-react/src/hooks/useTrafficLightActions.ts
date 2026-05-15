@@ -1,9 +1,10 @@
 import { TTrafficLightActions } from '@/context/TrafficLightContext';
-import { RESET_EVENT, SWITCH_EVENT, trafficLightBus } from '@/lib/trafficLightBus';
+import { eventDictionary } from '@/generated/TrafficLightAutomata';
+import { trafficLightBus } from '@/lib/trafficLightBus';
 
-export function useTrafficLightActions(id: string): TTrafficLightActions {
+export const useTrafficLightActions = (id: string): TTrafficLightActions => {
 	return {
-		onSwitch: () => trafficLightBus.dispatch({ event: SWITCH_EVENT, meta: { id } }),
-		onReset: () => trafficLightBus.dispatch({ event: RESET_EVENT, meta: { id } }),
+		onSwitch: () => trafficLightBus.dispatch({ event: eventDictionary.SWITCH, meta: { id } }),
+		onReset: () => trafficLightBus.dispatch({ event: eventDictionary.RESET, meta: { id, initialCounter: 0 } }),
 	};
-}
+};

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useTrafficLightActions } from '@/context/TrafficLightContext';
 
-export function TrafficLightButtons() {
+export const TrafficLightButtons = () => {
 	const { onSwitch, onReset } = useTrafficLightActions();
 	return (
 		<div className="flex flex-col w-24 space-y-2">
@@ -21,4 +21,4 @@ export function TrafficLightButtons() {
 			</Button>
 		</div>
 	);
-}
+};
