@@ -2,8 +2,6 @@ import { unifyObjectKey } from '@yantrix/utils';
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import ExtendedValidatorContainer from './mixins/ExtendedValidatorContainer.js';
 import {
-	IBaseClass,
-	TAbstractConstructor,
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
@@ -11,6 +9,7 @@ import {
 	TAutomataEventHandler,
 	TAutomataEventMetaType,
 	TAutomataStateContext,
+	TBaseClassConstructor,
 	TDefinedValues,
 } from './types/index.js';
 import { IAutomataEventAdapter } from './types/interfaces.js';
@@ -23,7 +22,7 @@ export function createEventAdapter<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 >() {
-	return <BaseType extends TAbstractConstructor<IBaseClass> = TAbstractConstructor<IBaseClass>>(Base: BaseType) =>
+	return <BaseType extends TBaseClassConstructor = TBaseClassConstructor>(Base: BaseType) =>
 		class AbstractAutomataEventAdapter extends ExtendedValidatorContainer<
 			StateType,
 			ActionType,

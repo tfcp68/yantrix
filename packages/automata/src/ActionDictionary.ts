@@ -2,14 +2,14 @@ import { AbstractBaseClass } from './mixins/BaseClass.js';
 import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedActionContainer from './mixins/ExtendedActionContainer.js';
 import { TActionKeysCollection, TActionLookupParams, TActionValuesCollection } from './types/dictionaries.js';
-import { IBaseClass, TAbstractConstructor, TAutomataBaseActionType } from './types/index.js';
+import { TAutomataBaseActionType, TBaseClassConstructor } from './types/index.js';
 import { IActionDictionary } from './types/interfaces.js';
 
 export function createActionDictionary<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
 >() {
-	return <BaseType extends TAbstractConstructor<IBaseClass> = TAbstractConstructor<IBaseClass>>(Base: BaseType) =>
+	return <BaseType extends TBaseClassConstructor = TBaseClassConstructor>(Base: BaseType) =>
 		class AbstractActionDictionary extends DictionaryContainer<ActionType>()(
 			ExtendedActionContainer<ActionType, PayloadType>()(Base),
 		) {

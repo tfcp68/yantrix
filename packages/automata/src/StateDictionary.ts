@@ -4,10 +4,9 @@ import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedStateContainer from './mixins/ExtendedStateContainer.js';
 import { TStateKeysCollection, TStateLookupParams, TStateValuesCollection } from './types/dictionaries.js';
 import {
-	IBaseClass,
-	TAbstractConstructor,
 	TAutomataBaseStateType,
 	TAutomataStateContext,
+	TBaseClassConstructor,
 	TContextTransformer,
 } from './types/index.js';
 import { IStateDictionary } from './types/interfaces.js';
@@ -24,7 +23,7 @@ export function createStateDictionary<
 	StateType extends TAutomataBaseStateType = TAutomataBaseStateType,
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 >() {
-	return <BaseType extends TAbstractConstructor<IBaseClass> = TAbstractConstructor<IBaseClass>>(Base: BaseType) =>
+	return <BaseType extends TBaseClassConstructor = TBaseClassConstructor>(Base: BaseType) =>
 		class AbstractStateDictionary extends DictionaryContainer<StateType>()(
 			ExtendedStateContainer<StateType, ContextType>()(Base),
 		) {
