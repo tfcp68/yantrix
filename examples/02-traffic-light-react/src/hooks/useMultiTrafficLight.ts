@@ -6,12 +6,12 @@ import { useEffect } from 'react';
 
 type TBusHandler = Parameters<typeof trafficLightBus.subscribe>[1];
 
-export const useMultiTrafficLight = (id: string): TTrafficLightDisplayProps => {
-	const { dispatch, getContext, getInstanceAutomata, state } = useFSM({ Automata: TLA, id });
+export const useMultiTrafficLight = (instance: InstanceType<typeof TLA>): TTrafficLightDisplayProps => {
+	const id = instance.correlationId;
+	const { dispatch, getContext, state } = useFSM({ Automata: instance, id });
 	const { context } = getContext();
 
 	useEffect(() => {
-		const { Automata: instance } = getInstanceAutomata();
 		const adapter = instance.eventAdapter;
 		if (!adapter) return;
 
