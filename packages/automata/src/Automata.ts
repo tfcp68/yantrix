@@ -2,6 +2,7 @@ import { isPositiveInteger } from '@yantrix/utils';
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import BasicValidatorContainer from './mixins/BasicValidatorContainer.js';
 import {
+	IBaseClass,
 	TAbstractConstructor,
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
@@ -23,7 +24,7 @@ export function createAutomata<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 >() {
-	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(Base: BaseType) =>
+	return <BaseType extends TAbstractConstructor<IBaseClass> = TAbstractConstructor<IBaseClass>>(Base: BaseType) =>
 		class AbstractGenericAutomata extends BasicValidatorContainer<StateType, ActionType, EventType>()(Base) {
 			public eventAdapter: IAutomataEventAdapter<
 				StateType,

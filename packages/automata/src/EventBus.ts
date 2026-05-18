@@ -1,6 +1,6 @@
 import { AbstractBaseClass } from './mixins/BaseClass.js';
 import ExtendedEventContainer from './mixins/ExtendedEventContainer.js';
-import { TAbstractConstructor, TAutomataBaseEventType, TAutomataEventStack, TEventBusHandler } from './types/index.js';
+import { IBaseClass, TAbstractConstructor, TAutomataBaseEventType, TAutomataEventStack, TEventBusHandler } from './types/index.js';
 import { IAutomataEventBus } from './types/interfaces.js';
 
 export const STACK_RECURSION_LIMIT_RATIO = 2;
@@ -9,7 +9,7 @@ export function createEventBus<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 >() {
-	return <TBase extends TAbstractConstructor>(Proto: TBase) =>
+	return <TBase extends TAbstractConstructor<IBaseClass>>(Proto: TBase) =>
 		class AbstractAutomataEventBus
 			extends ExtendedEventContainer<EventType, EventMetaType>()(Proto)
 			implements IAutomataEventBus<EventType, EventMetaType> {

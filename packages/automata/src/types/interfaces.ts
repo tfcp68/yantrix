@@ -13,6 +13,7 @@ import {
 	TStateValuesCollection,
 } from './dictionaries.js';
 import {
+	IBaseClass,
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
@@ -189,7 +190,7 @@ export interface IAutomataEventAdapter<
 	ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> extends IAutomataValidatorContainer<StateType, ActionType, EventType> {
+> extends IAutomataValidatorContainer<StateType, ActionType, EventType>, IBaseClass {
 	/**
 	 * Adds an event listener for the specified event type.
 	 * @param type - The type of the event.
@@ -276,7 +277,8 @@ export interface IAutomata<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends TAutomataStateContext<StateType, ContextType>,
-	IAutomataValidatorContainer<StateType, ActionType, EventType> {
+	IAutomataValidatorContainer<StateType, ActionType, EventType>,
+	IBaseClass {
 	eventAdapter: IAutomataEventAdapter<
 		StateType,
 		ActionType,
@@ -380,7 +382,7 @@ export interface IStateDictionary<
 	ContextType extends {
 		[K in StateType]: any;
 	} = Record<StateType, any>,
-> extends IAutomataExtendedStateContainer<StateType, ContextType> {
+> extends IAutomataExtendedStateContainer<StateType, ContextType>, IBaseClass {
 	/**
 	 * Get Keys for selected States, possibly scoped to namespace
 	 * @param {states:StateType[],namespace?:string} states
@@ -481,7 +483,7 @@ export interface IStateDictionary<
 export interface IActionDictionary<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
-> extends IAutomataExtendedActionContainer<ActionType, PayloadType> {
+> extends IAutomataExtendedActionContainer<ActionType, PayloadType>, IBaseClass {
 	/**
 	 * Add new Actions to the dictionary, possibly scope them to namespace
 	 * @param {keys:string[],namespace?:string} actions
@@ -533,7 +535,7 @@ export interface IActionDictionary<
 export interface IEventDictionary<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
-> extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
+> extends IAutomataExtendedEventContainer<EventType, EventMetaType>, IBaseClass {
 	/**
 	 * Add new Events to the dictionary, possibly scope them to namespace
 	 * @param {keys:string[],namespace?:string} actions
@@ -711,7 +713,7 @@ export interface IAutomataSlice<
 export interface IAutomataEventBus<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
+> extends IAutomataExtendedEventContainer<EventType, EventMetaType>, IBaseClass {
 	/**
 	 * Subscribe  n to an event.
 	 * @param event The event to subscribe to.
@@ -768,7 +770,7 @@ export interface IAutomataEventBus<
 /**
  * Interface for any data structure capable of storing and returning automata functions.
  */
-export interface IAutomataFunctionRegistry {
+export interface IAutomataFunctionRegistry extends IBaseClass {
 	/**
 	 * Register function under a specific name in the registry.
 	 *
@@ -829,7 +831,7 @@ export interface IAutomataFunctionRegistry {
  */
 export interface IAgnosticDataSource<
 	DataPacketType = any,
-> extends TCycleIteratorInfo {
+> extends TCycleIteratorInfo, IBaseClass {
 	/**
 	 * Start/resume data emission
 	 * @returns This data source instance
@@ -917,7 +919,7 @@ export interface IAgnosticDataDestination<
 	DataPacketType,
 	ResolveResultType = void,
 	ErrorType = Error,
-> extends TCycleIteratorInfo {
+> extends TCycleIteratorInfo, IBaseClass {
 	/**
 	 * Start/resume data processing
 	 * @returns This destination instance

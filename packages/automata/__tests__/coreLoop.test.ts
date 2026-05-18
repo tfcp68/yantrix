@@ -77,6 +77,7 @@ implements IAutomata<
 		TMeta
 	> | null = null;
 
+	public readonly correlationId: string = uniqId();
 	public state: UStates | null = UStates.S1;
 	public context: Record<UStates, any>[UStates] | null = { value: 0 };
 	public lastAction: UActions | null = null;
