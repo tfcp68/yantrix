@@ -1,3 +1,4 @@
+import { AbstractBaseClass } from './mixins/BaseClass.js';
 import { TAutomataFunction } from './types';
 import { IAutomataFunctionRegistry } from './types/interfaces';
 
@@ -6,10 +7,11 @@ import { IAutomataFunctionRegistry } from './types/interfaces';
  *
  * Has strict requirements for registering new functions, overwrites are not possible.
  */
-export class FunctionDictionary implements IAutomataFunctionRegistry {
+export class FunctionDictionary extends AbstractBaseClass implements IAutomataFunctionRegistry {
 	private functions: Record<string, TAutomataFunction>;
 
 	constructor(functions?: Record<string, TAutomataFunction>) {
+		super();
 		this.functions = functions ?? {};
 	}
 

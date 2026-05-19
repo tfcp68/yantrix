@@ -343,44 +343,6 @@ describe(`eventAdapter`, () => {
 				expect(result).toHaveLength(1);
 				expect(result[0]?.action).toBe(sampleAction2);
 			});
-			it('discards event when meta.id does not match current automata id', () => {
-				const targetedEvent = sampleRange(401, 500);
-				const handler = vitest.fn(() => ({
-					action: sampleAction,
-					payload: { payload: defaultMeta },
-				}));
-
-				sampleInstance.addEventListener(targetedEvent, handler, 'light-1');
-
-				const result = sampleInstance.handleEvent({
-					event: targetedEvent,
-					meta: { meta: defaultMeta.toString(16), id: 'light-1' },
-				}, 'light-2');
-
-				expect(result).toEqual([]);
-				expect(handler).not.toHaveBeenCalled();
-			});
-			it('runs only listeners bound to the current automata id', () => {
-				const targetedEvent = sampleRange(501, 600);
-				const firstAction = sampleRange(601, 700);
-				const secondAction = sampleRange(701, 800);
-
-				sampleInstance.addEventListener(targetedEvent, () => ({
-					action: firstAction,
-					payload: { payload: 1 },
-				}), 'light-1');
-				sampleInstance.addEventListener(targetedEvent, () => ({
-					action: secondAction,
-					payload: { payload: 2 },
-				}), 'light-2');
-
-				const result = sampleInstance.handleEvent({
-					event: targetedEvent,
-					meta: { meta: defaultMeta.toString(16), id: 'light-2' },
-				}, 'light-2');
-
-				expect(result).toEqual([{ action: secondAction, payload: { payload: 2 } }]);
-			});
 		});
 		describe('handleEvent (multiple listeners)', () => {
 			beforeEach(() => {

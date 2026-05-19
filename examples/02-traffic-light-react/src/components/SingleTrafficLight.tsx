@@ -4,7 +4,11 @@ import { TrafficLightActionsContext, TrafficLightContext } from '@/context/Traff
 import { useSingleTrafficLight } from '@/hooks/useSingleTrafficLight';
 import React from 'react';
 
-function SingleTrafficLightProvider({ children }: { children: React.ReactNode }) {
+type TSingleTrafficLightProviderProps = {
+	children: React.ReactNode;
+};
+
+const SingleTrafficLightProvider = ({ children }: TSingleTrafficLightProviderProps) => {
 	const { onSwitch, onReset, ...display } = useSingleTrafficLight();
 	return (
 		<TrafficLightContext.Provider value={display}>
@@ -13,15 +17,13 @@ function SingleTrafficLightProvider({ children }: { children: React.ReactNode })
 			</TrafficLightActionsContext.Provider>
 		</TrafficLightContext.Provider>
 	);
-}
+};
 
-export function SingleTrafficLight() {
-	return (
-		<SingleTrafficLightProvider>
-			<div className="flex flex-col items-center space-y-4">
-				<TrafficLight />
-				<TrafficLightButtons />
-			</div>
-		</SingleTrafficLightProvider>
-	);
-}
+export const SingleTrafficLight = () => (
+	<SingleTrafficLightProvider>
+		<div className="flex flex-col items-center space-y-4">
+			<TrafficLight />
+			<TrafficLightButtons />
+		</div>
+	</SingleTrafficLightProvider>
+);

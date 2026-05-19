@@ -3,14 +3,14 @@ import { AbstractBaseClass } from './mixins/BaseClass.js';
 import DictionaryContainer from './mixins/DictionaryContainer.js';
 import ExtendedEventContainer from './mixins/ExtendedEventContainer.js';
 import { TEventKeysCollection, TEventLookupParams, TEventValuesCollection } from './types/dictionaries.js';
-import { TAbstractConstructor } from './types/index.js';
+import { TBaseClassConstructor } from './types/index.js';
 import { IEventDictionary } from './types/interfaces.js';
 
 export function createEventDictionary<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
 >() {
-	return <BaseType extends TAbstractConstructor = TAbstractConstructor>(Base: BaseType) =>
+	return <BaseType extends TBaseClassConstructor = TBaseClassConstructor>(Base: BaseType) =>
 		class AbstractEventDictionary extends DictionaryContainer<EventType>()(
 			ExtendedEventContainer<EventType, EventMetaType>()(Base),
 		) {

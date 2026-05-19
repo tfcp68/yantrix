@@ -24,6 +24,8 @@ export interface IBaseClass {
 
 export type TAbstractConstructor<T = object> = new (...args: any[]) => T;
 
+export type TBaseClassConstructor = TAbstractConstructor<IBaseClass>;
+
 export type TAbstractFunction<T = any> = (...args: any[]) => T;
 
 export type TMixin<T extends TAbstractFunction> = InstanceType<ReturnType<T>>;

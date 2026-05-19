@@ -120,7 +120,7 @@ export class CoreLoop<
 				const nextEventsToProcess: TAutomataEventStack<EventType, EventMetaType> = [];
 
 				// 1) Event -> Actions
-				const actions = bridge.handleEvent({ event, meta }, id);
+				const actions = bridge.handleEvent({ event, meta });
 
 				// 2) Actions -> FSM -> Transition -> Emitted Events
 				for (const a of actions) {

@@ -194,13 +194,11 @@ export interface IAutomataEventAdapter<
 	 * Adds an event listener for the specified event type.
 	 * @param type - The type of the event.
 	 * @param handler - The event handler function.
-	 * @param targetId - Optional automata id this listener belongs to.
 	 * @returns A cancel function to remove the event listener, or null if the event type is invalid.
 	 */
 	addEventListener: <T extends EventType>(
 		type: T,
 		handler: TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>,
-		targetId?: PropertyKey | null,
 	) => null | TSubscriptionCancelFunction;
 
 	/**
@@ -217,12 +215,10 @@ export interface IAutomataEventAdapter<
 	/**
 	 * Handles the specified event and returns the results of the event handlers.
 	 * @param event - The event to handle.
-	 * @param targetId - Optional automata id used for targeted event dispatch.
 	 * @returns An array of the results of the event handlers.
 	 */
 	handleEvent: <T extends EventType>(
 		event: TAutomataEventMetaType<T, EventMetaType>,
-		targetId?: PropertyKey | null,
 	) => Array<ReturnType<TAutomataEventHandler<T, ActionType, EventMetaType, PayloadType>>>;
 
 	/**
