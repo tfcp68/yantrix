@@ -1,19 +1,22 @@
 import { TrafficLight } from '@/components/TrafficLight';
 import { TrafficLightButtons } from '@/components/TrafficLightButtons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CoreLoopProvider } from '@/context/CoreLoopContext';
 import { TrafficLightActionsContext, TrafficLightContext } from '@/context/TrafficLightContext';
-import { TrafficLightPoolProvider, TTrafficLightPoolEntry, useTrafficLightPool } from '@/context/TrafficLightPoolContext';
+import { TrafficLightPoolProvider, TTrafficLightPoolItem, useTrafficLightPool } from '@/context/TrafficLightPoolContext';
 import { useMultiTrafficLight } from '@/hooks/useMultiTrafficLight';
 import { useTrafficLightActions } from '@/hooks/useTrafficLightActions';
+import { trafficLightBus } from '@/lib/trafficLightBus';
 import React, { useState } from 'react';
 
 type TMultiTrafficLightItemProviderProps = {
-	entry: TTrafficLightPoolEntry;
+	correlationId: string;
+	item: TTrafficLightPoolItem;
 	children: React.ReactNode;
 };
 
-const MultiTrafficLightItemProvider = ({ entry, children }: TMultiTrafficLightItemProviderProps) => {
-	const trafficLightValues = useMultiTrafficLight(entry.instance);
+const MultiTrafficLightItemProvider = ({ item, children }: TMultiTrafficLightItemProviderProps) => {
+	const trafficLightValues = useMultiTrafficLight(item.instance);
 	return (
 		<TrafficLightContext.Provider value={trafficLightValues}>
 			{children}
@@ -22,15 +25,16 @@ const MultiTrafficLightItemProvider = ({ entry, children }: TMultiTrafficLightIt
 };
 
 const MultiTrafficLightInner = () => {
-	const pool = useTrafficLightPool();
-	const [selectedId, setSelectedId] = useState<string>(pool.items[0]!.correlationId);
+	const { items } = useTrafficLightPool();
+	const ids = Object.keys(items);
+	const [selectedId, setSelectedId] = useState<string>(ids[0]!);
 	const actions = useTrafficLightActions(selectedId);
 
 	return (
 		<div className="flex flex-col items-center gap-y-4">
 			<div className="flex flex-row items-start justify-center gap-x-6">
-				{pool.items.map(entry => (
-					<MultiTrafficLightItemProvider key={entry.correlationId} entry={entry}>
+				{Object.entries(items).map(([correlationId, item]) => (
+					<MultiTrafficLightItemProvider key={correlationId} correlationId={correlationId} item={item}>
 						<TrafficLight />
 					</MultiTrafficLightItemProvider>
 				))}
@@ -40,7 +44,7 @@ const MultiTrafficLightInner = () => {
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
-					{pool.items.map(({ correlationId, label }) => (
+					{Object.entries(items).map(([correlationId, { label }]) => (
 						<SelectItem key={correlationId} value={correlationId}>{label}</SelectItem>
 					))}
 				</SelectContent>
@@ -53,7 +57,9 @@ const MultiTrafficLightInner = () => {
 };
 
 export const MultiTrafficLight = () => (
-	<TrafficLightPoolProvider count={3}>
-		<MultiTrafficLightInner />
+	<TrafficLightPoolProvider>
+		<CoreLoopProvider bus={trafficLightBus}>
+			<MultiTrafficLightInner />
+		</CoreLoopProvider>
 	</TrafficLightPoolProvider>
 );

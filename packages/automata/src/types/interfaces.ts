@@ -713,7 +713,7 @@ export interface IAutomataEventBus<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
 	/**
-	 * Subscribe  n to an event.
+	 * SubscribeBu  n to an event.
 	 * @param event The event to subscribe to.
 	 * @param callback The callback function to call when the event is dispatched.
 	 * @returns This event bus instance.

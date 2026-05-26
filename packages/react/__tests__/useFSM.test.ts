@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react';
-import { uniqId } from '@yantrix/core';
 import { act } from 'react';
 import { assert, describe, expect, it } from 'vitest';
 import { useFSM } from '../src';
@@ -7,25 +6,19 @@ import GamePhaseAutomataTest from './generated/GamePhaseAutomataTest_generated';
 import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata_generated';
 
 describe('useFSM tests', () => {
-	it('instance class by automata id', () => {
-		renderHook(() => useFSM({
-			Automata: TLA,
-			id: TLA.id,
-		}));
+	it('same instance reuses the same store', () => {
+		const inst = new TLA();
+		const { result: FSM1 } = renderHook(() => useFSM(inst));
+		const { result: FSM2 } = renderHook(() => useFSM(inst));
 
-		const { result: FSM2 } = renderHook(() => useFSM({
-			Automata: GamePhaseAutomataTest,
-			id: TLA.id,
-		}));
-
-		expect(FSM2.current.getInstanceAutomata().Automata).toBeInstanceOf(TLA);
+		expect(FSM1.current.getInstanceAutomata().Automata).toBe(inst);
+		expect(FSM2.current.getInstanceAutomata().Automata).toBe(inst);
+		expect(FSM1.current.getInstanceAutomata().id).toBe(FSM2.current.getInstanceAutomata().id);
 	});
 
 	it('change state after action', async () => {
-		const { result } = renderHook(() => useFSM({
-			Automata: TLA,
-			id: uniqId(10),
-		}));
+		const inst = new TLA();
+		const { result } = renderHook(() => useFSM(inst));
 		act(() => {
 			result.current.dispatch({
 				action: TLA.getAction?.('Switch'),
@@ -41,10 +34,8 @@ describe('useFSM tests', () => {
 	});
 
 	it('trace previous context', () => {
-		const { result } = renderHook(() => useFSM({
-			Automata: TLA,
-			id: uniqId(10),
-		}));
+		const inst = new TLA();
+		const { result } = renderHook(() => useFSM(inst));
 
 		act(() => {
 			result.current.dispatch({
@@ -60,10 +51,11 @@ describe('useFSM tests', () => {
 		expect(result.current.trace().previousContext.state).equal(result.current.getState?.('Red'));
 	});
 
-	it('check singleton', () => {
-		const { result: FSM1 } = renderHook(() => useFSM(TLA));
-
-		const { result: FSM2 } = renderHook(() => useFSM(GamePhaseAutomataTest));
+	it('different instances have isolated automata', () => {
+		const inst1 = new TLA();
+		const inst2 = new GamePhaseAutomataTest();
+		const { result: FSM1 } = renderHook(() => useFSM(inst1));
+		const { result: FSM2 } = renderHook(() => useFSM(inst2));
 
 		assert.notDeepEqual(FSM1.current.getInstanceAutomata(), FSM2.current.getInstanceAutomata());
 		expect(FSM1.current.getInstanceAutomata().Automata).toBeInstanceOf(TLA);
@@ -71,14 +63,12 @@ describe('useFSM tests', () => {
 	});
 
 	it('does not re-render when dispatch results in the same state and context (isEqual guards)', () => {
-		const id = uniqId(10);
 		let renders = 0;
+		const inst = new TLA();
 
 		const { result } = renderHook(() => {
 			renders++;
-			return useFSM(
-				{ Automata: TLA, id },
-			);
+			return useFSM(inst);
 		});
 
 		expect(renders).toBe(1);
@@ -87,9 +77,7 @@ describe('useFSM tests', () => {
 		act(() => {
 			result.current.dispatch({
 				action: TLA.getAction?.('Reset'),
-				payload: {
-					initialCounter: 0,
-				},
+				payload: { initialCounter: 0 },
 			});
 		});
 

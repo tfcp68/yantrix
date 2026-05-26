@@ -1,41 +1,34 @@
-import TLA from '@/generated/TrafficLightAutomata';
+import MTLA, { statesDictionary } from '@/generated/MultiTrafficLightAutomata';
 import { createContext, ReactNode, useContext, useRef } from 'react';
 
-export type TTrafficLightPoolEntry = {
-	instance: InstanceType<typeof TLA>;
-	correlationId: string;
+export type TTrafficLightPoolItem = {
+	instance: InstanceType<typeof MTLA>;
 	label: string;
 };
 
-type TTrafficLightPoolValue = {
-	items: ReadonlyArray<TTrafficLightPoolEntry>;
-};
+export type TTrafficLightPool = Record<string, TTrafficLightPoolItem>;
+
+type TTrafficLightPoolValue = { items: TTrafficLightPool };
 
 const TrafficLightPoolContext = createContext<TTrafficLightPoolValue | null>(null);
 
-type TTrafficLightPoolProviderProps = {
-	count: number;
-	labelFor?: (index: number) => string;
-	children: ReactNode;
-};
-
-export const TrafficLightPoolProvider = ({ count, labelFor, children }: TTrafficLightPoolProviderProps) => {
-	const poolRef = useRef<TTrafficLightPoolEntry[] | null>(null);
+export const TrafficLightPoolProvider = ({ children }: { children: ReactNode }) => {
+	const poolRef = useRef<TTrafficLightPoolValue | null>(null);
 	if (!poolRef.current) {
-		poolRef.current = Array.from({ length: count }, (_, i) => {
-			const instance = new TLA();
-			return {
-				instance,
-				correlationId: instance.correlationId,
-				label: labelFor ? labelFor(i) : `Light ${i + 1}`,
-			};
-		});
+		const items: TTrafficLightPool = {};
+		for (let i = 0; i < 3; i++) {
+			const instance = new MTLA();
+			instance.setContext({
+				state: statesDictionary.Off,
+				context: { correlationId:
+					instance.correlationId, counter: 0 },
+			});
+			items[instance.correlationId] = { instance, label: `Light ${i + 1}` };
+		}
+		poolRef.current = { items };
 	}
-	const value: TTrafficLightPoolValue = {
-		items: poolRef.current,
-	};
 	return (
-		<TrafficLightPoolContext.Provider value={value}>
+		<TrafficLightPoolContext.Provider value={poolRef.current}>
 			{children}
 		</TrafficLightPoolContext.Provider>
 	);

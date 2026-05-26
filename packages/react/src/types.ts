@@ -20,18 +20,7 @@ export type TAutomata = IAutomata<
 
 export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TStaticMethods;
 
-// Props for useFSM / initializeFSM: either constructor or already created instance
-export type TUseFSMProps =
-	| {
-		Automata: TAutomataConstructorWithStatic;
-		id: string;
-	}
-	| {
-		Automata: TAutomata;
-		id: string;
-	};
-
-export type TUseFSMInput = TAutomataConstructorWithStatic | TUseFSMProps;
+export type TUseFSMInput = TAutomata & { correlationId: string };
 
 export type TTraceTransaction<
 	StateType extends TAutomataBaseStateType,
@@ -61,7 +50,7 @@ export interface IYantrixBoundStore<Snapshot = TAutomata> {
 }
 
 export interface IContextFSM {
-	initializeFSM: (Automata: TUseFSMInput) => string;
+	initializeFSM: (inst: TUseFSMInput) => string;
 	getStore: (id: string) => IYantrixBoundStore;
 }
 

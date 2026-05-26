@@ -1,10 +1,10 @@
 import { useFSM } from '@yantrix/react';
 import Button from './components/Button';
 import FeedbackProcess from './components/FeedbackForm';
-import { feedbackMachineActions, FeedbackMachineAutomata, feedbackMachineStates } from './machine';
+import { feedbackMachineActions, feedbackMachineInstance, feedbackMachineStates } from './machine';
 
 function App() {
-	const { state, dispatch, getState, getAction } = useFSM(FeedbackMachineAutomata);
+	const { state, dispatch, getState, getAction } = useFSM(feedbackMachineInstance);
 
 	return (
 		<div style={{

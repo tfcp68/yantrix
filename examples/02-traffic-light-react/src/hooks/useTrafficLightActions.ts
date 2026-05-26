@@ -1,5 +1,5 @@
 import { TTrafficLightActions } from '@/context/TrafficLightContext';
-import { eventDictionary } from '@/generated/TrafficLightAutomata';
+import { eventDictionary } from '@/generated/MultiTrafficLightAutomata';
 import { trafficLightBus } from '@/lib/trafficLightBus';
 
 export const useTrafficLightActions = (id: string): TTrafficLightActions => {

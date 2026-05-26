@@ -1,6 +1,7 @@
 'use client';
 import { Card } from '@/components/ui/card';
 import { useFSM } from '@yantrix/react';
+import { useMemo } from 'react';
 import TLA, { actionsMap } from '../generated/checkbox_controller';
 
 const checkboxesData = [
@@ -10,7 +11,8 @@ const checkboxesData = [
 ];
 
 export function Checkbox() {
-	const { dispatch: dispatchAutomata, state } = useFSM(TLA);
+	const instance = useMemo(() => new TLA(), []);
+	const { dispatch: dispatchAutomata, state } = useFSM(instance);
 
 	const toggleCheckbox = (id: number) => {
 		dispatchAutomata(TLA.createAction(actionsMap.TOGGLE, { id }));

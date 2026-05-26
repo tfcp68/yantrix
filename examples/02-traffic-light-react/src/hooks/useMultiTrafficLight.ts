@@ -1,43 +1,23 @@
+import { useCoreLoop } from '@/context/CoreLoopContext';
 import { TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
-import TLA, { eventDictionary, statesDictionary } from '@/generated/TrafficLightAutomata';
-import { trafficLightBus } from '@/lib/trafficLightBus';
+import MTLA, { statesDictionary } from '@/generated/MultiTrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
 import { useEffect } from 'react';
 
-type TBusHandler = Parameters<typeof trafficLightBus.subscribe>[1];
-
-export const useMultiTrafficLight = (instance: InstanceType<typeof TLA>): TTrafficLightDisplayProps => {
-	const id = instance.correlationId;
-	const { dispatch, getContext, state } = useFSM({ Automata: instance, id });
+export const useMultiTrafficLight = (instance: InstanceType<typeof MTLA>): TTrafficLightDisplayProps => {
+	const { getContext, state } = useFSM(instance);
 	const { context } = getContext();
+	const loop = useCoreLoop();
 
 	useEffect(() => {
-		const adapter = instance.eventAdapter;
-		if (!adapter) return;
-
-		const busHandler: TBusHandler = (eventMeta) => {
-			const targetId = (eventMeta.meta != null && typeof eventMeta.meta === 'object' && 'id' in eventMeta.meta)
-				? eventMeta.meta.id
-				: undefined;
-			if (targetId !== id)
-				return { event: eventMeta.event, meta: eventMeta.meta, task_id: id, result: null };
-
-			const actions = adapter.handleEvent(eventMeta);
-			actions.forEach((action: (typeof actions)[number]) => dispatch(action));
-			return { event: eventMeta.event, meta: eventMeta.meta, task_id: id, result: null };
-		};
-
-		trafficLightBus.subscribe(eventDictionary.SWITCH, busHandler);
-		trafficLightBus.subscribe(eventDictionary.RESET, busHandler);
-
+		loop.registerAutomata(instance.correlationId, instance);
 		return () => {
-			trafficLightBus.unsubscribe(eventDictionary.SWITCH, busHandler);
-			trafficLightBus.unsubscribe(eventDictionary.RESET, busHandler);
+			loop.unregisterAutomata(instance.correlationId);
 		};
-	}, [id]);
+	}, []);
 
 	return {
-		counter: context.counter,
+		counter: context.counter ?? 0,
 		isGreenOn: state === statesDictionary.Green,
 		isRedOn: state != null && [statesDictionary.Red, statesDictionary.RedYellow].includes(state),
 		isYellowOn: state != null && [statesDictionary.Yellow, statesDictionary.RedYellow].includes(state),

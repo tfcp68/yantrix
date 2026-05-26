@@ -1,5 +1,5 @@
 import { useFSM } from '@yantrix/react';
-import { FeedbackMachineAutomata, feedbackMachineStates } from '../../machine';
+import { feedbackMachineInstance, feedbackMachineStates } from '../../machine';
 import FeedbackForm from './FeedbackForm';
 import FeedbackPrompt from './FeedbackPrompt';
 import FeedbackThanks from './FeedbackThanks';
@@ -13,7 +13,7 @@ const stateToComponent: Partial<Record<TStateName, React.ReactNode>> = {
 } as const;
 
 function FeedbackProcess() {
-	const { state, getState } = useFSM(FeedbackMachineAutomata);
+	const { state, getState } = useFSM(feedbackMachineInstance);
 	const stateName = (Object.values(feedbackMachineStates) as TStateName[])
 		.find(name => getState(name) === state);
 

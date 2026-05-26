@@ -5,5 +5,6 @@
  */
 
 export * from './hooks/useFSM.js';
+export * from './hooks/useFSMWithSelector.js';
 
 export * from './types.js';

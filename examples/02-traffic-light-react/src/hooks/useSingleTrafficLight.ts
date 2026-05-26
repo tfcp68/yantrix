@@ -1,9 +1,11 @@
 import { TTrafficLightActions, TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
 import TLA, { actionsMap, statesDictionary } from '@/generated/TrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
+import { useMemo } from 'react';
 
 export const useSingleTrafficLight = (): TTrafficLightDisplayProps & TTrafficLightActions => {
-	const { dispatch, getContext, state } = useFSM(TLA);
+	const instance = useMemo(() => new TLA(), []);
+	const { dispatch, getContext, state } = useFSM(instance);
 	const { context } = getContext();
 
 	return {

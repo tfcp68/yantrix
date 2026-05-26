@@ -1,7 +1,11 @@
 // This file re-exports the generated automata and provides named constants
 // that mirror the xstate version's feedbackMachineStates / feedbackMachineEvents.
 // The generated file is produced at build/dev time via `pnpm run generate`.
+import { FeedbackMachineAutomata } from './generated/FeedbackMachineAutomata';
+
 export { FeedbackMachineAutomata } from './generated/FeedbackMachineAutomata';
+
+export const feedbackMachineInstance = new FeedbackMachineAutomata();
 
 export const feedbackMachineStates = {
 	prompt: 'Prompt',
