@@ -24,8 +24,7 @@ const MultiTrafficLightItemProvider = React.memo(({ item }: TMultiTrafficLightIt
 
 const MultiTrafficLightInner = () => {
 	const { items } = useTrafficLightPool();
-	const ids = Object.keys(items);
-	const [selectedId, setSelectedId] = useState<string>(() => ids[0]!);
+	const [selectedId, setSelectedId] = useState<string>(() => Object.keys(items)[0]!);
 	const actions = useTrafficLightActions(selectedId);
 
 	return (

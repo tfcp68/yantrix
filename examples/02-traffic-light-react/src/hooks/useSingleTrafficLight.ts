@@ -1,12 +1,15 @@
 import { TTrafficLightActions, TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
 import TLA, { actionsMap, statesDictionary } from '@/generated/TrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
-import { useMemo } from 'react';
+import { useRef } from 'react';
 
 /** Creates and manages a single TLA instance with direct dispatch (no event bus). */
 export const useSingleTrafficLight = (): TTrafficLightDisplayProps & TTrafficLightActions => {
-	const instance = useMemo(() => new TLA(), []);
-	const { dispatch, getContext, state } = useFSM(instance);
+	const instanceRef = useRef<TLA | null>(null);
+	if (!instanceRef.current) {
+		instanceRef.current = new TLA();
+	}
+	const { dispatch, getContext, state } = useFSM(instanceRef.current);
 	const { context } = getContext();
 
 	return {
