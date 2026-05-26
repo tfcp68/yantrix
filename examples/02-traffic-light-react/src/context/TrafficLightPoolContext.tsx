@@ -20,8 +20,9 @@ export const TrafficLightPoolProvider = ({ children }: { children: ReactNode }) 
 			const instance = new MTLA();
 			instance.setContext({
 				state: statesDictionary.Off,
-				context: { correlationId:
-					instance.correlationId, counter: 0 },
+				context: {
+					correlationId: instance.correlationId,
+				},
 			});
 			items[instance.correlationId] = { instance, label: `Light ${i + 1}` };
 		}
@@ -34,6 +35,7 @@ export const TrafficLightPoolProvider = ({ children }: { children: ReactNode }) 
 	);
 };
 
+/** Returns the stable pool of MTLA instances. Must be used within {@link TrafficLightPoolProvider}. */
 export const useTrafficLightPool = (): TTrafficLightPoolValue => {
 	const ctx = useContext(TrafficLightPoolContext);
 	if (!ctx) throw new Error('useTrafficLightPool must be used within TrafficLightPoolProvider');

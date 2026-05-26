@@ -6,7 +6,7 @@ import {
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { setInitialStaticMethods } from '../helpers';
-import { automatasList, destroyFSM, fsm_context, getSnapshotWithSelector } from '../store/store';
+import { automatasList, fsm_context, getSnapshotWithSelector } from '../store/store';
 import {
 	TAutomata,
 	TExtractAutomataContext,
@@ -21,6 +21,10 @@ type TGenericAction = TAutomataActionPayload<
 	Record<TAutomataBaseActionType, unknown>
 >;
 
+/**
+ * Like {@link useFSM} but derives a `selection` via a selector function.
+ * Re-renders only when the selection changes (shallow or custom equality).
+ */
 export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext<TAutomata>>(
 	inst: TUseFSMInput,
 	options: TUseFSMOptions<TAutomata, Selection>,
@@ -66,7 +70,7 @@ export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext
 	const selection = useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
 
 	useEffect(() => {
-		return () => destroyFSM(idRef.current);
+		return () => fsm_context.destroyFSM(idRef.current);
 	}, []);
 
 	const getAutomatasList = () => automatasList;

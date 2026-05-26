@@ -10,33 +10,29 @@ import { trafficLightBus } from '@/lib/trafficLightBus';
 import React, { useState } from 'react';
 
 type TMultiTrafficLightItemProviderProps = {
-	correlationId: string;
 	item: TTrafficLightPoolItem;
-	children: React.ReactNode;
 };
 
-const MultiTrafficLightItemProvider = ({ item, children }: TMultiTrafficLightItemProviderProps) => {
+const MultiTrafficLightItemProvider = React.memo(({ item }: TMultiTrafficLightItemProviderProps) => {
 	const trafficLightValues = useMultiTrafficLight(item.instance);
 	return (
 		<TrafficLightContext.Provider value={trafficLightValues}>
-			{children}
+			<TrafficLight />
 		</TrafficLightContext.Provider>
 	);
-};
+});
 
 const MultiTrafficLightInner = () => {
 	const { items } = useTrafficLightPool();
 	const ids = Object.keys(items);
-	const [selectedId, setSelectedId] = useState<string>(ids[0]!);
+	const [selectedId, setSelectedId] = useState<string>(() => ids[0]!);
 	const actions = useTrafficLightActions(selectedId);
 
 	return (
 		<div className="flex flex-col items-center gap-y-4">
 			<div className="flex flex-row items-start justify-center gap-x-6">
 				{Object.entries(items).map(([correlationId, item]) => (
-					<MultiTrafficLightItemProvider key={correlationId} correlationId={correlationId} item={item}>
-						<TrafficLight />
-					</MultiTrafficLightItemProvider>
+					<MultiTrafficLightItemProvider key={correlationId} item={item} />
 				))}
 			</div>
 			<Select value={selectedId} onValueChange={setSelectedId}>

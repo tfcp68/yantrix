@@ -1,4 +1,3 @@
-'use client';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useTrafficLight } from '@/context/TrafficLightContext';

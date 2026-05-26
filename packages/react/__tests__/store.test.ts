@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { automatasList, destroyFSM, fsm_context } from '../src/store/store';
+import { automatasList, fsm_context } from '../src/store/store';
 import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata_generated';
 
 describe('store.ts (per-id stores)', () => {
@@ -15,7 +15,7 @@ describe('store.ts (per-id stores)', () => {
 		const store = fsm_context.getStore(id);
 		expect(store.getSnapshot()).toBe(inst);
 
-		destroyFSM(id);
+		fsm_context.destroyFSM(id);
 	});
 
 	it('initializeFSM with same instance twice returns same id and does not re-register', () => {
@@ -25,7 +25,7 @@ describe('store.ts (per-id stores)', () => {
 		expect(id1).toBe(id2);
 		expect(automatasList[id1]).toBe(inst);
 
-		destroyFSM(id1);
+		fsm_context.destroyFSM(id1);
 	});
 
 	it('getStore.getSnapshot throws when FSM not initialized for the id', () => {
@@ -68,8 +68,8 @@ describe('store.ts (per-id stores)', () => {
 		storeB.changeState();
 		expect(callsB).toBe(1);
 
-		destroyFSM(idA);
-		destroyFSM(idB);
+		fsm_context.destroyFSM(idA);
+		fsm_context.destroyFSM(idB);
 	});
 
 	it('initializeFSM does not notify subscribers during init; notifications occur only on changeState', () => {
@@ -88,7 +88,7 @@ describe('store.ts (per-id stores)', () => {
 		expect(calls).toBe(1);
 
 		unsub();
-		destroyFSM(inst.correlationId);
+		fsm_context.destroyFSM(inst.correlationId);
 	});
 
 	it('multiple instances are isolated (changeState for one does not affect others)', () => {
@@ -119,16 +119,16 @@ describe('store.ts (per-id stores)', () => {
 
 		u1();
 		u2();
-		destroyFSM(id1);
-		destroyFSM(id2);
+		fsm_context.destroyFSM(id1);
+		fsm_context.destroyFSM(id2);
 	});
 
-	it('destroyFSM removes instance and store from registries', () => {
+	it('fsm_context.destroyFSM removes instance and store from registries', () => {
 		const inst = new TLA();
 		const id = fsm_context.initializeFSM(inst);
 		expect(automatasList[id]).toBeDefined();
 
-		destroyFSM(id);
+		fsm_context.destroyFSM(id);
 		expect(automatasList[id]).toBeUndefined();
 
 		const store = fsm_context.getStore(id);

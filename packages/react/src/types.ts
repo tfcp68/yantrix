@@ -22,6 +22,7 @@ export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TSta
 
 export type TUseFSMInput = TAutomata & { correlationId: string };
 
+/** Snapshot of a single dispatch for debugging via the trace() call. */
 export type TTraceTransaction<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
@@ -41,6 +42,7 @@ export interface IUnsubscribe {
 
 export type TListenerCallback = () => void;
 
+/** External store bound to a single FSM instance. Used internally by {@link useFSM}. */
 export interface IYantrixBoundStore<Snapshot = TAutomata> {
 	callbacksIdCounter: number;
 	callbacks: Map<number, TListenerCallback>;
@@ -52,6 +54,7 @@ export interface IYantrixBoundStore<Snapshot = TAutomata> {
 export interface IContextFSM {
 	initializeFSM: (inst: TUseFSMInput) => string;
 	getStore: (id: string) => IYantrixBoundStore;
+	destroyFSM: (id: string) => void;
 }
 
 export type TExtractAutomataContext<T> =
@@ -62,6 +65,7 @@ export type TUseFsmGetContext<TContext> = () => {
 	context: TContext;
 };
 
+/** Return value of {@link useFSM}. Provides reactive state, dispatch, and debug utilities. */
 export type TUseFsmReturn<TContext = unknown> = {
 	state: TAutomataBaseStateType | null;
 	getContext: TUseFsmGetContext<TContext>;

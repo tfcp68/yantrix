@@ -4,6 +4,7 @@ import MTLA, { statesDictionary } from '@/generated/MultiTrafficLightAutomata';
 import { useFSM } from '@yantrix/react';
 import { useEffect } from 'react';
 
+/** Connects a MTLA instance to React and registers it with the shared CoreLoop. */
 export const useMultiTrafficLight = (instance: InstanceType<typeof MTLA>): TTrafficLightDisplayProps => {
 	const { getContext, state } = useFSM(instance);
 	const { context } = getContext();

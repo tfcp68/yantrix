@@ -6,9 +6,13 @@ import {
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { readVersion, setInitialStaticMethods } from '../helpers';
-import { automatasList, destroyFSM, fsm_context } from '../store/store';
+import { automatasList, fsm_context } from '../store/store';
 import { TAutomata, TExtractAutomataContext, TPreviousContext, TUseFSMInput, TUseFsmReturn } from '../types';
 
+/**
+ * Subscribes a React component to a Yantrix FSM instance.
+ * Re-renders when state or context changes. Cleans up on unmount.
+ */
 export const useFSM = <TContext = TExtractAutomataContext<TAutomata>>(
 	inst: TUseFSMInput,
 ): TUseFsmReturn<TContext> => {
@@ -34,7 +38,7 @@ export const useFSM = <TContext = TExtractAutomataContext<TAutomata>>(
 	const lastActionRef = useRef<TGenericAction>({ action: null, payload: {} });
 
 	useEffect(() => {
-		return () => destroyFSM(idRef.current);
+		return () => fsm_context.destroyFSM(idRef.current);
 	}, []);
 
 	const getAutomatasList = () => automatasList;

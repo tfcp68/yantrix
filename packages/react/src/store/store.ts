@@ -14,6 +14,7 @@ export const automatasList: TAutomataList = {};
 
 const stores: Record<string, IYantrixBoundStore> = {};
 
+/** Lazily creates and caches a bound store for the given FSM id. */
 function ensureStore(id: string): IYantrixBoundStore {
 	let store = stores[id];
 	if (!store) {
@@ -55,6 +56,10 @@ function ensureStore(id: string): IYantrixBoundStore {
 	return store;
 }
 
+/**
+ * Singleton FSM registry. Manages initialization, store access, and teardown.
+ * Patches `instance.dispatch` to notify React subscribers on state/context change.
+ */
 export const fsm_context: IContextFSM = {
 	initializeFSM: (inst: TUseFSMInput) => {
 		const id = inst.correlationId;
@@ -76,14 +81,10 @@ export const fsm_context: IContextFSM = {
 	},
 
 	getStore: (id: string) => ensureStore(id),
-};
 
-// Only removes automatasList entry. The store is intentionally kept alive so
-// that React's useSyncExternalStore subscription survives StrictMode's
-// simulated unmount/remount cycle. The store is a tiny object and will be
-// collected once the component is truly gone (callbacks Map empties on unsub).
-export const destroyFSM = (id: string): void => {
-	delete automatasList[id];
+	destroyFSM: (id: string): void => {
+		delete automatasList[id];
+	},
 };
 
 export function getSnapshotWithSelector<Selection, Statics>(
