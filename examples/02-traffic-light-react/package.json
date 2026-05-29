@@ -10,7 +10,7 @@
 		"lint": "eslint .",
 		"format": "eslint --fix .",
 		"preview": "vite preview",
-		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata --beautify && yantrix codegen ./src/diagrams/traffic-light-multi.mermaid -l TypeScript -o src/generated/MultiTrafficLightAutomata.ts -c MultiTrafficLightAutomata --beautify"
+		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata --beautify"
 
 
 	},

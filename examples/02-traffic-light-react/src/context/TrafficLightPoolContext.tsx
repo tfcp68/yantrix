@@ -1,8 +1,8 @@
-import MTLA, { statesDictionary } from '@/generated/MultiTrafficLightAutomata';
+import TLA from '@/generated/TrafficLightAutomata';
 import { createContext, ReactNode, useContext, useRef } from 'react';
 
 export type TTrafficLightPoolItem = {
-	instance: InstanceType<typeof MTLA>;
+	instance: InstanceType<typeof TLA>;
 	label: string;
 };
 
@@ -17,13 +17,7 @@ export const TrafficLightPoolProvider = ({ children }: { children: ReactNode }) 
 	if (!poolRef.current) {
 		const items: TTrafficLightPool = {};
 		for (let i = 0; i < 3; i++) {
-			const instance = new MTLA();
-			instance.setContext({
-				state: statesDictionary.Off,
-				context: {
-					correlationId: instance.correlationId,
-				},
-			});
+			const instance = new TLA();
 			items[instance.correlationId] = { instance, label: `Light ${i + 1}` };
 		}
 		poolRef.current = { items };
@@ -35,7 +29,7 @@ export const TrafficLightPoolProvider = ({ children }: { children: ReactNode }) 
 	);
 };
 
-/** Returns the stable pool of MTLA instances. Must be used within {@link TrafficLightPoolProvider}. */
+/** Returns the stable pool of TLA instances. Must be used within {@link TrafficLightPoolProvider}. */
 export const useTrafficLightPool = (): TTrafficLightPoolValue => {
 	const ctx = useContext(TrafficLightPoolContext);
 	if (!ctx) throw new Error('useTrafficLightPool must be used within TrafficLightPoolProvider');

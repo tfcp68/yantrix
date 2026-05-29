@@ -1,17 +1,27 @@
 import { useCoreLoop } from '@/context/CoreLoopContext';
 import { TTrafficLightDisplayProps } from '@/context/TrafficLightContext';
-import MTLA, { statesDictionary } from '@/generated/MultiTrafficLightAutomata';
+import TLA, { actionsDictionary, eventDictionary, statesDictionary } from '@/generated/TrafficLightAutomata';
+import { AutomataEventAdapter } from '@yantrix/core';
 import { useFSM } from '@yantrix/react';
 import { useEffect } from 'react';
 
-/** Connects a MTLA instance to React and registers it with the shared CoreLoop. */
-export const useMultiTrafficLight = (instance: InstanceType<typeof MTLA>): TTrafficLightDisplayProps => {
+/** Connects a TLA instance to React and registers it with the shared CoreLoop. */
+export const useMultiTrafficLight = (instance: InstanceType<typeof TLA>): TTrafficLightDisplayProps => {
 	const { getContext, state } = useFSM(instance);
 	const { context } = getContext();
 	const loop = useCoreLoop();
 
 	useEffect(() => {
-		loop.registerAutomata(instance.correlationId, instance);
+		const adapter = new AutomataEventAdapter();
+		adapter.setEventMetaValidator(
+			(event: any): event is typeof event => !event.meta.id || event.meta.id === instance.correlationId,
+		);
+		adapter.addEventListener(eventDictionary.SWITCH, () => ({ action: actionsDictionary.Switch, payload: {} }));
+		adapter.addEventListener(eventDictionary.RESET, ({ meta }) => ({
+			action: actionsDictionary.Reset,
+			payload: { initialCounter: meta?.initialCounter ?? null },
+		}));
+		loop.registerAutomata(instance.correlationId, instance, adapter);
 		return () => {
 			loop.unregisterAutomata(instance.correlationId);
 		};

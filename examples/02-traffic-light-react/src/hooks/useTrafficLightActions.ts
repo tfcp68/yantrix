@@ -1,5 +1,5 @@
 import { TTrafficLightActions } from '@/context/TrafficLightContext';
-import { eventDictionary } from '@/generated/MultiTrafficLightAutomata';
+import { eventDictionary } from '@/generated/TrafficLightAutomata';
 import { trafficLightBus } from '@/lib/trafficLightBus';
 import { useCallback } from 'react';
 
