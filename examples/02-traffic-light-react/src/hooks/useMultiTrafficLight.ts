@@ -21,7 +21,7 @@ export const useMultiTrafficLight = (instance: InstanceType<typeof TLA>): TTraff
 			action: actionsDictionary.Reset,
 			payload: { initialCounter: meta?.initialCounter ?? null },
 		}));
-		loop.registerAutomata(instance.correlationId, instance, adapter);
+		loop.registerAutomata(instance, adapter);
 		return () => {
 			loop.unregisterAutomata(instance.correlationId);
 		};

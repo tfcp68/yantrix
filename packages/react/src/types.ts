@@ -20,7 +20,7 @@ export type TAutomata = IAutomata<
 
 export type TAutomataConstructorWithStatic = TClassConstructor<TAutomata> & TStaticMethods;
 
-export type TUseFSMInput = TAutomata & { correlationId: string };
+export type TUseFSMInput = TAutomata;
 
 /** Snapshot of a single dispatch for debugging via the trace() call. */
 export type TTraceTransaction<
