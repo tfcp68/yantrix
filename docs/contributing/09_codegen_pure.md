@@ -31,13 +31,13 @@ it = {
 | 4 | `pure-js/functions/module` | Function dictionary, user defines, inject registrations |
 | 5 | `js/shared/forks/module` | Predicate map for fork/choice states |
 | 6 | `pure-js/dictionaries/module` | `statesDictionary`, `actionsDictionary`, `eventDictionary`, `epoch`/`incrementEpoch`/`getEpoch` |
-| 7 | `pure-js/events/module` | `eventAdapter`, `createEventBus()` factory |
+| 7 | `pure-js/events/module` | `create<ClassName>EventAdapter()` factory, `createEventBus()` factory |
 | 8 | `js/context/module` | `reducer`, `getDefaultContext` (shared with class-based) |
 | 9 | `pure-js/factory/module` | `create<ClassName>()` factory + `getState`/`getAction`/`createAction`/`hasState` helpers |
 
 **Entry: `pure-ts/declarations.eta`** (`.d.ts` only):
 
-- Declares all exports: `statesDictionary`, `actionsDictionary`, `eventDictionary`, helpers, factory, `createEventBus`
+- Declares all exports: `statesDictionary`, `actionsDictionary`, `eventDictionary`, helpers, factory, `createEventBus`, `create<ClassName>EventAdapter`
 - Defines `T<ClassName>Instance` type with all instance methods and getters
 - Defines `TActions<ClassName>` union type
 
