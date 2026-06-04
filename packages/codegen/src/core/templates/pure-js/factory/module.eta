@@ -11,6 +11,7 @@ export function create<%~ it.className %>() {
   let _paused = false;
   let _disabled = false;
   let _queue = [];
+  const eventAdapter = create<%~ it.className %>EventAdapter();
 
   const _getNew = (localAction, localState, localContext, localPayload) => {
     _lastAction = localAction;

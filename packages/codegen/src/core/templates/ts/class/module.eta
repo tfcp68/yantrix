@@ -5,7 +5,7 @@ export class <%~ it.className %> extends GenericAutomata {
 <%~ include('static', it) %>
 
   constructor() {
-    super(eventAdapter);
+    super(create<%~ it.className %>EventAdapter());
     this.init({
       state: <%~ it.initialStateValue %>,
       context: <%~ (it.initialContext === undefined ? 'null' : JSON.stringify(it.initialContext ?? null)) %>,
