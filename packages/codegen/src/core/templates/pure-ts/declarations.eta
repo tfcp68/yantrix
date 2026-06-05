@@ -61,6 +61,7 @@ export declare function createEventBus(
 ): [TEventBus, Record<string, T<%~ it.className %>Instance>, () => void];
 export declare function createFunctionRegistry(builtIns: Record<string, (...args: unknown[]) => unknown>): TFunctionRegistry;
 export declare function createEventAdapter(): TEventAdapter;
+export declare function create<%~ it.className %>EventAdapter(): TEventAdapter;
 
 declare const _default: typeof create<%~ it.className %>;
 export default _default;

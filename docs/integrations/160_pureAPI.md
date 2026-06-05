@@ -73,6 +73,9 @@ export function hasState(instance: TFSMInstance, name: string): boolean
 
 // Event bus factory
 export function createEventBus(id: string, fsms: WeakMap): object
+
+// Per-automata event adapter factory (pre-wired with the diagram's listeners/emitters)
+export function create<ClassName>EventAdapter(): TEventAdapter
 ```
 
 The factory function is also the default export:
@@ -112,13 +115,16 @@ fsm.destroy()      // clears internal queue and drops event adapter reference
 
 ### Event adapter
 
-Each instance exposes an `eventAdapter` object for wiring up an event bus:
+Each instance exposes its **own** `eventAdapter` object for wiring up an event bus. The adapter is built per instance by `create<ClassName>EventAdapter()` (called inside the factory), pre-loaded with the listeners/emitters declared in the diagram - so two instances never share adapter state (e.g. a per-instance `setEventMetaValidator`):
 
 ```javascript
 const bus = createEventBus('app', new Map());
 
 fsm.eventAdapter.addEventEmitter(bus)          // FSM listens to events from bus
 fsm.eventAdapter.addEventListener(event, fn)   // attach a handler for a specific event id
+
+// Or build a standalone, pre-wired adapter without an instance:
+const adapter = createClassNameEventAdapter();
 ```
 
 ### Pure TypeScript declarations

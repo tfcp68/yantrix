@@ -1,11 +1,11 @@
 import { useFSM } from '@yantrix/react';
-import { feedbackMachineActions, FeedbackMachineAutomata } from '../../machine';
+import { feedbackMachineActions, feedbackMachineInstance } from '../../machine';
 import Button from '../Button';
 import FormBody from '../FormBody';
 import FormHeader from '../FormHeader';
 
 function FeedbackForm() {
-	const { dispatch, getAction, getContext } = useFSM(FeedbackMachineAutomata);
+	const { dispatch, getAction, getContext } = useFSM(feedbackMachineInstance);
 	const { context } = getContext();
 	const canSubmit = context.feedback.length > 0;
 

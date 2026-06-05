@@ -213,16 +213,15 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 		expect(bus.isRunning()).toBe(false);
 	});
 
-	it('registers and unregisters Automata; duplicate ids throw; basic wiring works with stub', async () => {
+	it('registers and unregisters Automata; re-registering the same instance throws; basic wiring works with stub', async () => {
 		const automata = new AutomataStub();
 		const adapter = new AutomataEventAdapter();
 
 		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
 		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
 
-		const idAutomata = uniqId();
-		expect(() => loop.registerAutomata(idAutomata, automata, adapter)).not.toThrow();
-		expect(() => loop.registerAutomata(idAutomata, automata, adapter)).toThrow();
+		expect(() => loop.registerAutomata(automata, adapter)).not.toThrow();
+		expect(() => loop.registerAutomata(automata, adapter)).toThrow();
 
 		const outSpy = vi.fn((e: TAutomataEventMetaType<UEvents, TMeta>) => ({
 			event: e.event,
@@ -242,7 +241,7 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 		expect(outSpy.mock.calls[0]![0]).toEqual(expect.objectContaining({ event: UEvents.EVT_OUT }));
 
 		// Unregister and verify no more publications
-		loop.unregisterAutomata(idAutomata);
+		loop.unregisterAutomata(automata.correlationId);
 
 		const waitOutAgain = waitForEventOnce<UEvents, TMeta>(bus, UEvents.EVT_OUT, 50) // short timeout
 			.then(() => { throw new Error('Should not receive EVT_OUT after unregister'); })
@@ -340,11 +339,10 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	it('unregisterAutomata is safe to call twice', () => {
 		const a = new AutomataStub();
 		const adapter = new AutomataEventAdapter();
-		const automataId = uniqId();
-		loop.registerAutomata(automataId, a, adapter);
+		loop.registerAutomata(a, adapter);
 
-		expect(() => loop.unregisterAutomata(automataId)).not.toThrow();
-		expect(() => loop.unregisterAutomata(automataId)).not.toThrow();
+		expect(() => loop.unregisterAutomata(a.correlationId)).not.toThrow();
+		expect(() => loop.unregisterAutomata(a.correlationId)).not.toThrow();
 	});
 
 	it('rejects registering sources/destinations without non-empty ids', () => {

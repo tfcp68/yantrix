@@ -1,15 +1,68 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
 import { AutomataEventAdapter } from '@yantrix/core';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import templates from './fixtures/eventsTemplates';
-import { generateAndSave } from './fixtures/utils';
+import { generateAndSave, generateAutomata } from './fixtures/utils';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
 
 describe('automata Events', () => {
+	describe('per-instance event adapter factory', async () => {
+		const factoryName = 'createEventFactoryAutomataEventAdapter';
+
+		it('typescript exports the factory and the class constructs from it', async () => {
+			const code = await generateAutomata({ input: templates.basicEvents, automataName: 'EventFactoryAutomata', lang: ModuleNames.TypeScript });
+			expect(code).toContain(`export function ${factoryName}(`);
+			expect(code).toContain(`super(${factoryName}())`);
+			expect(code).not.toContain('export const eventAdapter');
+		});
+
+		it('pure-javascript exports the factory and the functional factory constructs from it', async () => {
+			const code = await generateAutomata({ input: templates.basicEvents, automataName: 'EventFactoryAutomata', lang: ModuleNames.PureJavaScript });
+			expect(code).toContain(`export function ${factoryName}(`);
+			expect(code).toContain(`const eventAdapter = ${factoryName}();`);
+		});
+
+		it('class instances each get their own adapter (no shared singleton)', async () => {
+			await generateAndSave({ input: templates.basicEvents, automataName: 'EventFactoryAutomata', lang: ModuleNames.JavaScript }, `event_factory_class`);
+			const mod = await import(getGeneratedFixturePath('event_factory_class_generated.js'));
+			expect(typeof mod[factoryName]).toBe('function');
+			const a = new mod.EventFactoryAutomata();
+			const b = new mod.EventFactoryAutomata();
+			expect(a.eventAdapter).toBeTruthy();
+			expect(b.eventAdapter).toBeTruthy();
+			expect(a.eventAdapter).not.toBe(b.eventAdapter);
+		});
+
+		it('functional instances each get their own adapter (no shared singleton)', async () => {
+			await generateAndSave({ input: templates.basicEvents, automataName: 'EventFactoryAutomata', lang: ModuleNames.PureJavaScript }, `event_factory_functional`);
+			const mod = await import(getGeneratedFixturePath('event_factory_functional_generated.js'));
+			expect(typeof mod[factoryName]).toBe('function');
+			const a = mod.createEventFactoryAutomata();
+			const b = mod.createEventFactoryAutomata();
+			expect(a.eventAdapter).toBeTruthy();
+			expect(b.eventAdapter).toBeTruthy();
+			expect(a.eventAdapter).not.toBe(b.eventAdapter);
+		});
+
+		it('pure-typescript declares the factory in the .d.ts', async () => {
+			await generateAndSave({ input: templates.basicEvents, automataName: 'EventFactoryAutomata', lang: ModuleNames.PureTypeScript }, `event_factory_pts`);
+			const dts = fs.readFileSync(getGeneratedFixturePath('event_factory_pts_generated.d.ts'), 'utf8');
+			expect(dts).toContain(`export declare function ${factoryName}(): TEventAdapter;`);
+		});
+
+		it('factory adapter is pre-loaded with diagram events', async () => {
+			await generateAndSave({ input: templates.basicEvents, automataName: 'EventFactoryAutomata', lang: ModuleNames.JavaScript }, `event_factory_class`);
+			const mod = await import(getGeneratedFixturePath('event_factory_class_generated.js'));
+			const adapter = mod[factoryName]();
+			expect(adapter.getObservedEvents()).toStrictEqual([mod.eventDictionary.someEvent]);
+		});
+	});
+
 	describe('event Adapter', async () => {
 		await generateAndSave({ input: templates.defaultTemplate, automataName: 'EventAdapterAutomata', lang: ModuleNames.JavaScript }, `event_adapter`);
 		const { EventAdapterAutomata } = await import(

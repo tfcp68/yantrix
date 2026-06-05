@@ -1,4 +1,6 @@
-import { CoreLoop, uniqId } from '@yantrix/core';
+import {
+	CoreLoop,
+} from '@yantrix/core';
 
 import { buildAdapter } from './clock/adapter';
 import { bindControl } from './clock/control';
@@ -18,7 +20,7 @@ export function startClockCoreLoop(): void {
 	const adapter = buildAdapter();
 	const automata = new ClockAutomata();
 
-	loop.registerAutomata(uniqId(), automata, adapter);
+	loop.registerAutomata(automata, adapter);
 	loop.start();
 
 	const timers: TimersSet = {};

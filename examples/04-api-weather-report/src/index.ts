@@ -403,7 +403,7 @@ export function startWeatherCoreLoop(): void {
 	const automata = new WeatherReportAutomata();
 	const adapter = buildAdapter();
 
-	loop.registerAutomata('weather', automata, adapter);
+	loop.registerAutomata(automata, adapter);
 
 	// HTTP I/O — both halves register directly; follow-up events flow through the loop.
 	const [httpSource, httpDestination] = createWeatherHttpAdapter();

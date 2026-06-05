@@ -1,5 +1,5 @@
+import { deepEqual } from '@yantrix/utils';
 import { isNullish, readVersion } from '../helpers';
-import { isAutomata, isPropsUseFSM } from '../typeGuards';
 import {
 	IContextFSM,
 	IYantrixBoundStore,
@@ -10,38 +10,23 @@ import {
 	TUseFSMInput,
 } from '../types';
 
-/**
- * Registry of created automata instances keyed by their unique id.
- */
 export const automatasList: TAutomataList = {};
 
-/**
- * Internal storage for per-FSM subscriber stores.
- * Each key is an FSM id and the value is the corresponding store.
- */
 const stores: Record<string, IYantrixBoundStore> = {};
 
-/**
- * Ensure that a subscriber store exists for the given FSM id.
- * If a store does not exist, it is created with basic subscribe/getSnapshot/changeState methods.
- *
- * @param id - Unique identifier of the FSM
- * @returns The store associated with the id
- * @throws If a snapshot is requested but the FSM instance is not initialized
- */
+/** Lazily creates and caches a bound store for the given FSM id. */
 function ensureStore(id: string): IYantrixBoundStore {
 	let store = stores[id];
 	if (!store) {
+		// Cache last known instance so getSnapshot survives the window between
+		// destroyFSM (which clears automatasList) and the next render that
+		// re-registers the instance (e.g. React StrictMode cleanup/remount).
+		let lastInst: TAutomata | null = null;
+
 		const self: IYantrixBoundStore = {
 			callbacksIdCounter: 0,
 			callbacks: new Map<number, TListenerCallback>(),
 
-			/**
-			 * Subscribe to state changes for this FSM.
-			 * Returns an unsubscribe function.
-			 *
-			 * @param cb - Listener callback invoked on state change
-			 */
 			subscribe(cb: TListenerCallback) {
 				const subId = ++self.callbacksIdCounter;
 				self.callbacks.set(subId, cb);
@@ -50,17 +35,14 @@ function ensureStore(id: string): IYantrixBoundStore {
 				};
 			},
 
-			/**
-			 * Return a snapshot of the automata instance associated with this store.
-			 *
-			 * @throws If the automata instance was not initialized
-			 */
 			getSnapshot() {
 				const inst = automatasList[id];
-				if (!inst) {
-					throw new Error(`FSM '${id}' not initialized`);
+				if (inst) {
+					lastInst = inst;
+					return inst;
 				}
-				return inst;
+				if (lastInst) return lastInst;
+				throw new Error(`FSM '${id}' not initialized`);
 			},
 
 			changeState() {
@@ -75,56 +57,34 @@ function ensureStore(id: string): IYantrixBoundStore {
 }
 
 /**
- * Public context object used by the hook/integration to initialize and access FSM instances.
+ * Singleton FSM registry. Manages initialization, store access, and teardown.
+ * Patches `instance.dispatch` to notify React subscribers on state/context change.
  */
 export const fsm_context: IContextFSM = {
-	/**
-	 * Initialize an FSM and ensure its store exists.
-	 *
-	 * Returns the id of the created or existing automata.
-	 *
-	 * @param Automata - Automata constructor or props object returned by codegen
-	 * @returns The FSM id string
-	 * @throws When the provided value is neither a valid automata nor props object
-	 */
-	initializeFSM: (Automata: TUseFSMInput) => {
-		// 1) Constructor case
-		if (isAutomata(Automata)) {
-			const id = Automata.id;
-			if (!automatasList[id]) {
-				automatasList[id] = new Automata();
-			}
-			ensureStore(id);
-			return id;
-		}
+	initializeFSM: (inst: TUseFSMInput) => {
+		const id = inst.correlationId;
+		if (!automatasList[id]) {
+			automatasList[id] = inst;
 
-		// 2) Props { Automata, id } from codegen or manual usage
-		if (isPropsUseFSM(Automata)) {
-			const props = Automata;
-			const { id } = props;
-
-			if (!automatasList[id]) {
-				if (typeof props.Automata === 'function') {
-					automatasList[id] = new props.Automata();
-				} else {
-					automatasList[id] = props.Automata;
+			const original = inst.dispatch.bind(inst);
+			inst.dispatch = (action) => {
+				const { state: prevState, context: prevCtx } = inst.getContext();
+				const result = original(action);
+				if (result.state !== prevState || !deepEqual(prevCtx, result.context)) {
+					ensureStore(id).changeState();
 				}
-			}
-
-			ensureStore(id);
-			return id;
+				return result;
+			};
 		}
-
-		throw new Error('Is not fsm constructor or props');
+		ensureStore(id);
+		return id;
 	},
 
-	/**
-	 * Get (and create if needed) the store associated with the given FSM id.
-	 *
-	 * @param id - FSM identifier
-	 * @returns The IYantrixBoundStore instance for the id
-	 */
 	getStore: (id: string) => ensureStore(id),
+
+	destroyFSM: (id: string): void => {
+		delete automatasList[id];
+	},
 };
 
 export function getSnapshotWithSelector<Selection, Statics>(

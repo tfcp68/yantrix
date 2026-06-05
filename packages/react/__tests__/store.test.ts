@@ -1,52 +1,45 @@
-import { uniqId } from '@yantrix/core';
 import { describe, expect, it } from 'vitest';
 import { automatasList, fsm_context } from '../src/store/store';
 import { TrafficLightAutomata as TLA } from './generated/TrafficLightAutomata_generated';
 
 describe('store.ts (per-id stores)', () => {
-	it('initializeFSM with class returns static id and creates an instance', () => {
-		const id = fsm_context.initializeFSM(TLA);
-		expect(id).toBe(TLA.id);
+	it('initializeFSM with instance returns correlationId and registers it', () => {
+		const inst = new TLA();
+		const id = fsm_context.initializeFSM(inst);
+		expect(id).toBe(inst.correlationId);
 
-		const instance = automatasList[id];
-		expect(instance).toBeDefined();
-		expect(instance).toBeInstanceOf(TLA);
+		const stored = automatasList[id];
+		expect(stored).toBeDefined();
+		expect(stored).toBe(inst);
 
 		const store = fsm_context.getStore(id);
-		expect(store.getSnapshot()).toBe(instance);
+		expect(store.getSnapshot()).toBe(inst);
+
+		fsm_context.destroyFSM(id);
 	});
 
-	it('initializeFSM with props uses provided id and creates an instance once', () => {
-		const customId = uniqId();
-		const id1 = fsm_context.initializeFSM({ Automata: TLA, id: customId });
-		expect(id1).toBe(customId);
+	it('initializeFSM with same instance twice returns same id and does not re-register', () => {
+		const inst = new TLA();
+		const id1 = fsm_context.initializeFSM(inst);
+		const id2 = fsm_context.initializeFSM(inst);
+		expect(id1).toBe(id2);
+		expect(automatasList[id1]).toBe(inst);
 
-		const instance1 = automatasList[customId];
-		expect(instance1).toBeDefined();
-		expect(instance1).toBeInstanceOf(TLA);
-
-		// Calling again with the same id should not re-instantiate
-		const id2 = fsm_context.initializeFSM({ Automata: TLA, id: customId });
-		expect(id2).toBe(customId);
-		const instance2 = automatasList[customId];
-		expect(instance2).toBe(instance1);
-
-		const store = fsm_context.getStore(customId);
-		expect(store.getSnapshot()).toBe(instance1);
+		fsm_context.destroyFSM(id1);
 	});
 
 	it('getStore.getSnapshot throws when FSM not initialized for the id', () => {
-		const ghostId = uniqId();
+		const ghostId = 'ghost-id-that-does-not-exist';
 		const store = fsm_context.getStore(ghostId);
 		expect(() => store.getSnapshot()).toThrowError(`FSM '${ghostId}' not initialized`);
 	});
 
 	it('subscribe returns unsubscribe and changeState notifies only current id subscribers', () => {
-		const idA = uniqId();
-		const idB = uniqId();
+		const instA = new TLA();
+		const instB = new TLA();
+		const idA = fsm_context.initializeFSM(instA);
+		const idB = fsm_context.initializeFSM(instB);
 
-		// Init only A to get a valid snapshot
-		fsm_context.initializeFSM({ Automata: TLA, id: idA });
 		const storeA = fsm_context.getStore(idA);
 		const storeB = fsm_context.getStore(idB);
 
@@ -59,54 +52,50 @@ describe('store.ts (per-id stores)', () => {
 			callsB += 1;
 		});
 
-		// change B -> only B listeners notified
 		storeB.changeState();
 		expect(callsA).toBe(0);
 		expect(callsB).toBe(1);
 
-		// change A -> only A listeners notified
 		storeA.changeState();
 		expect(callsA).toBe(1);
 		expect(callsB).toBe(1);
 
-		// Unsubscribe A and change A again -> no extra notify for A
 		unsubA();
 		storeA.changeState();
 		expect(callsA).toBe(1);
 
-		// Unsubscribe B and change B again -> no extra notify for B
 		unsubB();
 		storeB.changeState();
 		expect(callsB).toBe(1);
+
+		fsm_context.destroyFSM(idA);
+		fsm_context.destroyFSM(idB);
 	});
 
-	it('initializeFSM(class) does not notify subscribers during render/init; notifications occur only on changeState', () => {
-		// Prepare id and subscribe before/after init to ensure no implicit notifications
-		const id = uniqId();
-		const store = fsm_context.getStore(id);
+	it('initializeFSM does not notify subscribers during init; notifications occur only on changeState', () => {
+		const inst = new TLA();
+		const store = fsm_context.getStore(inst.correlationId);
 
 		let calls = 0;
 		const unsub = store.subscribe(() => {
 			calls += 1;
 		});
 
-		// No instance yet; getSnapshot would throw, but subscription exists
-		// Initialize should NOT call subscribers implicitly
-		fsm_context.initializeFSM({ Automata: TLA, id });
+		fsm_context.initializeFSM(inst);
 		expect(calls).toBe(0);
 
-		// Now when we explicitly notify, the subscriber is called
 		store.changeState();
 		expect(calls).toBe(1);
 
 		unsub();
+		fsm_context.destroyFSM(inst.correlationId);
 	});
 
-	it('multiple automata ids are isolated (changeState for one id does not affect others)', () => {
-		const id1 = uniqId();
-		const id2 = uniqId();
-		fsm_context.initializeFSM({ Automata: TLA, id: id1 });
-		fsm_context.initializeFSM({ Automata: TLA, id: id2 });
+	it('multiple instances are isolated (changeState for one does not affect others)', () => {
+		const inst1 = new TLA();
+		const inst2 = new TLA();
+		const id1 = fsm_context.initializeFSM(inst1);
+		const id2 = fsm_context.initializeFSM(inst2);
 
 		const s1 = fsm_context.getStore(id1);
 		const s2 = fsm_context.getStore(id2);
@@ -130,5 +119,19 @@ describe('store.ts (per-id stores)', () => {
 
 		u1();
 		u2();
+		fsm_context.destroyFSM(id1);
+		fsm_context.destroyFSM(id2);
+	});
+
+	it('fsm_context.destroyFSM removes instance and store from registries', () => {
+		const inst = new TLA();
+		const id = fsm_context.initializeFSM(inst);
+		expect(automatasList[id]).toBeDefined();
+
+		fsm_context.destroyFSM(id);
+		expect(automatasList[id]).toBeUndefined();
+
+		const store = fsm_context.getStore(id);
+		expect(() => store.getSnapshot()).toThrowError(`FSM '${id}' not initialized`);
 	});
 });

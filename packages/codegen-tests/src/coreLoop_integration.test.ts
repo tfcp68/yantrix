@@ -242,7 +242,7 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 		// Spy to verify CoreLoop actually calls adapter
 		handleTransitionSpy = vi.spyOn(adapter, 'handleTransition') as MockInstance;
 
-		loop.registerAutomata('weather', automata, adapter);
+		loop.registerAutomata(automata, adapter);
 	});
 
 	/**
@@ -451,10 +451,9 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 		expect(() => loop.stop()).not.toThrow();
 	});
 
-	it('throws on duplicate ids (automata/source/destination)', () => {
-		const anotherAutomata = new WeatherReportAutomata();
-		const adapter2 = buildAdapterFromAutomata(anotherAutomata);
-		expect(() => loop.registerAutomata('weather', anotherAutomata, adapter2)).toThrow();
+	it('throws on duplicate registration (automata/source/destination)', () => {
+		// Same instance re-registered collides on its correlationId
+		expect(() => loop.registerAutomata(automata, adapter)).toThrow();
 
 		const src = createMockSource([]);
 		loop.start();
@@ -468,8 +467,8 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 	});
 
 	it('unregister methods are safe to call twice', () => {
-		expect(() => loop.unregisterAutomata('weather')).not.toThrow();
-		expect(() => loop.unregisterAutomata('weather')).not.toThrow();
+		expect(() => loop.unregisterAutomata(automata.correlationId)).not.toThrow();
+		expect(() => loop.unregisterAutomata(automata.correlationId)).not.toThrow();
 
 		loop.start();
 		const src = createMockSource([]);

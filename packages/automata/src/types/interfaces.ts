@@ -13,6 +13,7 @@ import {
 	TStateValuesCollection,
 } from './dictionaries.js';
 import {
+	IBaseClass,
 	TAutomataActionPayload,
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
@@ -276,7 +277,7 @@ export interface IAutomata<
 	PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends TAutomataStateContext<StateType, ContextType>,
-	IAutomataValidatorContainer<StateType, ActionType, EventType> {
+	IAutomataValidatorContainer<StateType, ActionType, EventType>, IBaseClass {
 	eventAdapter: IAutomataEventAdapter<
 		StateType,
 		ActionType,
@@ -713,14 +714,14 @@ export interface IAutomataEventBus<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > extends IAutomataExtendedEventContainer<EventType, EventMetaType> {
 	/**
-	 * Subscribe  n to an event.
+	 * Subscribe to an event.
 	 * @param event The event to subscribe to.
 	 * @param callback The callback function to call when the event is dispatched.
 	 * @returns This event bus instance.
 	 */
 	subscribe: (event: EventType, callback: TEventBusHandler<EventType, EventMetaType>) => this;
 	/**
-	 * Unsubscribe  from an event.
+	 * Unsubscribe from an event.
 	 * @param event The event to unsubscribe from.
 	 * @param callback The callback function to unsubscribe.
 	 * @returns This event bus instance.
