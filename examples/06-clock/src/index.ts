@@ -1,7 +1,4 @@
-import {
-	CoreLoop,
-	uniqId,
-} from '@yantrix/core';
+import { CoreLoop, uniqId } from '@yantrix/core';
 
 import { buildAdapter } from './clock/adapter';
 import { bindControl } from './clock/control';
@@ -32,13 +29,8 @@ export function startClockCoreLoop(): void {
 	loop.registerSource(src);
 
 	const unbindUi = bindUiRenderer(bus, automata);
-	const domSource = createDomSource();
 
-	loop.registerSource({
-		id: domSource.id,
-		start: publish => domSource.start(publish),
-		stop: () => domSource.stop(),
-	});
+	loop.registerSource(createDomSource());
 
 	const unbindControl = bindControl(bus, automata, adapter, timers);
 

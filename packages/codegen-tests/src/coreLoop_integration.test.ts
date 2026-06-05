@@ -4,11 +4,14 @@ import { ModuleNames } from '@yantrix/codegen';
 import {
 	AutomataEventAdapter,
 	CoreLoop,
+	createDataDestinationAdapter,
+	createDataSourceAdapter,
 	IAutomataEventBus,
-	IEventDestination,
-	IEventSource,
+	IDataDestination,
+	IDataSource,
+	NamedDataDestination,
+	NamedDataSource,
 	TAutomataEventMetaType,
-	TEventBusTask,
 	uniqId,
 	waitForEventOnce,
 	waitForState,
@@ -25,8 +28,6 @@ enum TestEvents {
 	WEATHER_REJECTED = 5,
 	UI_RENDER = 6,
 }
-
-type TMockSource = IEventSource & { started: boolean };
 
 type TTestMeta = {
 	[TestEvents.UI_SELECT_CITY]: {
@@ -75,57 +76,49 @@ function toEvent<E extends TestEvents>(
 	return { event, meta };
 }
 
+type TSourcePacket = { ev: TAutomataEventMetaType<TestEvents, TTestMeta> };
+
 /**
- * Creates a mock Source compatible with CoreLoop registration.
+ * Creates a real Data Source (via `createDataSourceAdapter`). On `start()` it enqueues the provided
+ * events as packets; the loop drains them (woken via `setNotifier`) and publishes each to the bus.
+ * Lifecycle is observed through `isActive()`.
  *
- * Behavior:
- * - start(publish): marks source active and publishes provided events through callback
- * - stop(): marks a source inactive
- * - started (getter): returns current active flag
- *
- * @param events - A list of events to publish upon start
- * @returns An object with Source-like API (id is assigned by CoreLoop)
+ * @param events - A list of events to emit upon start
  */
-function createMockSource(events: Array<TAutomataEventMetaType<TestEvents, TTestMeta>>): TMockSource {
-	let started = false;
-	return {
-		id: uniqId(),
-		start: (publish: (e: TAutomataEventMetaType<TestEvents, TTestMeta>) => void) => {
-			started = true;
-			for (const e of events) publish(e);
-		},
-		stop: () => {
-			started = false;
-		},
-		get started() {
-			return started;
-		},
-	};
+function createMockSource(
+	events: Array<TAutomataEventMetaType<TestEvents, TTestMeta>>,
+): IDataSource<TestEvents, TTestMeta, TSourcePacket> {
+	const Src = createDataSourceAdapter<TestEvents, TTestMeta, TSourcePacket>()(NamedDataSource<TSourcePacket>);
+	class MockSource extends Src {
+		override start(): this {
+			super.start();
+			for (const ev of events) this._addDataPacket({ ev });
+			return this;
+		}
+	}
+	const src = new MockSource({ id: uniqId() });
+	src.addListener('emit', (p: TSourcePacket) => [p.ev]);
+	return src as unknown as IDataSource<TestEvents, TTestMeta, TSourcePacket>;
 }
 
 /**
- * Creates a mock Destination that subscribes to WEATHER_RESOLVED and forwards events into a spy function.
+ * Creates a real Data Destination (via `createDataDestinationAdapter`) that triggers on
+ * WEATHER_RESOLVED and forwards the event into a spy from its selector.
  *
- * API:
- * - bind(bus): subscribes to WEATHER_RESOLVED and returns an unbind function
- * - id: string identifier (assigned by CoreLoop)
- *
- * @param spy - A function called with the event meta when WEATHER_RESOLVED is observed
- * @returns A Destination-like object
+ * @param spy - A function called with the event when WEATHER_RESOLVED is observed
  */
 function createMockDestination(
-	spy: (event: TAutomataEventMetaType<TestEvents, TTestMeta>) => TEventBusTask<TestEvents, TTestMeta>,
-): IEventDestination<TestEvents, TTestMeta> {
-	return {
-		bind: (bus: IAutomataEventBus<TestEvents, TTestMeta>) => {
-			const handler
-				= (event: TAutomataEventMetaType<TestEvents, TTestMeta>) => spy(event);
-
-			bus.subscribe(TestEvents.WEATHER_RESOLVED, handler);
-			return () => bus.unsubscribe(TestEvents.WEATHER_RESOLVED, handler);
-		},
-		id: uniqId(),
-	};
+	spy: (event: TAutomataEventMetaType<TestEvents, TTestMeta>) => unknown,
+): IDataDestination<TestEvents, TTestMeta, null, { tag: string }, void> {
+	const Dst = createDataDestinationAdapter<TestEvents, TTestMeta, null, { tag: string }, void>()(
+		NamedDataDestination<{ tag: string }, void>,
+	);
+	const dst = new Dst({ id: uniqId(), resolver: async () => undefined });
+	dst.createTrigger([TestEvents.WEATHER_RESOLVED], (event: TAutomataEventMetaType<TestEvents, TTestMeta>) => {
+		spy(event);
+		return { tag: 'x' };
+	});
+	return dst as unknown as IDataDestination<TestEvents, TTestMeta, null, { tag: string }, void>;
 }
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -394,7 +387,7 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 		const source = createMockSource(srcEvents);
 
 		loop.registerSource(source);
-		expect(source.started).toBe(true);
+		expect(source.isActive()).toBe(true);
 
 		// wait until FSM reaches Success
 		await waitForState(automata, statesDictionary.Success);
@@ -406,7 +399,7 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 		expect(ctx?.result).toEqual({ temp: 25 });
 
 		loop.stop();
-		expect(source.started).toBe(false);
+		expect(source.isActive()).toBe(false);
 	});
 
 	/**
@@ -429,12 +422,12 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 		loop.registerDestination(dest1);
 		loop.registerDestination(dest2);
 
-		expect(src1.started).toBe(true);
-		expect(src2.started).toBe(true);
+		expect(src1.isActive()).toBe(true);
+		expect(src2.isActive()).toBe(true);
 
 		loop.stop();
-		expect(src1.started).toBe(false);
-		expect(src2.started).toBe(false);
+		expect(src1.isActive()).toBe(false);
+		expect(src2.isActive()).toBe(false);
 
 		spy.mockClear();
 		bus.dispatch(

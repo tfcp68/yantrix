@@ -1,4 +1,4 @@
-import { IAutomataEventBus, IAutomataFunctionRegistry } from './interfaces';
+import { IAutomataFunctionRegistry } from './interfaces';
 
 export * from './internalsContext';
 
@@ -379,33 +379,7 @@ export type TDataBoundEventDictionary<
 	[WILDCARD_EVENT]?: Array<TDataBoundSelector<EventType, EventMetaType, DataPacketType, DataModel>>;
 };
 
-export interface IEventSource<
-	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> {
-	id: string;
-	/**
-	 * Starts the source. Use the provided publish callback to push ready-to-dispatch events into the EventBus.
-	 */
-	start: (publish: (event: TAutomataEventMetaType<EventType, EventMetaType>) => void) => void;
-	/**
-	 * Stops the source and releases its resources.
-	 */
-	stop: () => void;
-	/**
-	 * (Optional) A set of event types that this source may publish.
-	 */
-	getObservedEvents?: () => EventType[];
-}
-
-export interface IEventDestination<
-	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> {
-	id: string;
-	/**
-	 * Binds the destination to the event bus. Must return an unsubscribe function.
-	 * Inside, subscribe to the required events via bus.subscribe(...).
-	 */
-	bind: (bus: IAutomataEventBus<EventType, EventMetaType>) => TSubscriptionCancelFunction;
-}
+// NOTE: `IEventSource` / `IEventDestination` (a thin push-based I/O layer) were removed in favour of the
+// canonical `IDataSource` / `IDataDestination` abstractions (see `./interfaces`). CoreLoop now registers
+// Data Sources/Destinations natively: it pumps a source's `eventEmitter()` generator (woken by
+// `setNotifier`) and binds a destination's `getBoundEvents()` to the bus via `update()`.

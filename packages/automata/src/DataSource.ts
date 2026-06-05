@@ -167,6 +167,36 @@ export function createDataSourceAdapter<
 			EventType,
 			EventMetaType
 		>()(Base) implements IDataSource<EventType, EventMetaType, DataPacketType> {
+			/**
+			 * Wake-up callback installed by the consumer (e.g. CoreLoop). Invoked after every
+			 * data packet is enqueued, so a pull-based consumer knows when to drain
+			 * `eventEmitter()` without polling. No-op until a notifier is registered, so this
+			 * is fully opt-in and inert for standalone Data Source usage.
+			 *
+			 * NB: this is a non-`#private` property on purpose. The agnostic base constructor can
+			 * invoke `_addDataPacket` (through the captured `afterInit` setter) BEFORE the mixin's
+			 * field initializers run; reading an uninitialized `#private` field throws, whereas a
+			 * plain property reads as `undefined` and the optional call safely no-ops.
+			 */
+			// Public (no `protected`) because the mixin returns an exported anonymous class, whose
+			// declaration file cannot expose protected/private members (TS4094). Treat as internal.
+			_notify: (() => void) | null = null;
+
+			setNotifier(notify: () => void): this {
+				this._notify = notify;
+				return this;
+			}
+
+			/**
+			 * Enqueue a packet, then wake the consumer. Overrides the agnostic queue's
+			 * `_addDataPacket` so every push path — timers, subscriptions, the captured
+			 * `afterInit` setter, imperative emits — notifies after the packet lands.
+			 */
+			override _addDataPacket(dataPacket: DataPacketType): void {
+				super._addDataPacket(dataPacket);
+				this._notify?.();
+			}
+
 			#eventListeners: Partial<{
 				[id: string]: [
 					(data: DataPacketType) => TAutomataEventStack<EventType, EventMetaType>,

@@ -18,7 +18,7 @@ import { IDataDestination, IDataSource } from './types/interfaces';
  * @param {EventType[]} opts.responseEvents - An array of event names that should be emitted by the Data Source
  * @returns {[IDataSource, IDataDestination]} - An array with the Data Source and the Data Destination
  */
-function createPromiseDataAdapter<
+export function createPromiseDataAdapter<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends Record<EventType, any>,
 	InputData extends object,

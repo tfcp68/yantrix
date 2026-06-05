@@ -3,16 +3,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	AutomataEventAdapter,
 	CoreLoop,
+	createDataDestinationAdapter,
+	createDataSourceAdapter,
+	createPromiseDataAdapter,
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
-	IEventDestination,
-	IEventSource,
+	IDataDestination,
+	IDataSource,
+	NamedDataDestination,
+	NamedDataSource,
 	TAutomataActionPayload,
 	TAutomataBaseEventType,
 	TAutomataEventMetaType,
 	TAutomataStateContext,
-	TEventBusTask,
 } from '../../automata/src';
 
 /**
@@ -147,41 +151,42 @@ implements IAutomata<
 	}
 }
 
+type TSrcPacket = { n: number };
+
 /**
- * Creates a simple Source stub with explicit id and observable started flag.
+ * Creates a real Data Source (via `createDataSourceAdapter`) with an explicit id.
+ * Lifecycle is observed through `isActive()`; `push(n)` enqueues a packet that the
+ * source's listener maps to an EVT_OUT event.
  */
-function createSourceStub(id: string, onStart?: (publish: (e: TAutomataEventMetaType<UEvents, TMeta>) => void) => void): IEventSource<UEvents, TMeta> & { started: boolean } {
-	let started = false;
-	return {
+function createSourceStub(id: string): IDataSource<UEvents, TMeta, TSrcPacket> & { push: (n?: number) => void } {
+	const Src = createDataSourceAdapter<UEvents, TMeta, TSrcPacket>()(NamedDataSource<TSrcPacket>);
+	let setter: ((p: TSrcPacket) => void) | null = null;
+	const src = new Src({
 		id,
-		get started() {
-			return started;
+		afterInit: (_id, s) => {
+			if (s) setter = s as (p: TSrcPacket) => void;
 		},
-		start: (publish) => {
-			started = true;
-			if (onStart) onStart(publish);
-		},
-		stop: () => {
-			started = false;
-		},
-	};
+	});
+	src.addListener('emit', () => [{ event: UEvents.EVT_OUT, meta: {} }]);
+	return Object.assign(src, {
+		push: (n = 1) => setter?.({ n }),
+	}) as IDataSource<UEvents, TMeta, TSrcPacket> & { push: (n?: number) => void };
 }
 
 /**
- * Creates a simple Destination stub that subscribes to EVT_OUT and calls spy.
+ * Creates a real Data Destination (via `createDataDestinationAdapter`) that triggers on
+ * EVT_OUT and calls `spy` from its selector.
  */
-function createDestinationStub(id: string, spy: (e: TAutomataEventMetaType<UEvents, TMeta>) => any): IEventDestination<UEvents, TMeta> {
-	return {
-		id,
-		bind: (bus: IAutomataEventBus<UEvents, TMeta>) => {
-			const handler = (e: TAutomataEventMetaType<UEvents, TMeta>): TEventBusTask<UEvents, TMeta> => {
-				spy(e);
-				return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
-			};
-			bus.subscribe(UEvents.EVT_OUT, handler);
-			return () => bus.unsubscribe(UEvents.EVT_OUT, handler);
-		},
-	};
+function createDestinationStub(id: string, spy: (e: TAutomataEventMetaType<UEvents, TMeta>) => any): IDataDestination<UEvents, TMeta, null, { tag: string }, void> {
+	const Dst = createDataDestinationAdapter<UEvents, TMeta, null, { tag: string }, void>()(
+		NamedDataDestination<{ tag: string }, void>,
+	);
+	const dst = new Dst({ id, resolver: async () => undefined });
+	dst.createTrigger([UEvents.EVT_OUT], (event: TAutomataEventMetaType<UEvents, TMeta>) => {
+		spy(event);
+		return { tag: 'x' };
+	});
+	return dst as unknown as IDataDestination<UEvents, TMeta, null, { tag: string }, void>;
 }
 
 describe('coreLoop unit tests (with stubbed Automata)', () => {
@@ -250,23 +255,23 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	});
 
 	it('registers/unregisters Sources with explicit ids and respects start/stop lifecycle', () => {
-		// Register before start -> should NOT be auto-started per contract
+		// Register before start -> not yet active
 		const srcA = createSourceStub('srcA');
 		loop.registerSource(srcA);
-		expect(srcA.started).toBe(false);
+		expect(srcA.isActive()).toBe(false);
 
 		loop.start();
-		// Source registered before start is not auto-started
-		expect(srcA.started).toBe(false);
+		// Source registered before start IS started by loop.start() (fixes prior latent no-start behavior)
+		expect(srcA.isActive()).toBe(true);
 
 		// Register after start -> started immediately
 		const srcB = createSourceStub('srcB');
 		loop.registerSource(srcB);
-		expect(srcB.started).toBe(true);
+		expect(srcB.isActive()).toBe(true);
 
 		// Stop loop -> all sources should be stopped
 		loop.stop();
-		expect(srcB.started).toBe(false);
+		expect(srcB.isActive()).toBe(false);
 
 		// Duplicate id should throw
 		loop.start();
@@ -343,10 +348,36 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	});
 
 	it('rejects registering sources/destinations without non-empty ids', () => {
-		const badSrc = { id: '', start: () => {}, stop: () => {} } as unknown as IEventSource<UEvents, TMeta>;
+		const badSrc = { id: '' } as unknown as IDataSource<UEvents, TMeta>;
 		expect(() => loop.registerSource(badSrc)).toThrow();
 
-		const badDst = { id: '', bind: () => () => {} } as unknown as IEventDestination<UEvents, TMeta>;
+		const badDst = { id: '' } as unknown as IDataDestination<UEvents, TMeta>;
 		expect(() => loop.registerDestination(badDst)).toThrow();
+	});
+
+	it('createPromiseDataAdapter: register both halves; request → resolver → response reaches the bus', async () => {
+		const [source, destination] = createPromiseDataAdapter<
+			UEvents,
+			TMeta,
+			{ n: number },
+			{ doubled: number }
+		>({
+			id: 'promise_adapter',
+			requestEvents: [UEvents.EVT_IN],
+			requestMapper: e => ({ n: (e.meta as TMeta[UEvents.EVT_IN])?.n ?? 0 }),
+			resolver: async data => ({ doubled: data.n * 2 }),
+			responseMapper: () => [{ event: UEvents.EVT_OUT, meta: {} }],
+		});
+
+		// Both halves register directly with CoreLoop — no hand-rolled bridge, no polling.
+		loop.registerSource(source);
+		loop.registerDestination(destination);
+		loop.start();
+
+		const waitOut = waitForEventOnce(bus, UEvents.EVT_OUT, 500);
+		bus.dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, { n: 21 }));
+		// The follow-up EVT_OUT is emitted by the paired source, which the loop drains
+		// after the resolver pushes its result (woken via setNotifier).
+		await expect(waitOut).resolves.toBeDefined();
 	});
 });
