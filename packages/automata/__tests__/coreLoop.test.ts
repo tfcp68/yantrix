@@ -378,4 +378,57 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 		// after the resolver pushes its result (woken via setNotifier).
 		await expect(waitOut).resolves.toBeDefined();
 	});
+
+	it('setNotifier: an async source push (timer/cache/promise) is pumped to the bus — no polling', async () => {
+		const src = createSourceStub('async_src');
+		loop.registerSource(src); // CoreLoop installs src.setNotifier(() => scheduleDrain)
+		loop.start();
+
+		const waitOut = waitForEventOnce(bus, UEvents.EVT_OUT, 300);
+		// Emit LATER, while the loop is otherwise idle (no concurrent dispatch to "carry" it).
+		setTimeout(() => src.push(1), 15);
+
+		// Reaches the bus only because the push woke the loop via the notifier.
+		await expect(waitOut).resolves.toBeDefined();
+	});
+
+	it('without a notifier, an async push is stranded in the queue and never reaches the bus', async () => {
+		const src = createSourceStub('silent_src');
+		(src as unknown as { setNotifier: (() => unknown) | null }).setNotifier = null; // ignore notifier
+
+		loop.registerSource(src);
+		loop.start();
+
+		let seen = 0;
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen++;
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		setTimeout(() => src.push(1), 15);
+		await new Promise(r => setTimeout(r, 120)); // same window — but no notifier → no drain
+
+		expect(seen).toBe(0); // event is stuck in the source queue
+	});
+
+	it('setNotifier: multiple pushes in one tick coalesce to a single drain but deliver every event', async () => {
+		const src = createSourceStub('burst_src');
+		loop.registerSource(src);
+		loop.start();
+
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		// Three synchronous pushes → notifier coalesces to ONE microtask drain, but the
+		// drain pulls eventEmitter() until empty, so all three events still publish.
+		src.push(1);
+		src.push(2);
+		src.push(3);
+
+		await new Promise(r => setTimeout(r, 50));
+		expect(seen.length).toBe(3);
+	});
 });

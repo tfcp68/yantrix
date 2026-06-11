@@ -39,8 +39,8 @@ export function createClockTimersDestination(timers: TimersSet) {
 			}
 		},
 	});
-	dst.createTrigger([ClockEvents.CLOCK_TIMERS_RESTART], () => ({ kind: 'restart' as const }));
-	dst.createTrigger([ClockEvents.CLOCK_TIMERS_STOP], () => ({ kind: 'stop' as const }));
+	dst.createTrigger([ClockEvents.CLOCK_TIMERS_RESTART], () => ({ kind: 'restart' }));
+	dst.createTrigger([ClockEvents.CLOCK_TIMERS_STOP], () => ({ kind: 'stop' }));
 	return dst;
 }
 
