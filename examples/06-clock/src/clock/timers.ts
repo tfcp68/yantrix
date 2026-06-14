@@ -48,7 +48,7 @@ export function createClockTimersDestination(timers: TimersSet) {
 // Emits CLOCK_TICK events by bridging the dynamic IntervalTimerDataSource through
 // a requestAnimationFrame loop. Each RAF frame drains all pending timer packets
 // and pushes them into this Data Source queue.
-// CoreLoop is woken via the inherited _notify on every push — no polling.
+// The source only enqueues; CoreLoop drains it on its tick.
 
 type TTickPacket = Record<string, never>;
 

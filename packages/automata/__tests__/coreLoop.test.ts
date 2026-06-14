@@ -194,7 +194,7 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	let bus: IAutomataEventBus<UEvents, TMeta>;
 
 	beforeEach(() => {
-		loop = new CoreLoop<UEvents, TMeta>();
+		loop = new CoreLoop<UEvents, TMeta>(undefined, { clock: { start: () => {}, stop: () => {} } });
 		bus = loop.getBus();
 	});
 
@@ -353,7 +353,7 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 		expect(() => loop.registerDestination(badDst)).toThrow();
 	});
 
-	it('createPromiseDataAdapter: register both halves; request → resolver → response reaches the bus', async () => {
+	it('createPromiseDataAdapter: register both halves; request → resolver → response reaches the bus on a tick', async () => {
 		const [source, destination] = createPromiseDataAdapter<
 			UEvents,
 			TMeta,
@@ -367,35 +367,42 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 			responseMapper: () => [{ event: UEvents.EVT_OUT, meta: {} }],
 		});
 
-		// Both halves register directly with CoreLoop — no hand-rolled bridge, no polling.
 		loop.registerSource(source);
 		loop.registerDestination(destination);
 		loop.start();
 
-		const waitOut = waitForEventOnce(bus, UEvents.EVT_OUT, 500);
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
 		bus.dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, { n: 21 }));
-		// The follow-up EVT_OUT is emitted by the paired source, which the loop drains
-		// after the resolver pushes its result (woken via setNotifier).
-		await expect(waitOut).resolves.toBeDefined();
+		await new Promise(r => setTimeout(r, 0));
+		loop.tick();
+
+		expect(seen).toContain(UEvents.EVT_OUT);
 	});
 
-	it('setNotifier: an async source push (timer/cache/promise) is pumped to the bus — no polling', async () => {
-		const src = createSourceStub('async_src');
-		loop.registerSource(src); // CoreLoop installs src.setNotifier(() => scheduleDrain)
+	it('a source push is drained to the bus on a tick', () => {
+		const src = createSourceStub('tick_src');
+		loop.registerSource(src);
 		loop.start();
 
-		const waitOut = waitForEventOnce(bus, UEvents.EVT_OUT, 300);
-		// Emit LATER, while the loop is otherwise idle (no concurrent dispatch to "carry" it).
-		setTimeout(() => src.push(1), 15);
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
 
-		// Reaches the bus only because the push woke the loop via the notifier.
-		await expect(waitOut).resolves.toBeDefined();
+		src.push(1);
+		loop.tick();
+
+		expect(seen).toEqual([UEvents.EVT_OUT]);
 	});
 
-	it('without a notifier, an async push is stranded in the queue and never reaches the bus', async () => {
-		const src = createSourceStub('silent_src');
-		(src as unknown as { setNotifier: (() => unknown) | null }).setNotifier = null; // ignore notifier
-
+	it('a push between ticks waits in the queue and is delivered on the next tick (pull semantics)', () => {
+		const src = createSourceStub('pull_src');
 		loop.registerSource(src);
 		loop.start();
 
@@ -405,13 +412,14 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
 		});
 
-		setTimeout(() => src.push(1), 15);
-		await new Promise(r => setTimeout(r, 120)); // same window — but no notifier → no drain
+		src.push(1);
+		expect(seen).toBe(0);
 
-		expect(seen).toBe(0); // event is stuck in the source queue
+		loop.tick();
+		expect(seen).toBe(1);
 	});
 
-	it('setNotifier: multiple pushes in one tick coalesce to a single drain but deliver every event', async () => {
+	it('multiple pushes are all drained in a single tick', () => {
 		const src = createSourceStub('burst_src');
 		loop.registerSource(src);
 		loop.start();
@@ -422,13 +430,11 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
 		});
 
-		// Three synchronous pushes → notifier coalesces to ONE microtask drain, but the
-		// drain pulls eventEmitter() until empty, so all three events still publish.
 		src.push(1);
 		src.push(2);
 		src.push(3);
+		loop.tick();
 
-		await new Promise(r => setTimeout(r, 50));
 		expect(seen.length).toBe(3);
 	});
 });

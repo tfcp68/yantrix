@@ -8,8 +8,8 @@ const DomSrcBase = createDataSourceAdapter<ClockEvents, TClockMeta, TDomPacket>(
 
 /**
  * DOM source: converts button-click interactions into EventBus events.
- * A real IDataSource — button handlers push packets via `_addDataPacket`,
- * which calls the inherited `_notify` and wakes CoreLoop. No publish callback.
+ * A real IDataSource — button handlers enqueue packets via `_addDataPacket`;
+ * CoreLoop drains them on its tick. No publish callback.
  */
 class ClockDomSource extends DomSrcBase {
 	#listeners: Array<() => void> = [];

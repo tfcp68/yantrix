@@ -27,20 +27,48 @@ type TRegisteredDestination = {
 	unsub: TUnsub;
 };
 
+export interface ICoreLoopClock {
+	start: (onTick: () => void) => void;
+	stop: () => void;
+}
+
+export function createTimeoutClock(tickMs: number): ICoreLoopClock {
+	let handle: ReturnType<typeof setTimeout> | null = null;
+	let onTick: (() => void) | null = null;
+
+	const loop = () => {
+		const t0 = Date.now();
+		onTick?.();
+		const delay = Math.max(0, tickMs - (Date.now() - t0));
+		handle = setTimeout(loop, delay);
+	};
+
+	return {
+		start(cb) {
+			onTick = cb;
+			handle = setTimeout(loop, tickMs);
+		},
+		stop() {
+			if (handle != null) clearTimeout(handle);
+			handle = null;
+			onTick = null;
+		},
+	};
+}
+
+const DEFAULT_TICK_MS = 33;
+
+export type TCoreLoopOptions = {
+	tickMs?: number;
+	clock?: ICoreLoopClock;
+};
+
 /**
- * CoreLoop is a minimal main-loop that connects:
+ * CoreLoop is the main loop that connects:
  * - an Event Bus (pub/sub for Events),
  * - one or more FSMs (IAutomata) through an Event Adapter,
  * - Sources (`IDataSource`, producers of Events),
  * - Destinations (`IDataDestination`, consumers of Events).
- *
- * Responsibilities:
- * - Subscribe the adapter to observed Events and dispatch mapped Actions to the FSM.
- * - After each FSM transition, translate emitted Events via the adapter and re-dispatch them to the Event Bus.
- * - Pump registered Sources: drain their pull-based `eventEmitter()` generators into the bus, woken by
- *   each Source's `setNotifier` callback (no polling).
- * - Bind registered Destinations: subscribe their `getBoundEvents()` to the bus and forward via `update()`.
- * - Manage lifecycle (start/stop) of Sources and Destinations.
  *
  * Generics:
  * - EventType: enum/number of Events
@@ -61,9 +89,9 @@ export class CoreLoop<
 		src: IDataSource<EventType, EventMetaType, any>;
 		start: () => void;
 		stop: () => void;
-		drainScheduled: boolean;
 	}> = new Map();
 
+	private readonly clock: ICoreLoopClock;
 	private started = false;
 
 	protected readonly publishToBus = (
@@ -72,8 +100,9 @@ export class CoreLoop<
 		this.bus.dispatch(event);
 	};
 
-	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>) {
+	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>, opts: TCoreLoopOptions = {}) {
 		this.bus = (bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
+		this.clock = opts.clock ?? createTimeoutClock(opts.tickMs ?? DEFAULT_TICK_MS);
 	}
 
 	public getBus(): IAutomataEventBus<EventType, EventMetaType> {
@@ -179,12 +208,9 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Registers a Source (`IDataSource`). The Source's pull-based `eventEmitter()` generator is
-	 * pumped by the loop: a drain is scheduled (microtask) whenever the Source enqueues a packet,
-	 * via the `setNotifier` callback installed here. No polling is involved.
-	 *
-	 * The Source is started immediately if the loop is already running; otherwise it is started by
-	 * {@link CoreLoop.start}.
+	 * Registers a Source (`IDataSource`). The Source only enqueues packets; the loop pulls them on each
+	 * tick (`tick()` -> `drainSource`). The Source is started immediately if the loop is already
+	 * running; otherwise it is started by {@link CoreLoop.start}.
 	 *
 	 * @param src Data Source to register; must expose a non-empty string id.
 	 * @throws Error if id is empty or already registered.
@@ -202,39 +228,24 @@ export class CoreLoop<
 			throw new Error(`Source with id "${id}" already registered`);
 		}
 
-		const entry = {
+		this.sources.set(id, {
 			id,
 			src: src as IDataSource<EventType, EventMetaType, any>,
-			drainScheduled: false,
-			start: () => {
-				src.start();
-				this.scheduleDrain(id);
-			},
+			start: () => src.start(),
 			stop: () => src.stop(),
-		};
-		this.sources.set(id, entry);
+		});
 
-		// Wake the loop whenever the source enqueues a packet (self-driving sources:
-		// timers, cache subscriptions, the captured afterInit setter, imperative emits).
-		src.setNotifier?.(() => this.scheduleDrain(id));
-
-		if (this.started) entry.start();
+		if (this.started) src.start();
 
 		return this;
 	}
 
 	/**
-	 * Schedule a microtask drain for a source. Idempotent within a tick — multiple notifications
-	 * in the same sync block coalesce into a single drain.
+	 * One pump cycle: drain every active Source's `eventEmitter()` into the bus. Public so the loop can
+	 * be driven deterministically in tests (or manually) instead of by the clock.
 	 */
-	private scheduleDrain(id: string): void {
-		const entry = this.sources.get(id);
-		if (!entry || entry.drainScheduled) return;
-		entry.drainScheduled = true;
-		queueMicrotask(() => {
-			entry.drainScheduled = false;
-			this.drainSource(entry.src);
-		});
+	public tick(): void {
+		this.sources.forEach(s => this.drainSource(s.src));
 	}
 
 	/**
@@ -276,7 +287,7 @@ export class CoreLoop<
 	 * `update(event)`, where the Destination's selector + resolver pipeline takes over.
 	 *
 	 * Follow-up events (if any) are emitted by a paired Data Source (see `createPromiseDataAdapter`),
-	 * which the loop pumps like any other source — not via the bus handler's `result`.
+	 * which the loop pumps on its tick — not via the bus handler's `result`.
 	 *
 	 * @param dst Destination to register; must expose a non-empty string id.
 	 * @throws Error if id is empty or already registered.
@@ -309,7 +320,7 @@ export class CoreLoop<
 				meta: raw.meta ?? null,
 				task_id: `dst_${id}_${String(raw.event)}`,
 				// Synchronous handler: no in-band follow-up. Any response event is emitted later
-				// by the destination's paired Data Source, drained by the loop.
+				// by the destination's paired Data Source, drained by the loop on its tick.
 				result: null,
 			};
 		};
@@ -350,9 +361,9 @@ export class CoreLoop<
 		this.started = true;
 		this.bus.resume();
 
-		// Start every source registered before the loop was running, and schedule an initial
-		// drain so anything enqueued at construction time is flushed.
+		// Start every source registered before the loop was running, then begin ticking.
 		this.sources.forEach(s => s.start());
+		this.clock.start(() => this.tick());
 
 		return this;
 	}
@@ -360,12 +371,11 @@ export class CoreLoop<
 	public stop(): this {
 		if (!this.started) return this;
 		this.started = false;
+
+		// Stop the tick first, then pause the bus and tear down sources/destinations.
+		this.clock.stop();
 		this.bus.pause();
-
-		// Stop all sources
 		this.sources.forEach(s => s.stop());
-
-		// Unsubscribe all destinations
 		this.destinations.forEach(d => d.unsub());
 
 		return this;

@@ -380,6 +380,6 @@ export type TDataBoundEventDictionary<
 };
 
 // NOTE: `IEventSource` / `IEventDestination` (a thin push-based I/O layer) were removed in favour of the
-// canonical `IDataSource` / `IDataDestination` abstractions (see `./interfaces`). CoreLoop now registers
-// Data Sources/Destinations natively: it pumps a source's `eventEmitter()` generator (woken by
-// `setNotifier`) and binds a destination's `getBoundEvents()` to the bus via `update()`.
+// canonical `IDataSource` / `IDataDestination` abstractions (see `./interfaces`). CoreLoop registers Data
+// Sources/Destinations natively: a tick-driven pump drains each source's `eventEmitter()` generator and
+// binds a destination's `getBoundEvents()` to the bus via `update()`.

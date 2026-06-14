@@ -80,7 +80,7 @@ type TSourcePacket = { ev: TAutomataEventMetaType<TestEvents, TTestMeta> };
 
 /**
  * Creates a real Data Source (via `createDataSourceAdapter`). On `start()` it enqueues the provided
- * events as packets; the loop drains them (woken via `setNotifier`) and publishes each to the bus.
+ * events as packets; the loop drains them on its tick and publishes each to the bus.
  * Lifecycle is observed through `isActive()`.
  *
  * @param events - A list of events to emit upon start

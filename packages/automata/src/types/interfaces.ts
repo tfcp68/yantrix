@@ -911,18 +911,6 @@ export interface IDataSource<
 	 * @returns Array of dispatched event stacks
 	 */
 	eventEmitter: () => Generator<TAutomataEventStack<EventType, EventMetaType>>;
-
-	/**
-	 * Register a wake-up callback, invoked after every data packet is enqueued.
-	 *
-	 * A pull-based consumer (e.g. CoreLoop) installs this so it knows exactly when to
-	 * drain `eventEmitter()` — no polling required. Optional: sources that are always
-	 * drained externally may ignore it. Calling it is a no-op until a notifier is set.
-	 *
-	 * @param notify Callback to invoke on each push
-	 * @returns This data source instance
-	 */
-	setNotifier?: (notify: () => void) => this;
 }
 
 /**
