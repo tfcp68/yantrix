@@ -11,6 +11,7 @@
 		"format": "eslint --fix .",
 		"preview": "vite preview",
 		"generate": "yantrix codegen ./src/diagrams/traffic-light.mermaid -l TypeScript -o src/generated/TrafficLightAutomata.ts -c TrafficLightAutomata --beautify"
+
 	},
 	"dependencies": {
 		"@radix-ui/react-select": "^2.2.6",

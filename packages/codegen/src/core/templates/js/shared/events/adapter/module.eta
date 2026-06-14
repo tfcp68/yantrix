@@ -1,3 +1,6 @@
+export function create<%~ it.className %>EventAdapter() {
 const eventAdapter = new AutomataEventAdapter();
 <%~ include('emit/module', { emitters: it.events.eventAdapter.emitters }) %>
 <%~ include('listen/module', { listeners: it.events.eventAdapter.listeners }) %>
+return eventAdapter;
+}

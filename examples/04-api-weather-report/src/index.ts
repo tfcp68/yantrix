@@ -446,7 +446,7 @@ export function startWeatherCoreLoop(): void {
 	const automata = new WeatherReportAutomata();
 	const adapter = buildAdapter();
 
-	loop.registerAutomata('weather', automata, adapter);
+	loop.registerAutomata(automata, adapter);
 
 	const unbindHttp = bindHttpWeatherAdapter(bus);
 

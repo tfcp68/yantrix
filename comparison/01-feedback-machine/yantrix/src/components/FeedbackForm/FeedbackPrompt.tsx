@@ -1,11 +1,11 @@
 import { useFSM } from '@yantrix/react';
-import { feedbackMachineActions, FeedbackMachineAutomata } from '../../machine';
+import { feedbackMachineActions, feedbackMachineInstance } from '../../machine';
 import Button from '../Button';
 import FormBody from '../FormBody';
 import FormHeader from '../FormHeader';
 
 function FeedbackPrompt() {
-	const { dispatch, getAction } = useFSM(FeedbackMachineAutomata);
+	const { dispatch, getAction } = useFSM(feedbackMachineInstance);
 
 	return (
 		<FormBody>

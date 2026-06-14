@@ -1,6 +1,9 @@
+export function create<%~ it.className %>EventAdapter() {
 const eventAdapter = createEventAdapter();
 <%~ include('../../js/shared/events/adapter/emit/module', { emitters: it.events.eventAdapter.emitters }) %>
 <%~ include('../../js/shared/events/adapter/listen/module', { listeners: it.events.eventAdapter.listeners }) %>
+return eventAdapter;
+}
 
 export function createEventBus(id, FSMs) {
   const _listeners = {};

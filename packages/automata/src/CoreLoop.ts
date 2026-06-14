@@ -79,10 +79,9 @@ export class CoreLoop<
 	 * @template ActionType Automata action enum (number)
 	 * @template ContextType State -> Context mapping
 	 * @template PayloadType Action -> Payload mapping
-	 * @param id Unique identifier for the automata within this CoreLoop
-	 * @param machine Automata instance to register
+	 * @param machine Automata instance to register; keyed by its own correlationId
 	 * @param adapter Optional AutomataEventAdapter; created if not provided
-	 * @throws Error when an automata with the same id is already registered
+	 * @throws Error when the same automata instance is already registered
 	 * @returns This CoreLoop instance (for chaining)
 	 */
 	public registerAutomata<
@@ -91,10 +90,10 @@ export class CoreLoop<
 		ContextType extends { [K in StateType]: any } = Record<StateType, any>,
 		PayloadType extends { [K in ActionType]: any } = Record<ActionType, any>,
 	>(
-		id: string,
 		machine: IAutomata<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
 		adapter?: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType>,
 	): this {
+		const id = machine.correlationId;
 		if (this.automata.has(id)) throw new Error(`Automata with id "${id}" already registered`);
 
 		const bridge
@@ -148,13 +147,13 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Unregisters a previously registered automata by id.
+	 * Unregisters a previously registered automata.
 	 *
 	 * Behavior:
 	 * - Safely unsubscribes all event bus subscriptions created during registration.
 	 * - Removes automata entry from the registry. No-op if not found.
 	 *
-	 * @param id Automata identifier passed during registration.
+	 * @param id Automata correlationId passed during registration.
 	 * @returns This CoreLoop instance for chaining.
 	 */
 	public unregisterAutomata(id: string): this {

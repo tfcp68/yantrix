@@ -89,7 +89,7 @@ describe('automata internals via EventBus', async () => {
 			adapterA.addEventListener(TestEvents.TICK, () => ({ action: actions.tick, payload: {} }));
 			adapterA.addEventEmitter(statesDictionary.Active, () => ({ event: TestEvents.DONE, meta: {} }));
 
-			loop.registerAutomata('a', instanceA, adapterA);
+			loop.registerAutomata(instanceA, adapterA);
 			loop.start();
 		});
 
@@ -155,8 +155,8 @@ describe('automata internals via EventBus', async () => {
 			adapterB.addEventListener(TestEvents.TICK, () => ({ action: actions.tick, payload: {} }));
 			adapterB.addEventEmitter(statesDictionary.Active, () => ({ event: TestEvents.DONE, meta: {} }));
 
-			loop.registerAutomata('a', instanceA, adapterA);
-			loop.registerAutomata('b', instanceB, adapterB);
+			loop.registerAutomata(instanceA, adapterA);
+			loop.registerAutomata(instanceB, adapterB);
 			loop.start();
 		});
 
@@ -221,8 +221,8 @@ describe('automata internals via EventBus', async () => {
 			adapterB.addEventListener(TestEvents.CHAIN, () => ({ action: actions.tick, payload: {} }));
 			adapterB.addEventEmitter(statesDictionary.Active, () => ({ event: TestEvents.DONE, meta: {} }));
 
-			loop.registerAutomata('a', instanceA, adapterA);
-			loop.registerAutomata('b', instanceB, adapterB);
+			loop.registerAutomata(instanceA, adapterA);
+			loop.registerAutomata(instanceB, adapterB);
 			loop.start();
 		});
 

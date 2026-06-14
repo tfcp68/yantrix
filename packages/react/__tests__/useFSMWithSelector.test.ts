@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react';
-import { uniqId } from '@yantrix/core';
 import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { useFSMWithSelector } from '../src/hooks/useFSMWithSelector';
@@ -8,22 +7,23 @@ import TrafficLightAutomataTwoCounters from './generated/TrafficLightAutomataTwo
 
 describe('useFSMWithSelector tests (selector-based hook)', () => {
 	it('basic selector returns context', () => {
-		const { result } = renderHook(() => useFSMWithSelector(TLA, {
-			selector: inst => inst.getContext().context,
+		const inst = new TLA();
+		const { result } = renderHook(() => useFSMWithSelector(inst, {
+			selector: i => i.getContext().context,
 		}));
 
 		expect(result.current.selection).toBeDefined();
 	});
 
 	it('selection reference is preserved when logically equal (isEqual preserves reference)', () => {
-		const id = uniqId(10);
+		const inst = new TLA();
 
 		const { result } = renderHook(() =>
 			useFSMWithSelector(
-				{ Automata: TLA, id },
+				inst,
 				{
-					selector: (inst, statics) => {
-						const st = inst.getContext().state;
+					selector: (i, statics) => {
+						const st = i.getContext().state;
 						const red = statics.getState?.('Red');
 						const redYellow = statics.getState?.('RedYellow');
 						return { isRedish: st === red || st === redYellow };
@@ -33,11 +33,9 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 			),
 		);
 
-		// Initial selection
 		const sel0 = result.current.selection;
 		expect(sel0.isRedish).toBe(false);
 
-		// Off -> Red (false -> true): selection should change (new reference)
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
@@ -45,7 +43,6 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 		expect(sel1.isRedish).toBe(true);
 		expect(sel1).not.toBe(sel0);
 
-		// Red -> RedYellow (true -> true): logically equal, reference should be preserved
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
@@ -53,7 +50,6 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 		expect(sel2.isRedish).toBe(true);
 		expect(sel2).toBe(sel1);
 
-		// RedYellow -> Green (true -> false): selection should change (new reference)
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
@@ -63,14 +59,14 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 	});
 
 	it('without isEqual, selection reference changes even if logical value stays same', () => {
-		const id = uniqId(10);
+		const inst = new TLA();
 
 		const { result } = renderHook(() =>
 			useFSMWithSelector(
-				{ Automata: TLA, id },
+				inst,
 				{
-					selector: (inst, statics) => {
-						const st = inst.getContext().state;
+					selector: (i, statics) => {
+						const st = i.getContext().state;
 						const red = statics.getState?.('Red');
 						const redYellow = statics.getState?.('RedYellow');
 						return { isRedish: st === red || st === redYellow };
@@ -79,11 +75,9 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 			),
 		);
 
-		// Initial selection
 		const sel0 = result.current.selection;
 		expect(sel0.isRedish).toBe(false);
 
-		// Off -> Red (false -> true): selection changes (new reference)
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
@@ -91,7 +85,6 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 		expect(sel1.isRedish).toBe(true);
 		expect(sel1).not.toBe(sel0);
 
-		// Red -> RedYellow (true -> true): selector returns a new object -> reference changes
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
@@ -101,15 +94,10 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 	});
 
 	it('constant primitive selection keeps the same value across transitions', () => {
-		const id = uniqId();
+		const inst = new TLA();
 
 		const { result } = renderHook(() =>
-			useFSMWithSelector(
-				{ Automata: TLA, id },
-				{
-					selector: () => 42,
-				},
-			),
+			useFSMWithSelector(inst, { selector: () => 42 }),
 		);
 
 		expect(result.current.selection).toBe(42);
@@ -124,14 +112,14 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 	});
 
 	it('primitive boolean selection remains true for Red -> RedYellow', () => {
-		const id = uniqId(10);
+		const inst = new TLA();
 
 		const { result } = renderHook(() =>
 			useFSMWithSelector(
-				{ Automata: TLA, id },
+				inst,
 				{
-					selector: (inst, statics) => {
-						const state = inst.getContext().state;
+					selector: (i, statics) => {
+						const state = i.getContext().state;
 						const red = statics.getState?.('Red');
 						const redYellow = statics.getState?.('RedYellow');
 						return state === red || state === redYellow;
@@ -140,14 +128,12 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 			),
 		);
 
-		// Off -> Red: false -> true
 		expect(result.current.selection).toBe(false);
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
 		expect(result.current.selection).toBe(true);
 
-		// Red -> RedYellow: true -> true (value stays true)
 		act(() => {
 			result.current.dispatch({ action: TLA.getAction?.('Switch'), payload: {} });
 		});
@@ -157,12 +143,10 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 	it('selector: throws when selection returns null/undefined', () => {
 		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 		try {
+			const inst = new TLA();
 			expect(() =>
 				renderHook(() =>
-					useFSMWithSelector(
-						{ Automata: TLA, id: 'test' },
-						{ selector: () => null },
-					),
+					useFSMWithSelector(inst, { selector: () => null }),
 				),
 			).toThrow(/Undefined or null selection value/);
 		} finally {
@@ -174,19 +158,18 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 describe.skip('selective re-render with second counter', () => {
 	it('selector: context.counter — Switch_1 after first Switch does not trigger re-render', () => {
 		let renders = 0;
+		const inst = new TrafficLightAutomataTwoCounters();
 
 		const { result } = renderHook(() => {
 			renders++;
-			return useFSMWithSelector(TrafficLightAutomataTwoCounters, {
-				selector: inst => inst.getContext().context.counter,
+			return useFSMWithSelector(inst, {
+				selector: i => i.getContext().context.counter,
 			});
 		});
 
-		// Initial state Off
 		const initial = result.current.selection;
 		expect(renders).toBe(1);
 
-		// 1. Switch (Off -> Red) — should increment counter
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
@@ -199,7 +182,6 @@ describe.skip('selective re-render with second counter', () => {
 
 		const afterFirstSwitch = result.current.selection;
 
-		// 2. Switch_1 (Red -> Red self-loop) — only counter2 changes; counter must remain unchanged
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch_1'),
@@ -207,11 +189,9 @@ describe.skip('selective re-render with second counter', () => {
 			});
 		});
 
-		// No change -> no re-render
 		expect(result.current.selection).toBe(afterFirstSwitch);
 		expect(renders).toBe(2);
 
-		// 3. Another Switch (Red -> RedYellow) — counter increments again
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
@@ -225,18 +205,18 @@ describe.skip('selective re-render with second counter', () => {
 
 	it('selector: context.counter2 — reacts only to Switch_1; Switch does not trigger re-render', () => {
 		let renders = 0;
+		const inst = new TrafficLightAutomataTwoCounters();
 
 		const { result } = renderHook(() => {
 			renders++;
-			return useFSMWithSelector(TrafficLightAutomataTwoCounters, {
-				selector: inst => inst.getContext().context.counter2,
+			return useFSMWithSelector(inst, {
+				selector: i => i.getContext().context.counter2,
 			});
 		});
 
 		const initial2 = result.current.selection;
 		expect(renders).toBe(1);
 
-		// 1. Switch (Off -> Red): only counter changes; counter2 stays the same
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
@@ -244,11 +224,9 @@ describe.skip('selective re-render with second counter', () => {
 			});
 		});
 
-		// No change -> still first render
 		expect(result.current.selection).toBe(initial2);
 		expect(renders).toBe(1);
 
-		// 2. Switch_1 (Red -> Red): counter2 increments
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch_1'),
@@ -259,7 +237,6 @@ describe.skip('selective re-render with second counter', () => {
 		expect(result.current.selection).toBe(initial2 + 1);
 		expect(renders).toBe(2);
 
-		// 3. Switch (Red -> RedYellow): counter2 unchanged
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch'),
@@ -270,7 +247,6 @@ describe.skip('selective re-render with second counter', () => {
 		expect(result.current.selection).toBe(initial2 + 1);
 		expect(renders).toBe(2);
 
-		// 4. Switch_1 (RedYellow -> RedYellow): counter2 increments again
 		act(() => {
 			result.current.dispatch({
 				action: TrafficLightAutomataTwoCounters.getAction('Switch_1'),
