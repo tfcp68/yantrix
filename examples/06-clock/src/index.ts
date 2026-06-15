@@ -1,5 +1,5 @@
 import {
-	CoreLoop,
+	TimedCoreLoop,
 } from '@yantrix/core';
 
 import { buildAdapter } from './clock/adapter';
@@ -14,7 +14,7 @@ import ClockAutomata from './generated/ClockAutomata';
 export function startClockCoreLoop(): void {
 	registerClockEvents();
 
-	const loop = new CoreLoop<ClockEvents, TClockMeta>();
+	const loop = new TimedCoreLoop<ClockEvents, TClockMeta>();
 	const bus = loop.getBus();
 
 	const adapter = buildAdapter();

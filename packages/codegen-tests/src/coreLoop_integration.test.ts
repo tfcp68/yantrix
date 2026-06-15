@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
 import {
 	AutomataEventAdapter,
-	CoreLoop,
 	createDataDestinationAdapter,
 	createDataSourceAdapter,
 	IAutomataEventBus,
@@ -12,6 +11,7 @@ import {
 	NamedDataDestination,
 	NamedDataSource,
 	TAutomataEventMetaType,
+	TimedCoreLoop,
 	uniqId,
 	waitForEventOnce,
 	waitForState,
@@ -175,7 +175,7 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 	const { WeatherReportAutomata, actionsDictionary, statesDictionary } = await import(
 		getGeneratedFixturePath('WeatherReportAutomata_generated.ts')
 	);
-	let loop: CoreLoop<TestEvents, TTestMeta>;
+	let loop: TimedCoreLoop<TestEvents, TTestMeta>;
 	let automata: typeof WeatherReportAutomata;
 	let bus: IAutomataEventBus<TestEvents, TTestMeta>;
 	let adapter: AutomataEventAdapter;
@@ -233,7 +233,7 @@ describe('coreLoop with generated WeatherReportAutomata', async () => {
 	}
 
 	beforeEach(async () => {
-		loop = new CoreLoop<TestEvents, TTestMeta>();
+		loop = new TimedCoreLoop<TestEvents, TTestMeta>();
 		bus = loop.getBus();
 		automata = new WeatherReportAutomata();
 

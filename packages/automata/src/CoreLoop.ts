@@ -27,48 +27,16 @@ type TRegisteredDestination = {
 	unsub: TUnsub;
 };
 
-export interface ICoreLoopClock {
-	start: (onTick: () => void) => void;
-	stop: () => void;
-}
-
-export function createTimeoutClock(tickMs: number): ICoreLoopClock {
-	let handle: ReturnType<typeof setTimeout> | null = null;
-	let onTick: (() => void) | null = null;
-
-	const loop = () => {
-		const t0 = Date.now();
-		onTick?.();
-		const delay = Math.max(0, tickMs - (Date.now() - t0));
-		handle = setTimeout(loop, delay);
-	};
-
-	return {
-		start(cb) {
-			onTick = cb;
-			handle = setTimeout(loop, tickMs);
-		},
-		stop() {
-			if (handle != null) clearTimeout(handle);
-			handle = null;
-			onTick = null;
-		},
-	};
-}
-
-const DEFAULT_TICK_MS = 33;
-
-export type TCoreLoopOptions = {
-	tickMs?: number;
-	clock?: ICoreLoopClock;
-};
-
 /**
  * CoreLoop is the main loop that connects:
  * - an Event Bus (pub/sub for Events),
  * - one or more FSMs (IAutomata) through an Event Adapter,
  * - Sources (`IDataSource`, producers of Events),
  * - Destinations (`IDataDestination`, consumers of Events).
+ *
+ * Driver-agnostic: the loop only knows how to drain Sources on a `tick()`. *When* to tick is left to a
+ * driver — call `tick()` manually, from a reactive observer, or use {@link TimedCoreLoop} for a clock.
+ * Subclasses hook into the lifecycle via the `onStart`/`onStop` template methods.
  *
  * Generics:
  * - EventType: enum/number of Events
@@ -91,7 +59,6 @@ export class CoreLoop<
 		stop: () => void;
 	}> = new Map();
 
-	private readonly clock: ICoreLoopClock;
 	private started = false;
 
 	protected readonly publishToBus = (
@@ -100,10 +67,15 @@ export class CoreLoop<
 		this.bus.dispatch(event);
 	};
 
-	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>, opts: TCoreLoopOptions = {}) {
+	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>) {
 		this.bus = (bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
-		this.clock = opts.clock ?? createTimeoutClock(opts.tickMs ?? DEFAULT_TICK_MS);
 	}
+
+	/** Lifecycle hook: called at the end of {@link CoreLoop.start}, after sources are started. No-op by default. */
+	protected onStart(): void {}
+
+	/** Lifecycle hook: called at the start of {@link CoreLoop.stop}, before the bus/sources are torn down. No-op by default. */
+	protected onStop(): void {}
 
 	public getBus(): IAutomataEventBus<EventType, EventMetaType> {
 		return this.bus;
@@ -361,9 +333,9 @@ export class CoreLoop<
 		this.started = true;
 		this.bus.resume();
 
-		// Start every source registered before the loop was running, then begin ticking.
+		// Start every source registered before the loop was running, then hand off to the driver hook.
 		this.sources.forEach(s => s.start());
-		this.clock.start(() => this.tick());
+		this.onStart();
 
 		return this;
 	}
@@ -372,8 +344,8 @@ export class CoreLoop<
 		if (!this.started) return this;
 		this.started = false;
 
-		// Stop the tick first, then pause the bus and tear down sources/destinations.
-		this.clock.stop();
+		// Stop the driver first, then pause the bus and tear down sources/destinations.
+		this.onStop();
 		this.bus.pause();
 		this.sources.forEach(s => s.stop());
 		this.destinations.forEach(d => d.unsub());

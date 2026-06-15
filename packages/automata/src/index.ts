@@ -22,6 +22,7 @@ export * from './EventDictionary.js';
 export * from './FunctionDictionary.js';
 export * from './IOPromiseAdapter.js';
 export * from './StateDictionary.js';
+export * from './TimedCoreLoop.js';
 export * from './types/dictionaries.js';
 export * from './types/index.js';
 export * from './types/interfaces.js';

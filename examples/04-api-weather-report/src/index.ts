@@ -1,12 +1,12 @@
 import {
 	AutomataEventAdapter,
-	CoreLoop,
 	createDataSourceAdapter,
 	createPromiseDataAdapter,
 	IAutomataEventBus,
 	IDataSource,
 	NamedDataSource,
 	TAutomataEventMetaType,
+	TimedCoreLoop,
 } from '@yantrix/core';
 import {
 	registerWeatherEvents,
@@ -397,7 +397,7 @@ function createWeatherHttpAdapter() {
 export function startWeatherCoreLoop(): void {
 	registerWeatherEvents();
 
-	const loop = new CoreLoop<WeatherEvents, TWeatherMeta>();
+	const loop = new TimedCoreLoop<WeatherEvents, TWeatherMeta>();
 	const bus = loop.getBus();
 
 	const automata = new WeatherReportAutomata();

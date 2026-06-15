@@ -6,9 +6,12 @@ import {
 	createDataDestinationAdapter,
 	createDataSourceAdapter,
 	createPromiseDataAdapter,
+	createTimeoutClock,
+	DEFAULT_TICK_MS,
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
+	ICoreLoopClock,
 	IDataDestination,
 	IDataSource,
 	NamedDataDestination,
@@ -17,6 +20,7 @@ import {
 	TAutomataBaseEventType,
 	TAutomataEventMetaType,
 	TAutomataStateContext,
+	TimedCoreLoop,
 } from '../../automata/src';
 
 /**
@@ -194,7 +198,7 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	let bus: IAutomataEventBus<UEvents, TMeta>;
 
 	beforeEach(() => {
-		loop = new CoreLoop<UEvents, TMeta>(undefined, { clock: { start: () => {}, stop: () => {} } });
+		loop = new CoreLoop<UEvents, TMeta>();
 		bus = loop.getBus();
 	});
 
@@ -436,5 +440,137 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 		loop.tick();
 
 		expect(seen.length).toBe(3);
+	});
+});
+
+describe('timedCoreLoop (clock-driven)', () => {
+	it('start() arms the clock with tick(); the armed callback drains a source; stop() disarms', () => {
+		let armed: (() => void) | null = null;
+		let stopped = 0;
+		const clock: ICoreLoopClock = {
+			start: (cb) => { armed = cb; },
+			stop: () => { stopped++; },
+		};
+
+		const loop = new TimedCoreLoop<UEvents, TMeta>(undefined, { clock });
+		const bus = loop.getBus();
+
+		const src = createSourceStub('timed_src');
+		loop.registerSource(src);
+		loop.start();
+
+		// start() registered the clock callback but did not tick yet.
+		expect(armed).toBeTypeOf('function');
+
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		// Firing the armed callback (what the real clock does each tick) drains the queued push.
+		src.push(1);
+		armed!();
+		expect(seen).toEqual([UEvents.EVT_OUT]);
+
+		loop.stop();
+		expect(stopped).toBe(1);
+	});
+
+	it('stop() halts the real timer chain — tick() stops firing after stop() (no zombie clock)', () => {
+		vi.useFakeTimers();
+		try {
+			// Real default clock (createTimeoutClock), not an injected fake
+			const loop = new TimedCoreLoop<UEvents, TMeta>();
+			const tickSpy = vi.spyOn(loop, 'tick');
+			loop.start();
+
+			vi.advanceTimersByTime(DEFAULT_TICK_MS * 3);
+			const ticksWhileRunning = tickSpy.mock.calls.length;
+			expect(ticksWhileRunning).toBeGreaterThanOrEqual(1); // the clock really fired
+
+			loop.stop();
+			vi.advanceTimersByTime(DEFAULT_TICK_MS * 10);
+			// The setTimeout chain must be dead after stop(): not a single extra tick.
+			expect(tickSpy).toHaveBeenCalledTimes(ticksWhileRunning);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('createTimeoutClock catch-up: an overrunning tick reschedules with delay 0, a fast one with tickMs', () => {
+		vi.useFakeTimers();
+		try {
+			const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+			const clock = createTimeoutClock(33);
+
+			let overrun = true;
+			clock.start(() => {
+				if (overrun) {
+					overrun = false;
+					// Simulate a tick that overruns its 33ms budget by taking 50ms.
+					vi.setSystemTime(Date.now() + 50);
+				}
+			});
+
+			// Fire the first tick (scheduled at 33ms): it overruns, so the next delay clamps to 0
+			// (catch-up); the following fast tick reschedules with the full 33ms again.
+			vi.advanceTimersByTime(33);
+
+			const delays = setTimeoutSpy.mock.calls.map(c => c[1]);
+			expect(delays).toContain(0); // load-bearing: catch-up clamps elapsed(50) > tickMs(33) to max(0, -17) = 0
+			expect(delays.every(d => d === 0)).toBe(false); // and it does NOT collapse to 0 forever — steady cadence is tickMs
+
+			clock.stop();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('repeated start()/stop() arm and disarm the clock exactly once (no double-arm leak)', () => {
+		let starts = 0;
+		let stops = 0;
+		const clock: ICoreLoopClock = {
+			start: () => { starts++; },
+			stop: () => { stops++; },
+		};
+		const loop = new TimedCoreLoop<UEvents, TMeta>(undefined, { clock });
+
+		loop.start();
+		loop.start(); // idempotent: must not re-arm a second clock
+		expect(starts).toBe(1);
+
+		loop.stop();
+		loop.stop(); // idempotent: must not stop twice
+		expect(stops).toBe(1);
+	});
+
+	it('custom tickMs threads into the default clock', () => {
+		vi.useFakeTimers();
+		try {
+			const loop = new TimedCoreLoop<UEvents, TMeta>(undefined, { tickMs: 100 });
+			const bus = loop.getBus();
+
+			const src = createSourceStub('slow_src');
+			loop.registerSource(src);
+			loop.start();
+
+			const seen: (UEvents | null)[] = [];
+			bus.subscribe(UEvents.EVT_OUT, (e) => {
+				seen.push(e.event);
+				return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+			});
+
+			src.push(1);
+			vi.advanceTimersByTime(99);
+			expect(seen).toEqual([]); // not yet — interval is 100ms
+
+			vi.advanceTimersByTime(1);
+			expect(seen).toEqual([UEvents.EVT_OUT]);
+
+			loop.stop();
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });
