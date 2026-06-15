@@ -19,18 +19,26 @@ export interface ICoreLoopClock {
 export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 	let handle: ReturnType<typeof setTimeout> | null = null;
 	let onTick: (() => void) | null = null;
+	let startTime = 0;
+	let lastTickN = -1;
 
 	const loop = () => {
-		const t0 = Date.now();
-		onTick?.();
-		const delay = Math.max(0, tickMs - (Date.now() - t0));
+		const tickN = Math.floor((Date.now() - startTime) / tickMs);
+		if (tickN > lastTickN) {
+			lastTickN = tickN;
+			onTick?.();
+		}
+		const nextTickTime = startTime + (lastTickN + 1) * tickMs;
+		const delay = Math.max(0, nextTickTime - Date.now());
 		handle = setTimeout(loop, delay);
 	};
 
 	return {
 		start(cb) {
-			if (handle != null) clearTimeout(handle); // re-arm is idempotent: drop any prior chain, never leak a second timer
+			if (handle != null) clearTimeout(handle); // re-arm: drop prior chain
 			onTick = cb;
+			startTime = Date.now();
+			lastTickN = -1;
 			handle = setTimeout(loop, tickMs);
 		},
 		stop() {
