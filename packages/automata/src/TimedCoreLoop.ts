@@ -1,10 +1,13 @@
-import { CoreLoop } from './CoreLoop';
+import { CoreLoop, TCoreLoopProps } from './CoreLoop';
 import {
 	TAutomataBaseEventType,
 } from './types';
-import { IAutomataEventBus } from './types/interfaces';
 
-/** A clock drives the loop, `start` registers a per-tick callback, `stop` tears it down. */
+/**
+ * A clock drives the loop, `start` registers a per-tick callback, `stop` tears it down.
+ * Implementations MUST be idempotent: calling `start` when already running must not
+ * start a second chain; calling `stop` when already stopped must be a no-op.
+ */
 export interface ICoreLoopClock {
 	start: (onTick: () => void) => void;
 	stop: () => void;
@@ -26,6 +29,7 @@ export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 
 	return {
 		start(cb) {
+			if (handle != null) clearTimeout(handle); // re-arm is idempotent: drop any prior chain, never leak a second timer
 			onTick = cb;
 			handle = setTimeout(loop, tickMs);
 		},
@@ -39,10 +43,16 @@ export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 
 export const DEFAULT_TICK_MS = 33;
 
-export type TTimedCoreLoopOptions = {
+type TTimedCoreLoopOptions = {
 	tickMs?: number;
 	clock?: ICoreLoopClock;
 };
+
+/** Props for {@link TimedCoreLoop}: the base props plus the clock knobs. */
+export type TTimedCoreLoopProps<
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = TCoreLoopProps<EventType, EventMetaType> & TTimedCoreLoopOptions;
 
 /**
  * {@link CoreLoop} driven by a clock
@@ -53,16 +63,20 @@ export class TimedCoreLoop<
 > extends CoreLoop<EventType, EventMetaType> {
 	readonly #clock: ICoreLoopClock;
 
-	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>, opts: TTimedCoreLoopOptions = {}) {
-		super(bus);
-		this.#clock = opts.clock ?? createTimeoutClock(opts.tickMs ?? DEFAULT_TICK_MS);
+	constructor(props: TTimedCoreLoopProps<EventType, EventMetaType> = {}) {
+		super(props);
+		this.#clock = props.clock ?? createTimeoutClock(props.tickMs ?? DEFAULT_TICK_MS);
 	}
 
-	protected override onStart(): void {
+	override start(): this {
+		super.start();
 		this.#clock.start(() => this.tick());
+		return this;
 	}
 
-	protected override onStop(): void {
+	override stop(): this {
+		super.stop();
 		this.#clock.stop();
+		return this;
 	}
 }

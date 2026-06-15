@@ -27,6 +27,14 @@ type TRegisteredDestination = {
 	unsub: TUnsub;
 };
 
+/** Constructor props for {@link CoreLoop}. Subclasses extend this (e.g. {@link TimedCoreLoop}). */
+export type TCoreLoopProps<
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = {
+	bus?: IAutomataEventBus<EventType, EventMetaType>;
+};
+
 /**
  * CoreLoop is the main loop that connects:
  * - an Event Bus (pub/sub for Events),
@@ -36,7 +44,6 @@ type TRegisteredDestination = {
  *
  * Driver-agnostic: the loop only knows how to drain Sources on a `tick()`. *When* to tick is left to a
  * driver — call `tick()` manually, from a reactive observer, or use {@link TimedCoreLoop} for a clock.
- * Subclasses hook into the lifecycle via the `onStart`/`onStop` template methods.
  *
  * Generics:
  * - EventType: enum/number of Events
@@ -67,15 +74,9 @@ export class CoreLoop<
 		this.bus.dispatch(event);
 	};
 
-	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>) {
-		this.bus = (bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
+	constructor(props: TCoreLoopProps<EventType, EventMetaType> = {}) {
+		this.bus = (props.bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
 	}
-
-	/** Lifecycle hook: called at the end of {@link CoreLoop.start}, after sources are started. No-op by default. */
-	protected onStart(): void {}
-
-	/** Lifecycle hook: called at the start of {@link CoreLoop.stop}, before the bus/sources are torn down. No-op by default. */
-	protected onStop(): void {}
 
 	public getBus(): IAutomataEventBus<EventType, EventMetaType> {
 		return this.bus;
@@ -332,24 +333,16 @@ export class CoreLoop<
 		if (this.started) return this;
 		this.started = true;
 		this.bus.resume();
-
-		// Start every source registered before the loop was running, then hand off to the driver hook.
 		this.sources.forEach(s => s.start());
-		this.onStart();
-
 		return this;
 	}
 
 	public stop(): this {
 		if (!this.started) return this;
 		this.started = false;
-
-		// Stop the driver first, then pause the bus and tear down sources/destinations.
-		this.onStop();
 		this.bus.pause();
 		this.sources.forEach(s => s.stop());
 		this.destinations.forEach(d => d.unsub());
-
 		return this;
 	}
 }

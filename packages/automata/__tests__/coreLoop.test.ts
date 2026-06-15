@@ -146,7 +146,8 @@ implements IAutomata<
 	}
 
 	// Dispatch transitions S1 -> S2 and store last action
-	dispatch(action: TAutomataActionPayload<UActions, Record<UActions, any>>): TAutomataStateContext<UStates, Record<UStates, any>> {
+	dispatch(action: TAutomataActionPayload<UActions, Record<UActions, any>>):
+	TAutomataStateContext<UStates, Record<UStates, any>> {
 		this.lastAction = action.action;
 		// Simulate a transition for wiring tests
 		this.state = UStates.S2;
@@ -181,7 +182,8 @@ function createSourceStub(id: string): IDataSource<UEvents, TMeta, TSrcPacket> &
  * Creates a real Data Destination (via `createDataDestinationAdapter`) that triggers on
  * EVT_OUT and calls `spy` from its selector.
  */
-function createDestinationStub(id: string, spy: (e: TAutomataEventMetaType<UEvents, TMeta>) => any): IDataDestination<UEvents, TMeta, null, { tag: string }, void> {
+function createDestinationStub(id: string, spy: (e: TAutomataEventMetaType<UEvents, TMeta>) => any):
+IDataDestination<UEvents, TMeta, null, { tag: string }, void> {
 	const Dst = createDataDestinationAdapter<UEvents, TMeta, null, { tag: string }, void>()(
 		NamedDataDestination<{ tag: string }, void>,
 	);
@@ -452,7 +454,7 @@ describe('timedCoreLoop (clock-driven)', () => {
 			stop: () => { stopped++; },
 		};
 
-		const loop = new TimedCoreLoop<UEvents, TMeta>(undefined, { clock });
+		const loop = new TimedCoreLoop<UEvents, TMeta>({ clock });
 		const bus = loop.getBus();
 
 		const src = createSourceStub('timed_src');
@@ -527,28 +529,64 @@ describe('timedCoreLoop (clock-driven)', () => {
 		}
 	});
 
-	it('repeated start()/stop() arm and disarm the clock exactly once (no double-arm leak)', () => {
+	it('createTimeoutClock.start() is leak-proof: re-arming drops the prior timer (one live chain, not N)', () => {
+		vi.useFakeTimers();
+		try {
+			let ticks = 0;
+			const clock = createTimeoutClock(33);
+
+			// Three arms without a stop in between — only the last chain must survive.
+			clock.start(() => {
+				ticks++;
+			});
+			clock.start(() => {
+				ticks++;
+			});
+			clock.start(() => {
+				ticks++;
+			});
+
+			vi.advanceTimersByTime(33);
+			expect(ticks).toBe(1); // without the clearTimeout guard this would be 3 (three orphaned chains)
+
+			clock.stop();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('idempotent: repeated start()/stop() touch the clock exactly once (clock is idempotent per ICoreLoopClock contract)', () => {
 		let starts = 0;
 		let stops = 0;
+		let clockRunning = false;
 		const clock: ICoreLoopClock = {
-			start: () => { starts++; },
-			stop: () => { stops++; },
+			start: () => {
+				if (clockRunning) return;
+				clockRunning = true;
+				starts++;
+			},
+			stop: () => {
+				if (!clockRunning) return;
+				clockRunning = false;
+				stops++;
+			},
 		};
-		const loop = new TimedCoreLoop<UEvents, TMeta>(undefined, { clock });
+		const loop = new TimedCoreLoop<UEvents, TMeta>({ clock });
 
 		loop.start();
-		loop.start(); // idempotent: must not re-arm a second clock
+		loop.start(); // gard in base: super.start() no-ops, clock.start() sees clockRunning=true
+		loop.start();
 		expect(starts).toBe(1);
 
 		loop.stop();
-		loop.stop(); // idempotent: must not stop twice
+		loop.stop(); // gard in base: super.stop() no-ops, clock.stop() sees clockRunning=false
 		expect(stops).toBe(1);
 	});
 
 	it('custom tickMs threads into the default clock', () => {
 		vi.useFakeTimers();
 		try {
-			const loop = new TimedCoreLoop<UEvents, TMeta>(undefined, { tickMs: 100 });
+			const loop = new TimedCoreLoop<UEvents, TMeta>({ tickMs: 100 });
 			const bus = loop.getBus();
 
 			const src = createSourceStub('slow_src');
