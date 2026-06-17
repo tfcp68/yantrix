@@ -1,7 +1,7 @@
 {
 	"name": "05-markov-weather",
 	"type": "module",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"private": true,
 	"description": "Markov chain weather simulation using Yantrix Python codegen",
 	"author": "",
