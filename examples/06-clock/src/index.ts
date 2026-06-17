@@ -1,5 +1,5 @@
 import {
-	CoreLoop,
+	TimedCoreLoop,
 } from '@yantrix/core';
 
 import { buildAdapter } from './clock/adapter';
@@ -14,7 +14,7 @@ import ClockAutomata from './generated/ClockAutomata';
 export function startClockCoreLoop(): void {
 	registerClockEvents();
 
-	const loop = new CoreLoop<ClockEvents, TClockMeta>();
+	const loop = new TimedCoreLoop<ClockEvents, TClockMeta>();
 	const bus = loop.getBus();
 
 	const adapter = buildAdapter();
@@ -31,13 +31,8 @@ export function startClockCoreLoop(): void {
 	loop.registerSource(src);
 
 	const unbindUi = bindUiRenderer(bus, automata);
-	const domSource = createDomSource();
 
-	loop.registerSource({
-		id: domSource.id,
-		start: publish => domSource.start(publish),
-		stop: () => domSource.stop(),
-	});
+	loop.registerSource(createDomSource());
 
 	const unbindControl = bindControl(bus, automata, adapter, timers);
 

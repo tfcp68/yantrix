@@ -11,7 +11,7 @@ type TCoreLoopProviderProps = {
 export const CoreLoopProvider = ({ bus, children }: TCoreLoopProviderProps) => {
 	const loopRef = useRef<CoreLoop | null>(null);
 	if (!loopRef.current) {
-		loopRef.current = new CoreLoop(bus);
+		loopRef.current = new CoreLoop({ bus });
 		loopRef.current.start();
 	}
 	return (

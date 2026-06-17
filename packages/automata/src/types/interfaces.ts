@@ -832,6 +832,11 @@ export interface IAgnosticDataSource<
 	DataPacketType = any,
 > extends TCycleIteratorInfo {
 	/**
+	 * Stable identifier for this source. Used by consumers (e.g. CoreLoop) to key the registry.
+	 */
+	readonly id: string;
+
+	/**
 	 * Start/resume data emission
 	 * @returns This data source instance
 	 */
@@ -919,6 +924,11 @@ export interface IAgnosticDataDestination<
 	ResolveResultType = void,
 	ErrorType = Error,
 > extends TCycleIteratorInfo {
+	/**
+	 * Stable identifier for this destination. Used by consumers (e.g. CoreLoop) to key the registry.
+	 */
+	readonly id: string;
+
 	/**
 	 * Start/resume data processing
 	 * @returns This destination instance

@@ -1,11 +1,12 @@
 import {
 	AutomataEventAdapter,
-	CoreLoop,
-	createHTTPRequestAdapter,
+	createDataSourceAdapter,
+	createPromiseDataAdapter,
 	IAutomataEventBus,
+	IDataSource,
+	NamedDataSource,
 	TAutomataEventMetaType,
-	THTTPRequestAdapterOutput,
-	uniqId,
+	TimedCoreLoop,
 } from '@yantrix/core';
 import {
 	registerWeatherEvents,
@@ -129,12 +130,17 @@ function bindUiRenderer(
 
 /**
  * DOM source: converts user interactions into EventBus events.
+ *
+ * A real `IDataSource`: each DOM event is enqueued as a packet via `emit(...)`, and CoreLoop drains
+ * the source (woken by the inherited notifier) and publishes the events. No `publish` callback, no
+ * hand-rolled bridge.
  */
-function createDomSource(): {
-	start: (publish: (e: TAutomataEventMetaType<WeatherEvents, TWeatherMeta>) => void) => void;
-	stop: () => void;
-} {
-	const listeners: Array<() => void> = [];
+type TDomPacket = { ev: TAutomataEventMetaType<WeatherEvents, TWeatherMeta> };
+
+function createDomSource(): IDataSource<WeatherEvents, TWeatherMeta, TDomPacket> {
+	const DomSourceBase = createDataSourceAdapter<WeatherEvents, TWeatherMeta, TDomPacket>()(
+		NamedDataSource<TDomPacket>,
+	);
 
 	function parseCoord(v: string): number | null {
 		const n = Number(String(v).trim());
@@ -143,17 +149,25 @@ function createDomSource(): {
 		return n;
 	}
 
-	function on<K extends keyof HTMLElementEventMap>(
-		el: HTMLElement,
-		type: K,
-		cb: (ev: HTMLElementEventMap[K]) => void,
-	) {
-		el.addEventListener(type, cb as any);
-		listeners.push(() => el.removeEventListener(type, cb as any));
-	}
+	class DomSource extends DomSourceBase {
+		private domListeners: Array<() => void> = [];
 
-	return {
-		start(publish) {
+		private emitEvent(ev: TAutomataEventMetaType<WeatherEvents, TWeatherMeta>): void {
+			this._addDataPacket({ ev });
+		}
+
+		private on<K extends keyof HTMLElementEventMap>(
+			el: HTMLElement,
+			type: K,
+			cb: (ev: HTMLElementEventMap[K]) => void,
+		): void {
+			el.addEventListener(type, cb as any);
+			this.domListeners.push(() => el.removeEventListener(type, cb as any));
+		}
+
+		override start(): this {
+			super.start();
+
 			Object.keys(CITIES).forEach((name) => {
 				if ([...citySelect.options].some(o => o.value === name)) return;
 				const option = document.createElement('option');
@@ -162,7 +176,7 @@ function createDomSource(): {
 				citySelect.appendChild(option);
 			});
 
-			on(citySelect, 'change', () => {
+			this.on(citySelect, 'change', () => {
 				const name = citySelect.value || null;
 				let coords: TCityCoords | null = null;
 				if (name && CITIES[name]) {
@@ -171,31 +185,31 @@ function createDomSource(): {
 					lonInput.value = String(c.lon);
 					coords = { lat: c.lat, lon: c.lon };
 				}
-				publish({ event: WeatherEvents.UI_SELECT_CITY, meta: { city: name, coords } });
+				this.emitEvent({ event: WeatherEvents.UI_SELECT_CITY, meta: { city: name, coords } });
 			});
 
-			on(latInput, 'input', () => {
+			this.on(latInput, 'input', () => {
 				const latVal = latInput.value.trim();
 				const lonVal = lonInput.value.trim();
 				const coords = (latVal === '' || lonVal === '') ? null : { lat: latVal, lon: lonVal };
-				publish({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords } });
+				this.emitEvent({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords } });
 			});
 
-			on(lonInput, 'input', () => {
+			this.on(lonInput, 'input', () => {
 				const latVal = lonInput.value.trim();
 				const lonVal = lonInput.value.trim();
 				const coords = (latVal === '' || lonVal === '') ? null : { lat: latVal, lon: lonVal };
-				publish({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords } });
+				this.emitEvent({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords } });
 			});
 
-			on(latInput, 'focus', () => {
-				publish({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords: null } });
+			this.on(latInput, 'focus', () => {
+				this.emitEvent({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords: null } });
 			});
-			on(lonInput, 'focus', () => {
-				publish({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords: null } });
+			this.on(lonInput, 'focus', () => {
+				this.emitEvent({ event: WeatherEvents.UI_INPUT_CHANGED, meta: { coords: null } });
 			});
 
-			on(fillBtn, 'click', () => {
+			this.on(fillBtn, 'click', () => {
 				const lat = Number.parseFloat(latInput.value);
 				const lon = Number.parseFloat(lonInput.value);
 				let label: string | null = null;
@@ -208,24 +222,33 @@ function createDomSource(): {
 					citySelect.value = '';
 					label = null;
 				}
-				publish({ event: WeatherEvents.UI_SELECT_CITY, meta: {
+				this.emitEvent({ event: WeatherEvents.UI_SELECT_CITY, meta: {
 					city: label,
 					coords: label ? CITIES[label] : null,
 				} });
 			});
 
-			on(submitBtn, 'click', () => {
+			this.on(submitBtn, 'click', () => {
 				const lat = parseCoord(latInput.value);
 				const lon = parseCoord(lonInput.value);
 				const city = citySelect.value || null;
 				if (lat == null || lon == null || city == null) return;
-				publish({ event: WeatherEvents.UI_SUBMIT, meta: { coords: { lat, lon }, city } });
+				this.emitEvent({ event: WeatherEvents.UI_SUBMIT, meta: { coords: { lat, lon }, city } });
 			});
-		},
-		stop() {
-			listeners.splice(0).forEach(un => un());
-		},
-	};
+
+			return this;
+		}
+
+		override stop(): this {
+			this.domListeners.splice(0).forEach(un => un());
+			return super.stop();
+		}
+	}
+
+	const src = new DomSource({ id: 'dom_source' });
+	// Identity transform: each enqueued DOM event becomes a single published event.
+	src.addListener('emit', (p: TDomPacket) => [p.ev]);
+	return src as unknown as IDataSource<WeatherEvents, TWeatherMeta, TDomPacket>;
 }
 
 /**
@@ -297,150 +320,84 @@ async function ensureMinDuration(startTs: number, minMs: number) {
 	if (elapsed < minMs) await sleep(minMs - elapsed);
 }
 
-/**
- * Request mapper for createHTTPRequestAdapter:
- */
-function mapFetchWeatherRequest(
-	event: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>,
-): (RequestInit & { url: string }) | null {
-	const lat = event?.meta?.coords?.lat;
-	const lon = event?.meta?.coords?.lon;
-	if (lat == null || lon == null) return null;
-	return {
-		method: 'GET',
-		url: `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(
-			lat,
-		)}&longitude=${encodeURIComponent(lon)}&current_weather=true&timezone=UTC`,
-	};
-}
+const MIN_PENDING_MS = 1000;
+
+/** Input the resolver receives: validated coordinates extracted from FETCH_WEATHER. */
+type TFetchInput = { lat: number; lon: number };
+
+/** Discriminated resolver output — never rejects, so a response event is always emitted. */
+type TFetchOutput =
+	| { ok: true; data: { temp: number | null; place: string; time: string; lat: number | null; lon: number | null } }
+	| { ok: false; error: string };
 
 /**
- * Binds HTTP DataSource/DataDestination adapters to the EventBus:
+ * Weather HTTP adapter as a native `createPromiseDataAdapter`:
+ *  - request: FETCH_WEATHER → `TFetchInput`
+ *  - resolver: async fetch + JSON parse → `TFetchOutput` (resolved or rejected shape)
+ *  - response: `TFetchOutput` → WEATHER_RESOLVED / WEATHER_REJECTED
+ *
+ * Returns `[IDataSource, IDataDestination]` that register directly with CoreLoop — no manual
+ * `bus.subscribe`, no `requestEmitter()` polling, no `sleep(10)` loop. The loop pumps the source
+ * (woken by the resolver pushing its result) and emits the follow-up event.
  */
-function bindHttpWeatherAdapter(bus: IAutomataEventBus<WeatherEvents, TWeatherMeta>): () => void {
-	const MIN_PENDING_MS = 1000;
-
-	const [source, destination] = createHTTPRequestAdapter<WeatherEvents, TWeatherMeta>({
-		routes: {
-			[WeatherEvents.FETCH_WEATHER]: [mapFetchWeatherRequest as any, () => []],
+function createWeatherHttpAdapter() {
+	return createPromiseDataAdapter<WeatherEvents, TWeatherMeta, TFetchInput, TFetchOutput>({
+		id: 'weather_http',
+		requestEvents: [WeatherEvents.FETCH_WEATHER],
+		requestMapper: (event) => {
+			const meta = event?.meta as TWeatherMeta[WeatherEvents.FETCH_WEATHER] | undefined;
+			const lat = meta?.coords?.lat;
+			const lon = meta?.coords?.lon;
+			if (lat == null || lon == null) return null;
+			return { lat: Number(lat), lon: Number(lon) };
 		},
-	});
-
-	// Bus subscription to requests: forward the event to Destination
-	const fetchHandler = (ev: TAutomataEventMetaType<WeatherEvents.FETCH_WEATHER, TWeatherMeta>) => {
-		destination.update(ev, null);
-	};
-
-	// Start adapters
-	source.start();
-	destination.start();
-	bus.subscribe(WeatherEvents.FETCH_WEATHER, fetchHandler as any);
-
-	let canceled = false;
-
-	// Unified loop for processing results/errors
-	(async () => {
-		const emitter = destination.requestEmitter();
-		for (;;) {
-			if (canceled) break;
-			const next = emitter.next();
-			const packet = next.value as
-				| {
-					data:
-					{
-						request: RequestInit & {
-							url: string;
-						};
-						event_id: WeatherEvents;
-					};
-					result: THTTPRequestAdapterOutput | null;
-					error?: any;
-				}
-				| null;
-
-			if (!packet) {
-				await sleep(10);
-				continue;
-			}
-
+		resolver: async (input): Promise<TFetchOutput> => {
 			const started = nowMs();
-
-			// Request error
-			if (packet?.error) {
-				await ensureMinDuration(started, MIN_PENDING_MS);
-				bus.dispatch({
-					event: WeatherEvents.WEATHER_REJECTED,
-					meta: { error: String(packet.error?.message ?? packet.error ?? 'Request failed') },
-				});
-				continue;
-			}
-
 			try {
-				const resp = packet?.result?.response;
-				if (!resp) {
-					await ensureMinDuration(started, MIN_PENDING_MS);
-					bus.dispatch({
-						event: WeatherEvents.WEATHER_REJECTED,
-						meta: { error: 'Empty response' },
-					});
-					continue;
-				}
+				const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(
+					input.lat,
+				)}&longitude=${encodeURIComponent(input.lon)}&current_weather=true&timezone=UTC`;
+				const resp = await fetch(url);
 				if (resp.status !== 200) {
 					await ensureMinDuration(started, MIN_PENDING_MS);
-					bus.dispatch({
-						event: WeatherEvents.WEATHER_REJECTED,
-						meta: { error: `HTTP Error ${resp.status}: ${resp.statusText}` },
-					});
-					continue;
+					return { ok: false, error: `HTTP Error ${resp.status}: ${resp.statusText}` };
 				}
 				const data = await resp.json();
-
 				const lat = Number(data?.latitude ?? Number.NaN);
 				const lon = Number(data?.longitude ?? Number.NaN);
 				const temp = data?.current_weather?.temperature ?? null;
 				const time = data?.current_weather?.time ?? new Date().toISOString();
-
 				const place
 					= Number.isFinite(lat) && Number.isFinite(lon)
 						? `${lat.toFixed(4)}, ${lon.toFixed(4)}`
 						: '—';
-
 				await ensureMinDuration(started, MIN_PENDING_MS);
-
-				bus.dispatch({
-					event: WeatherEvents.WEATHER_RESOLVED,
-					meta: {
-						data: {
-							temp,
-							place,
-							time,
-							lat: Number.isFinite(lat) ? lat : null,
-							lon: Number.isFinite(lon) ? lon : null,
-						},
+				return {
+					ok: true,
+					data: {
+						temp,
+						place,
+						time,
+						lat: Number.isFinite(lat) ? lat : null,
+						lon: Number.isFinite(lon) ? lon : null,
 					},
-				});
+				};
 			} catch (e: any) {
 				await ensureMinDuration(started, MIN_PENDING_MS);
-				bus.dispatch({
-					event: WeatherEvents.WEATHER_REJECTED,
-					meta: { error: String(e?.message ?? e) },
-				});
+				return { ok: false, error: String(e?.message ?? e) };
 			}
-		}
-	})().catch(console.error);
-
-	return () => {
-		canceled = true;
-		bus.unsubscribe(WeatherEvents.FETCH_WEATHER, fetchHandler as any);
-		source.stop();
-		destination.stop();
-	};
+		},
+		responseMapper: out =>
+			out.ok
+				? [{ event: WeatherEvents.WEATHER_RESOLVED, meta: { data: out.data } }]
+				: [{ event: WeatherEvents.WEATHER_REJECTED, meta: { error: out.error } }],
+	});
 }
 
 export function startWeatherCoreLoop(): void {
 	registerWeatherEvents();
 
-	const loop = new CoreLoop<WeatherEvents, TWeatherMeta>();
+	const loop = new TimedCoreLoop<WeatherEvents, TWeatherMeta>();
 	const bus = loop.getBus();
 
 	const automata = new WeatherReportAutomata();
@@ -448,21 +405,19 @@ export function startWeatherCoreLoop(): void {
 
 	loop.registerAutomata(automata, adapter);
 
-	const unbindHttp = bindHttpWeatherAdapter(bus);
+	// HTTP I/O — both halves register directly; follow-up events flow through the loop.
+	const [httpSource, httpDestination] = createWeatherHttpAdapter();
+	loop.registerSource(httpSource);
+	loop.registerDestination(httpDestination);
 
 	const unbindUi = bindUiRenderer(bus, automata);
 
-	const domSource = createDomSource();
+	// DOM input as a native source.
+	loop.registerSource(createDomSource());
+
 	loop.start();
 
-	loop.registerSource({
-		id: uniqId(),
-		start: publish => domSource.start(publish),
-		stop: () => domSource.stop(),
-	});
-
 	(window as any).stopWeatherDemo = () => {
-		unbindHttp();
 		unbindUi();
 		loop.stop();
 	};

@@ -1,15 +1,19 @@
 import AutomataEventAdapter from './EventAdapter';
 import BasicEventBus from './EventBus';
 import {
-	IEventDestination,
-	IEventSource,
 	TAutomataBaseActionType,
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
 	TAutomataEventMetaType,
 	TAutomataEventStack,
 } from './types';
-import { IAutomata, IAutomataEventAdapter, IAutomataEventBus } from './types/interfaces';
+import {
+	IAutomata,
+	IAutomataEventAdapter,
+	IAutomataEventBus,
+	IDataDestination,
+	IDataSource,
+} from './types/interfaces';
 
 type TUnsub = () => void;
 
@@ -23,21 +27,23 @@ type TRegisteredDestination = {
 	unsub: TUnsub;
 };
 
-type TRegisteredSource = {
-	id: string;
-	stop: () => void;
+/** Constructor props for {@link CoreLoop}. Subclasses extend this (e.g. {@link TimedCoreLoop}). */
+export type TCoreLoopProps<
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = {
+	bus?: IAutomataEventBus<EventType, EventMetaType>;
 };
+
 /**
- * CoreLoop is a minimal main-loop that connects:
+ * CoreLoop is the main loop that connects:
  * - an Event Bus (pub/sub for Events),
  * - one or more FSMs (IAutomata) through an Event Adapter,
- * - Sources (producers of Events),
- * - Destinations (consumers of Events).
+ * - Sources (`IDataSource`, producers of Events),
+ * - Destinations (`IDataDestination`, consumers of Events).
  *
- * Responsibilities:
- * - Subscribe the adapter to observed Events and dispatch mapped Actions to the FSM.
- * - After each FSM transition, translate emitted Events via the adapter and re-dispatch them to the Event Bus.
- * - Manage lifecycle (start/stop) of Sources and Destinations.
+ * Driver-agnostic: the loop only knows how to drain Sources on a `tick()`. *When* to tick is left to a
+ * driver — call `tick()` manually, from a reactive observer, or use {@link TimedCoreLoop} for a clock.
  *
  * Generics:
  * - EventType: enum/number of Events
@@ -47,10 +53,19 @@ export class CoreLoop<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > {
+	/** Hard cap on the per-drain pull loop; protects against a misbehaving source generator. */
+	private static readonly DRAIN_GUARD = 10_000;
+
 	private readonly bus: IAutomataEventBus<EventType, EventMetaType>;
 	private readonly automata: Map<string, TRegisteredAutomata> = new Map();
 	private readonly destinations: Map<string, TRegisteredDestination> = new Map();
-	private readonly sources: Map<string, TRegisteredSource> = new Map();
+	private readonly sources: Map<string, {
+		id: string;
+		src: IDataSource<EventType, EventMetaType, any>;
+		start: () => void;
+		stop: () => void;
+	}> = new Map();
+
 	private started = false;
 
 	protected readonly publishToBus = (
@@ -59,8 +74,8 @@ export class CoreLoop<
 		this.bus.dispatch(event);
 	};
 
-	constructor(bus?: IAutomataEventBus<EventType, EventMetaType>) {
-		this.bus = (bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
+	constructor(props: TCoreLoopProps<EventType, EventMetaType> = {}) {
+		this.bus = (props.bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
 	}
 
 	public getBus(): IAutomataEventBus<EventType, EventMetaType> {
@@ -166,11 +181,17 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Registers a Source. The Source is started immediately if the loop is already running.
-	 * Note: This method treats the passed-in object as immutable and does NOT mutate src.id.
-	 * Non-empty src. Id is required.
+	 * Registers a Source (`IDataSource`). The Source only enqueues packets; the loop pulls them on each
+	 * tick (`tick()` -> `drainSource`). The Source is started immediately if the loop is already
+	 * running; otherwise it is started by {@link CoreLoop.start}.
+	 *
+	 * @param src Data Source to register; must expose a non-empty string id.
+	 * @throws Error if id is empty or already registered.
+	 * @returns This CoreLoop instance for chaining.
 	 */
-	public registerSource(src: IEventSource<EventType, EventMetaType>): this {
+	public registerSource<DataPacketType = unknown>(
+		src: IDataSource<EventType, EventMetaType, DataPacketType>,
+	): this {
 		if (!src.id || src.id.length === 0) {
 			throw new Error('Source must provide a non-empty string id');
 		}
@@ -180,16 +201,38 @@ export class CoreLoop<
 			throw new Error(`Source with id "${id}" already registered`);
 		}
 
-		if (this.started) {
-			src.start(this.publishToBus);
-		}
-
 		this.sources.set(id, {
 			id,
+			src: src as IDataSource<EventType, EventMetaType, any>,
+			start: () => src.start(),
 			stop: () => src.stop(),
 		});
 
+		if (this.started) src.start();
+
 		return this;
+	}
+
+	/**
+	 * One pump cycle: drain every active Source's `eventEmitter()` into the bus. Public so the loop can
+	 * be driven deterministically in tests (or manually) instead of by the clock.
+	 */
+	public tick(): void {
+		this.sources.forEach(s => this.drainSource(s.src));
+	}
+
+	/**
+	 * Pull every queued event-stack from the source's `eventEmitter()` and publish each event to the
+	 * bus. The generator yields `[]` once the queue is empty, which terminates the loop.
+	 */
+	private drainSource(src: IDataSource<EventType, EventMetaType, any>): void {
+		if (!src.isActive()) return;
+		const events = src.eventEmitter();
+		for (let i = 0; i < CoreLoop.DRAIN_GUARD; i++) {
+			const { value } = events.next();
+			if (!value || value.length === 0) break;
+			for (const event of value) this.publishToBus(event);
+		}
 	}
 
 	/**
@@ -212,13 +255,25 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Registers a Destination. Destination is responsible for its own subscriptions via bind().
+	 * Registers a Destination (`IDataDestination`). The loop subscribes each of the Destination's
+	 * bound events (`getBoundEvents()`) to the bus and forwards matching events through
+	 * `update(event)`, where the Destination's selector + resolver pipeline takes over.
 	 *
-	 * @param dst Destination to register
-	 * @throws Error if a Destination with the same id is already registered
+	 * Follow-up events (if any) are emitted by a paired Data Source (see `createPromiseDataAdapter`),
+	 * which the loop pumps on its tick — not via the bus handler's `result`.
+	 *
+	 * @param dst Destination to register; must expose a non-empty string id.
+	 * @throws Error if id is empty or already registered.
 	 * @returns This CoreLoop instance for chaining.
 	 */
-	public registerDestination(dst: IEventDestination<EventType, EventMetaType>): this {
+	public registerDestination<
+		DataModel extends object | null = object | null,
+		DataPacketType extends object = object,
+		ResolveResultType = any,
+		ErrorType = Error,
+	>(
+		dst: IDataDestination<EventType, EventMetaType, DataModel, DataPacketType, ResolveResultType, ErrorType>,
+	): this {
 		if (!dst.id || dst.id.length === 0) {
 			throw new Error('Destination must provide a non-empty string id');
 		}
@@ -226,7 +281,31 @@ export class CoreLoop<
 
 		if (this.destinations.has(id)) throw new Error(`Destination with id "${id}" already registered`);
 
-		const unsub = dst.bind(this.bus);
+		// Wildcard (null) bound events are not supported here; bind explicit event ids only.
+		const boundEvents = dst
+			.getBoundEvents()
+			.filter((event): event is EventType => event !== null);
+
+		const handler = (raw: TAutomataEventMetaType<EventType, EventMetaType>) => {
+			dst.update(raw);
+			return {
+				event: raw.event,
+				meta: raw.meta ?? null,
+				task_id: `dst_${id}_${String(raw.event)}`,
+				// Synchronous handler: no in-band follow-up. Any response event is emitted later
+				// by the destination's paired Data Source, drained by the loop on its tick.
+				result: null,
+			};
+		};
+
+		for (const event of boundEvents) this.bus.subscribe(event, handler);
+		dst.start();
+
+		const unsub = () => {
+			for (const event of boundEvents) this.bus.unsubscribe(event, handler);
+			dst.stop();
+		};
+
 		this.destinations.set(id, { id, unsub });
 		return this;
 	}
@@ -235,7 +314,7 @@ export class CoreLoop<
 	 * Unregisters a previously registered Destination by id.
 	 *
 	 * Behavior:
-	 * - Invokes the unsubscription function returned by Destination.bind().
+	 * - Unsubscribes the destination's bus handlers and stops it.
 	 * - Removes the destination from the registry. No-op if not found.
 	 *
 	 * @param id Destination identifier assigned on registration.
@@ -254,7 +333,7 @@ export class CoreLoop<
 		if (this.started) return this;
 		this.started = true;
 		this.bus.resume();
-
+		this.sources.forEach(s => s.start());
 		return this;
 	}
 
@@ -262,13 +341,8 @@ export class CoreLoop<
 		if (!this.started) return this;
 		this.started = false;
 		this.bus.pause();
-
-		// Stop all sources
 		this.sources.forEach(s => s.stop());
-
-		// Unsubscribe all destinations
 		this.destinations.forEach(d => d.unsub());
-
 		return this;
 	}
 }

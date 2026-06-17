@@ -3,16 +3,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	AutomataEventAdapter,
 	CoreLoop,
+	createDataDestinationAdapter,
+	createDataSourceAdapter,
+	createPromiseDataAdapter,
+	createTimeoutClock,
+	DEFAULT_TICK_MS,
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
-	IEventDestination,
-	IEventSource,
+	ICoreLoopClock,
+	IDataDestination,
+	IDataSource,
+	NamedDataDestination,
+	NamedDataSource,
 	TAutomataActionPayload,
 	TAutomataBaseEventType,
 	TAutomataEventMetaType,
 	TAutomataStateContext,
-	TEventBusTask,
+	TimedCoreLoop,
 } from '../../automata/src';
 
 /**
@@ -138,7 +146,8 @@ implements IAutomata<
 	}
 
 	// Dispatch transitions S1 -> S2 and store last action
-	dispatch(action: TAutomataActionPayload<UActions, Record<UActions, any>>): TAutomataStateContext<UStates, Record<UStates, any>> {
+	dispatch(action: TAutomataActionPayload<UActions, Record<UActions, any>>):
+	TAutomataStateContext<UStates, Record<UStates, any>> {
 		this.lastAction = action.action;
 		// Simulate a transition for wiring tests
 		this.state = UStates.S2;
@@ -147,41 +156,43 @@ implements IAutomata<
 	}
 }
 
+type TSrcPacket = { n: number };
+
 /**
- * Creates a simple Source stub with explicit id and observable started flag.
+ * Creates a real Data Source (via `createDataSourceAdapter`) with an explicit id.
+ * Lifecycle is observed through `isActive()`; `push(n)` enqueues a packet that the
+ * source's listener maps to an EVT_OUT event.
  */
-function createSourceStub(id: string, onStart?: (publish: (e: TAutomataEventMetaType<UEvents, TMeta>) => void) => void): IEventSource<UEvents, TMeta> & { started: boolean } {
-	let started = false;
-	return {
+function createSourceStub(id: string): IDataSource<UEvents, TMeta, TSrcPacket> & { push: (n?: number) => void } {
+	const Src = createDataSourceAdapter<UEvents, TMeta, TSrcPacket>()(NamedDataSource<TSrcPacket>);
+	let setter: ((p: TSrcPacket) => void) | null = null;
+	const src = new Src({
 		id,
-		get started() {
-			return started;
+		afterInit: (_id, s) => {
+			if (s) setter = s as (p: TSrcPacket) => void;
 		},
-		start: (publish) => {
-			started = true;
-			if (onStart) onStart(publish);
-		},
-		stop: () => {
-			started = false;
-		},
-	};
+	});
+	src.addListener('emit', () => [{ event: UEvents.EVT_OUT, meta: {} }]);
+	return Object.assign(src, {
+		push: (n = 1) => setter?.({ n }),
+	}) as IDataSource<UEvents, TMeta, TSrcPacket> & { push: (n?: number) => void };
 }
 
 /**
- * Creates a simple Destination stub that subscribes to EVT_OUT and calls spy.
+ * Creates a real Data Destination (via `createDataDestinationAdapter`) that triggers on
+ * EVT_OUT and calls `spy` from its selector.
  */
-function createDestinationStub(id: string, spy: (e: TAutomataEventMetaType<UEvents, TMeta>) => any): IEventDestination<UEvents, TMeta> {
-	return {
-		id,
-		bind: (bus: IAutomataEventBus<UEvents, TMeta>) => {
-			const handler = (e: TAutomataEventMetaType<UEvents, TMeta>): TEventBusTask<UEvents, TMeta> => {
-				spy(e);
-				return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
-			};
-			bus.subscribe(UEvents.EVT_OUT, handler);
-			return () => bus.unsubscribe(UEvents.EVT_OUT, handler);
-		},
-	};
+function createDestinationStub(id: string, spy: (e: TAutomataEventMetaType<UEvents, TMeta>) => any):
+IDataDestination<UEvents, TMeta, null, { tag: string }, void> {
+	const Dst = createDataDestinationAdapter<UEvents, TMeta, null, { tag: string }, void>()(
+		NamedDataDestination<{ tag: string }, void>,
+	);
+	const dst = new Dst({ id, resolver: async () => undefined });
+	dst.createTrigger([UEvents.EVT_OUT], (event: TAutomataEventMetaType<UEvents, TMeta>) => {
+		spy(event);
+		return { tag: 'x' };
+	});
+	return dst as unknown as IDataDestination<UEvents, TMeta, null, { tag: string }, void>;
 }
 
 describe('coreLoop unit tests (with stubbed Automata)', () => {
@@ -249,23 +260,23 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	});
 
 	it('registers/unregisters Sources with explicit ids and respects start/stop lifecycle', () => {
-		// Register before start -> should NOT be auto-started per contract
+		// Register before start -> not yet active
 		const srcA = createSourceStub('srcA');
 		loop.registerSource(srcA);
-		expect(srcA.started).toBe(false);
+		expect(srcA.isActive()).toBe(false);
 
 		loop.start();
-		// Source registered before start is not auto-started
-		expect(srcA.started).toBe(false);
+		// Source registered before start IS started by loop.start() (fixes prior latent no-start behavior)
+		expect(srcA.isActive()).toBe(true);
 
 		// Register after start -> started immediately
 		const srcB = createSourceStub('srcB');
 		loop.registerSource(srcB);
-		expect(srcB.started).toBe(true);
+		expect(srcB.isActive()).toBe(true);
 
 		// Stop loop -> all sources should be stopped
 		loop.stop();
-		expect(srcB.started).toBe(false);
+		expect(srcB.isActive()).toBe(false);
 
 		// Duplicate id should throw
 		loop.start();
@@ -341,10 +352,334 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 	});
 
 	it('rejects registering sources/destinations without non-empty ids', () => {
-		const badSrc = { id: '', start: () => {}, stop: () => {} } as unknown as IEventSource<UEvents, TMeta>;
+		const badSrc = { id: '' } as unknown as IDataSource<UEvents, TMeta>;
 		expect(() => loop.registerSource(badSrc)).toThrow();
 
-		const badDst = { id: '', bind: () => () => {} } as unknown as IEventDestination<UEvents, TMeta>;
+		const badDst = { id: '' } as unknown as IDataDestination<UEvents, TMeta>;
 		expect(() => loop.registerDestination(badDst)).toThrow();
+	});
+
+	it('createPromiseDataAdapter: register both halves; request → resolver → response reaches the bus on a tick', async () => {
+		const [source, destination] = createPromiseDataAdapter<
+			UEvents,
+			TMeta,
+			{ n: number },
+			{ doubled: number }
+		>({
+			id: 'promise_adapter',
+			requestEvents: [UEvents.EVT_IN],
+			requestMapper: e => ({ n: (e.meta as TMeta[UEvents.EVT_IN])?.n ?? 0 }),
+			resolver: async data => ({ doubled: data.n * 2 }),
+			responseMapper: () => [{ event: UEvents.EVT_OUT, meta: {} }],
+		});
+
+		loop.registerSource(source);
+		loop.registerDestination(destination);
+		loop.start();
+
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		bus.dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, { n: 21 }));
+		await new Promise(r => setTimeout(r, 0));
+		loop.tick();
+
+		expect(seen).toContain(UEvents.EVT_OUT);
+	});
+
+	it('a source push is drained to the bus on a tick', () => {
+		const src = createSourceStub('tick_src');
+		loop.registerSource(src);
+		loop.start();
+
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		src.push(1);
+		loop.tick();
+
+		expect(seen).toEqual([UEvents.EVT_OUT]);
+	});
+
+	it('a push between ticks waits in the queue and is delivered on the next tick (pull semantics)', () => {
+		const src = createSourceStub('pull_src');
+		loop.registerSource(src);
+		loop.start();
+
+		let seen = 0;
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen++;
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		src.push(1);
+		expect(seen).toBe(0);
+
+		loop.tick();
+		expect(seen).toBe(1);
+	});
+
+	it('multiple pushes are all drained in a single tick', () => {
+		const src = createSourceStub('burst_src');
+		loop.registerSource(src);
+		loop.start();
+
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		src.push(1);
+		src.push(2);
+		src.push(3);
+		loop.tick();
+
+		expect(seen.length).toBe(3);
+	});
+});
+
+describe('timedCoreLoop (clock-driven)', () => {
+	it('start() arms the clock with tick(); the armed callback drains a source; stop() disarms', () => {
+		let armed: (() => void) | null = null;
+		let stopped = 0;
+		const clock: ICoreLoopClock = {
+			start: (cb) => { armed = cb; },
+			stop: () => { stopped++; },
+		};
+
+		const loop = new TimedCoreLoop<UEvents, TMeta>({ clock });
+		const bus = loop.getBus();
+
+		const src = createSourceStub('timed_src');
+		loop.registerSource(src);
+		loop.start();
+
+		// start() registered the clock callback but did not tick yet.
+		expect(armed).toBeTypeOf('function');
+
+		const seen: (UEvents | null)[] = [];
+		bus.subscribe(UEvents.EVT_OUT, (e) => {
+			seen.push(e.event);
+			return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+		});
+
+		// Firing the armed callback (what the real clock does each tick) drains the queued push.
+		src.push(1);
+		armed!();
+		expect(seen).toEqual([UEvents.EVT_OUT]);
+
+		loop.stop();
+		expect(stopped).toBe(1);
+	});
+
+	it('stop() halts the real timer chain — tick() stops firing after stop() (no zombie clock)', () => {
+		vi.useFakeTimers();
+		try {
+			// Real default clock (createTimeoutClock), not an injected fake
+			const loop = new TimedCoreLoop<UEvents, TMeta>();
+			const tickSpy = vi.spyOn(loop, 'tick');
+			loop.start();
+
+			vi.advanceTimersByTime(DEFAULT_TICK_MS * 3);
+			const ticksWhileRunning = tickSpy.mock.calls.length;
+			expect(ticksWhileRunning).toBeGreaterThanOrEqual(1); // the clock really fired
+
+			loop.stop();
+			vi.advanceTimersByTime(DEFAULT_TICK_MS * 10);
+			// The setTimeout chain must be dead after stop(): not a single extra tick.
+			expect(tickSpy).toHaveBeenCalledTimes(ticksWhileRunning);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('createTimeoutClock catch-up: an overrunning tick reschedules with delay 0, a fast one with tickMs', () => {
+		vi.useFakeTimers();
+		try {
+			const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+			const clock = createTimeoutClock(33);
+
+			let overrun = true;
+			clock.start(() => {
+				if (overrun) {
+					overrun = false;
+					// Simulate a tick that overruns its 33ms budget by taking 50ms.
+					vi.setSystemTime(Date.now() + 50);
+				}
+			});
+
+			// Fire the first tick (scheduled at 33ms): it overruns, so the next delay clamps to 0
+			// (catch-up); the following fast tick reschedules with the full 33ms again.
+			vi.advanceTimersByTime(33);
+
+			const delays = setTimeoutSpy.mock.calls.map(c => c[1]);
+			expect(delays).toContain(0); // load-bearing: catch-up clamps elapsed(50) > tickMs(33) to max(0, -17) = 0
+			expect(delays.every(d => d === 0)).toBe(false); // and it does NOT collapse to 0 forever — steady cadence is tickMs
+
+			clock.stop();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('createTimeoutClock.start() is leak-proof: re-arming drops the prior timer (one live chain, not N)', () => {
+		vi.useFakeTimers();
+		try {
+			let ticks = 0;
+			const clock = createTimeoutClock(33);
+
+			// Three arms without a stop in between — only the last chain must survive.
+			clock.start(() => {
+				ticks++;
+			});
+			clock.start(() => {
+				ticks++;
+			});
+			clock.start(() => {
+				ticks++;
+			});
+
+			vi.advanceTimersByTime(33);
+			expect(ticks).toBe(1); // without the clearTimeout guard this would be 3 (three orphaned chains)
+
+			clock.stop();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('no timer leak: outstanding setTimeout count stays at one across re-arms and drops to zero on stop', () => {
+		vi.useFakeTimers();
+		try {
+			const clock = createTimeoutClock(33);
+			expect(vi.getTimerCount()).toBe(0); // nothing scheduled before start
+
+			clock.start(() => {});
+			expect(vi.getTimerCount()).toBe(1); // exactly one live chain
+
+			clock.start(() => {});
+			clock.start(() => {});
+			expect(vi.getTimerCount()).toBe(1); // re-arms drop the prior timer - still one, not three
+
+			// let it self-reschedule a few times — a self-scheduling clock must keep exactly one pending timer
+			vi.advanceTimersByTime(33 * 5);
+			expect(vi.getTimerCount()).toBe(1);
+
+			clock.stop();
+			expect(vi.getTimerCount()).toBe(0); // stop() fully tears the chain down - no leaked timer
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('no resurrection: stop() called from inside a tick does not reschedule a zombie chain', () => {
+		vi.useFakeTimers();
+		try {
+			const clock = createTimeoutClock(33);
+			const tick = vi.fn(() => {
+				clock.stop(); // reentrant stop, the running tick must not schedule the next timer after this
+			});
+			clock.start(tick);
+
+			vi.advanceTimersByTime(33);
+			expect(tick).toHaveBeenCalledTimes(1);
+			expect(vi.getTimerCount()).toBe(0); // must be dead — no timer rescheduled after the in-tick stop()
+
+			vi.advanceTimersByTime(33 * 100);
+			expect(tick).toHaveBeenCalledTimes(1); // truly dead, no zombie chain
+			expect(vi.getTimerCount()).toBe(0);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('createTimeoutClock rejects an async onTick — typed away at compile time, thrown at runtime', () => {
+		const clock = createTimeoutClock(33);
+		// @ts-expect-error async onTick is forbidden by the ICoreLoopClock type (its Promise return infers `never`).
+		expect(() => clock.start(async () => {})).toThrow(/synchronous/);
+	});
+
+	it('sustained run: exactly one callback per interval and never more than one pending timer', () => {
+		vi.useFakeTimers();
+		try {
+			const tick = vi.fn();
+			const clock = createTimeoutClock(33);
+			clock.start(tick);
+
+			for (let i = 1; i <= 10; i++) {
+				vi.advanceTimersByTime(33);
+				expect(tick).toHaveBeenCalledTimes(i); // one fire per interval
+				expect(vi.getTimerCount()).toBe(1); // exactly one pending timer at all times
+			}
+
+			clock.stop();
+			expect(vi.getTimerCount()).toBe(0);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('idempotent: repeated start()/stop() touch the clock exactly once (clock is idempotent per ICoreLoopClock contract)', () => {
+		let starts = 0;
+		let stops = 0;
+		let clockRunning = false;
+		const clock: ICoreLoopClock = {
+			start: () => {
+				if (clockRunning) return;
+				clockRunning = true;
+				starts++;
+			},
+			stop: () => {
+				if (!clockRunning) return;
+				clockRunning = false;
+				stops++;
+			},
+		};
+		const loop = new TimedCoreLoop<UEvents, TMeta>({ clock });
+
+		loop.start();
+		loop.start(); // gard in base: super.start() no-ops, clock.start() sees clockRunning=true
+		loop.start();
+		expect(starts).toBe(1);
+
+		loop.stop();
+		loop.stop(); // gard in base: super.stop() no-ops, clock.stop() sees clockRunning=false
+		expect(stops).toBe(1);
+	});
+
+	it('custom tickMs threads into the default clock', () => {
+		vi.useFakeTimers();
+		try {
+			const loop = new TimedCoreLoop<UEvents, TMeta>({ tickMs: 100 });
+			const bus = loop.getBus();
+
+			const src = createSourceStub('slow_src');
+			loop.registerSource(src);
+			loop.start();
+
+			const seen: (UEvents | null)[] = [];
+			bus.subscribe(UEvents.EVT_OUT, (e) => {
+				seen.push(e.event);
+				return { event: e.event, meta: e.meta, task_id: uniqId(), result: null };
+			});
+
+			src.push(1);
+			vi.advanceTimersByTime(99);
+			expect(seen).toEqual([]); // not yet — interval is 100ms
+
+			vi.advanceTimersByTime(1);
+			expect(seen).toEqual([UEvents.EVT_OUT]);
+
+			loop.stop();
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });
