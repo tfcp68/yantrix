@@ -600,6 +600,12 @@ describe('timedCoreLoop (clock-driven)', () => {
 		}
 	});
 
+	it('createTimeoutClock rejects an async onTick — typed away at compile time, thrown at runtime', () => {
+		const clock = createTimeoutClock(33);
+		// @ts-expect-error async onTick is forbidden by the ICoreLoopClock type (its Promise return infers `never`).
+		expect(() => clock.start(async () => {})).toThrow(/synchronous/);
+	});
+
 	it('sustained run: exactly one callback per interval and never more than one pending timer', () => {
 		vi.useFakeTimers();
 		try {

@@ -3,13 +3,13 @@ import {
 	TAutomataBaseEventType,
 } from './types';
 
+type TNonPromise<R> = R extends Promise<unknown> ? never : R;
+
 /**
  * A clock drives the loop, `start` registers a per-tick callback, `stop` tears it down.
- * Implementations MUST be idempotent: calling `start` when already running must not
- * start a second chain; calling `stop` when already stopped must be a no-op.
  */
 export interface ICoreLoopClock {
-	start: (onTick: () => void) => void;
+	start: <R>(onTick: () => TNonPromise<R>) => void;
 	stop: () => void;
 }
 
@@ -37,6 +37,9 @@ export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 
 	return {
 		start(cb) {
+			if (cb.constructor?.name === 'AsyncFunction') {
+				throw new TypeError('createTimeoutClock: onTick must be synchronous');
+			}
 			if (handle != null) clearTimeout(handle); // re-arm: drop prior chain
 			onTick = cb;
 			startTime = Date.now();
