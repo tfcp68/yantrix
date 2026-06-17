@@ -21,6 +21,7 @@ export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 	let onTick: (() => void) | null = null;
 	let startTime = 0;
 	let lastTickN = -1;
+	let running = false;
 
 	const loop = () => {
 		const tickN = Math.floor((Date.now() - startTime) / tickMs);
@@ -28,6 +29,7 @@ export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 			lastTickN = tickN;
 			onTick?.();
 		}
+		if (!running) return; // onTick may have called stop(): do not resurrect the chain
 		const nextTickTime = startTime + (lastTickN + 1) * tickMs;
 		const delay = Math.max(0, nextTickTime - Date.now());
 		handle = setTimeout(loop, delay);
@@ -39,9 +41,11 @@ export function createTimeoutClock(tickMs: number): ICoreLoopClock {
 			onTick = cb;
 			startTime = Date.now();
 			lastTickN = -1;
+			running = true;
 			handle = setTimeout(loop, tickMs);
 		},
 		stop() {
+			running = false;
 			if (handle != null) clearTimeout(handle);
 			handle = null;
 			onTick = null;

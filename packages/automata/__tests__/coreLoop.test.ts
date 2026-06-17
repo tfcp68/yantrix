@@ -555,6 +555,71 @@ describe('timedCoreLoop (clock-driven)', () => {
 		}
 	});
 
+	it('no timer leak: outstanding setTimeout count stays at one across re-arms and drops to zero on stop', () => {
+		vi.useFakeTimers();
+		try {
+			const clock = createTimeoutClock(33);
+			expect(vi.getTimerCount()).toBe(0); // nothing scheduled before start
+
+			clock.start(() => {});
+			expect(vi.getTimerCount()).toBe(1); // exactly one live chain
+
+			clock.start(() => {});
+			clock.start(() => {});
+			expect(vi.getTimerCount()).toBe(1); // re-arms drop the prior timer - still one, not three
+
+			// let it self-reschedule a few times — a self-scheduling clock must keep exactly one pending timer
+			vi.advanceTimersByTime(33 * 5);
+			expect(vi.getTimerCount()).toBe(1);
+
+			clock.stop();
+			expect(vi.getTimerCount()).toBe(0); // stop() fully tears the chain down - no leaked timer
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('no resurrection: stop() called from inside a tick does not reschedule a zombie chain', () => {
+		vi.useFakeTimers();
+		try {
+			const clock = createTimeoutClock(33);
+			const tick = vi.fn(() => {
+				clock.stop(); // reentrant stop, the running tick must not schedule the next timer after this
+			});
+			clock.start(tick);
+
+			vi.advanceTimersByTime(33);
+			expect(tick).toHaveBeenCalledTimes(1);
+			expect(vi.getTimerCount()).toBe(0); // must be dead — no timer rescheduled after the in-tick stop()
+
+			vi.advanceTimersByTime(33 * 100);
+			expect(tick).toHaveBeenCalledTimes(1); // truly dead, no zombie chain
+			expect(vi.getTimerCount()).toBe(0);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('sustained run: exactly one callback per interval and never more than one pending timer', () => {
+		vi.useFakeTimers();
+		try {
+			const tick = vi.fn();
+			const clock = createTimeoutClock(33);
+			clock.start(tick);
+
+			for (let i = 1; i <= 10; i++) {
+				vi.advanceTimersByTime(33);
+				expect(tick).toHaveBeenCalledTimes(i); // one fire per interval
+				expect(vi.getTimerCount()).toBe(1); // exactly one pending timer at all times
+			}
+
+			clock.stop();
+			expect(vi.getTimerCount()).toBe(0);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
 	it('idempotent: repeated start()/stop() touch the clock exactly once (clock is idempotent per ICoreLoopClock contract)', () => {
 		let starts = 0;
 		let stops = 0;
