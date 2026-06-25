@@ -608,9 +608,6 @@ importers:
       '@yantrix/core':
         specifier: workspace:^
         version: link:../core
-      '@yantrix/mermaid-parser':
-        specifier: workspace:^
-        version: link:../mermaid-parser
 
   packages/scripts:
     dependencies:
