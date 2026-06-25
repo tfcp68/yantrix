@@ -33,20 +33,24 @@
 		"build": "tsc --noEmit && tsup",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
-		"test": "vitest run --outputFile=../../test_reports/redux.md",
-		"create_test_automata": "pnpm yantrix codegen __tests__/fixtures/traffic-light.mermaid --outfile __tests__/fixtures/TrafficLightAutomata.ts --language TypeScript --className TrafficLightAutomata"
+		"test": "pnpm run generate_test_fixtures && vitest run --outputFile=../../test_reports/redux.md",
+		"generate_test_fixtures": "bash __tests__/generate_test_fixtures.sh"
 	},
 	"directories": {
 		"lib": "src",
 		"test": "__tests__"
 	},
 	"dependencies": {
-		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/automata": "workspace:^",
+		"@yantrix/utils": "workspace:^"
+	},
+	"peerDependencies": {
+		"@reduxjs/toolkit": "^2.2.7"
+	},
+	"devDependencies": {
+		"@reduxjs/toolkit": "^2.2.7",
 		"@yantrix/cli": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
-		"@yantrix/core": "workspace:^",
-		"@yantrix/functions": "workspace:^",
-		"@yantrix/utils": "workspace:^"
+		"@yantrix/core": "workspace:^"
 	}
 }

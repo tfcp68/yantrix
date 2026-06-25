@@ -561,9 +561,6 @@ importers:
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
     devDependencies:
       '@testing-library/react':
         specifier: ^14.3.1
@@ -583,15 +580,25 @@ importers:
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
 
   packages/redux:
     dependencies:
-      '@reduxjs/toolkit':
-        specifier: ^2.2.7
-        version: 2.4.0(react-redux@9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@yantrix/automata':
         specifier: workspace:^
         version: link:../automata
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../utils
+    devDependencies:
+      '@reduxjs/toolkit':
+        specifier: ^2.2.7
+        version: 2.4.0(react-redux@9.1.2(@types/react@18.3.12)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
       '@yantrix/cli':
         specifier: workspace:^
         version: link:../cli
@@ -601,12 +608,9 @@ importers:
       '@yantrix/core':
         specifier: workspace:^
         version: link:../core
-      '@yantrix/functions':
+      '@yantrix/mermaid-parser':
         specifier: workspace:^
-        version: link:../functions
-      '@yantrix/utils':
-        specifier: workspace:^
-        version: link:../utils
+        version: link:../mermaid-parser
 
   packages/scripts:
     dependencies:
