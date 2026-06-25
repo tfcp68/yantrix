@@ -1,7 +1,7 @@
 // import { combineReducers, configureStore, createSlice } from '@reduxjs/toolkit';
 // import { connectReduxAutomata, useReduxAutomata } from '../src/index.js';
 // import { describe, expect, test, beforeEach } from 'vitest';
-// import { actionsDictionary, AutomataIncludeNotes } from './fixtures/AutomataIncludeNotes_generated';
+// import { actionsDictionary, AutomataIncludeNotes } from './generated/AutomataIncludeNotes_generated';
 
 // describe('dispatchFromFSM', () => {
 // 	const reducerInitialState = {
