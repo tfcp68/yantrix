@@ -30,7 +30,7 @@
 	],
 	"scripts": {
 		"dev": "npm run build && node dist/index.js",
-		"build": "tsc --noEmit && tsup",
+		"build": "pnpm run generate_test_fixtures && tsc --noEmit && tsup",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
 		"test": "pnpm run generate_test_fixtures && vitest run --outputFile=../../test_reports/redux.md",
