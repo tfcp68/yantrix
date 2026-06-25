@@ -58,6 +58,9 @@
 		"prepack": "pnpm run build && pnpm run lint",
 		"create_test_automata": "node __tests__/generate_automata_fixtures.mjs"
 	},
+	"peerDependencies": {
+		"react": "^18.3.1 || ^19.0.0"
+	},
 	"dependencies": {
 		"@yantrix/core": "workspace:^",
 		"@yantrix/utils": "workspace:^"
@@ -79,8 +82,5 @@
 		"jsdom": "^25.0.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1"
-	},
-	"peerDependencies": {
-		"react": "^18.3.1 || ^19.0.0"
 	}
 }

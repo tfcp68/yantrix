@@ -40,12 +40,12 @@
 		"lib": "src",
 		"test": "__tests__"
 	},
+	"peerDependencies": {
+		"@reduxjs/toolkit": "^2.2.7"
+	},
 	"dependencies": {
 		"@yantrix/automata": "workspace:^",
 		"@yantrix/utils": "workspace:^"
-	},
-	"peerDependencies": {
-		"@reduxjs/toolkit": "^2.2.7"
 	},
 	"devDependencies": {
 		"@reduxjs/toolkit": "^2.2.7",
