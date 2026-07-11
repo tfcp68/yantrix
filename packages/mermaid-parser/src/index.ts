@@ -16,7 +16,11 @@
  */
 
 export * from './constants/index.js';
+export * from './sequence/errors/structuralError.js';
+export * from './sequence/featureDetection.js';
 export * from './sequence/sequenceParser.js';
+export * from './sequence/sequenceStructural.js';
+export * from './sequence/types/structural.js';
 export * from './state/stateDiagram.js';
 export * from './state/stateParser.js';
 export * from './state/types/index.js';
