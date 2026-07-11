@@ -623,6 +623,9 @@ importers:
 
   packages/yantrix-parser:
     dependencies:
+      '@yantrix/mermaid-parser':
+        specifier: workspace:^
+        version: link:../mermaid-parser
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils

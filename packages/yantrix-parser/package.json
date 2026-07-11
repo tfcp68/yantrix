@@ -62,8 +62,8 @@
 		"test": "vitest run --outputFile=../../test_reports/yantrix-parser.md"
 	},
 	"dependencies": {
-		"@yantrix/utils": "workspace:^",
 		"@yantrix/mermaid-parser": "workspace:^",
+		"@yantrix/utils": "workspace:^",
 		"langium": "^3.2.0",
 		"vscode-languageserver": "^9.0.1",
 		"vscode-languageserver-textdocument": "^1.0.12"
