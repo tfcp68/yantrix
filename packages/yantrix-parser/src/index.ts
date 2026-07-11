@@ -20,3 +20,7 @@ export * from './constants/index.js';
 export * from './generated/ast.js';
 
 export * from './parser.js';
+
+export * from './sequence/sequenceSemantic.js';
+
+export * from './sequence/types.js';

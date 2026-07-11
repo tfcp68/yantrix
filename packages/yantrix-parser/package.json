@@ -62,6 +62,7 @@
 		"test": "vitest run --outputFile=../../test_reports/yantrix-parser.md"
 	},
 	"dependencies": {
+		"@yantrix/mermaid-parser": "workspace:^",
 		"@yantrix/utils": "workspace:^",
 		"langium": "^3.2.0",
 		"vscode-languageserver": "^9.0.1",
@@ -83,6 +84,13 @@
 				"fileExtensions": [
 					".yantrix",
 					".yx"
+				]
+			},
+			{
+				"id": "yantrix-sequence",
+				"grammar": "src/grammar/yantrix-sequence.langium",
+				"fileExtensions": [
+					".yxs"
 				]
 			}
 		],

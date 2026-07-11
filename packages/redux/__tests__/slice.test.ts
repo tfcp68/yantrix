@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { TKeys } from '@yantrix/utils';
 import { describe, expect, it } from 'vitest';
 import { createFSMSlice } from '../src';
-import TrafficLightAutomata from './fixtures/TrafficLightAutomata';
+import TrafficLightAutomata from './generated/TrafficLightAutomata_generated';
 
 describe('createFSMSlice test', () => {
 	const { reducer, actions } = createFSMSlice<TKeys<typeof TrafficLightAutomata.actions>, object>({
