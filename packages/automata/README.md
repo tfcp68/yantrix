@@ -33,6 +33,47 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
+### Data Model and Effects
+
+`ModelStore` owns the current application snapshot. `EffectScheduler` collects
+Events during a Main Loop iteration and applies all matching Effects with at
+most one model commit when the iteration is flushed:
+
+```typescript
+import { EffectScheduler, ModelStore } from '@yantrix/automata';
+
+enum AppEvent {
+	Increment = 1,
+}
+
+interface IEventMeta extends Record<AppEvent, unknown> {
+	[AppEvent.Increment]: { amount: number };
+}
+
+interface IModel {
+	count: number;
+}
+
+const model = new ModelStore<IModel>({ count: 0 });
+const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
+	store: model,
+	matrices: [{
+		[AppEvent.Increment]: [
+			(event, current) => ({
+				...current,
+				count: current.count + (event.meta?.amount ?? 0),
+			}),
+		],
+	}],
+});
+
+effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
+effects.flush();
+```
+
+The Main Loop defines the batch boundary: enqueue only Events selected for the
+Effect Layer, then call `flush()` once after the FSM reducer phase has completed.
+
 Then, see the docs:
 
 - [Learn about finite state machines](https://tfcp68.github.io/yantrix/concepts/200_FSM.html)

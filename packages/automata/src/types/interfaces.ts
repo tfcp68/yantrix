@@ -34,10 +34,42 @@ import {
 	TDataBoundEventDictionary,
 	TDataBoundSelector,
 	TDataDestinationOutput,
+	TEffectFlushResult,
+	TEffectMatrix,
 	TEventBusHandler,
+	TModelListener,
 	TSubscriptionCancelFunction,
 	TValidator,
 } from './index.js';
+
+/**
+ * Observable store for the application-global, serializable Data Model.
+ *
+ * The model is replaced as one snapshot. Business logic reads it and Effects
+ * produce the next snapshot; consumers observe committed changes.
+ */
+export interface IDataModelStore<ModelType extends object> {
+	get: () => ModelType;
+	commit: (model: ModelType) => void;
+	subscribe: (listener: TModelListener<ModelType>) => TSubscriptionCancelFunction;
+}
+
+/**
+ * Batches Events and applies their Effects to a Data Model in one transaction.
+ */
+export interface IEffectScheduler<
+	ModelType extends object,
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> {
+	readonly pendingCount: number;
+	addMatrix: (
+		matrix: TEffectMatrix<ModelType, EventType, EventMetaType>,
+	) => TSubscriptionCancelFunction;
+	enqueue: (event: TAutomataEventMetaType<EventType, EventMetaType>) => this;
+	flush: () => TEffectFlushResult<ModelType>;
+	clear: () => this;
+}
 
 /**
  * Interface for an Automata event container.
@@ -647,7 +679,7 @@ export interface IAutomataSlice<
 	 * Returns the event matrix, which is a record of events and their corresponding effects.
 	 * @returns The event matrix.
 	 */
-	getEventMatrix: () => Record<EventType, Array<TAutomataEffect<ModelType, EventType>>>;
+	getEventMatrix: () => TEffectMatrix<ModelType, EventType, EventMetaType>;
 
 	/**
 	 * Dispatches an event and triggers its effects.
@@ -693,7 +725,7 @@ export interface IAutomataSlice<
 	 */
 	consumeEvent: () => {
 		events: TAutomataEventStack<EventType, EventMetaType>;
-		effects: Array<TAutomataEffect<ModelType, EventType>>;
+		effects: Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
 	};
 
 	/**
@@ -701,7 +733,7 @@ export interface IAutomataSlice<
 	 * @param event - The event for which to retrieve the effects.
 	 * @returns The effects associated with the event.
 	 */
-	getEventEffects: (event: EventType) => Array<TAutomataEffect<ModelType, EventType>>;
+	getEventEffects: (event: EventType) => Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
 }
 
 /**
