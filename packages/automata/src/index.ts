@@ -13,6 +13,7 @@
 
 export * from './ActionDictionary.js';
 export * from './Automata.js';
+export * from './AutomataSlice.js';
 export * from './CoreLoop.js';
 export * from './DataDestination.js';
 export * from './DataModel.js';

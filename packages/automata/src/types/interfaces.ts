@@ -356,6 +356,9 @@ export interface IAutomata<
 	 */
 	getContext: <K extends StateType = StateType>() => TAutomataStateContext<K, ContextType>;
 
+	/** Restores the current State and Context snapshot. */
+	setContext: (context: TAutomataStateContext<StateType, ContextType>) => this;
+
 	/**
 	 * Consume all Actions in the Queue and return the resulting State
 	 * Works even when Paused
@@ -621,10 +624,13 @@ export interface IAutomataSlice<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 	ModelType extends object = Record<string, any>,
 > extends IAutomataEventContainer<EventType> {
+	/** Stable Slice identifier used by the application composition root. */
+	readonly id: string;
+
 	/**
 	 * A record of machines, where each machine is an instance of `IAutomata`.
 	 */
-	getMachines: Record<string, IAutomata<any, any, EventType>>;
+	getMachines: () => Readonly<Record<string, IAutomata<any, any, EventType, any, any, EventMetaType>>>;
 
 	/**
 	 * Adds a machine to the automata slice.
@@ -652,7 +658,7 @@ export interface IAutomataSlice<
 	/**
 	 * A record of composite states, where each composite state is an instance of `TAutomataStateContext`.
 	 */
-	getCompositeState: Record<string, TAutomataStateContext<any, any>>;
+	getCompositeState: () => Record<string, TAutomataStateContext<any, any>>;
 
 	/**
 	 * Restores a state for a specific machine.
@@ -699,7 +705,7 @@ export interface IAutomataSlice<
 	 * @param clearStack - Indicates whether to clear the event stack.
 	 * @returns The current instance of `IAutomataSlice`.
 	 */
-	stop: (clearStack: boolean) => this;
+	stop: (clearStack?: boolean) => this;
 
 	/**
 	 * Checks if the automata slice is running.
@@ -796,6 +802,12 @@ export interface IAutomataEventBus<
 	 * @returns True if the event bus is running, false otherwise.
 	 */
 	isRunning: () => boolean;
+
+	/**
+	 * Resolves after the Event stack and all asynchronous follow-up Events have
+	 * been fully processed.
+	 */
+	whenIdle: () => Promise<void>;
 }
 
 /**

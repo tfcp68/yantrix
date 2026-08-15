@@ -6,13 +6,16 @@ import {
 	TAutomataBaseStateType,
 	TAutomataEventMetaType,
 	TAutomataEventStack,
+	TEffectFlushResult,
 } from './types';
 import {
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
+	IAutomataSlice,
 	IDataDestination,
 	IDataSource,
+	IEffectScheduler,
 } from './types/interfaces';
 
 type TUnsub = () => void;
@@ -24,15 +27,29 @@ type TRegisteredAutomata = {
 
 type TRegisteredDestination = {
 	id: string;
-	unsub: TUnsub;
+	boundEvents: Array<number | null>;
+	update: (event: TAutomataEventMetaType<number, Record<number, any>>, model?: object) => void;
+	subscribe: () => void;
+	unsubscribe: () => void;
+	start: () => void;
+	stop: () => void;
+};
+
+type TRegisteredSlice<EventType extends TAutomataBaseEventType, EventMetaType extends { [K in EventType]: any }> = {
+	id: string;
+	slice: IAutomataSlice<EventType, EventMetaType, any>;
+	machineIds: string[];
+	removeEffectMatrix: TUnsub;
 };
 
 /** Constructor props for {@link CoreLoop}. Subclasses extend this (e.g. {@link TimedCoreLoop}). */
 export type TCoreLoopProps<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	ModelType extends object = Record<string, any>,
 > = {
 	bus?: IAutomataEventBus<EventType, EventMetaType>;
+	effectScheduler?: IEffectScheduler<ModelType, EventType, EventMetaType>;
 };
 
 /**
@@ -52,13 +69,19 @@ export type TCoreLoopProps<
 export class CoreLoop<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	ModelType extends object = Record<string, any>,
 > {
 	/** Hard cap on the per-drain pull loop; protects against a misbehaving source generator. */
 	private static readonly DRAIN_GUARD = 10_000;
 
 	private readonly bus: IAutomataEventBus<EventType, EventMetaType>;
+	private readonly effectScheduler: IEffectScheduler<ModelType, EventType, EventMetaType> | null;
+	private pendingEffectEvents: TAutomataEventStack<EventType, EventMetaType> = [];
+	private effectFlushScheduled = false;
+	private effectFlushPromise: Promise<void> | null = null;
 	private readonly automata: Map<string, TRegisteredAutomata> = new Map();
 	private readonly destinations: Map<string, TRegisteredDestination> = new Map();
+	private readonly slices: Map<string, TRegisteredSlice<EventType, EventMetaType>> = new Map();
 	private readonly sources: Map<string, {
 		id: string;
 		src: IDataSource<EventType, EventMetaType, any>;
@@ -74,12 +97,103 @@ export class CoreLoop<
 		this.bus.dispatch(event);
 	};
 
-	constructor(props: TCoreLoopProps<EventType, EventMetaType> = {}) {
+	constructor(props: TCoreLoopProps<EventType, EventMetaType, ModelType> = {}) {
 		this.bus = (props.bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
+		this.effectScheduler = props.effectScheduler ?? null;
 	}
 
 	public getBus(): IAutomataEventBus<EventType, EventMetaType> {
 		return this.bus;
+	}
+
+	public getEffectScheduler(): IEffectScheduler<ModelType, EventType, EventMetaType> | null {
+		return this.effectScheduler;
+	}
+
+	/** Resolves after the Event cascade and its Effect batch have both completed. */
+	public async whenIdle(): Promise<void> {
+		await this.bus.whenIdle();
+		const flushPromise = this.effectFlushPromise;
+		if (!flushPromise) return;
+		try {
+			await flushPromise;
+		} finally {
+			if (this.effectFlushPromise === flushPromise) this.effectFlushPromise = null;
+		}
+	}
+
+	private enqueueEffectEvent(event: TAutomataEventMetaType<EventType, EventMetaType>): void {
+		if (!this.effectScheduler) return;
+
+		this.effectScheduler.enqueue(event);
+		this.pendingEffectEvents.push(event);
+		if (this.effectFlushScheduled) return;
+
+		this.effectFlushScheduled = true;
+		this.effectFlushPromise = this.bus.whenIdle().then(() => {
+			this.flushEffects();
+		});
+		// Keep automatic Effect errors observable through CoreLoop.whenIdle while
+		// preventing an unhandled rejection when the loop is used reactively.
+		void this.effectFlushPromise.catch(() => {});
+	}
+
+	private flushEffects(): TEffectFlushResult<ModelType> | null {
+		if (!this.effectScheduler) return null;
+
+		this.effectFlushScheduled = false;
+		const events = this.pendingEffectEvents;
+		this.pendingEffectEvents = [];
+		const result = this.effectScheduler.flush();
+
+		if (result.changed) {
+			for (const destination of this.destinations.values()) {
+				for (const event of events) {
+					if (destination.boundEvents.some(boundEvent => boundEvent === null || boundEvent === event.event)) {
+						destination.update(event, result.model);
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/** Registers a Slice's machines and Effect Matrix as one composition unit. */
+	public registerSlice(slice: IAutomataSlice<EventType, EventMetaType, ModelType>): this {
+		if (!this.effectScheduler) throw new Error('CoreLoop requires an Effect Scheduler to register a Slice');
+		if (!slice.id) throw new Error('Slice must provide a non-empty string id');
+		if (this.slices.has(slice.id)) throw new Error(`Slice with id "${slice.id}" already registered`);
+
+		const machineIds: string[] = [];
+		let removeEffectMatrix: TUnsub = () => {};
+		try {
+			for (const machine of Object.values(slice.getMachines())) {
+				this.registerAutomata(machine);
+				machineIds.push(machine.correlationId);
+			}
+			removeEffectMatrix = this.effectScheduler.addMatrix(slice.getEventMatrix());
+			slice.start();
+			this.slices.set(slice.id, { id: slice.id, slice, machineIds, removeEffectMatrix });
+		} catch (error) {
+			for (const machineId of machineIds) this.unregisterAutomata(machineId);
+			removeEffectMatrix();
+			throw error;
+		}
+
+		return this;
+	}
+
+	/** Removes a Slice's machines and Effect Matrix together. */
+	public unregisterSlice(id: string): this {
+		const registered = this.slices.get(id);
+		if (!registered) return this;
+
+		for (const machineId of registered.machineIds) this.unregisterAutomata(machineId);
+		registered.removeEffectMatrix();
+		registered.slice.stop(false);
+		this.slices.delete(id);
+		return this;
 	}
 
 	/**
@@ -141,6 +255,7 @@ export class CoreLoop<
 					machine.dispatch(a);
 					const emitted = bridge.handleTransition(machine.getContext()) ?? [];
 					if (emitted?.length) {
+						for (const event of emitted) this.enqueueEffectEvent(event);
 						nextEventsToProcess.push(...emitted);
 					}
 				}
@@ -281,9 +396,10 @@ export class CoreLoop<
 
 		if (this.destinations.has(id)) throw new Error(`Destination with id "${id}" already registered`);
 
-		// Wildcard (null) bound events are not supported here; bind explicit event ids only.
-		const boundEvents = dst
-			.getBoundEvents()
+		const destinationEvents = dst.getBoundEvents();
+		// Legacy event-only Destinations subscribe to explicit Events. With a Data
+		// Model, CoreLoop invokes both explicit and wildcard triggers after commit.
+		const boundEvents = destinationEvents
 			.filter((event): event is EventType => event !== null);
 
 		const handler = (raw: TAutomataEventMetaType<EventType, EventMetaType>) => {
@@ -298,15 +414,33 @@ export class CoreLoop<
 			};
 		};
 
-		for (const event of boundEvents) this.bus.subscribe(event, handler);
-		dst.start();
-
-		const unsub = () => {
+		let subscribed = false;
+		const subscribe = () => {
+			if (subscribed || this.effectScheduler) return;
+			for (const event of boundEvents) this.bus.subscribe(event, handler);
+			subscribed = true;
+		};
+		const unsubscribe = () => {
+			if (!subscribed) return;
 			for (const event of boundEvents) this.bus.unsubscribe(event, handler);
-			dst.stop();
+			subscribed = false;
 		};
 
-		this.destinations.set(id, { id, unsub });
+		subscribe();
+		dst.start();
+
+		this.destinations.set(id, {
+			id,
+			boundEvents: destinationEvents,
+			update: (event, model) => dst.update(
+				event as TAutomataEventMetaType<EventType, EventMetaType>,
+				model as DataModel,
+			),
+			subscribe,
+			unsubscribe,
+			start: () => dst.start(),
+			stop: () => dst.stop(),
+		});
 		return this;
 	}
 
@@ -323,7 +457,8 @@ export class CoreLoop<
 	public unregisterDestination(id: string): this {
 		const reg = this.destinations.get(id);
 		if (reg) {
-			reg.unsub();
+			reg.unsubscribe();
+			reg.stop();
 			this.destinations.delete(id);
 		}
 		return this;
@@ -332,6 +467,11 @@ export class CoreLoop<
 	public start(): this {
 		if (this.started) return this;
 		this.started = true;
+		this.destinations.forEach((destination) => {
+			destination.subscribe();
+			destination.start();
+		});
+		this.slices.forEach(registered => registered.slice.start());
 		this.bus.resume();
 		this.sources.forEach(s => s.start());
 		return this;
@@ -342,7 +482,11 @@ export class CoreLoop<
 		this.started = false;
 		this.bus.pause();
 		this.sources.forEach(s => s.stop());
-		this.destinations.forEach(d => d.unsub());
+		this.destinations.forEach((destination) => {
+			destination.unsubscribe();
+			destination.stop();
+		});
+		this.slices.forEach(registered => registered.slice.stop(false));
 		return this;
 	}
 }

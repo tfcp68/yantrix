@@ -2,18 +2,21 @@ import { uniqId, waitForEventOnce } from '@yantrix/utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	AutomataEventAdapter,
+	AutomataSlice,
 	CoreLoop,
 	createDataDestinationAdapter,
 	createDataSourceAdapter,
 	createPromiseDataAdapter,
 	createTimeoutClock,
 	DEFAULT_TICK_MS,
+	EffectScheduler,
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
 	ICoreLoopClock,
 	IDataDestination,
 	IDataSource,
+	ModelStore,
 	NamedDataDestination,
 	NamedDataSource,
 	TAutomataActionPayload,
@@ -127,6 +130,12 @@ implements IAutomata<
 			state: this.state as K,
 			context: this.context,
 		};
+	}
+
+	setContext(context: TAutomataStateContext<UStates, Record<UStates, any>>) {
+		this.state = context.state;
+		this.context = context.context;
+		return this;
 	}
 
 	collapseActionQueue() {
@@ -442,6 +451,152 @@ describe('coreLoop unit tests (with stubbed Automata)', () => {
 		loop.tick();
 
 		expect(seen.length).toBe(3);
+	});
+});
+
+describe('coreLoop Effect batches', () => {
+	interface ITestModel {
+		count: number;
+	}
+
+	function createEffectLoop() {
+		const store = new ModelStore<ITestModel>({ count: 0 });
+		const scheduler = new EffectScheduler<ITestModel, UEvents, TMeta>({
+			store,
+			matrices: [{
+				[UEvents.EVT_IN]: [(_event, model) => ({ ...model, count: model.count + 100 })],
+				[UEvents.EVT_OUT]: [(_event, model) => ({ ...model, count: model.count + 1 })],
+			}],
+		});
+		const effectLoop = new CoreLoop<UEvents, TMeta, ITestModel>({ effectScheduler: scheduler });
+		const adapter = new AutomataEventAdapter() as IAutomataEventAdapter<
+			UStates,
+			UActions,
+			UEvents,
+			Record<UStates, any>,
+			Record<UActions, any>,
+			TMeta
+		>;
+		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
+
+		return { store, scheduler, effectLoop, adapter };
+	}
+
+	it('runs Effects only for Events emitted by an Event Adapter', async () => {
+		const { store, effectLoop, adapter } = createEffectLoop();
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		effectLoop.registerAutomata(new AutomataStub(), adapter);
+
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+
+		// EVT_IN came from outside the FSM and must not run its +100 Effect.
+		expect(store.get()).toEqual({ count: 1 });
+	});
+
+	it('commits all Adapter-emitted Events as one Effect batch', async () => {
+		const { store, effectLoop, adapter } = createEffectLoop();
+		const listener = vi.fn();
+		store.subscribe(listener);
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		effectLoop.registerAutomata(new AutomataStub(), adapter);
+
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+
+		expect(store.get()).toEqual({ count: 2 });
+		expect(listener).toHaveBeenCalledOnce();
+	});
+
+	it('updates wildcard Destinations with the committed Data Model after Effects', async () => {
+		const { store, effectLoop, adapter } = createEffectLoop();
+		const update = vi.fn();
+		const Dst = createDataDestinationAdapter<UEvents, TMeta, ITestModel, { count: number }, void>()(
+			NamedDataDestination<{ count: number }, void>,
+		);
+		const destination = new Dst({ id: 'model_destination', resolver: async () => undefined });
+		destination.createTrigger(null, (event, model) => {
+			update(event, model);
+			return { count: model?.count ?? -1 };
+		});
+		effectLoop.registerDestination(destination);
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		effectLoop.registerAutomata(new AutomataStub(), adapter);
+
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+
+		expect(update).toHaveBeenCalledOnce();
+		expect(update).toHaveBeenCalledWith(
+			expect.objectContaining({ event: UEvents.EVT_OUT }),
+			store.get(),
+		);
+		expect(store.get()).toEqual({ count: 1 });
+	});
+
+	it('registers a Slice as one unit and removes its machines and Effect Matrix together', async () => {
+		const store = new ModelStore<ITestModel>({ count: 0 });
+		const scheduler = new EffectScheduler<ITestModel, UEvents, TMeta>({ store });
+		const effectLoop = new CoreLoop<UEvents, TMeta, ITestModel>({ effectScheduler: scheduler });
+		const adapter = new AutomataEventAdapter() as IAutomataEventAdapter<
+			UStates,
+			UActions,
+			UEvents,
+			Record<UStates, any>,
+			Record<UActions, any>,
+			TMeta
+		>;
+		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		const machine = new AutomataStub();
+		machine.setEventAdapter(adapter);
+		const slice = new AutomataSlice<ITestModel, UEvents, TMeta>({
+			id: 'counter',
+			effectMatrix: {
+				[UEvents.EVT_OUT]: [(_event, model) => ({ ...model, count: model.count + 1 })],
+			},
+		});
+		slice.addMachine('counter-machine', machine);
+
+		effectLoop.registerSlice(slice);
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+		expect(store.get()).toEqual({ count: 1 });
+
+		effectLoop.unregisterSlice(slice.id);
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+		expect(store.get()).toEqual({ count: 1 });
+	});
+
+	it('exposes Effect failures through whenIdle without a partial commit', async () => {
+		const initial = { count: 0 };
+		const store = new ModelStore<ITestModel>(initial);
+		const scheduler = new EffectScheduler<ITestModel, UEvents, TMeta>({
+			store,
+			matrices: [{
+				[UEvents.EVT_OUT]: [() => { throw new Error('effect failed'); }],
+			}],
+		});
+		const effectLoop = new CoreLoop<UEvents, TMeta, ITestModel>({ effectScheduler: scheduler });
+		const adapter = new AutomataEventAdapter() as IAutomataEventAdapter<
+			UStates,
+			UActions,
+			UEvents,
+			Record<UStates, any>,
+			Record<UActions, any>,
+			TMeta
+		>;
+		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		effectLoop.registerAutomata(new AutomataStub(), adapter);
+
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+
+		await expect(effectLoop.whenIdle()).rejects.toThrow('effect failed');
+		expect(store.get()).toBe(initial);
+		await expect(effectLoop.whenIdle()).resolves.toBeUndefined();
 	});
 });
 

@@ -40,7 +40,7 @@ Events during a Main Loop iteration and applies all matching Effects with at
 most one model commit when the iteration is flushed:
 
 ```typescript
-import { EffectScheduler, ModelStore } from '@yantrix/automata';
+import { CoreLoop, EffectScheduler, ModelStore } from '@yantrix/automata';
 
 enum AppEvent {
 	Increment = 1,
@@ -71,8 +71,19 @@ effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
 effects.flush();
 ```
 
-The Main Loop defines the batch boundary: enqueue only Events selected for the
-Effect Layer, then call `flush()` once after the FSM reducer phase has completed.
+For application wiring, pass the scheduler to `CoreLoop`. The loop enqueues only
+Events emitted by registered FSM Event Adapters, waits for the full EventBus
+cascade, and flushes the batch before updating Data Destinations:
+
+```typescript
+const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effects });
+
+// Register configured FSMs (or an AutomataSlice), then dispatch input Events.
+// Only Events emitted by their Event Adapters are translated to Effects.
+await loop.whenIdle();
+```
+
+Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
 
 Then, see the docs:
 

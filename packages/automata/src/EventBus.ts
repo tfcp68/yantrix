@@ -17,11 +17,13 @@ export function createEventBus<
 			#isPaused: boolean;
 			#eventStack: TAutomataEventStack<EventType, EventMetaType>;
 			#eventSubscriptions: Map<EventType, Set<TEventBusHandler<EventType, EventMetaType>>>;
+			#idleWaiters: Set<() => void>;
 
 			constructor() {
 				super();
 				this.#eventStack = [];
 				this.#eventSubscriptions = new Map();
+				this.#idleWaiters = new Set();
 				this.#isProcessing = false;
 				this.#isPaused = false;
 			}
@@ -92,6 +94,7 @@ export function createEventBus<
 			/** *****  12c97ac8-1158-4225-8ad9-1724f95adea2  */
 			public clearEventStack(): this {
 				this.#eventStack = [];
+				this.#resolveIdleWaiters();
 				return this;
 			}
 
@@ -108,6 +111,23 @@ export function createEventBus<
 
 			public isRunning(): boolean {
 				return !this.#isPaused;
+			}
+
+			public whenIdle(): Promise<void> {
+				if (!this.#isProcessing && this.#eventStack.length === 0) {
+					return Promise.resolve();
+				}
+
+				return new Promise((resolve) => {
+					this.#idleWaiters.add(resolve);
+				});
+			}
+
+			#resolveIdleWaiters(): void {
+				if (this.#isProcessing || this.#eventStack.length > 0) return;
+				const waiters = [...this.#idleWaiters];
+				this.#idleWaiters.clear();
+				for (const resolve of waiters) resolve();
 			}
 
 			/**
@@ -170,6 +190,11 @@ export function createEventBus<
 
 				if (!promiseStack.length) {
 					this.#isProcessing = false;
+					if (this.#eventStack.length > 0) {
+						queueMicrotask(() => this._processEvents());
+					} else {
+						this.#resolveIdleWaiters();
+					}
 					return Promise.resolve([]);
 				}
 
@@ -184,6 +209,8 @@ export function createEventBus<
 
 					if (this.#eventStack.length)
 						this._processEvents();
+					else
+						this.#resolveIdleWaiters();
 				});
 
 				return returnValue;
