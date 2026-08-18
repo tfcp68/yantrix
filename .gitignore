@@ -65,3 +65,6 @@ bun.lockb
 test_reports
 *_generated.*
 **/generated
+.omo/
+token_optimizer/
+.codegraph/
