@@ -106,9 +106,9 @@ and `States`, they can use the same `Event Adapter` too, if needed.
 
 ### Event Stack
 
-Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, that are put into a special LIFO
-structure, known as `Event Stack`. It is processed continuously by the `Main Loop`, which handles them one by one,
-always taking the last emitted `Event` and passing it to all connected `Slices`, and thus `FSMs`
+Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, that are put into a FIFO queue known
+in Yantrix as `Event Stack`. It is processed continuously by the `Main Loop`, which handles them one by one, always
+taking the oldest queued `Event` and passing it to all connected `Slices`, and thus `FSMs`.
 
 ## Data operations
 
