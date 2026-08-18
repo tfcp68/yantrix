@@ -9,14 +9,21 @@
  */
 
 import { TStateDiagramMatrix } from '@yantrix/mermaid-parser';
-import { YantrixParser } from '@yantrix/yantrix-parser';
+import { getEffectStatements, YantrixParser } from '@yantrix/yantrix-parser';
 import { CodegenCreator } from './core/Codegen.js';
 import { ModuleNames } from './core/modules/index.js';
 import { formatByDialect, formatByFilename } from './postprocess.js';
-import { IGenerateOptions, TCodegenFiles, TStateIncludingNotes } from './types/common.js';
+import { IGenerateOptions, TCodegenFiles, TOutLang, TStateIncludingNotes } from './types/common.js';
 
 export * from './core/modules/index.js';
 export * from './types/common.js';
+
+function assertEffectsSupported(states: TStateIncludingNotes[], language: TOutLang): void {
+	const hasEffects = states.some(state => state.notes != null && getEffectStatements(state.notes).length > 0);
+	if (hasEffects && language !== ModuleNames.JavaScript && language !== ModuleNames.TypeScript) {
+		throw new Error(`Side Effects codegen is not supported for output language "${language}"`);
+	}
+}
 
 /**
  * Main function that's used to asynchronously generate Yantrix FSMs.
@@ -24,7 +31,10 @@ export * from './types/common.js';
  * @param options - Options for configuring the generation process, such as the output language and automata class name
  * @returns - A promise with the code of generated FSM as string
  */
-export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<string> {
+export async function generateAutomataFromStateDiagram(
+	diagram: TStateDiagramMatrix,
+	options: IGenerateOptions,
+): Promise<string> {
 	const { states, transitions, actionChains } = diagram;
 	const parserInstance = new YantrixParser();
 
@@ -34,6 +44,8 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 			return { ...state, notes: null };
 		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
 	});
+	const language = options.outLang ?? ModuleNames.TypeScript;
+	assertEffectsSupported(statesIncludingNotes, language);
 
 	let constants: Record<string, any> | null = null;
 
@@ -58,13 +70,13 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
 	);
 
 	const codegen = await creator.createCodegen({
-		language: options.outLang ?? ModuleNames.TypeScript,
+		language,
 		constants,
 		functionFilePath: options.functionFilePath ?? null,
 	});
 
 	const code = codegen.getCode(options);
-	const dialect = options.outLang ?? ModuleNames.TypeScript;
+	const dialect = language;
 	return options.beautify ? formatByDialect(dialect)(code) : Promise.resolve(code);
 }
 
@@ -73,7 +85,10 @@ export async function generateAutomataFromStateDiagram(diagram: TStateDiagramMat
  * Dialects that implement `getFiles()` (e.g. pure-javascript, pure-typescript) return
  * multiple files; all other dialects return a single-entry map keyed by the main filename.
  */
-export async function generateAutomataFiles(diagram: TStateDiagramMatrix, options: IGenerateOptions): Promise<TCodegenFiles> {
+export async function generateAutomataFiles(
+	diagram: TStateDiagramMatrix,
+	options: IGenerateOptions,
+): Promise<TCodegenFiles> {
 	const { states, transitions, actionChains } = diagram;
 	const parserInstance = new YantrixParser();
 
@@ -83,6 +98,8 @@ export async function generateAutomataFiles(diagram: TStateDiagramMatrix, option
 			return { ...state, notes: null };
 		return { ...state, notes: parserInstance.parse(input) } as TStateIncludingNotes;
 	});
+	const language = options.outLang ?? ModuleNames.TypeScript;
+	assertEffectsSupported(statesIncludingNotes, language);
 
 	let constants: Record<string, any> | null = null;
 	if (options?.constants) {
@@ -98,7 +115,7 @@ export async function generateAutomataFiles(diagram: TStateDiagramMatrix, option
 
 	const creator = new CodegenCreator({ states: statesIncludingNotes, transitions, actionChains });
 	const codegen = await creator.createCodegen({
-		language: options.outLang ?? ModuleNames.TypeScript,
+		language,
 		constants,
 		functionFilePath: options.functionFilePath ?? null,
 	});

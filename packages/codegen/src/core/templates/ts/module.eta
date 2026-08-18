@@ -9,3 +9,6 @@ export type TActions<%~ it.className %> = keyof typeof actionsMap;
 <%~ include('../js/shared/events/module', {...it, hasTypes: true}) %>
 <%~ include('../js/context/module', {...it, hasTypes: true}) %>
 <%~ include('class/module', {...it, hasTypes: true}) %>
+<% if (it.effects.declarations.length > 0) { %>
+<%~ include('../js/shared/effects/module', {...it, hasTypes: true}) %>
+<% } %>

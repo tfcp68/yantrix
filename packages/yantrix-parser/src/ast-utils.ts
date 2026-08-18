@@ -7,6 +7,7 @@ import {
 	DefineFunction,
 	DefineStatement,
 	Document,
+	EffectStatement,
 	EmitStatement,
 	Expression,
 	ExpressionStatement,
@@ -22,6 +23,7 @@ import {
 	isDataObject,
 	isDefineFunction,
 	isDefineStatement,
+	isEffectStatement,
 	isEmitStatement,
 	isExpressionStatement,
 	isFunctionCall,
@@ -72,6 +74,10 @@ export function getEmitStatements(doc: Document): EmitStatement[] {
 
 export function getSubscribeStatements(doc: Document): SubscribeStatement[] {
 	return getStatementsByType(doc, isSubscribeStatement);
+}
+
+export function getEffectStatements(doc: Document): EffectStatement[] {
+	return getStatementsByType(doc, isEffectStatement);
 }
 
 export function getDefineStatements(doc: Document): DefineStatement[] {

@@ -1,10 +1,8 @@
+<% for (const eventCode of it.emitter.events) { %>
 eventAdapter.addEventEmitter(
   statesDictionary["<%~ it.emitter.stateId %>"],
-  ({ state, context }) => {
-    const eventsToEmit = [
-      <%~ it.emitter.events.map((eventCode) => include('code', { eventCode })).join(',\n      ') %>
-    ];
-
-    return eventsToEmit[0];
+  ({ context }) => {
+    return <%~ include('code', { eventCode }) %>;
   },
 );
+<% } %>

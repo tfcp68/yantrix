@@ -1,5 +1,6 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
 import {
+	getEffectStatements,
 	getEmitStatements,
 	getSubscribeStatements,
 	hasByPass,
@@ -39,10 +40,14 @@ export function fillDictionaries(
 		for (const state of diagram.states) {
 			if (!state.notes) continue;
 
-			const emitStatements = getEmitStatements(state.notes);
-			const emittedEventsKeys = emitStatements.map(emit => emit.identifier);
+			const emittedEventsKeys = [
+				...getEmitStatements(state.notes).map(emit => emit.identifier),
+				...getEffectStatements(state.notes).map(effect => effect.identifier),
+			];
 			if (emittedEventsKeys.length > 0) {
-				const uniqueKeys = emittedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				const uniqueKeys = emittedEventsKeys.filter(
+					e => eventDictionary.getEventValues({ keys: [e] })[0] == null,
+				);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 

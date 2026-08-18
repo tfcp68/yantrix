@@ -21,6 +21,7 @@ import { eta } from '../../eta';
 import { fillDictionaries, getStatesByPass } from '../../shared';
 import { ModuleNames } from '../index';
 import { JavaScriptCompiler } from './JavaScriptCompiler';
+import { TEffectDeclarationIR } from './JavaScriptCompiler/effects';
 import { TImports } from './JavaScriptCompiler/imports';
 
 export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript> {
@@ -41,6 +42,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	expressions: TExpressionRecord;
 	injectedPath: TNullable<string> = null;
 	injectedFunctions: TUserFunctionsDict;
+	effectDeclarations: TEffectDeclarationIR[];
 
 	protected importNamespaces: TNullable<TImports> = {};
 	protected imports: TImports = {
@@ -91,6 +93,8 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		}
 
 		fillDictionaries(diagram, this.stateDictionary, this.actionDictionary, this.eventDictionary);
+		this.effectDeclarations = JavaScriptCompiler.effects.functions.getEffectDeclarations(diagram);
+		if (this.effectDeclarations.length > 0) this.imports['@yantrix/core']!.push('AutomataSlice');
 
 		this.dictionaries = JavaScriptCompiler.dictionaries.functions.setupDictionaries({
 			dependencyGraph: this.dependencyGraph,
@@ -199,6 +203,9 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			events: {
 				eventAdapter,
 				createEventBus,
+			},
+			effects: {
+				declarations: this.effectDeclarations,
 			},
 			dictionaries: {
 				actionToStateFromState,

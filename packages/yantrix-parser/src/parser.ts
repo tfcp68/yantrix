@@ -6,10 +6,12 @@ import {
 	DefineFunction,
 	DefineStatement,
 	Document,
+	EffectStatement,
 	FunctionCall,
 	isContextStatement,
 	isDefineFunction,
 	isDefineStatement,
+	isEffectStatement,
 	isFunctionCall,
 	isNestedDefineFunction,
 	NestedDefineFunction,
@@ -84,8 +86,18 @@ function validateSemantics(doc: Document): void {
 		if (isDefineStatement(stmt)) {
 			validateDefineStatement(stmt);
 		}
+		if (isEffectStatement(stmt)) {
+			validateEffectStatement(stmt);
+		}
 		// Traverse all statements to find function calls
 		traverseAndValidateFunctions(stmt);
+	}
+}
+
+/** Validate that an Effect's Event Meta contract does not contain duplicate keys. */
+function validateEffectStatement(effect: EffectStatement): void {
+	if (new Set(effect.metaKeys).size !== effect.metaKeys.length) {
+		throw new Error(`Effect ${effect.identifier} contains duplicate Event Meta keys.`);
 	}
 }
 
