@@ -77,4 +77,59 @@ describe('modelStore', () => {
 
 		expect(() => store.subscribe(null as never)).toThrow(TypeError);
 	});
+
+	it('can deeply freeze snapshots through opt-in development checks', () => {
+		const initial = { nested: { values: [1, 2] } };
+		const store = new ModelStore(initial, { development: { freeze: true } });
+
+		expect(Object.isFrozen(store.get())).toBe(true);
+		expect(Object.isFrozen(store.get().nested)).toBe(true);
+		expect(Object.isFrozen(store.get().nested.values)).toBe(true);
+
+		const next = { nested: { values: [3] } };
+		store.commit(next);
+		expect(Object.isFrozen(next.nested.values)).toBe(true);
+	});
+
+	it('does not freeze snapshots by default', () => {
+		const initial = { nested: { count: 1 } };
+		const store = new ModelStore(initial);
+
+		expect(Object.isFrozen(store.get())).toBe(false);
+		expect(Object.isFrozen(store.get().nested)).toBe(false);
+	});
+
+	it('can reject non-serializable snapshots through opt-in development checks', () => {
+		expect(() => new ModelStore(
+			{ callback: () => undefined },
+			{ development: { validateSerializable: true } },
+		)).toThrow(/callback/);
+
+		const initial = { count: 1 };
+		const store = new ModelStore(initial, { development: { validateSerializable: true } });
+		const listener = vi.fn();
+		store.subscribe(listener);
+
+		expect(() => store.commit({ count: Number.NaN })).toThrow(/count/);
+		expect(store.get()).toBe(initial);
+		expect(listener).not.toHaveBeenCalled();
+	});
+
+	it('rejects circular and non-anemic snapshots when serializability validation is enabled', () => {
+		const circular: { self?: unknown } = {};
+		circular.self = circular;
+
+		expect(() => new ModelStore(circular, {
+			development: { validateSerializable: true },
+		})).toThrow(/circular/i);
+		expect(() => new ModelStore({ createdAt: new Date() }, {
+			development: { validateSerializable: true },
+		})).toThrow(/createdAt/);
+
+		const list = [1, 2] as number[] & { metadata?: string };
+		list.metadata = 'silently omitted by JSON.stringify';
+		expect(() => new ModelStore({ list }, {
+			development: { validateSerializable: true },
+		})).toThrow(/list/);
+	});
 });

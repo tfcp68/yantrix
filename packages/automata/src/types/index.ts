@@ -315,7 +315,23 @@ export type TContextPredicate<
 	} = Record<StateType, any>,
 > = (context: TAutomataStateContext<StateType, ContextType>) => THighOrderPredicate;
 
-export type TModelPredicate<ModelType extends object = Record<string, any>> = (model: ModelType) => THighOrderPredicate;
+/** A condition whose explicit runtime dependencies are an Event and current Data Model. */
+export type TModelPredicate<
+	ModelType extends object = Record<string, any>,
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = (
+	event: TAutomataEventMetaType<EventType, EventMetaType>,
+	model: Readonly<ModelType>,
+) => boolean;
+
+/**
+ * Pre-P2 placeholder signature retained under an explicit name for migrations.
+ * @deprecated Use `TModelPredicate` and the Model Predicate composition helpers.
+ */
+export type TLegacyModelPredicate<ModelType extends object = Record<string, any>> = (
+	model: ModelType,
+) => THighOrderPredicate;
 
 export type THighOrderPredicate = (...predicates: Array<(...args: any[]) => boolean>) => boolean;
 
