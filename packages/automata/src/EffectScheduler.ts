@@ -23,6 +23,15 @@ type TNormalizedEffectMatrix<
 	EventMetaType extends { [K in EventType]: any },
 > = Map<EventType, ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>>;
 
+type TIndexedEffect<
+	ModelType extends object,
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any },
+> = {
+	registration: symbol;
+	effect: TAutomataEffect<ModelType, EventType, EventMetaType>;
+};
+
 function assertModel(model: unknown): asserts model is object {
 	if (typeof model !== 'object' || model === null) {
 		throw new TypeError('Effect must return a non-null Data Model object');
@@ -44,6 +53,11 @@ export class EffectScheduler<
 > implements IEffectScheduler<ModelType, EventType, EventMetaType> {
 	readonly #store: IDataModelStore<ModelType>;
 	readonly #matrices = new Map<symbol, TNormalizedEffectMatrix<ModelType, EventType, EventMetaType>>();
+	#effectsByEvent = new Map<
+		EventType,
+		ReadonlyArray<TIndexedEffect<ModelType, EventType, EventMetaType>>
+	>();
+
 	#pendingEvents: Array<TAutomataEventMetaType<EventType, EventMetaType>> = [];
 	#isFlushing = false;
 
@@ -82,9 +96,29 @@ export class EffectScheduler<
 
 		const registration = Symbol('effect-matrix');
 		this.#matrices.set(registration, normalized);
+		const nextEffectsByEvent = new Map(this.#effectsByEvent);
+		for (const [event, effects] of normalized) {
+			const indexedEffects = effects.map(effect => ({ registration, effect }));
+			nextEffectsByEvent.set(event, [
+				...(this.#effectsByEvent.get(event) ?? []),
+				...indexedEffects,
+			]);
+		}
+		this.#effectsByEvent = nextEffectsByEvent;
 
 		return () => {
+			const registeredMatrix = this.#matrices.get(registration);
+			if (!registeredMatrix) return;
+
 			this.#matrices.delete(registration);
+			const nextEffectsByEvent = new Map(this.#effectsByEvent);
+			for (const event of registeredMatrix.keys()) {
+				const remainingEffects = (this.#effectsByEvent.get(event) ?? [])
+					.filter(indexedEffect => indexedEffect.registration !== registration);
+				if (remainingEffects.length > 0) nextEffectsByEvent.set(event, remainingEffects);
+				else nextEffectsByEvent.delete(event);
+			}
+			this.#effectsByEvent = nextEffectsByEvent;
 		};
 	}
 
@@ -109,7 +143,9 @@ export class EffectScheduler<
 
 		const batch = this.#pendingEvents;
 		this.#pendingEvents = [];
-		const matrices = [...this.#matrices.values()];
+		// Registration uses copy-on-write, so retaining the current index reference
+		// isolates this batch from matrices added or removed while an Effect runs.
+		const effectsByEvent = this.#effectsByEvent;
 		const previousModel = this.#store.get();
 		let model = previousModel;
 		let appliedEffects = 0;
@@ -117,14 +153,12 @@ export class EffectScheduler<
 
 		try {
 			for (const event of batch) {
-				for (const matrix of matrices) {
-					const effects = matrix.get(event.event as EventType) ?? [];
-					for (const effect of effects) {
-						const nextModel = effect(event, model);
-						assertModel(nextModel);
-						model = nextModel as ModelType;
-						appliedEffects++;
-					}
+				const indexedEffects = effectsByEvent.get(event.event as EventType) ?? [];
+				for (const { effect } of indexedEffects) {
+					const nextModel = effect(event, model);
+					assertModel(nextModel);
+					model = nextModel as ModelType;
+					appliedEffects++;
 				}
 			}
 

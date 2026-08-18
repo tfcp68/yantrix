@@ -535,6 +535,41 @@ describe('coreLoop Effect batches', () => {
 		expect(store.get()).toEqual({ count: 1 });
 	});
 
+	it('routes committed Events once per Destination and preserves Destination registration order', async () => {
+		const { effectLoop, adapter } = createEffectLoop();
+		const calls: string[] = [];
+		const destination = (id: string, boundEvents: Array<UEvents | null>) => ({
+			id,
+			getBoundEvents: () => boundEvents,
+			update: (event: TAutomataEventMetaType<UEvents, TMeta>) => {
+				calls.push(`${id}:${String(event.event)}`);
+			},
+			start: () => {},
+			stop: () => {},
+		}) as unknown as IDataDestination<UEvents, TMeta, ITestModel>;
+		const first = destination('first', [null]);
+		// A custom Destination may expose overlapping bindings. CoreLoop must still
+		// route the Event once rather than once per matching index entry.
+		const second = destination('second', [UEvents.EVT_OUT, null]);
+
+		effectLoop.registerDestination(first);
+		effectLoop.registerDestination(second);
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		effectLoop.registerAutomata(new AutomataStub(), adapter);
+
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+
+		expect(calls).toEqual(['first:2', 'first:2', 'second:2', 'second:2']);
+
+		effectLoop.unregisterDestination('second');
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+
+		expect(calls).toEqual(['first:2', 'first:2', 'second:2', 'second:2', 'first:2', 'first:2']);
+	});
+
 	it('registers a Slice as one unit and removes its machines and Effect Matrix together', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0 });
 		const scheduler = new EffectScheduler<ITestModel, UEvents, TMeta>({ store });

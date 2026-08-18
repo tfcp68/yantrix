@@ -27,6 +27,7 @@ type TRegisteredAutomata = {
 
 type TRegisteredDestination = {
 	id: string;
+	order: number;
 	boundEvents: Array<number | null>;
 	update: (event: TAutomataEventMetaType<number, Record<number, any>>, model?: object) => void;
 	subscribe: () => void;
@@ -81,7 +82,10 @@ export class CoreLoop<
 	private effectFlushPromise: Promise<void> | null = null;
 	private readonly automata: Map<string, TRegisteredAutomata> = new Map();
 	private readonly destinations: Map<string, TRegisteredDestination> = new Map();
+	private readonly destinationsByEvent: Map<number, Set<TRegisteredDestination>> = new Map();
+	private readonly wildcardDestinations: Set<TRegisteredDestination> = new Set();
 	private readonly slices: Map<string, TRegisteredSlice<EventType, EventMetaType>> = new Map();
+	private destinationRegistrationOrder = 0;
 	private readonly sources: Map<string, {
 		id: string;
 		src: IDataSource<EventType, EventMetaType, any>;
@@ -147,11 +151,27 @@ export class CoreLoop<
 		const result = this.effectScheduler.flush();
 
 		if (result.changed) {
-			for (const destination of this.destinations.values()) {
-				for (const event of events) {
-					if (destination.boundEvents.some(boundEvent => boundEvent === null || boundEvent === event.event)) {
-						destination.update(event, result.model);
+			const eventsByDestination = new Map<TRegisteredDestination, typeof events>();
+			for (const event of events) {
+				const matchingDestinations = new Set(this.wildcardDestinations);
+				if (event.event !== null) {
+					for (const destination of this.destinationsByEvent.get(event.event) ?? []) {
+						matchingDestinations.add(destination);
 					}
+				}
+
+				for (const destination of matchingDestinations) {
+					const destinationEvents = eventsByDestination.get(destination);
+					if (destinationEvents) destinationEvents.push(event);
+					else eventsByDestination.set(destination, [event]);
+				}
+			}
+
+			const orderedDestinations = [...eventsByDestination.keys()]
+				.sort((left, right) => left.order - right.order);
+			for (const destination of orderedDestinations) {
+				for (const event of eventsByDestination.get(destination) ?? []) {
+					destination.update(event, result.model);
 				}
 			}
 		}
@@ -429,8 +449,9 @@ export class CoreLoop<
 		subscribe();
 		dst.start();
 
-		this.destinations.set(id, {
+		const registeredDestination: TRegisteredDestination = {
 			id,
+			order: this.destinationRegistrationOrder++,
 			boundEvents: destinationEvents,
 			update: (event, model) => dst.update(
 				event as TAutomataEventMetaType<EventType, EventMetaType>,
@@ -440,8 +461,34 @@ export class CoreLoop<
 			unsubscribe,
 			start: () => dst.start(),
 			stop: () => dst.stop(),
-		});
+		};
+		this.destinations.set(id, registeredDestination);
+		this.indexDestination(registeredDestination);
 		return this;
+	}
+
+	private indexDestination(destination: TRegisteredDestination): void {
+		for (const event of destination.boundEvents) {
+			if (event === null) {
+				this.wildcardDestinations.add(destination);
+				continue;
+			}
+
+			const indexedDestinations = this.destinationsByEvent.get(event) ?? new Set();
+			indexedDestinations.add(destination);
+			this.destinationsByEvent.set(event, indexedDestinations);
+		}
+	}
+
+	private unindexDestination(destination: TRegisteredDestination): void {
+		this.wildcardDestinations.delete(destination);
+		for (const event of destination.boundEvents) {
+			if (event === null) continue;
+			const indexedDestinations = this.destinationsByEvent.get(event);
+			if (!indexedDestinations) continue;
+			indexedDestinations.delete(destination);
+			if (indexedDestinations.size === 0) this.destinationsByEvent.delete(event);
+		}
 	}
 
 	/**
@@ -459,6 +506,7 @@ export class CoreLoop<
 		if (reg) {
 			reg.unsubscribe();
 			reg.stop();
+			this.unindexDestination(reg);
 			this.destinations.delete(id);
 		}
 		return this;

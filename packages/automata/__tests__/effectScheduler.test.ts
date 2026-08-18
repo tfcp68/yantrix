@@ -142,6 +142,40 @@ describe('effectScheduler', () => {
 		expect(store.get().count).toBe(2);
 	});
 
+	it('keeps the current Effect batch isolated from matrix registration changes', () => {
+		const store = new ModelStore(initialModel());
+		const scheduler = new EffectScheduler<ITestModel, TestEvent, ITestEventMeta>({ store });
+		const calls: string[] = [];
+		let removeSecond = () => {};
+
+		scheduler.addMatrix({
+			[TestEvent.Increment]: [(_event, model) => {
+				calls.push('first');
+				removeSecond();
+				scheduler.addMatrix({
+					[TestEvent.Increment]: [(_nextEvent, nextModel) => {
+						calls.push('late');
+						return nextModel;
+					}],
+				});
+				return model;
+			}],
+		});
+		removeSecond = scheduler.addMatrix({
+			[TestEvent.Increment]: [(_event, model) => {
+				calls.push('second');
+				return model;
+			}],
+		});
+
+		scheduler
+			.enqueue({ event: TestEvent.Increment, meta: { amount: 1 } })
+			.enqueue({ event: TestEvent.Increment, meta: { amount: 1 } })
+			.flush();
+
+		expect(calls).toEqual(['first', 'second', 'first', 'second']);
+	});
+
 	it('keeps a failed batch atomic and consumes it before rethrowing', () => {
 		const initial = initialModel();
 		const store = new ModelStore(initial);
