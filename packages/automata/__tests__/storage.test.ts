@@ -145,6 +145,34 @@ describe('storage Sync Loop', () => {
 		expect(saved).toEqual([1, 3]);
 	});
 
+	it('debounces commits across event-loop turns when configured', async () => {
+		vi.useFakeTimers();
+		try {
+			const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
+			const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'debounced' });
+			const save = vi.spyOn(storage, 'save');
+			const loop = new StorageSyncLoop({
+				store,
+				bindings: [countBinding(storage)],
+				debounceMs: 50,
+			}).start();
+
+			store.commit({ count: 1, name: 'one' });
+			await vi.advanceTimersByTimeAsync(40);
+			expect(save).not.toHaveBeenCalled();
+			store.commit({ count: 2, name: 'two' });
+			await vi.advanceTimersByTimeAsync(49);
+			expect(save).not.toHaveBeenCalled();
+			await vi.advanceTimersByTimeAsync(1);
+			await loop.whenIdle();
+
+			expect(save).toHaveBeenCalledOnce();
+			expect(await storage.load()).toEqual({ count: 2 });
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
 	it('skips a Storage when its selected projection is referentially unchanged', async () => {
 		interface IProjectionModel { persistent: TCountSnapshot; transient: number }
 		const persistent = { count: 1 };
@@ -241,10 +269,13 @@ describe('storage Sync Loop', () => {
 		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'slow' });
 		const save = Promise.withResolvers<void>();
 		vi.spyOn(storage, 'save').mockReturnValue(save.promise);
-		const loop = new StorageSyncLoop({ store, bindings: [countBinding(storage)] }).start();
+		const loop = new StorageSyncLoop({
+			store,
+			bindings: [countBinding(storage)],
+			debounceMs: 60_000,
+		}).start();
 
 		store.commit({ count: 1, name: 'one' });
-		await Promise.resolve();
 		let stopped = false;
 		const stopping = loop.stop().then(() => {
 			stopped = true;

@@ -133,6 +133,7 @@ export class InMemoryStorageAdapter<SnapshotType = unknown> implements IStorageA
 export type TStorageSyncLoopProps<ModelType extends object> = {
 	store: IDataModelStore<ModelType>;
 	bindings?: ReadonlyArray<TAnyStorageBinding<ModelType>>;
+	debounceMs?: number;
 	onError?: (failure: TStorageFailure) => void;
 };
 
@@ -146,16 +147,23 @@ export class StorageSyncLoop<ModelType extends object> {
 	readonly #lastPersistedProjection = new Map<string, unknown>();
 	readonly #failures: TStorageFailure[] = [];
 	readonly #idleWaiters = new Set<() => void>();
+	readonly #debounceMs: number;
 	readonly #onError?: (failure: TStorageFailure) => void;
 
 	#unsubscribe: TSubscriptionCancelFunction | null = null;
 	#pendingModel: ModelType | null = null;
 	#hasPendingModel = false;
 	#drainScheduled = false;
+	#drainTimer: ReturnType<typeof setTimeout> | null = null;
 	#activeWrite: Promise<void> | null = null;
+	#flushImmediately = false;
 
-	constructor({ store, bindings = [], onError }: TStorageSyncLoopProps<ModelType>) {
+	constructor({ store, bindings = [], debounceMs = 0, onError }: TStorageSyncLoopProps<ModelType>) {
+		if (!Number.isFinite(debounceMs) || debounceMs < 0) {
+			throw new TypeError('Storage Sync Loop debounce must be a non-negative finite number');
+		}
 		this.#store = store;
+		this.#debounceMs = debounceMs;
 		this.#onError = onError;
 		for (const binding of bindings) this.addStorage(binding);
 	}
@@ -184,10 +192,16 @@ export class StorageSyncLoop<ModelType extends object> {
 		this.#unsubscribe?.();
 		this.#unsubscribe = null;
 		if (!flushPending) {
+			this.#cancelScheduledDrain();
 			this.#pendingModel = null;
 			this.#hasPendingModel = false;
+		} else {
+			this.#flushImmediately = true;
+			this.#cancelScheduledDrain();
+			if (this.#hasPendingModel) this.#scheduleDrain();
 		}
 		await this.whenIdle();
+		this.#flushImmediately = false;
 	}
 
 	public isRunning(): boolean {
@@ -218,9 +232,25 @@ export class StorageSyncLoop<ModelType extends object> {
 	}
 
 	#scheduleDrain(): void {
-		if (this.#drainScheduled || this.#activeWrite) return;
+		if (this.#activeWrite) return;
+		if (this.#debounceMs > 0 && !this.#flushImmediately) {
+			this.#cancelScheduledDrain();
+			this.#drainScheduled = true;
+			this.#drainTimer = setTimeout(() => {
+				this.#drainTimer = null;
+				this.#drain();
+			}, this.#debounceMs);
+			return;
+		}
+		if (this.#drainScheduled) return;
 		this.#drainScheduled = true;
 		queueMicrotask(() => this.#drain());
+	}
+
+	#cancelScheduledDrain(): void {
+		if (this.#drainTimer) clearTimeout(this.#drainTimer);
+		this.#drainTimer = null;
+		this.#drainScheduled = false;
 	}
 
 	#drain(): void {

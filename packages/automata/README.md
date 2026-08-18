@@ -125,6 +125,7 @@ const model = new ModelStore(hydration.model);
 const storageSync = new StorageSyncLoop({
 	store: model,
 	bindings: storageBindings,
+	debounceMs: 250,
 	onError: failure => console.error(failure),
 }).start();
 
