@@ -35,6 +35,37 @@ $ npx nypm install @yantrix/core
 
 > We suggest using `pnpm`
 
+## MVP runtime
+
+`@yantrix/core` re-exports the complete TypeScript runtime. A typical
+application hydrates its persisted projections, then composes one Data Model,
+Effect Scheduler, Main Loop and one or more generated Slices:
+
+```typescript
+import {
+	CoreLoop,
+	EffectScheduler,
+	hydrateModel,
+	ModelStore,
+} from '@yantrix/core';
+
+const hydration = await hydrateModel(initialModel, storageBindings);
+const modelStore = new ModelStore(hydration.model);
+const effectScheduler = new EffectScheduler({ store: modelStore });
+const coreLoop = new CoreLoop({ effectScheduler });
+
+coreLoop.registerSlice(createApplicationSlice(modelTransformers));
+coreLoop.getBus().dispatch(command);
+await coreLoop.whenIdle();
+```
+
+The Data Model is a plain serializable snapshot. `ModelStore` only owns that
+snapshot in memory; persistence belongs to Storage Adapters and
+`StorageSyncLoop`. Only Events emitted by FSM Event Adapters trigger Effects.
+
+See the [Core Runtime API](https://tfcp68.github.io/yantrix/integrations/180_core_runtime.html)
+and [migration guide](https://tfcp68.github.io/yantrix/integrations/190_core_migration.html).
+
 Then, see the docs:
 
 - [Learn about finite state machines](https://tfcp68.github.io/yantrix/concepts/200_FSM.html)

@@ -6,7 +6,10 @@ title: Data Flow
 
 ## Data Model
 
-Regardless of what's happening in the outside world, there's always a data snapshot of an Application that is fully descriptive of its behavior. This snapshot is stored in a `Data Model` &mdash; a global anemic storage that can be accessed via API. `Data Model` is something like a savegame, which can be used to serialize the application state to a text format and then instantiate the application to a previously saved state. Sometimes, minor conditions are not preserved, because they are stored inside `FSM`s instead, but most often than not `Data Model` is an application-global store, similar to Redux, which can be observed partially or extensively to update UI and endpoints.
+Regardless of what's happening in the outside world, there is a global serializable application snapshot called the
+`Data Model`. It is an anemic object value, not a runtime store or persistence transport. Like a savegame, it can be
+serialized and later used to restore durable application state. Transient control details may remain inside FSM
+Contexts instead.
 
 In the TypeScript runtime, `ModelStore` owns the current in-memory snapshot and subscriptions; persistence remains the
 responsibility of separate `Storage` adapters and the Sync Loop. Optional `development.freeze` and
@@ -158,7 +161,7 @@ sequenceDiagram
 	end
 	DB ->> MDL: Sync application state on launch
 	SRC -->> MT: Event Meta
-	loop Process Event Stack every 1/60s
+	loop Process Event Stack when driven by a Source, command or optional clock
 		activate MT
 		Note over MT: Dequeue oldest Event from Event Stack
 		MT ->> MT: Run FSM Reducers

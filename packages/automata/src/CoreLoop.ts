@@ -56,9 +56,10 @@ export type TCoreLoopProps<
 /**
  * CoreLoop is the main loop that connects:
  * - an Event Bus (pub/sub for Events),
- * - one or more FSMs (IAutomata) through an Event Adapter,
+ * - Slices or individual FSMs (IAutomata) through Event Adapters,
+ * - an optional Effect Scheduler and global Data Model,
  * - Sources (`IDataSource`, producers of Events),
- * - Destinations (`IDataDestination`, consumers of Events).
+ * - Destinations (`IDataDestination`, consumers of Events and committed models).
  *
  * Driver-agnostic: the loop only knows how to drain Sources on a `tick()`. *When* to tick is left to a
  * driver — call `tick()` manually, from a reactive observer, or use {@link TimedCoreLoop} for a clock.
@@ -66,6 +67,7 @@ export type TCoreLoopProps<
  * Generics:
  * - EventType: enum/number of Events
  * - EventMetaType: a map EventType -> meta payload shape
+ * - ModelType: the application-global Data Model snapshot
  */
 export class CoreLoop<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
@@ -114,7 +116,12 @@ export class CoreLoop<
 		return this.effectScheduler;
 	}
 
-	/** Resolves after the Event cascade and its Effect batch have both completed. */
+	/**
+	 * Resolves after the current FIFO EventBus cascade and its automatic Effect
+	 * batch have completed. A failed Effect rejects this Promise. Synchronous
+	 * model-bound Destination updates have been invoked before it resolves, but
+	 * external Destination I/O and Storage writes have their own idle boundaries.
+	 */
 	public async whenIdle(): Promise<void> {
 		await this.bus.whenIdle();
 		const flushPromise = this.effectFlushPromise;
@@ -390,9 +397,10 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Registers a Destination (`IDataDestination`). The loop subscribes each of the Destination's
-	 * bound events (`getBoundEvents()`) to the bus and forwards matching events through
-	 * `update(event)`, where the Destination's selector + resolver pipeline takes over.
+	 * Registers a Destination (`IDataDestination`). Without an Effect Scheduler,
+	 * explicit bindings subscribe directly to the EventBus for backwards compatibility.
+	 * With a scheduler, explicit and wildcard bindings are indexed and invoked only
+	 * after a successful Data Model change, in Destination registration order.
 	 *
 	 * Follow-up events (if any) are emitted by a paired Data Source (see `createPromiseDataAdapter`),
 	 * which the loop pumps on its tick — not via the bus handler's `result`.

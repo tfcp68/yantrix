@@ -695,14 +695,16 @@ export interface IAutomataSlice<
 	restoreCompositeState: (compositeState: Record<string, TAutomataStateContext<any, any>>) => this;
 
 	/**
-	 * Returns the event matrix, which is a record of events and their corresponding effects.
-	 * @returns The event matrix.
+	 * Returns the Effect Matrix owned by this Slice.
+	 * @returns A copy of the Event-to-Effects mapping.
 	 */
 	getEventMatrix: () => TEffectMatrix<ModelType, EventType, EventMetaType>;
 
 	/**
-	 * Dispatches an event and triggers its effects.
-	 * @param event - The event object to dispatch.
+	 * Queues an Event for a custom/manual Slice driver.
+	 * CoreLoop does not consume this queue; its Effect batches are built from Events
+	 * emitted by registered FSM Event Adapters.
+	 * @param event - The Event object to queue.
 	 * @returns The current instance of `IAutomataSlice`.
 	 */
 	dispatchEvent: (event: TAutomataEventMetaType<EventType, EventMetaType>) => this;

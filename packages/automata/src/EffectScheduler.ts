@@ -8,6 +8,7 @@ import {
 } from './types/index.js';
 import { IDataModelStore, IEffectScheduler } from './types/interfaces.js';
 
+/** Constructor dependencies for the transactional {@link EffectScheduler}. */
 export type TEffectSchedulerProps<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
