@@ -11,6 +11,7 @@
 		"preview": "vite preview",
 		"pretest": "pnpm run generate",
 		"test": "vitest run",
+		"pregenerate": "node ./scripts/ensureWorkspaceBuild.mjs",
 		"generate": "pnpm run generate:typescript && pnpm run generate:javascript",
 		"generate:typescript": "yantrix codegen ./src/diagrams/InfiniteConstellations.mermaid -l TypeScript -o src/generated/InfiniteConstellations.ts -c InfiniteConstellations --beautify",
 		"generate:javascript": "yantrix codegen ./src/diagrams/InfiniteConstellations.mermaid -l JavaScript -o src/generated/InfiniteConstellations.contract.js -c InfiniteConstellations --beautify",

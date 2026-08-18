@@ -12,6 +12,8 @@ pnpm install
 pnpm --filter 07-infinite-constellations dev
 ```
 
+The example bootstraps missing `@yantrix/cli`, `@yantrix/core` and their transitive workspace builds before code generation, so the command also works after the repository's `pnpm clean`. A compilation error in a workspace dependency is reported directly instead of surfacing later as a missing `dist/index.js` in Vite.
+
 Production build and verification:
 
 ```sh
