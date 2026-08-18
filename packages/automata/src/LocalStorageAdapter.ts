@@ -30,7 +30,8 @@ export class LocalStorageAdapter<SnapshotType = unknown> implements IStorageAdap
 		deserialize = value => JSON.parse(value) as SnapshotType,
 	}: TLocalStorageAdapterProps<SnapshotType>) {
 		if (typeof id !== 'string' || id.length === 0) throw new Error('Storage must provide a non-empty string id');
-		const defaultStorage = (globalThis as { localStorage?: IKeyValueStorage }).localStorage;
+		const browserWindow = (globalThis as { window?: { localStorage?: IKeyValueStorage } }).window;
+		const defaultStorage = browserWindow?.localStorage;
 		if (!storage && !defaultStorage) throw new Error('LocalStorage backend is unavailable');
 		this.id = id;
 		this.#key = key;
