@@ -1,0 +1,26 @@
+{
+	"name": "07-infinite-constellations",
+	"type": "module",
+	"version": "0.5.4",
+	"private": true,
+	"scripts": {
+		"dev": "vite",
+		"predev": "pnpm run generate",
+		"prebuild": "pnpm run generate",
+		"build": "tsc --noEmit && vite build",
+		"preview": "vite preview",
+		"pretest": "pnpm run generate",
+		"test": "vitest run",
+		"generate": "pnpm run generate:typescript && pnpm run generate:javascript",
+		"generate:typescript": "yantrix codegen ./src/diagrams/InfiniteConstellations.mermaid -l TypeScript -o src/generated/InfiniteConstellations.ts -c InfiniteConstellations --beautify",
+		"generate:javascript": "yantrix codegen ./src/diagrams/InfiniteConstellations.mermaid -l JavaScript -o src/generated/InfiniteConstellations.contract.js -c InfiniteConstellations --beautify",
+		"lint": "eslint .",
+		"format": "eslint --fix ."
+	},
+	"devDependencies": {
+		"@yantrix/core": "workspace:^",
+		"typescript": "^5.9.2",
+		"vite": "^7.1.7",
+		"vitest": "^2.1.1"
+	}
+}

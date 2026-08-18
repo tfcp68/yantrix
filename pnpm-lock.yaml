@@ -417,6 +417,21 @@ importers:
         specifier: ^7.1.7
         version: 7.1.7(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1)
 
+  examples/07-infinite-constellations:
+    devDependencies:
+      '@yantrix/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+      vite:
+        specifier: ^7.1.7
+        version: 7.1.7(@types/node@22.10.1)(jiti@1.21.6)(yaml@2.6.1)
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.6(@types/node@22.10.1)(jsdom@25.0.1)
+
   packages/automata:
     dependencies:
       '@yantrix/utils':

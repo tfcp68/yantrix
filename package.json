@@ -44,7 +44,7 @@
 		"build:examples": "turbo run build --filter=./examples/* --filter=./comparison/** --concurrency=4 --log-order=grouped --output-logs=errors-only",
 		"generate:packages": "turbo run generate --filter=./packages/* --concurrency=4 --log-order=grouped --output-logs=errors-only",
 		"generate:affected": "turbo run generate --filter=...[origin/main] --concurrency=4 --log-order=grouped",
-		"clean": "rimraf --glob **/dist **/coverage **/*_generated.*",
+		"clean": "rimraf --glob packages/*/dist packages/*/coverage packages/*/src/**/*_generated.* packages/*/__tests__/**/*_generated.* examples/*/dist examples/*/coverage examples/*/src/**/*_generated.* examples/*/__tests__/**/*_generated.* comparison/*/*/dist comparison/*/*/coverage comparison/*/*/src/**/*_generated.* comparison/*/*/__tests__/**/*_generated.* vitepress/.vitepress/dist",
 		"format": "turbo run format --concurrency=4 --log-order=grouped",
 		"format:affected": "turbo run format --filter=...[origin/main] --concurrency=4 --log-order=grouped",
 		"lint": "turbo run lint --concurrency=4 --log-order=grouped",
