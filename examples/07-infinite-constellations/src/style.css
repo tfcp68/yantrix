@@ -81,6 +81,7 @@ h1 span { color: transparent; background: linear-gradient(100deg, var(--aurora),
 
 .board-wrap { position: relative; padding: 20px; overflow: hidden; }
 .board { --cells: 15; width: min(82vh, 850px, 100%); aspect-ratio: 1; margin: 0 auto; display: grid; grid-template-columns: repeat(var(--cells), 1fr); border: 1px solid rgb(142 162 226 / 18%); background: #090c19; box-shadow: inset 0 0 80px rgb(42 50 99 / 15%); touch-action: none; }
+.board.dragging, .board.dragging .cell { cursor: grabbing; }
 .cell { position: relative; display: grid; place-items: center; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: transparent; cursor: crosshair; min-width: 0; padding: 0; }
 .cell:hover { background: rgb(131 153 224 / 10%); }
 .cell.origin::after { content: ''; position: absolute; inset: 42%; border-radius: 50%; background: #667499; opacity: .5; }

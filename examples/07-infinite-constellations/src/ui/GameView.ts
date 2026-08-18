@@ -1,4 +1,5 @@
 import { coordinateKey, TGameModel, TPlayer } from '../domain/gameModel';
+import { cameraFromBoardDrag } from './boardPan';
 
 const BOARD_SIZE = 15;
 const BOARD_RADIUS = Math.floor(BOARD_SIZE / 2);
@@ -8,6 +9,16 @@ type TActionHandlers = {
 	place: (x: number, y: number) => void;
 	nova: (x: number, y: number) => void;
 	reset: () => void;
+};
+
+type TBoardPanGesture = {
+	readonly pointerId: number;
+	readonly startX: number;
+	readonly startY: number;
+	readonly cameraX: number;
+	readonly cameraY: number;
+	readonly boardWidth: number;
+	readonly boardHeight: number;
 };
 
 function element<ElementType extends HTMLElement>(id: string): ElementType {
@@ -28,6 +39,7 @@ export class GameView {
 	#cameraX = 0;
 	#cameraY = 0;
 	#lastModel: Readonly<TGameModel> | null = null;
+	#boardPan: TBoardPanGesture | null = null;
 	#commandChain = Promise.resolve();
 	#resetTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -61,6 +73,55 @@ export class GameView {
 				this.#cameraY + (horizontal ? 0 : Math.sign(event.deltaY)),
 			);
 		}, { passive: false });
+		this.#listen(this.#board, 'pointerdown', (rawEvent) => {
+			const event = rawEvent as PointerEvent;
+			if (event.button !== 1) return;
+			event.preventDefault();
+			const bounds = this.#board.getBoundingClientRect();
+			this.#boardPan = {
+				pointerId: event.pointerId,
+				startX: event.clientX,
+				startY: event.clientY,
+				cameraX: this.#cameraX,
+				cameraY: this.#cameraY,
+				boardWidth: bounds.width,
+				boardHeight: bounds.height,
+			};
+			this.#board.setPointerCapture(event.pointerId);
+			this.#board.classList.add('dragging');
+		});
+		this.#listen(this.#board, 'pointermove', (rawEvent) => {
+			const event = rawEvent as PointerEvent;
+			const gesture = this.#boardPan;
+			if (!gesture || gesture.pointerId !== event.pointerId) return;
+			if ((event.buttons & 4) === 0) {
+				this.#finishBoardPan(event.pointerId);
+				return;
+			}
+			event.preventDefault();
+			const camera = cameraFromBoardDrag({
+				...gesture,
+				currentX: event.clientX,
+				currentY: event.clientY,
+				columns: BOARD_SIZE,
+				rows: BOARD_SIZE,
+			});
+			if (camera.x !== this.#cameraX || camera.y !== this.#cameraY) {
+				this.#setCamera(camera.x, camera.y);
+			}
+		});
+		for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+			this.#listen(this.#board, eventName, (rawEvent) => {
+				const event = rawEvent as PointerEvent;
+				if (this.#boardPan?.pointerId !== event.pointerId) return;
+				if (eventName === 'pointerup') event.preventDefault();
+				this.#finishBoardPan(event.pointerId);
+			});
+		}
+		this.#listen(this.#board, 'auxclick', (rawEvent) => {
+			const event = rawEvent as MouseEvent;
+			if (event.button === 1) event.preventDefault();
+		});
 		this.#listen(window, 'keydown', (rawEvent) => {
 			const event = rawEvent as KeyboardEvent;
 			if (!event.shiftKey) return;
@@ -111,7 +172,18 @@ export class GameView {
 
 	public dispose(): void {
 		if (this.#resetTimer) clearTimeout(this.#resetTimer);
+		this.#finishBoardPan();
 		for (const unsubscribe of this.#unsubscribers.splice(0)) unsubscribe();
+	}
+
+	#finishBoardPan(pointerId?: number): void {
+		const gesture = this.#boardPan;
+		if (!gesture || (pointerId !== undefined && gesture.pointerId !== pointerId)) return;
+		this.#boardPan = null;
+		this.#board.classList.remove('dragging');
+		if (this.#board.hasPointerCapture(gesture.pointerId)) {
+			this.#board.releasePointerCapture(gesture.pointerId);
+		}
 	}
 
 	#confirmReset(): void {

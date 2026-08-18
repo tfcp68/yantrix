@@ -20,7 +20,7 @@ pnpm --filter 07-infinite-constellations lint
 pnpm --filter 07-infinite-constellations build
 ```
 
-The browser UI renders a 15×15 window over the infinite coordinate space. Use the arrows, mouse wheel, Shift+arrow keys or the X/Y center fields to navigate. The board itself remains a sparse `Record<"x:y", Player>` and supports negative and large safe-integer coordinates.
+The browser UI renders a 15×15 window over the infinite coordinate space. Use the arrows, mouse wheel, middle-button drag, Shift+arrow keys or the X/Y center fields to navigate. The board itself remains a sparse `Record<"x:y", Player>` and supports negative and large safe-integer coordinates.
 
 ## Runtime path
 
