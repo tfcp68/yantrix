@@ -11,3 +11,8 @@ While every `FSM` can declare its own `Effects`, in fact they are invoked all at
 ```
 effect/<EFFECT_NAME> [<= (<META_KEY_LIST>)]
 ```
+
+In the TypeScript runtime an Effect has the `(event, readonlyModel) => nextModel` contract. A
+[`Model Transformer`](160_transformers.html#model-transformers) already has that shape; `whenModel` combines one with a
+[`Model Predicate`](150_predicates.html#model-predicates) when a conditional Effect is required. The Effect Scheduler
+applies matching Effects in order and commits at most one resulting snapshot for the complete Main Loop batch.

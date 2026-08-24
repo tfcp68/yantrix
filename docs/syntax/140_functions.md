@@ -10,8 +10,9 @@ another `Function`, leading to [composition](https://en.wikipedia.org/wiki/Funct
 for [higher-order functions](https://en.wikipedia.org/wiki/Higher-order_function), similar to most functional languages,
 Excel formulas included.
 
-Almost every `Function` used in Yantrix is a [pure function](https://en.wikipedia.org/wiki/Pure_function), i.e. it does
-not mutate its arguments or whatsoever, with the only exception being [`Model Transformers`](160_transformers.md).
+Yantrix data operations are designed as [pure functions](https://en.wikipedia.org/wiki/Pure_function), i.e. they do not
+mutate their arguments. In particular, [`Model Transformers`](160_transformers.md) return a new `Data Model` snapshot
+(or the unchanged snapshot reference for a no-op), so Effects remain deterministic and batched commits stay atomic.
 
 ## Function Types
 

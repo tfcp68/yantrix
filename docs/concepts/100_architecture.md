@@ -136,8 +136,8 @@ They can be:
 -   `Context Transformers` translate `Contexts` between each other. They are used inside `Transition Matrix` to update the
     internal data of the `FSM` when changing `States`. They are defined as a part of `State Dictionary`
 -   `Reducer Transformers` translate from `State`+`Action/Payload` to `State/Context`
--   `Model Transformers` are a subtype of `Effects` which is context-free and is basically a function that mutates
-    the `Data Model`. They can be composed with `Predicates` to produce `Effects`
+-   `Model Transformers` are a context-free subtype of `Effects`: pure functions that project the current
+    `Data Model` snapshot into a new snapshot. They can be composed with `Predicates` to produce conditional `Effects`
 -   `Generic Transformers` are built-in and user-defined pure functions that operate on any contract type and map the
     values. They are the basic building blocks of data manipulation.
 

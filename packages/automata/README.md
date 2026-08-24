@@ -85,6 +85,55 @@ await loop.whenIdle();
 
 Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
 
+Model Predicates and Model Transformers can be scoped to a selected model value
+and composed into an Effect without exposing the whole application model to a
+domain operation:
+
+```typescript
+import {
+	createModelPredicate,
+	createModelTransformer,
+	whenModel,
+} from '@yantrix/automata';
+
+interface ICounterModel {
+	counter: { value: number; limit: number };
+}
+
+const canIncrement = createModelPredicate<
+	ICounterModel,
+	ICounterModel['counter'],
+	AppEvent.Increment,
+	IEventMeta
+>(
+	(current: Readonly<ICounterModel>) => current.counter,
+	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
+);
+const increment = createModelTransformer<
+	ICounterModel,
+	ICounterModel['counter'],
+	AppEvent.Increment,
+	IEventMeta
+>(
+	(current: Readonly<ICounterModel>) => current.counter,
+	(current, counter) => ({ ...current, counter }),
+	(event, counter) => ({ ...counter, value: counter.value + (event.meta?.amount ?? 0) }),
+);
+const incrementWhenAllowed = whenModel(canIncrement, increment);
+```
+
+`ModelStore` can also enable opt-in development diagnostics. They are disabled
+by default and do not add work to production commits:
+
+```typescript
+const model = new ModelStore(initialModel, {
+	development: {
+		freeze: true,
+		validateSerializable: true,
+	},
+});
+```
+
 ### Storage and persistence
 
 `Storage` is separate from `ModelStore`: adapters load and save serializable

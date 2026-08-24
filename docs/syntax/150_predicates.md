@@ -26,9 +26,20 @@ any(isGreater(value, 0), not(includes(listValue, 'sample')), isGreater(len(strin
 
 ## Model Predicates
 
-Are declared as a part of `Data Model` are supposed to implement conditions that rely on the current state
-of `Application`. They can be written in the language of integration and injected into `FSM`s at runtime. This can be
-useful to taylor primitives to a specific Integration
+Model Predicates implement conditions that rely on the current `Data Model` snapshot. In the TypeScript runtime their
+explicit dependencies are the triggering `Event Meta` and a read-only model. `createModelPredicate` can narrow that
+dependency to one selected model value, keeping domain functions independent from the whole application model.
+
+```typescript
+const canIncrement = createModelPredicate<AppModel, Counter, AppEvent.Increment, AppEventMeta>(
+	(model: Readonly<AppModel>) => model.counter,
+	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
+);
+```
+
+`allModelPredicates`, `anyModelPredicates`, and `notModelPredicate` compose these conditions and preserve normal
+short-circuit semantics. A Model Predicate only reads the model; changes belong to
+[`Model Transformers`](160_transformers.html#model-transformers) and `Effects`.
 
 ### Examples
 

@@ -36,13 +36,36 @@ Function that translate from `State`+`Action/Payload` to `State/Context` can be 
 
 ## Model Transformers
 
-Model transformers are a subtype of `Effects` that are context-free and are basically functions that mutates
-the `Data Model`.
+Model Transformers are the context-free subtype of `Effects`. They are pure projections from the current read-only
+`Data Model` and triggering `Event Meta` to a new model snapshot. They must not mutate their arguments. Returning the
+current snapshot reference denotes a no-op and lets `ModelStore` avoid an unnecessary commit.
 
 -   `#{counter} <= add(№counter, increaseGlobalCounter($value))`
 
-They can be composed with `Predicates` to create conditional mutations, but this approach is not recommended, since it
-splits the responsibility of `Effects`.
+The TypeScript runtime exposes two levels of composition:
+
+-   `composeModelTransformers` applies transformations in declaration order;
+-   `whenModel(predicate, transformer)` produces a conditional `Effect` and returns the unchanged model when the
+    Predicate fails.
+
+`createModelTransformer(select, replace, transform)` scopes a Transformer to one model value. `select` reads that value,
+`transform` projects it, and `replace` rebuilds the enclosing model only when the selected value has changed. This keeps
+the event metadata and selected model value strictly typed without coupling a domain transformation to the complete
+application model.
+
+```typescript
+const increment = createModelTransformer<AppModel, Counter, AppEvent.Increment, AppEventMeta>(
+	(model: Readonly<AppModel>) => model.counter,
+	(model, counter) => ({ ...model, counter }),
+	(event, counter) => ({ ...counter, value: counter.value + (event.meta?.amount ?? 0) }),
+);
+
+const incrementWhenAllowed = whenModel(canIncrement, increment);
+```
+
+For common immutable operations, `setModelProperty`, `updateModelProperty`, `mergeModelObject`,
+`removeModelProperty`, `appendModelItem`, `updateModelItem`, and `removeModelItem` preserve the source object/list and
+reuse its reference for a no-op where possible.
 
 ## Built-Ins: Arithmetics
 
@@ -154,4 +177,3 @@ splits the responsibility of `Effects`.
 | `find`      | **Collection**, **String**, **any** | - Collection<br/>- property name<br/>- seek value | **Object**    | returns new the first item from the `Collection`, which have the `property name` attribute equal to `seek value`. `Null` is returned if none is found |
 | `pluck`      | **Collection**, **String** | - Collection<br/>- property name<br/> | **List**    | returns new **List**, that is comprised of all `property name` attribute values of items in the  `Collection`, in the order of appearance |
 | `sort` | **Collection**, [**String**], [**any**] | - Collection<br/>- Key Name = `id`<br/>- Default Value = `Null` | **Collection** | returns a new **Collection** comprised of `Collection` elements, sorted ascendingly by `Key Name` field. If the field is absent, it fallbacks to `Default Value` |
-

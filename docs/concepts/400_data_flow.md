@@ -8,6 +8,11 @@ title: Data Flow
 
 Regardless of what's happening in the outside world, there's always a data snapshot of an Application that is fully descriptive of its behavior. This snapshot is stored in a `Data Model` &mdash; a global anemic storage that can be accessed via API. `Data Model` is something like a savegame, which can be used to serialize the application state to a text format and then instantiate the application to a previously saved state. Sometimes, minor conditions are not preserved, because they are stored inside `FSM`s instead, but most often than not `Data Model` is an application-global store, similar to Redux, which can be observed partially or extensively to update UI and endpoints.
 
+In the TypeScript runtime, `ModelStore` owns the current in-memory snapshot and subscriptions; persistence remains the
+responsibility of separate `Storage` adapters and the Sync Loop. Optional `development.freeze` and
+`development.validateSerializable` checks can detect accidental mutation and values outside the strict JSON-safe,
+anemic model contract. Both checks are disabled by default and do not add a platform dependency to `ModelStore`.
+
 ## Data Sources
 
 `Data Sources` are the lowest level abstractions in Yantrix. They represent the driving force of all the things in the Universe &mdash; information. It is packed into [`Data Objects`](../syntax/100_data_objects.html) and moves the pieces of framework, such as `FSM`s, `Slices` and `Event Bus`, which is the preferred way. In Yantrix, while `FSM`s and `Data Model` are abstractions that store "internal" state of the Application, the external state of the environment has no single interface. Instead, various abstractions are used to produce declarative `Events`, that are processed synchronously. In real world scenarios, those would be:
