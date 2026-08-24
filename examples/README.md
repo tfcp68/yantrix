@@ -31,6 +31,7 @@ pnpm generate
 | 03 | [03-checkbox](03-checkbox/) | 2-state toggle; `+ByPass` states; **JavaScript** codegen; ID-keyed context | `automata`, `functions`, `react`, `utils` | React |
 | 04 | [04-api-weather-report](04-api-weather-report/) | Async API form FSM — loading/success/error lifecycle | `core` | None (vanilla TS) |
 | 06 | [06-clock](06-clock/) | Timer-driven analog clock; `+ByPass` tick states; in-context math | `core` | None (vanilla TS) |
+| 07 | [07-infinite-constellations](07-infinite-constellations/) | Complete MVP vertical slice: Data Model, Effects, generated Slice, Sources/Destinations and versioned persistence | `core` | None (vanilla TS) |
 
 > **Note:** example 05 is not yet available.
 
