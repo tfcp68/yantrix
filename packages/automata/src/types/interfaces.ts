@@ -34,10 +34,42 @@ import {
 	TDataBoundEventDictionary,
 	TDataBoundSelector,
 	TDataDestinationOutput,
+	TEffectFlushResult,
+	TEffectMatrix,
 	TEventBusHandler,
+	TModelListener,
 	TSubscriptionCancelFunction,
 	TValidator,
 } from './index.js';
+
+/**
+ * Observable store for the application-global, serializable Data Model.
+ *
+ * The model is replaced as one snapshot. Business logic reads it and Effects
+ * produce the next snapshot; consumers observe committed changes.
+ */
+export interface IDataModelStore<ModelType extends object> {
+	get: () => ModelType;
+	commit: (model: ModelType) => void;
+	subscribe: (listener: TModelListener<ModelType>) => TSubscriptionCancelFunction;
+}
+
+/**
+ * Batches Events and applies their Effects to a Data Model in one transaction.
+ */
+export interface IEffectScheduler<
+	ModelType extends object,
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> {
+	readonly pendingCount: number;
+	addMatrix: (
+		matrix: TEffectMatrix<ModelType, EventType, EventMetaType>,
+	) => TSubscriptionCancelFunction;
+	enqueue: (event: TAutomataEventMetaType<EventType, EventMetaType>) => this;
+	flush: () => TEffectFlushResult<ModelType>;
+	clear: () => this;
+}
 
 /**
  * Interface for an Automata event container.
@@ -324,6 +356,9 @@ export interface IAutomata<
 	 */
 	getContext: <K extends StateType = StateType>() => TAutomataStateContext<K, ContextType>;
 
+	/** Restores the current State and Context snapshot. */
+	setContext: (context: TAutomataStateContext<StateType, ContextType>) => this;
+
 	/**
 	 * Consume all Actions in the Queue and return the resulting State
 	 * Works even when Paused
@@ -589,10 +624,13 @@ export interface IAutomataSlice<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 	ModelType extends object = Record<string, any>,
 > extends IAutomataEventContainer<EventType> {
+	/** Stable Slice identifier used by the application composition root. */
+	readonly id: string;
+
 	/**
 	 * A record of machines, where each machine is an instance of `IAutomata`.
 	 */
-	getMachines: Record<string, IAutomata<any, any, EventType>>;
+	getMachines: () => Readonly<Record<string, IAutomata<any, any, EventType, any, any, EventMetaType>>>;
 
 	/**
 	 * Adds a machine to the automata slice.
@@ -620,7 +658,7 @@ export interface IAutomataSlice<
 	/**
 	 * A record of composite states, where each composite state is an instance of `TAutomataStateContext`.
 	 */
-	getCompositeState: Record<string, TAutomataStateContext<any, any>>;
+	getCompositeState: () => Record<string, TAutomataStateContext<any, any>>;
 
 	/**
 	 * Restores a state for a specific machine.
@@ -647,7 +685,7 @@ export interface IAutomataSlice<
 	 * Returns the event matrix, which is a record of events and their corresponding effects.
 	 * @returns The event matrix.
 	 */
-	getEventMatrix: () => Record<EventType, Array<TAutomataEffect<ModelType, EventType>>>;
+	getEventMatrix: () => TEffectMatrix<ModelType, EventType, EventMetaType>;
 
 	/**
 	 * Dispatches an event and triggers its effects.
@@ -667,7 +705,7 @@ export interface IAutomataSlice<
 	 * @param clearStack - Indicates whether to clear the event stack.
 	 * @returns The current instance of `IAutomataSlice`.
 	 */
-	stop: (clearStack: boolean) => this;
+	stop: (clearStack?: boolean) => this;
 
 	/**
 	 * Checks if the automata slice is running.
@@ -693,7 +731,7 @@ export interface IAutomataSlice<
 	 */
 	consumeEvent: () => {
 		events: TAutomataEventStack<EventType, EventMetaType>;
-		effects: Array<TAutomataEffect<ModelType, EventType>>;
+		effects: Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
 	};
 
 	/**
@@ -701,7 +739,7 @@ export interface IAutomataSlice<
 	 * @param event - The event for which to retrieve the effects.
 	 * @returns The effects associated with the event.
 	 */
-	getEventEffects: (event: EventType) => Array<TAutomataEffect<ModelType, EventType>>;
+	getEventEffects: (event: EventType) => Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
 }
 
 /**
@@ -764,6 +802,12 @@ export interface IAutomataEventBus<
 	 * @returns True if the event bus is running, false otherwise.
 	 */
 	isRunning: () => boolean;
+
+	/**
+	 * Resolves after the Event stack and all asynchronous follow-up Events have
+	 * been fully processed.
+	 */
+	whenIdle: () => Promise<void>;
 }
 
 /**

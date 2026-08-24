@@ -256,7 +256,39 @@ export type TAutomataEffect<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> = (event: EventMetaType, model: ModelType) => ModelType;
+> = (
+	event: TAutomataEventMetaType<EventType, EventMetaType>,
+	model: Readonly<ModelType>,
+) => ModelType;
+
+/**
+ * Maps each event to the ordered Effects it triggers.
+ *
+ * A matrix usually belongs to a Slice. Multiple matrices can be registered in
+ * an Effect Scheduler and are evaluated in registration order.
+ */
+export type TEffectMatrix<
+	ModelType extends object,
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+> = {
+	readonly [Event in EventType]?: ReadonlyArray<TAutomataEffect<ModelType, Event, EventMetaType>>;
+};
+
+/** Listener notified after the Data Model snapshot has changed. */
+export type TModelListener<ModelType extends object> = (
+	model: ModelType,
+	previousModel: ModelType,
+) => void;
+
+/** Summary of one Effect Scheduler batch. */
+export type TEffectFlushResult<ModelType extends object> = {
+	model: ModelType;
+	previousModel: ModelType;
+	processedEvents: number;
+	appliedEffects: number;
+	changed: boolean;
+};
 
 export type TGenericTransformer<DataType> = (data: DataType) => DataType;
 

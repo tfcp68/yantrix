@@ -374,4 +374,42 @@ describe('eventBus', () => {
 			expect(mockHandler2).toHaveBeenCalledTimes(2);
 		});
 	});
+	describe('/whenIdle', () => {
+		it('resolves after asynchronous follow-up Events are fully drained', async () => {
+			const firstEvent = randomInteger(1, 100);
+			const secondEvent = randomInteger(101, 200);
+			const seen: number[] = [];
+			sampleInstance.subscribe(firstEvent, event => ({
+				...event,
+				task_id: uniqId(),
+				result: Promise.resolve([{ event: secondEvent, meta: { meta: 'follow-up' } }]),
+			}));
+			sampleInstance.subscribe(secondEvent, (event) => {
+				seen.push(secondEvent);
+				return { ...event, task_id: uniqId(), result: null };
+			});
+
+			sampleInstance.dispatch({ event: firstEvent, meta: { meta: 'initial' } });
+			await sampleInstance.whenIdle();
+
+			expect(seen).toEqual([secondEvent]);
+			expect(sampleInstance.getEventStack()).toEqual([]);
+		});
+
+		it('drains synchronous queues larger than the processing batch size', async () => {
+			const event = randomInteger(1, 100);
+			const handler = vitest.fn(raw => ({ ...raw, task_id: uniqId(), result: null }));
+			const events = Array.from({ length: 40 }, () => ({ event, meta: { meta: 'batch' } }));
+			sampleInstance
+				.subscribe(event, handler)
+				.pause()
+				.dispatch(...events)
+				.resume();
+
+			await sampleInstance.whenIdle();
+
+			expect(handler).toHaveBeenCalledTimes(40);
+			expect(sampleInstance.getEventStack()).toEqual([]);
+		});
+	});
 });

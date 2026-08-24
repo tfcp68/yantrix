@@ -67,7 +67,8 @@ type TTimedCoreLoopOptions = {
 export type TTimedCoreLoopProps<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> = TCoreLoopProps<EventType, EventMetaType> & TTimedCoreLoopOptions;
+	ModelType extends object = Record<string, any>,
+> = TCoreLoopProps<EventType, EventMetaType, ModelType> & TTimedCoreLoopOptions;
 
 /**
  * {@link CoreLoop} driven by a clock
@@ -75,10 +76,11 @@ export type TTimedCoreLoopProps<
 export class TimedCoreLoop<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
-> extends CoreLoop<EventType, EventMetaType> {
+	ModelType extends object = Record<string, any>,
+> extends CoreLoop<EventType, EventMetaType, ModelType> {
 	readonly #clock: ICoreLoopClock;
 
-	constructor(props: TTimedCoreLoopProps<EventType, EventMetaType> = {}) {
+	constructor(props: TTimedCoreLoopProps<EventType, EventMetaType, ModelType> = {}) {
 		super(props);
 		this.#clock = props.clock ?? createTimeoutClock(props.tickMs ?? DEFAULT_TICK_MS);
 	}

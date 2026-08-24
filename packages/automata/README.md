@@ -33,6 +33,58 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
+### Data Model and Effects
+
+`ModelStore` owns the current application snapshot. `EffectScheduler` collects
+Events during a Main Loop iteration and applies all matching Effects with at
+most one model commit when the iteration is flushed:
+
+```typescript
+import { CoreLoop, EffectScheduler, ModelStore } from '@yantrix/automata';
+
+enum AppEvent {
+	Increment = 1,
+}
+
+interface IEventMeta extends Record<AppEvent, unknown> {
+	[AppEvent.Increment]: { amount: number };
+}
+
+interface IModel {
+	count: number;
+}
+
+const model = new ModelStore<IModel>({ count: 0 });
+const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
+	store: model,
+	matrices: [{
+		[AppEvent.Increment]: [
+			(event, current) => ({
+				...current,
+				count: current.count + (event.meta?.amount ?? 0),
+			}),
+		],
+	}],
+});
+
+effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
+effects.flush();
+```
+
+For application wiring, pass the scheduler to `CoreLoop`. The loop enqueues only
+Events emitted by registered FSM Event Adapters, waits for the full EventBus
+cascade, and flushes the batch before updating Data Destinations:
+
+```typescript
+const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effects });
+
+// Register configured FSMs (or an AutomataSlice), then dispatch input Events.
+// Only Events emitted by their Event Adapters are translated to Effects.
+await loop.whenIdle();
+```
+
+Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
+
 Then, see the docs:
 
 - [Learn about finite state machines](https://tfcp68.github.io/yantrix/concepts/200_FSM.html)

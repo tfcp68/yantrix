@@ -155,14 +155,14 @@ sequenceDiagram
 	SRC -->> MT: Event Meta
 	loop Process Event Stack every 1/60s
 		activate MT
-		Note over MT: Pop Event from Event Stack
+		Note over MT: Dequeue oldest Event from Event Stack
 		MT ->> MT: Run FSM Reducers
 		Note over MT: See if new Events are emitted
 		MT ->>+ EL: Event Meta
 		note over EL: Update Data Model based on Emitted Events
 		EL ->> MDL: Data Model
 		MDL ->> DST: Data Model
-		note over MT: Proceed to the newest Event
+		note over MT: Proceed to the next queued Event
 		EL ->>- MT: Event Meta
 		deactivate MT
 	end
