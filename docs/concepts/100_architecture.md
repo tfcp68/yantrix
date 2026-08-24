@@ -83,6 +83,10 @@ Every particular kind of `Source` or `Destination` is represented by a correspon
 
 The App can have multiple `Storages` which can store different subsets of `Data Model`. When the App starts, it polls
 all the Storages and integrates the received data into an initial `Data Model` snapshot, using composition of Selectors.
+Storage polling may run concurrently, but successful snapshots are composed in declaration order to keep hydration
+deterministic. After launch, an independent `Sync Loop` observes committed `Data Model` snapshots, projects the subset
+owned by each `Storage`, and persists it asynchronously without blocking the `Main Loop`. Implementations may coalesce
+intermediate snapshots while a slower write is in flight, but must eventually persist the latest committed projection.
 
 ## Event Model
 

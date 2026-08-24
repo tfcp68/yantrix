@@ -85,6 +85,62 @@ await loop.whenIdle();
 
 Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
 
+### Storage and persistence
+
+`Storage` is separate from `ModelStore`: adapters load and save serializable
+snapshots, `hydrateModel()` builds the initial Data Model, and an independent
+`StorageSyncLoop` persists committed changes without blocking the Main Loop.
+
+```typescript
+import {
+	hydrateModel,
+	LocalStorageAdapter,
+	ModelStore,
+	StorageSyncLoop,
+} from '@yantrix/automata';
+
+interface IModel {
+	count: number;
+	transientMessage: string | null;
+}
+
+const counterStorage = new LocalStorageAdapter<{ count: number }>({
+	id: 'counter',
+	key: 'yantrix:counter',
+});
+const storageBindings = [{
+	storage: counterStorage,
+	select: (model: Readonly<IModel>) => ({ count: model.count }),
+	hydrate: (model: Readonly<IModel>, snapshot: { count: number }) => ({
+		...model,
+		count: snapshot.count,
+	}),
+}];
+
+const hydration = await hydrateModel<IModel>(
+	{ count: 0, transientMessage: null },
+	storageBindings,
+);
+const model = new ModelStore(hydration.model);
+const storageSync = new StorageSyncLoop({
+	store: model,
+	bindings: storageBindings,
+	debounceMs: 250,
+	onError: failure => console.error(failure),
+}).start();
+
+// Optional initial write stores defaults and migrated snapshots.
+storageSync.requestSync();
+await storageSync.whenIdle();
+```
+
+`InMemoryStorageAdapter` is the reference/test adapter.
+`IndexedDBStorageAdapter` stores structured-clone-compatible snapshots, while
+`VersionedStorageAdapter` decorates any adapter with ordered schema migrations.
+Multiple bindings may project and hydrate independent subsets of one Data Model;
+loads happen concurrently and successful snapshots are composed in registration
+order.
+
 Then, see the docs:
 
 - [Learn about finite state machines](https://tfcp68.github.io/yantrix/concepts/200_FSM.html)
