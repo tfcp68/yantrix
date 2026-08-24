@@ -181,6 +181,7 @@ export type TAutomataDispatch<
 	actionWithPayload: TAutomataActionPayload<ActionType, PayloadType>,
 ) => ReturnType<TAutomataReducer<StateType, ActionType, ContextType, PayloadType, NewStateType>>;
 
+/** Idempotent callback that removes a registration or subscription. */
 export type TSubscriptionCancelFunction = () => void;
 
 /**

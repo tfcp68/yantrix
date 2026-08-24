@@ -2,6 +2,7 @@ import { assertSerializableModel, deepFreezeModel } from './ModelValidation.js';
 import { TModelListener, TSubscriptionCancelFunction } from './types/index.js';
 import { IDataModelStore } from './types/interfaces.js';
 
+/** Optional diagnostics applied to every snapshot accepted by {@link ModelStore}. */
 export type TModelStoreOptions = {
 	/** Opt-in diagnostics intended for development and tests only. */
 	development?: {

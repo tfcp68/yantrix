@@ -144,3 +144,26 @@ import { actionMap, stateMap, TActionLiteral, TStateLiteral } from '../slider_co
 type TActionLiteral = keyof typeof actionMap;
 type TStateLiteral = keyof typeof stateMap;
 ```
+
+## Generated Effects and Slice
+
+When a diagram contains `effect/<NAME>`, JavaScript and TypeScript modules also
+export two composition helpers:
+
+```typescript
+const matrix = createSliderEffectMatrix(modelTransformers);
+const slice = createSliderSlice(modelTransformers);
+```
+
+The matrix maps generated numeric Event IDs to the supplied Model Transformers.
+The Slice contains both that matrix and a generated FSM instance, so application
+code normally registers `slice` through `CoreLoop.registerSlice()` rather than
+registering `matrix` and the FSM independently.
+
+TypeScript output additionally exports `TSliderDataModel`,
+`TSliderEffectEvent`, `TSliderEventMeta` and `TSliderModelTransformers`. Because
+the diagram does not describe the complete global Data Model schema, the
+factory is generic and its default model type is `Record<string, unknown>`.
+
+See [Side Effects](../syntax/300_side_effects.html) and
+[Core Runtime API](180_core_runtime.html) for a complete composition example.

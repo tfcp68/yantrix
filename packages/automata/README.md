@@ -85,6 +85,10 @@ await loop.whenIdle();
 
 Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
 
+For the exact lifecycle, Effect ordering, failure guarantees and the scope of
+`CoreLoop.whenIdle()`, see the
+[Core Runtime API](https://tfcp68.github.io/yantrix/integrations/180_core_runtime.html).
+
 Model Predicates and Model Transformers can be scoped to a selected model value
 and composed into an Effect without exposing the whole application model to a
 domain operation:

@@ -10,6 +10,7 @@ import {
 } from './types/index.js';
 import { IAutomata, IAutomataSlice } from './types/interfaces.js';
 
+/** Constructor configuration for one {@link AutomataSlice} composition unit. */
 export type TAutomataSliceProps<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
@@ -20,7 +21,8 @@ export type TAutomataSliceProps<
 	eventValidator?: TValidator<EventType>;
 };
 
-type TSliceMachine<
+/** FSM contract accepted by an {@link AutomataSlice}. */
+export type TSliceMachine<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
 > = IAutomata<any, any, EventType, any, any, EventMetaType>;
@@ -59,10 +61,12 @@ export class AutomataSlice<
 		}
 	}
 
+	/** Validator applied to Events queued through {@link dispatchEvent}. */
 	public get validateEvent(): TValidator<EventType> {
 		return this.#eventValidator;
 	}
 
+	/** Replaces the Slice Event validator or restores the positive-integer default. */
 	public setEventValidator(eventValidator?: TValidator<EventType>): this {
 		if (eventValidator === undefined) {
 			this.#eventValidator = isPositiveInteger as TValidator<EventType>;
@@ -73,10 +77,12 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Returns a snapshot of machines keyed by their Slice-local IDs. */
 	public getMachines(): Readonly<Record<string, TSliceMachine<EventType, EventMetaType>>> {
 		return Object.fromEntries(this.#machines);
 	}
 
+	/** Adds one FSM; a running Slice enables and resumes it immediately. */
 	public addMachine<
 		StateType extends number,
 		ActionType extends number,
@@ -96,6 +102,7 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Removes one FSM and pauses it first when the Slice is running. */
 	public removeMachine(machineId: string): this {
 		const machine = this.#machines.get(machineId);
 		if (machine && this.#running) machine.pause();
@@ -103,12 +110,14 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Captures every registered FSM state/context pair by machine ID. */
 	public getCompositeState(): Record<string, TAutomataStateContext<any, any>> {
 		return Object.fromEntries(
 			[...this.#machines].map(([machineId, machine]) => [machineId, machine.getContext()]),
 		);
 	}
 
+	/** Restores one registered FSM state/context pair. */
 	public restoreState<
 		StateType extends number,
 		ContextType extends { [K in StateType]: any } = Record<StateType, any>,
@@ -122,6 +131,7 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Restores a complete state snapshot after validating all machine IDs. */
 	public restoreCompositeState(compositeState: Record<string, TAutomataStateContext<any, any>>): this {
 		for (const machineId of Object.keys(compositeState)) {
 			if (!this.#machines.has(machineId)) throw new Error(`Machine with id "${machineId}" is not registered`);
@@ -130,22 +140,26 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Returns a copy of the Slice Effect Matrix. */
 	public getEventMatrix(): TEffectMatrix<ModelType, EventType, EventMetaType> {
 		const matrix: Record<number, ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>> = {};
 		for (const [event, effects] of this.#effectMatrix) matrix[event] = [...effects];
 		return matrix as TEffectMatrix<ModelType, EventType, EventMetaType>;
 	}
 
+	/** Returns the ordered Effects declared for one Event. */
 	public getEventEffects(event: EventType): Array<TAutomataEffect<ModelType, EventType, EventMetaType>> {
 		return [...(this.#effectMatrix.get(event) ?? [])];
 	}
 
+	/** Queues an Event for consumption by a custom Slice driver. */
 	public dispatchEvent(event: TAutomataEventMetaType<EventType, EventMetaType>): this {
 		if (!this.validateEvent(event.event)) throw new TypeError('Invalid Event passed to Slice');
 		this.#eventStack.push(event);
 		return this;
 	}
 
+	/** Starts the Slice and enables/resumes all registered FSMs. Idempotent. */
 	public start(): this {
 		if (this.#running) return this;
 		this.#running = true;
@@ -156,6 +170,7 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Stops the Slice, pauses its FSMs and optionally clears manually queued Events. */
 	public stop(clearStack = false): this {
 		if (this.#running) {
 			this.#running = false;
@@ -165,19 +180,27 @@ export class AutomataSlice<
 		return this;
 	}
 
+	/** Reports whether the Slice lifecycle is running. */
 	public isRunning(): boolean {
 		return this.#running;
 	}
 
+	/** Returns a copy of Events queued for a custom/manual Slice driver. */
 	public getEventStack(): TAutomataEventStack<EventType, EventMetaType> {
 		return [...this.#eventStack];
 	}
 
+	/** Discards Events queued through {@link dispatchEvent}. */
 	public clearEventStack(): this {
 		this.#eventStack = [];
 		return this;
 	}
 
+	/**
+	 * Consumes the manual Event queue and resolves matching Slice Effects.
+	 * A stopped Slice returns empty arrays. CoreLoop uses emitted FSM Events and
+	 * the registered Effect Matrix directly instead of this manual-driver API.
+	 */
 	public consumeEvent(): {
 		events: TAutomataEventStack<EventType, EventMetaType>;
 		effects: Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;

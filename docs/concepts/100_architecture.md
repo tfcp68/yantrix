@@ -46,8 +46,10 @@ of `FSMs`. `Slices` are a suggested way to chop the App logic into independent s
 
 ### Data Model
 
-All the App states are stored in a single anemic object structure, which is persisted between runs and deterministically
-describe the behavior of the App. Designing the proper `Data Model` is the essential and the most important step to start laying out logic using `Events` and `Slices`.
+Durable application state is described by one global anemic object contract called the `Data Model`. A concrete Data
+Model value is a serializable snapshot; it has no methods, subscriptions or persistence behavior. `ModelStore` owns the
+current in-memory snapshot, while independent Storage Adapters can persist selected projections between runs. Designing
+the Data Model is the essential first step before laying out logic using `Events` and `Slices`.
 
 `Data Model` contract can be composited from `Slices`, much like [Redux Toolkit](https://redux-toolkit.js.org/) does
 
@@ -169,7 +171,7 @@ erDiagram
 	Slice ||--o{ ActionDictionary: declares
 	Slice ||--o{ FSM: "consists of"
 	Slice ||--o{ StateDictionary: declares
-	Slice ||--o{ StorageAdapter: declares
+	Application ||--o{ StorageAdapter: registers
 	Slice ||--|{ EffectMatrix: declares
 	StateDictionary ||--o{ StateContextType: "is mapped to"
 	StateDictionary ||..|{ ContextPredicates: "declares"

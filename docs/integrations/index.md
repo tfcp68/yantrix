@@ -20,6 +20,13 @@ For the generated API of pure dialects and Python, see [Pure Dialects & Python A
 | ---- | ----------- |
 | [CLI](050_cli.html) | Command-line code generation via `yantrix codegen` |
 
+## Runtime
+
+| Guide | Description |
+| ---- | ----------- |
+| [Core Runtime API](180_core_runtime.html) | Data Model, Effects, Slices, persistence and lifecycle |
+| [Core Runtime Migration Guide](190_core_migration.html) | Migrating FSM-only applications to the MVP runtime |
+
 ## Library integrations
 
 The bundle version comes with out-of-box integrations with popular libraries:
