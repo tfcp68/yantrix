@@ -1,4 +1,5 @@
 import {
+	EffectStatement,
 	emitHasMeta,
 	EmitStatement,
 	getReferenceIdentifier,
@@ -37,6 +38,22 @@ export function getEventCodeModel(e: EmitStatement, expressions: TExpressionReco
 	return {
 		eventIdentifier: e.identifier,
 		metaEntries: getEventMetaModel({ event: e, expressions }),
+	};
+}
+
+export function getEffectEventCodeModel(effect: EffectStatement): TEventCodeVM {
+	return {
+		eventIdentifier: effect.identifier,
+		metaEntries: effect.metaKeys.map(identifier => ({
+			targetProperty: identifier,
+			source: {
+				kind: 'defaultProperty',
+				path: 'context',
+				identifier,
+				fallbackExpression: null,
+			},
+			defaultExpressionValueRight: null,
+		})),
 	};
 }
 

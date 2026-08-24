@@ -5,7 +5,7 @@ entry Document:
 
 Statement:
     InitialState | ByPass | ContextStatement | EmitStatement | 
-    SubscribeStatement | DefineStatement | InjectStatement | ExpressionStatement;
+    SubscribeStatement | EffectStatement | DefineStatement | InjectStatement | ExpressionStatement;
 
 InitialState:
     {infer InitialState} '+' ('Init' | 'INIT' | 'init');
@@ -26,6 +26,10 @@ SubscribeStatement:
     'subscribe/' identifier=ID actionName=ID 
     ('(' payload+=KeyItem (',' payload+=KeyItem)* ')')? 
     ('<=' '(' metaItems+=KeyItem (',' metaItems+=KeyItem)* ')')?;
+
+EffectStatement:
+    'effect/' identifier=ID
+    ('<=' '(' metaKeys+=ID (',' metaKeys+=ID)* ')')?;
 
 DefineStatement:
     'define/' identifier=ID '(' (args+=ID (',' args+=ID)*)? ')' '=>' expression=DefineExpression;
@@ -97,4 +101,3 @@ terminal INTERNAL_FUNCTION_ID: /_[a-zA-Z][a-zA-Z0-9_]{0,254}/;
 terminal ID: /[a-zA-Z][a-zA-Z0-9_]{0,254}/;
 terminal STRING: /'[^']*'|"[^"]*"/;
 terminal NUMBER: /-?[0-9]+(\.[0-9]+)?/;
-

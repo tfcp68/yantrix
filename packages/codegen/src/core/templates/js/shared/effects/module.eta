@@ -1,0 +1,70 @@
+<% if (it.hasTypes) { %>
+export type T<%~ it.className %>DataModel = Record<string, unknown>;
+
+export type T<%~ it.className %>EffectEvent =
+<% for (const effect of it.effects.declarations) { %>
+  | typeof eventDictionary["<%~ effect.identifier %>"]
+<% } %>;
+
+export type T<%~ it.className %>EventMeta = {
+<% for (const effect of it.effects.declarations) { %>
+  <%~ it.eventDictionary.getEventValues({ keys: [effect.identifier] })[0] %>: <% if (effect.metaKeys.length === 0) { %>Record<string, never><% } else { %>{
+<% for (const metaKey of effect.metaKeys) { %>
+    "<%~ metaKey %>": unknown;
+<% } %>
+  }<% } %>;
+<% } %>
+};
+
+export type T<%~ it.className %>ModelTransformers<
+  ModelType extends object = T<%~ it.className %>DataModel,
+> = {
+<% for (const effect of it.effects.declarations) { %>
+  "<%~ effect.modelTransformerIdentifier %>": TAutomataEffect<
+    ModelType,
+    typeof eventDictionary["<%~ effect.identifier %>"],
+    T<%~ it.className %>EventMeta
+  >;
+<% } %>
+};
+<% } %>
+
+export function create<%~ it.className %>EffectMatrix<% if (it.hasTypes) { %><
+  ModelType extends object = T<%~ it.className %>DataModel,
+><% } %>(
+  modelTransformers<% if (it.hasTypes) { %>: T<%~ it.className %>ModelTransformers<ModelType><% } %>,
+)<% if (it.hasTypes) { %>: TEffectMatrix<
+  ModelType,
+  T<%~ it.className %>EffectEvent,
+  T<%~ it.className %>EventMeta
+><% } %> {
+  if (modelTransformers == null || typeof modelTransformers !== 'object') {
+    throw new TypeError('Model Transformers must be provided as an object');
+  }
+<% for (const effect of it.effects.declarations) { %>
+  if (typeof modelTransformers["<%~ effect.modelTransformerIdentifier %>"] !== 'function') {
+    throw new TypeError('Model Transformer "<%~ effect.modelTransformerIdentifier %>" must be a function');
+  }
+<% } %>
+
+  return {
+<% for (const effect of it.effects.declarations) { %>
+    [eventDictionary["<%~ effect.identifier %>"]]: [modelTransformers["<%~ effect.modelTransformerIdentifier %>"]],
+<% } %>
+  };
+}
+
+export function create<%~ it.className %>Slice<% if (it.hasTypes) { %><
+  ModelType extends object = T<%~ it.className %>DataModel,
+><% } %>(
+  modelTransformers<% if (it.hasTypes) { %>: T<%~ it.className %>ModelTransformers<ModelType><% } %>,
+)<% if (it.hasTypes) { %>: AutomataSlice<ModelType><% } %> {
+<% if (it.hasTypes) { %>  // Generated Automata accept the framework-wide numeric Event space; the Matrix factory stays narrowly typed.
+<% } %>
+  const slice = new AutomataSlice<% if (it.hasTypes) { %><ModelType><% } %>({
+    id: '<%~ it.className %>',
+    effectMatrix: create<%~ it.className %>EffectMatrix(modelTransformers)<% if (it.hasTypes) { %> as TEffectMatrix<ModelType, number, Record<number, unknown>><% } %>,
+  });
+  slice.addMachine('<%~ it.className %>', new <%~ it.className %>());
+  return slice;
+}
