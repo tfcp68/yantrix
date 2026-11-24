@@ -127,6 +127,7 @@ type TBlockFrame = {
 	block: TStructuralBlock;
 	branch: TStructuralBlockBranch;
 	pathEntry: string;
+	pendingNotes: number[];
 };
 
 function makeBranch(label: string | null): TStructuralBlockBranch {
@@ -139,8 +140,10 @@ function pathEntryOf(kind: TStructuralBlockKind, label: string | null): string {
 
 /**
  * Structural pass over a mermaid sequence diagram. Extracts participants,
- * arrows, notes (as opaque text) and grouping blocks, and links each note
- * to the nearest FOLLOWING arrow whose endpoints are consistent with it.
+ * arrows, notes (as opaque text) and grouping blocks. A note links to the
+ * immediately preceding arrow if it has matching endpoints and no note yet.
+ * Otherwise it waits for the next matching arrow. Both links stay within the
+ * note's own block branch or the top level.
  * Yantrix subsyntax inside notes is NOT interpreted here - that is the
  * semantic pass in `@yantrix/yantrix-parser`.
  *
@@ -181,7 +184,8 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 	const notes: TStructuralNote[] = [];
 	const blocks: TStructuralBlock[] = [];
 	const blockStack: TBlockFrame[] = [];
-	const pendingNotes: number[] = [];
+	const topLevelPendingNotes: number[] = [];
+	let previousMessageBranch: TStructuralBlockBranch | undefined;
 
 	const openBlock = (kind: TStructuralBlockKind, label: string | null, line: number) => {
 		const branch = makeBranch(label);
@@ -192,7 +196,7 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 		} else {
 			blocks.push(block);
 		}
-		blockStack.push({ block, branch, pathEntry: pathEntryOf(kind, label) });
+		blockStack.push({ block, branch, pathEntry: pathEntryOf(kind, label), pendingNotes: [] });
 	};
 
 	const openBranch = (kinds: TStructuralBlockKind[], label: string | null) => {
@@ -203,6 +207,7 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 		frame.branch = makeBranch(label);
 		frame.block.branches.push(frame.branch);
 		frame.pathEntry = pathEntryOf(frame.block.kind, label);
+		frame.pendingNotes = [];
 	};
 
 	const closeBlock = (kinds: TStructuralBlockKind[]) => {
@@ -218,7 +223,7 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 			|| (note.first === message.to && note.second === message.from)
 			: note.first === message.from || note.first === message.to;
 
-	const linkNoteForward = (messageIndex: number) => {
+	const linkNoteForward = (messageIndex: number, pendingNotes: number[]) => {
 		const message = messages[messageIndex]!;
 		for (let i = pendingNotes.length - 1; i >= 0; i--) {
 			const noteIndex = pendingNotes[i]!;
@@ -238,7 +243,8 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 	 * "arrow, then note" authoring order). Otherwise it waits for the next
 	 * consistent arrow; unmatched notes stay loose. One note per arrow.
 	 */
-	const linkNoteBackward = (noteIndex: number): boolean => {
+	const linkNoteBackward = (noteIndex: number, branch: TStructuralBlockBranch | undefined): boolean => {
+		if (previousMessageBranch !== branch) return false;
 		const note = notes[noteIndex]!;
 		const message = messages[messages.length - 1];
 		if (message && message.noteIndex === null && noteMatchesMessage(note, message)) {
@@ -250,6 +256,8 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 	};
 
 	for (const entry of entries) {
+		const frame = blockStack[blockStack.length - 1];
+		const pendingNotes = frame?.pendingNotes ?? topLevelPendingNotes;
 		switch (entry.type) {
 			case LINETYPE.SOLID:
 			case LINETYPE.DOTTED: {
@@ -264,8 +272,9 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 					location: { line: locator.next(LINE_PATTERNS.arrow) },
 				});
 				const messageIndex = messages.length - 1;
-				blockStack[blockStack.length - 1]?.branch.messageIndices.push(messageIndex);
-				linkNoteForward(messageIndex);
+				frame?.branch.messageIndices.push(messageIndex);
+				previousMessageBranch = frame?.branch;
+				linkNoteForward(messageIndex, pendingNotes);
 				break;
 			}
 			case LINETYPE.NOTE: {
@@ -284,7 +293,7 @@ export async function parseSequenceStructural(diagramText: string): Promise<TSeq
 					messageIndex: null,
 					location: { line: locator.next(LINE_PATTERNS.note) },
 				});
-				if (!linkNoteBackward(notes.length - 1)) {
+				if (!linkNoteBackward(notes.length - 1, frame?.branch)) {
 					pendingNotes.push(notes.length - 1);
 				}
 				break;

@@ -11,9 +11,9 @@ one of popular programming languages. This allows to effortlessly visualize data
 into [Documentation-As-Code](https://www.writethedocs.org/guide/docs-as-code/)
 and [Everything-As-Code](https://hackernoon.com/everything-as-code-explained-0ibg32a3) paradigms.
 
-Yantrix currently supports [State Diagrams](https://mermaid.js.org/syntax/stateDiagram.html) and aims to
-support [Sequence Diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html)
-and [Class Diagrams](https://mermaid.js.org/syntax/classDiagram.html) as well.
+Yantrix generates state machines from [State Diagrams](https://mermaid.js.org/syntax/stateDiagram.html)
+and parses [Sequence Diagrams](https://mermaid.js.org/syntax/sequenceDiagram.html) to describe how participants
+exchange events. [Class Diagrams](https://mermaid.js.org/syntax/classDiagram.html) are planned.
 
 Example of a State Diagram, implementing an `until` loop:
 
@@ -83,6 +83,34 @@ useful pattern for proper `FSM` designs
 Invoking **ITERATE** `Action` at **LOOP_REPEAT** `State` leads to a `Fork`, which has to calculate the predicate `greaterThan(${counter}, 0)`. If its truthy, the transition leads to **LOOP_END**. If not, the remaining transition makes a loop, invoking **LOOP_REPEAT** -> **LOOP_REPEAT** transition, yet again executing all operations in `notes` blocks, as described below.
 
 Since **LOOP_REPEAT** has a `ByPass` flag, it passes **ITERATE** `Action` to oneself, looping again and again, until the Fork resolves to **LOOP_END** `State`.
+
+## Parsing a sequence diagram
+
+Use `parseSequenceDiagram` from `@yantrix/yantrix-parser` to inspect the event names, participant roles
+and diagnostics. In this example a button emits `clicked` to the event bus and a display subscribes to it.
+
+```typescript
+import { parseSequenceDiagram } from '@yantrix/yantrix-parser';
+
+const { ast, diagnostics } = await parseSequenceDiagram(`sequenceDiagram
+    participant Button as Source Button
+    participant EventBus
+    participant Display as Destination Display
+    Button->>EventBus: clicked
+    EventBus->>Display: clicked
+`);
+
+console.log(diagnostics); // []
+console.log(ast.messages.map(m => [m.topology, m.eventName]));
+// [['emit', 'clicked'], ['subscribe', 'clicked']]
+```
+
+To inspect the Mermaid structure, `parseSequenceStructural` from `@yantrix/mermaid-parser` returns
+the arrows, notes and blocks with their source locations. Within `alt` and `par`, a note attaches
+to a matching arrow in its own branch. Both parsing APIs return data for inspection.
+The CLI generates executable machines from state diagrams.
+See the API references for [sequence contracts](../API/yantrix-parser/functions/parseSequenceDiagram.html)
+and [Mermaid structure](../API/mermaid-parser/functions/parseSequenceStructural.html).
 
 ## Subsyntax
 

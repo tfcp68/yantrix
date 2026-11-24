@@ -283,6 +283,22 @@ sequenceDiagram
 	});
 
 	describe('notes, blocks and subsyntax errors', () => {
+		it('resolves events using notes from the same alternative', async () => {
+			const { ast, diagnostics } = await parseSequenceDiagram(`
+sequenceDiagram
+    participant UI as Source UI
+    participant EventBus
+    alt pointer
+        UI ->> EventBus: click
+    else keyboard
+        note over UI, EventBus: emit/type
+        UI ->> EventBus: type
+    end
+`);
+			expect(ast.messages.map(message => message.eventName)).toEqual(['click', 'type']);
+			expect(diagnostics).toEqual([]);
+		});
+
 		it('normalizes <br/> and keeps loose notes with statements', async () => {
 			const { ast } = await parseSequenceDiagram(`
 sequenceDiagram

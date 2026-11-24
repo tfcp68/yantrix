@@ -38,6 +38,7 @@ export const ExpressionTypes = {
 	Constant: 'constant',
 	Payload: 'payload',
 	Context: 'context',
+	Packet: 'packet',
 	Identifier: 'identifier',
 } as const;
 

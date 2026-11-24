@@ -1,10 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import {
+	ExpressionTypes,
+	getExpressionType,
+	getReferenceIdentifier,
+	getReferenceType,
 	isDefineStatement,
 	isInjectStatement,
+	isReferenceExpression,
 	isSequenceEmitStatement,
 	isSequencePacketStatement,
 	isSequenceSubscribeStatement,
+	parseYantrix,
 	parseYantrixSequenceNote,
 } from '../src';
 
@@ -69,6 +75,16 @@ describe('sequence note grammar', () => {
 			}
 		});
 
+		it('classifies a packet reducer reference through both public AST helpers', () => {
+			const [stmt] = parseYantrixSequenceNote('@{out} <= @input').statements;
+			assert(isSequencePacketStatement(stmt));
+			const [item] = stmt.reducer;
+			assert(item && isReferenceExpression(item));
+			expect(getReferenceType(item)).toBe('packet');
+			expect(getExpressionType(item)).toBe(ExpressionTypes.Packet);
+			expect(getReferenceIdentifier(item)).toBe('input');
+		});
+
 		it('parses define and inject', () => {
 			const doc = parseYantrixSequenceNote(`define/toUpper(s) => upper(s)\ninject/formatTime`);
 
@@ -107,6 +123,10 @@ describe('sequence note grammar', () => {
 	});
 
 	describe('shared semantic validation', () => {
+		it('rejects packet references in state notes', () => {
+			expect(() => parseYantrix('#{out} <= @input')).toThrow(/not allowed in state diagram notes/);
+		});
+
 		it('rejects reducer with more items than packet keys', () => {
 			expect(() => parseYantrixSequenceNote(`@{ a } <= $x, $y`)).toThrow();
 		});

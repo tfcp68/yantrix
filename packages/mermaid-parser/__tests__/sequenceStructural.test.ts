@@ -190,6 +190,54 @@ sequenceDiagram
 			expect(result.messages[1]!.noteIndex).toBe(0);
 		});
 
+		it.each([['alt', 'else'], ['par', 'and']])('isolates notes between %s branches with the same label', async (start, next) => {
+			const result = await parseSequenceStructural(`
+sequenceDiagram
+    ${start} choice
+        A ->> B: first
+        note over C,D: unmatched in first branch
+    ${next} choice
+        note over A,B: for second branch
+        A ->> B: second
+        C ->> D: unrelated
+    end
+`);
+			expect(result.notes.map(note => note.messageIndex)).toEqual([null, 1]);
+			expect(result.messages.map(message => message.noteIndex)).toEqual([null, 1, null]);
+		});
+
+		it('resumes pending notes in the enclosing branch after a nested block', async () => {
+			const result = await parseSequenceStructural(`
+sequenceDiagram
+    note over A,B: top level
+    opt outer
+        note over A,B: outer branch
+        loop inner
+            A ->> B: inner
+            note over C,D: unmatched in inner branch
+        end
+        A ->> B: outer
+        C ->> D: unrelated
+    end
+    A ->> B: top
+`);
+			expect(result.notes.map(note => note.messageIndex)).toEqual([3, 1, null]);
+			expect(result.messages.map(message => message.noteIndex)).toEqual([null, 1, null, 0]);
+		});
+
+		it('keeps a note following a block outside that block', async () => {
+			const result = await parseSequenceStructural(`
+sequenceDiagram
+    loop inner
+        A ->> B: inner
+    end
+    note over A,B: outer
+    A ->> B: outer
+`);
+			expect(result.notes[0]!.messageIndex).toBe(1);
+			expect(result.messages.map(message => message.noteIndex)).toEqual([null, 0]);
+		});
+
 		it('preserves note text with subsyntax characters', async () => {
 			const result = await parseSequenceStructural(`
 sequenceDiagram
