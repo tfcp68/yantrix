@@ -155,7 +155,7 @@ describe('useFSMWithSelector tests (selector-based hook)', () => {
 	});
 });
 
-describe.skip('selective re-render with second counter', () => {
+describe('selective re-render with second counter', () => {
 	it('selector: context.counter — Switch_1 after first Switch does not trigger re-render', () => {
 		let renders = 0;
 		const inst = new TrafficLightAutomataTwoCounters();
