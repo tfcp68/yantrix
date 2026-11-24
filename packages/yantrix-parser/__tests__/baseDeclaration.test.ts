@@ -85,7 +85,7 @@ describe('base grammar declarations', () => {
 		];
 
 		describe('correct statements', () => {
-			const cases = genFromTemplates(validContextStatements, randomInteger(1, 10));
+			const cases = genFromTemplates(validContextStatements, 5);
 			it.each(cases)('%s --- CORRECT', (input) => {
 				const result = parser.parse(input);
 				expect(getContextStatements(result)).toHaveLength(1);
@@ -93,7 +93,7 @@ describe('base grammar declarations', () => {
 		});
 
 		describe('incorrect statements', () => {
-			const cases = genFromTemplates(invalidContextStatements, randomInteger(1, 10));
+			const cases = genFromTemplates(invalidContextStatements, 5);
 			it.each(cases)('%s --- ERROR', (input) => {
 				expect(() => parser.parse(input)).toThrowError();
 			});
@@ -399,13 +399,13 @@ describe('base grammar declarations', () => {
 			return templateFunctions.default?.(templateStringWithName, func);
 		}
 
-		function generateExpressionCases(templates: any[], casesAmount: number = randomInteger(1, 50)) {
+		function generateExpressionCases(templates: any[], casesAmount: number) {
 			return templates.flatMap((template) => {
 				return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
 			});
 		}
 
-		const cases = generateExpressionCases(expressionTemplates);
+		const cases = generateExpressionCases(expressionTemplates, 25);
 		it.each(cases)('%s', (input: string, expectedExpr) => {
 			const result = parser.parse(input);
 			const ctx = getContextStatements(result)[0]!;
@@ -620,8 +620,10 @@ describe('base grammar declarations', () => {
 		});
 
 		describe('descriptor can start with lowercase and uppercase letters', () => {
-			const cases = Array.from({ length: randomInteger() }, () =>
-				Math.random() < 0.5 ? `#{${randomString().toUpperCase()}}` : `#{${randomString().toLowerCase()}}`);
+			const cases = Array.from({ length: 25 }, () => [
+				`#{${randomString().toLowerCase()}}`,
+				`#{${randomString().toUpperCase()}}`,
+			]).flat();
 			it.each(cases)('%s --- CORRECT', (input) => {
 				assert.isOk(parser.parse(input));
 			});
