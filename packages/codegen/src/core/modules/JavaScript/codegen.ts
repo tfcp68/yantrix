@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import { TNullable } from '@yantrix/utils';
 import {
@@ -18,7 +18,7 @@ import {
 	TUserFunctionsDict,
 } from '../../../types/common';
 import { eta } from '../../eta';
-import { fillDictionaries, getStatesByPass } from '../../shared';
+import { fillDictionaries, getStatesByPass, resolveEventBusOrder } from '../../shared';
 import { ModuleNames } from '../index';
 import { JavaScriptCompiler } from './JavaScriptCompiler';
 import { TImports } from './JavaScriptCompiler/imports';
@@ -100,7 +100,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 		});
 	}
 
-	protected buildTemplateModel(className: string) {
+	protected buildTemplateModel(className: string, eventBusOrder?: TEventBusOrder) {
 		const initialStateId = JavaScriptCompiler.state.functions.getInitialState({ diagram: this.diagram });
 		const initialStateValue = this.stateDictionary.getStateValues({ keys: [initialStateId] })[0];
 		if (initialStateValue == null) throw new Error('Invalid initial state');
@@ -167,6 +167,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 
 		return {
 			className,
+			eventBusOrder: resolveEventBusOrder(eventBusOrder),
 			hasTypes: false,
 			imports: this.imports,
 			importNamespaces: this.importNamespaces,
@@ -210,7 +211,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 	}
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.JavaScript]) {
-		const it = this.buildTemplateModel(options.className);
+		const it = this.buildTemplateModel(options.className, options.eventBusOrder);
 		const rendered = eta.render('js/module.eta', it);
 		if (rendered == null) throw new Error('Eta render returned null/undefined for js/module');
 		return rendered;

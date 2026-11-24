@@ -104,11 +104,13 @@ which contains asymmetrical `Mapping Matrix`, that is responsible for:
 The reason `Event Adapter` is separated from `FSM` is reusability. If two `FSMs` share compatible contracts of `Actions`
 and `States`, they can use the same `Event Adapter` too, if needed.
 
-### Event Stack
+### `Event Stack`
 
-Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, that are put into a special LIFO
-structure, known as `Event Stack`. It is processed continuously by the `Main Loop`, which handles them one by one,
-always taking the last emitted `Event` and passing it to all connected `Slices`, and thus `FSMs`
+`UI Components`, `Sources`, and `FSMs` publish `Events` to the `Application`'s shared `Event Bus`.
+By default, the `Event Bus` delivers the oldest pending `Event` in the `Event Stack` first (FIFO).
+A generated `Event Bus` configured with `eventBusOrder: 'lifo'` delivers the newest pending `Event`
+first. Both modes deliver each `Event` to its subscribers across all registered `Slices`.
+See [Code Generation](500_codegen.html#event-bus-order).
 
 ## Data operations
 
@@ -137,15 +139,17 @@ They can be:
 -   `Generic Transformers` are built-in and user-defined pure functions that operate on any contract type and map the
     values. They are the basic building blocks of data manipulation.
 
-### Effects
+### `Effects`
 
-`Effects` are pure high-order functions that update `Data Model` based on its current state and emitted `Events`, very
-similar to the way `FSMs` operate (and Redux's _reducers_). However, `FSMs` cannot alter the `Data Model` directly,
-locked inside their local scope, they can emit `Events` through the `Event Adapter`, which is mapped to a
-particular `Effect` by the `Effect Matrix` of the owning slice.
+`Effects` are pure functions that compute the next `Data Model` from its current value and an
+emitted `Event`. When an `FSM`'s `Event Adapter` emits an `Event`, the `Effect Scheduler` looks it
+up in the `Effect Matrix` of every registered `Slice`. For example, a single `OrderPlaced` `Event`
+can update inventory in one `Slice` and accounting in another.
 
-All the `Effects` triggered by different slices are batched every iteration of `Main Loop`, yielding exactly one (or
-none) `Data Model` update regardless of how many `FSM` transitions were performed.
+The cascade includes all queued `Events` and any follow-up `Events` their handlers produce
+until the `Event Bus` becomes idle. The `Main Loop` then flushes the `Effects` as one batch.
+If the `Data Model` changed, the store commits one snapshot and matching `Destinations` receive it.
+If all `Effects` preserve the original `Data Model` reference, there is no update.
 
 ## APIs relation diagram
 

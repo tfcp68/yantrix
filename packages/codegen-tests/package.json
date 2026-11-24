@@ -49,7 +49,7 @@
 	},
 	"scripts": {
 		"buildAndTest": "cd ../codegen && pnpm build && cd ../codegen-tests && pnpm i && pnpm test",
-		"test": "vitest run --coverage  --outputFile=../../test_reports/codegen.md",
+		"test": "vitest run --coverage --outputFile=../../test_reports/codegen-tests.md",
 		"lint": "eslint .",
 		"format": "eslint --fix ."
 	},

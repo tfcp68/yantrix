@@ -14,7 +14,6 @@ only Python standard library (`math`, `random`, `typing`) is used.
 python: {
   builtins: string,            // filtered builtins from builtins.py.tpl (only functions used in diagram;
                                // unfiltered when inject file is provided)
-  eventBusRuntime: string,     // contents of event_bus.py.tpl (_EventBus, _EventAdapter classes)
   functionDict: Array<{        // filtered to only functions used in the diagram
                                // (all functions emitted when inject file is provided)
     key: string;               // Yantrix key (e.g. 'coalesce')
@@ -60,7 +59,7 @@ python: {
 
 | Step | Template | Purpose |
 |------|----------|---------|
-| 1 | `python/runtime/module` | Emits `it.python.builtins` + `it.python.eventBusRuntime` (pure-Python built-ins and event classes) |
+| 1 | `python/runtime/module` | Emits `it.python.builtins` and includes `runtime/event_bus.eta`, which defines `_EventBus` and `_EventAdapter`. |
 | 2 | `python/forks/module` | Fork/predicate helpers |
 | 3 | `python/dictionaries/module` | `states_dictionary`, `actions_dictionary`, `action_to_state_from_state_dict`, `event_dictionary` |
 | 4 | `python/functions/module` | `function_dictionary`, lambda defines, injected code |
@@ -75,7 +74,7 @@ python/events/adapter/module.eta        - creates _EventAdapter() or None inside
 python/events/adapter/emit/entry.eta    - one add_event_emitter() call per emitting state
 python/events/adapter/listen/entry.eta  - one add_event_listener() call per subscribed event
 python/events/bus/module.eta            - create_event_bus(bus_id, factories) at module level
-python/runtime/event_bus.py.tpl         - _EventBus and _EventAdapter class definitions
+python/runtime/event_bus.eta            - _EventBus and _EventAdapter class definitions
 ```
 
 **Module-level exports:**

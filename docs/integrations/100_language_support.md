@@ -19,6 +19,7 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | Event subscription | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Event emission | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `createEventBus()` factory | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| [`Event Bus` order](../concepts/500_codegen.html#event-bus-order) (FIFO or LIFO) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `create<ClassName>EventAdapter()` factory | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | `@yantrix/core` compatible<sup>5</sup> | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Epoch tracking | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |

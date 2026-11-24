@@ -6,13 +6,16 @@ import {
 	TAutomataBaseStateType,
 	TAutomataEventMetaType,
 	TAutomataEventStack,
+	TEffectFlushResult,
 } from './types';
 import {
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
+	IAutomataSlice,
 	IDataDestination,
 	IDataSource,
+	IEffectScheduler,
 } from './types/interfaces';
 
 type TUnsub = () => void;
@@ -24,15 +27,29 @@ type TRegisteredAutomata = {
 
 type TRegisteredDestination = {
 	id: string;
-	unsub: TUnsub;
+	order: number;
+	boundEvents: Array<number | null>;
+	update: (event: TAutomataEventMetaType<number, Record<number, any>>, model?: object) => void;
+	subscribe: () => void;
+	unsubscribe: () => void;
+	start: () => void;
+	stop: () => void;
+};
+
+type TRegisteredSlice<EventType extends TAutomataBaseEventType, EventMetaType extends { [K in EventType]: any }> = {
+	id: string;
+	slice: IAutomataSlice<EventType, EventMetaType, any>;
+	detach: TUnsub;
 };
 
 /** Constructor props for {@link CoreLoop}. Subclasses extend this (e.g. {@link TimedCoreLoop}). */
 export type TCoreLoopProps<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	ModelType extends object = Record<string, any>,
 > = {
 	bus?: IAutomataEventBus<EventType, EventMetaType>;
+	effectScheduler?: IEffectScheduler<ModelType, EventType, EventMetaType>;
 };
 
 /**
@@ -52,13 +69,23 @@ export type TCoreLoopProps<
 export class CoreLoop<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	ModelType extends object = Record<string, any>,
 > {
 	/** Hard cap on the per-drain pull loop; protects against a misbehaving source generator. */
 	private static readonly DRAIN_GUARD = 10_000;
 
 	private readonly bus: IAutomataEventBus<EventType, EventMetaType>;
+	private readonly effectScheduler: IEffectScheduler<ModelType, EventType, EventMetaType> | null;
+	// Insertion order follows committed transitions, even when a direct dispatch triggers another machine synchronously.
+	private readonly pendingEmissions = new Map<TAutomataEventStack<EventType, EventMetaType>, boolean>();
+	private scheduledFlush: Promise<void> | null = null;
+	private effectFlushPromise: Promise<void> | null = null;
 	private readonly automata: Map<string, TRegisteredAutomata> = new Map();
 	private readonly destinations: Map<string, TRegisteredDestination> = new Map();
+	private readonly destinationsByEvent: Map<number, Set<TRegisteredDestination>> = new Map();
+	private readonly wildcardDestinations: Set<TRegisteredDestination> = new Set();
+	private readonly slices: Map<string, TRegisteredSlice<EventType, EventMetaType>> = new Map();
+	private destinationRegistrationOrder = 0;
 	private readonly sources: Map<string, {
 		id: string;
 		src: IDataSource<EventType, EventMetaType, any>;
@@ -74,12 +101,151 @@ export class CoreLoop<
 		this.bus.dispatch(event);
 	};
 
-	constructor(props: TCoreLoopProps<EventType, EventMetaType> = {}) {
+	constructor(props: TCoreLoopProps<EventType, EventMetaType, ModelType> = {}) {
 		this.bus = (props.bus ?? (new BasicEventBus() as unknown as IAutomataEventBus<EventType, EventMetaType>));
+		this.effectScheduler = props.effectScheduler ?? null;
 	}
 
 	public getBus(): IAutomataEventBus<EventType, EventMetaType> {
 		return this.bus;
+	}
+
+	public getEffectScheduler(): IEffectScheduler<ModelType, EventType, EventMetaType> | null {
+		return this.effectScheduler;
+	}
+
+	/** Resolves after the `Event` cascade and its `Effect` batch have both completed. */
+	public async whenIdle(): Promise<void> {
+		await this.bus.whenIdle();
+		const flushPromise = this.effectFlushPromise;
+		if (!flushPromise) return;
+		try {
+			await flushPromise;
+		} finally {
+			if (this.effectFlushPromise === flushPromise) this.effectFlushPromise = null;
+		}
+	}
+
+	private deliverEmissions(
+		events: TAutomataEventStack<EventType, EventMetaType>,
+		busTask: TAutomataEventStack<EventType, EventMetaType> | null,
+	): void {
+		if (!events.length) return;
+		const pending = this.effectScheduler ? events.slice() : null;
+		if (pending) this.pendingEmissions.set(pending, false);
+		try {
+			if (busTask) busTask.push(...events);
+			else this.bus.dispatch(...events);
+		} finally {
+			// A direct dispatch must enter the bus before we can wait for its whole cascade.
+			if (pending) this.awaitEffectBatch(pending);
+		}
+	}
+
+	private awaitEffectBatch(events: TAutomataEventStack<EventType, EventMetaType>): void {
+		this.effectFlushPromise = this.bus.whenIdle().then(() => {
+			this.pendingEmissions.set(events, true);
+			// All emissions in a drain become ready together. Flush them as one transaction.
+			this.scheduledFlush ??= Promise.resolve().then(() => {
+				this.scheduledFlush = null;
+				this.flushEffects();
+			});
+			return this.scheduledFlush;
+		}, () => {
+			// The bus reports the error through whenIdle. Discard only emissions from that failed drain.
+			this.pendingEmissions.delete(events);
+		});
+		// CoreLoop.whenIdle exposes scheduler failures to callers.
+		void this.effectFlushPromise.catch(() => {});
+	}
+
+	private flushEffects(): TEffectFlushResult<ModelType> | null {
+		if (!this.effectScheduler) return null;
+
+		const events: TAutomataEventStack<EventType, EventMetaType> = [];
+		for (const [group, ready] of this.pendingEmissions) {
+			if (!ready) continue;
+			events.push(...group);
+			this.pendingEmissions.delete(group);
+		}
+		for (const event of events) this.effectScheduler.enqueue(event);
+		const result = this.effectScheduler.flush();
+
+		if (result.changed) {
+			const eventsByDestination = new Map<TRegisteredDestination, typeof events>();
+			for (const event of events) {
+				const matchingDestinations = new Set(this.wildcardDestinations);
+				if (event.event !== null) {
+					for (const destination of this.destinationsByEvent.get(event.event) ?? []) {
+						matchingDestinations.add(destination);
+					}
+				}
+
+				for (const destination of matchingDestinations) {
+					const destinationEvents = eventsByDestination.get(destination);
+					if (destinationEvents) destinationEvents.push(event);
+					else eventsByDestination.set(destination, [event]);
+				}
+			}
+
+			const orderedDestinations = [...eventsByDestination.keys()]
+				.sort((left, right) => left.order - right.order);
+			for (const destination of orderedDestinations) {
+				for (const event of eventsByDestination.get(destination) ?? []) {
+					destination.update(event, result.model);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/** Registers a `Slice`'s `FSMs` and `Effect Matrix` as one composition unit. */
+	public registerSlice(slice: IAutomataSlice<EventType, EventMetaType, ModelType>): this {
+		if (!this.effectScheduler) throw new Error('CoreLoop requires an Effect Scheduler to register a Slice');
+		if (!slice.id) throw new Error('Slice must provide a non-empty string id');
+		if (this.slices.has(slice.id)) throw new Error(`Slice with id "${slice.id}" already registered`);
+
+		const registrations = new Map<string, TRegisteredAutomata>();
+		const register = (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => {
+			this.registerAutomata(machine);
+			registrations.set(machine.correlationId, this.automata.get(machine.correlationId)!);
+		};
+		const unregister = (machineId: string) => {
+			const registration = registrations.get(machineId);
+			if (registration && registration === this.automata.get(machineId)) this.unregisterAutomata(machineId);
+			registrations.delete(machineId);
+		};
+		let stopObserving: TUnsub | undefined;
+		let removeEffectMatrix: TUnsub = () => {};
+		const detach = () => {
+			stopObserving?.();
+			for (const machineId of registrations.keys()) unregister(machineId);
+			removeEffectMatrix();
+		};
+		try {
+			for (const machine of Object.values(slice.getMachines())) register(machine);
+			stopObserving = slice.onMachinesChanged?.(register, machine => unregister(machine.correlationId));
+			removeEffectMatrix = this.effectScheduler.addMatrix(slice.getEventMatrix());
+			slice.start();
+			this.slices.set(slice.id, { id: slice.id, slice, detach });
+		} catch (error) {
+			detach();
+			throw error;
+		}
+
+		return this;
+	}
+
+	/** Removes a `Slice`'s `FSMs` and `Effect Matrix` together. */
+	public unregisterSlice(id: string): this {
+		const registered = this.slices.get(id);
+		if (!registered) return this;
+
+		registered.detach();
+		registered.slice.stop(false);
+		this.slices.delete(id);
+		return this;
 	}
 
 	/**
@@ -129,12 +295,9 @@ export class CoreLoop<
 		const observed = bridge.getObservedEvents();
 		const unsubs: TUnsub[] = [];
 		let currentBatch: TAutomataEventStack<EventType, EventMetaType> | null = null;
-		const unsubscribeEmissions = machine.onEmittedEvents?.((events) => {
-			// A dispatch handled by this loop returns its events to the bus with the other subscribers' results.
-			// A direct dispatch or a resumed action has no active bus task.
-			if (currentBatch) currentBatch.push(...events);
-			else this.bus.dispatch(...events);
-		});
+		const deliverEmissions = (events: TAutomataEventStack<EventType, EventMetaType>) =>
+			this.deliverEmissions(events, currentBatch);
+		const unsubscribeEmissions = machine.onEmittedEvents?.(deliverEmissions);
 		if (unsubscribeEmissions) unsubs.push(unsubscribeEmissions);
 
 		for (const evt of observed) {
@@ -152,7 +315,7 @@ export class CoreLoop<
 						machine.dispatch(a);
 						// Older IAutomata implementations delegate transition mapping to the loop.
 						if (!unsubscribeEmissions && machine.isEnabled() && !machine.isPaused()) {
-							nextEventsToProcess.push(...(bridge.handleTransition(machine.getContext()) ?? []));
+							deliverEmissions(bridge.handleTransition(machine.getContext()) ?? []);
 						}
 					}
 				} finally {
@@ -295,9 +458,10 @@ export class CoreLoop<
 
 		if (this.destinations.has(id)) throw new Error(`Destination with id "${id}" already registered`);
 
-		// Wildcard (null) bound events are not supported here; bind explicit event ids only.
-		const boundEvents = dst
-			.getBoundEvents()
+		const destinationEvents = dst.getBoundEvents();
+		// Legacy event-only Destinations subscribe to explicit Events. With a Data
+		// Model, CoreLoop invokes both explicit and wildcard triggers after commit.
+		const boundEvents = destinationEvents
 			.filter((event): event is EventType => event !== null);
 
 		const handler = (raw: TAutomataEventMetaType<EventType, EventMetaType>) => {
@@ -312,16 +476,61 @@ export class CoreLoop<
 			};
 		};
 
-		for (const event of boundEvents) this.bus.subscribe(event, handler);
-		dst.start();
-
-		const unsub = () => {
+		let subscribed = false;
+		const subscribe = () => {
+			if (subscribed || this.effectScheduler) return;
+			for (const event of boundEvents) this.bus.subscribe(event, handler);
+			subscribed = true;
+		};
+		const unsubscribe = () => {
+			if (!subscribed) return;
 			for (const event of boundEvents) this.bus.unsubscribe(event, handler);
-			dst.stop();
+			subscribed = false;
 		};
 
-		this.destinations.set(id, { id, unsub });
+		subscribe();
+		dst.start();
+
+		const registeredDestination: TRegisteredDestination = {
+			id,
+			order: this.destinationRegistrationOrder++,
+			boundEvents: destinationEvents,
+			update: (event, model) => dst.update(
+				event as TAutomataEventMetaType<EventType, EventMetaType>,
+				model as DataModel,
+			),
+			subscribe,
+			unsubscribe,
+			start: () => dst.start(),
+			stop: () => dst.stop(),
+		};
+		this.destinations.set(id, registeredDestination);
+		this.indexDestination(registeredDestination);
 		return this;
+	}
+
+	private indexDestination(destination: TRegisteredDestination): void {
+		for (const event of destination.boundEvents) {
+			if (event === null) {
+				this.wildcardDestinations.add(destination);
+				continue;
+			}
+
+			const indexedDestinations = this.destinationsByEvent.get(event) ?? new Set();
+			indexedDestinations.add(destination);
+			this.destinationsByEvent.set(event, indexedDestinations);
+		}
+	}
+
+	private unindexDestination(destination: TRegisteredDestination): void {
+		this.wildcardDestinations.delete(destination);
+		for (const event of destination.boundEvents) {
+			if (event === null) continue;
+			const indexedDestinations = this.destinationsByEvent.get(event);
+			if (!indexedDestinations) continue;
+			indexedDestinations.delete(destination);
+			if (indexedDestinations.size === 0) this.destinationsByEvent.delete(event);
+		}
 	}
 
 	/**
@@ -337,7 +546,9 @@ export class CoreLoop<
 	public unregisterDestination(id: string): this {
 		const reg = this.destinations.get(id);
 		if (reg) {
-			reg.unsub();
+			reg.unsubscribe();
+			reg.stop();
+			this.unindexDestination(reg);
 			this.destinations.delete(id);
 		}
 		return this;
@@ -346,6 +557,11 @@ export class CoreLoop<
 	public start(): this {
 		if (this.started) return this;
 		this.started = true;
+		this.destinations.forEach((destination) => {
+			destination.subscribe();
+			destination.start();
+		});
+		this.slices.forEach(registered => registered.slice.start());
 		this.bus.resume();
 		this.sources.forEach(s => s.start());
 		return this;
@@ -356,7 +572,11 @@ export class CoreLoop<
 		this.started = false;
 		this.bus.pause();
 		this.sources.forEach(s => s.stop());
-		this.destinations.forEach(d => d.unsub());
+		this.destinations.forEach((destination) => {
+			destination.unsubscribe();
+			destination.stop();
+		});
+		this.slices.forEach(registered => registered.slice.stop(false));
 		return this;
 	}
 }

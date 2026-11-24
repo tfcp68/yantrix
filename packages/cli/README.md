@@ -53,6 +53,7 @@ Options:
                       escript, python, java                             [string]
   -o, --outfile       Output Automata file path                         [string]
   -c, --className     Name of the generated Automata class              [string]
+      --eventBusOrder Queued event delivery order (default: fifo)   [fifo, lifo]
   -j, --constants     Stringified JSON with constants to be used in generated Au
                       tomata                                            [string]
   -J, --constantFile  Path to JSON file with constants to be used in generated A
