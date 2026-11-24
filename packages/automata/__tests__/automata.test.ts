@@ -521,6 +521,20 @@ describe(`automata`, () => {
 			).toThrowError();
 		});
 
+		it('uses machine-owned state and rejects invalid actions before previewing the queue', () => {
+			const reducer = vitest.fn(testReducer(sampleState));
+			sampleInstance.init({ ...state, rootReducer: reducer });
+			const envelope = { ...sampleAction, state: -1, context: null };
+			sampleInstance.pause().dispatch(envelope);
+			expect(reducer).toHaveBeenCalledWith({ ...sampleAction, ...state });
+
+			reducer.mockClear();
+			expect(() => sampleInstance.dispatch({ action: -1, payload: null })).toThrow();
+			expect(reducer).not.toHaveBeenCalled();
+			sampleInstance.resume();
+			expect(reducer).toHaveBeenCalledWith({ ...sampleAction, ...state });
+		});
+
 		it('is pure function', () => {
 			const sampleActionCopy = JSON.parse(JSON.stringify(sampleAction));
 			sampleInstance.dispatch(sampleAction);
