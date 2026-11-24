@@ -1,11 +1,11 @@
 import { configureStore, createAction, UnknownAction } from '@reduxjs/toolkit';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { createMiddleware } from '../src/index.js';
 import TrafficLight from './generated/TrafficLightAutomata_generated.js';
 
 const switchLight = createAction('lights/switch');
 const changed = createAction<number | null>('lights/changed');
-const unrelated = createAction('other/action');
+const unrelated = createAction<number>('other/action');
 const toFSM = (action: UnknownAction) => switchLight.match(action) ? TrafficLight.createAction('Switch', {}) : null;
 
 function makeStore(middleware: ReturnType<typeof createMiddleware>) {
@@ -19,14 +19,18 @@ describe('createMiddleware', () => {
 	it('forwards unmatched actions unchanged and delivers a matched action before its projection', () => {
 		const mapContext = vi.fn(({ state }: ReturnType<TrafficLight['getContext']>) => changed(state));
 		const store = makeStore(createMiddleware(TrafficLight, toFSM, mapContext));
-		const other = unrelated();
+		const other = unrelated(7);
 
-		expect(store.dispatch(other)).toBe(other);
+		const otherResult = store.dispatch(other);
+		expectTypeOf(otherResult.payload).toEqualTypeOf<number>();
+		expect(otherResult).toBe(other);
 		expect(store.getState()).toEqual([other]);
 		expect(mapContext).not.toHaveBeenCalled();
 
 		const original = switchLight();
-		expect(store.dispatch(original)).toBe(original);
+		const originalResult = store.dispatch(original);
+		expectTypeOf(originalResult).toEqualTypeOf<typeof original>();
+		expect(originalResult).toBe(original);
 		expect(mapContext).toHaveBeenCalledOnce();
 		expect(store.getState()).toEqual([other, original, changed(TrafficLight.getState('Red'))]);
 	});
