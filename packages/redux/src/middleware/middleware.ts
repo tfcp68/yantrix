@@ -3,7 +3,8 @@ import { isAction, Middleware, UnknownAction } from '@reduxjs/toolkit';
 /**
  * Creates a Redux middleware that owns one FSM instance per store.
  * Unmapped Redux actions pass through. A matched action drives the machine,
- * and its new state and context can be mapped to a downstream Redux action.
+ * then the middleware forwards the original action followed by any mapped
+ * action. Dispatch returns the downstream result for the original action.
  */
 export function createMiddleware<FSMAction, Snapshot>(
 	FSM: new () => { dispatch: (action: FSMAction) => unknown; getContext: () => Snapshot },
@@ -19,7 +20,9 @@ export function createMiddleware<FSMAction, Snapshot>(
 
 			machine.dispatch(input);
 			const output = mapContextToAction(machine.getContext());
-			return output === null ? action : next(output);
+			const result = next(action);
+			if (output !== null) next(output);
+			return result;
 		};
 	};
 }

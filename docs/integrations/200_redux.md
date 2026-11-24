@@ -123,11 +123,13 @@ constructor, an input mapper that selects the actions the machine should receive
 mapper that converts the machine's resulting state and context into a Redux action. Returning
 `null` from the input mapper lets an unrelated action continue through Redux.
 
-This middleware replaces a matched command with the action returned by the output mapper.
-For example, a reducer can define cases for both `signals/advance` and `signals/observed`.
-After `dispatch(advance())`, only its `observed` case runs, because that is the action the
-middleware forwards. Returning `null` from the output mapper sends no action to downstream
-reducers for that command. An unrelated input still reaches reducers unchanged.
+When a command matches, the middleware advances the machine and maps its new snapshot.
+It then forwards the original Redux action first, followed by the action from the output
+mapper. If the output mapper returns `null`, it forwards just the original action.
+The middleware returns the result of forwarding the original action.
+
+In this example, the `signals/advance` reducer case counts the button press. The
+`signals/observed` case then records the new light color.
 
 ```typescript
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
@@ -156,8 +158,10 @@ const store = configureStore({
     middleware: defaults => defaults().concat(lightMiddleware),
 });
 
-store.dispatch(advance());
-console.log(store.getState().presses); // 0
+const command = advance();
+const result = store.dispatch(command);
+console.log(result === command); // true
+console.log(store.getState().presses); // 1
 console.log(store.getState().color === TrafficLight.getState('Red')); // true
 ```
 
