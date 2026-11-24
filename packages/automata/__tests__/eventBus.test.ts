@@ -1,6 +1,6 @@
 import { randomInteger, randomString, uniqId } from '@yantrix/utils';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
-import { createEventBus, TAutomataEventMetaType, TAutomataEventStack } from '../src';
+import { BasicEventBus, createEventBus, STACK_PROCESSING_BATCH_SIZE, TAutomataEventMetaType, TAutomataEventStack } from '../src';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
 import { TTestEvent, TTestEventMeta } from './fixtures';
 
@@ -45,6 +45,108 @@ describe('eventBus', () => {
 		});
 		it('is empty by default', () => {
 			expect(sampleInstance.getEventStack()).toEqual([]);
+		});
+	});
+
+	describe('delivery order', () => {
+		function recordDelivery(bus: BasicEventBus, ids: number[]): number[] {
+			const seen: number[] = [];
+			for (const id of ids) {
+				bus.subscribe(id, (event) => {
+					seen.push(id);
+					return { ...event, task_id: String(id), result: null };
+				});
+			}
+			return seen;
+		}
+
+		it.each([
+			[undefined, [1, 2, 3]],
+			['fifo', [1, 2, 3]],
+			['lifo', [3, 2, 1]],
+		] as const)('delivers buffered events in %s order', async (order, expected) => {
+			const bus = new BasicEventBus(order);
+			const seen = recordDelivery(bus, [1, 2, 3]);
+			const buffered = [1, 2, 3].map(event => ({ event, meta: null }));
+			bus.pause().dispatch(...buffered);
+			expect(bus.getEventStack()).toEqual(buffered);
+			bus.resume();
+			await bus.whenIdle();
+			expect(seen).toEqual(expected);
+		});
+
+		it.each([
+			['fifo', [2, 3, 4]],
+			['lifo', [4, 3, 2]],
+		] as const)('applies %s to async follow-ups alongside already queued events', async (order, expected) => {
+			const bus = new BasicEventBus(order);
+			const seen = recordDelivery(bus, [2, 3, 4]);
+			bus.subscribe(1, event => ({
+				...event,
+				task_id: 'source',
+				result: Promise.resolve([{ event: 3, meta: null }, { event: 4, meta: null }]),
+			}));
+			bus.dispatch({ event: 1, meta: null });
+			bus.dispatch({ event: 2, meta: null });
+			await bus.whenIdle();
+			expect(seen).toEqual(expected);
+		});
+
+		it('retains LIFO order for remaining events after a subscriber throws', async () => {
+			const bus = new BasicEventBus('lifo');
+			const seen = recordDelivery(bus, [1, 2, 3]);
+			bus.subscribe(3, () => {
+				throw new Error('subscriber failed');
+			});
+			bus.pause().dispatch(...[1, 2, 3].map(event => ({ event, meta: null })));
+			const waiting = bus.whenIdle();
+			expect(() => bus.resume()).toThrow('subscriber failed');
+			await expect(waiting).rejects.toThrow('subscriber failed');
+			expect(seen).toEqual([3, 2, 1]);
+		});
+
+		it('rejects an unknown order at construction', () => {
+			// @ts-expect-error JavaScript consumers can pass an unsupported order.
+			expect(() => new BasicEventBus('random')).toThrow(/order/);
+		});
+
+		it.each(['fifo', 'lifo'] as const)('drains a multi-batch %s buffer when subscribers return empty tasks', async (order) => {
+			const bus = new BasicEventBus(order);
+			const seen: number[] = [];
+			const buffer = Array.from({ length: STACK_PROCESSING_BATCH_SIZE + 10 }, (_, index) => index + 1);
+			bus.subscribe(1, (input) => {
+				seen.push(input.meta.index);
+				return { ...input, task_id: 'work', result: Promise.resolve([]) };
+			});
+			bus.pause().dispatch(...buffer.map(meta => ({ event: 1, meta: { index: meta } })));
+			bus.resume();
+			await bus.whenIdle();
+			expect(seen).toEqual(order === 'fifo' ? buffer : buffer.reverse());
+			expect(bus.getEventStack()).toEqual([]);
+		});
+
+		it('allows one wide fan-out and rejects repeatedly multiplying follow-ups of the same event', async () => {
+			const bus = new BasicEventBus();
+			const count = STACK_PROCESSING_BATCH_SIZE * 3;
+			const children = Array.from({ length: count }, () => ({ event: 2, meta: null }));
+			bus.subscribe(1, input => ({ ...input, task_id: 'start', result: Promise.resolve(children) }));
+			const received = recordDelivery(bus, [2]);
+			bus.dispatch({ event: 1, meta: null });
+			await bus.whenIdle();
+			expect(received).toHaveLength(count);
+
+			let calls = 0;
+			bus.subscribe(3, (input) => {
+				// Keep a broken guard bounded during regression testing.
+				const result = calls++ < 200 ? [input, input] : [];
+				return { ...input, task_id: 'multiply', result: Promise.resolve(result) };
+			});
+			bus.dispatch({ event: 3, meta: null });
+			await expect(bus.whenIdle()).rejects.toThrow('Stack is growing too fast');
+			expect(calls).toBeLessThan(200);
+			bus.dispatch({ event: 2, meta: null });
+			await bus.whenIdle();
+			expect(received).toHaveLength(count + 1);
 		});
 	});
 

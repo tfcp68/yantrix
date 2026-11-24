@@ -1,5 +1,5 @@
-export function createEventBus(<% if (it.hasTypes) { %>_id: string, FSMs: Record<string, new () => GenericAutomata><% } else { %>id, FSMs<% } %>) {
-  const EventBus = new BasicEventBus();
+export function createEventBus(<% if (it.hasTypes) { %>_id: string, FSMs: Record<string, new () => GenericAutomata><% } else { %>id, FSMs<% } %>)<% if (it.hasTypes) { %>: [BasicEventBus, Record<string, GenericAutomata>, () => void]<% } %> {
+  const EventBus = new BasicEventBus(<% if (it.eventBusOrder === 'lifo') { %>'lifo'<% } %>);
 <% if (!it.hasTypes) { %>  EventBus.correlationId = id;
 <% } %>  const automatas<% if (it.hasTypes) { %>: Record<string, GenericAutomata><% } %> = <%~ include('factory', it) %>;
 

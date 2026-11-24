@@ -41,6 +41,7 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
+		"test": "vitest run --outputFile=../../test_reports/cli.md",
 		"format": "eslint --fix .",
 		"lint": "eslint ."
 	},

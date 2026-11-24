@@ -36,8 +36,9 @@ $ npx nypm install @yantrix/automata
 ### Data Model and Effects
 
 `ModelStore` owns the current application snapshot. `EffectScheduler` collects
-Events during a Main Loop iteration and applies all matching Effects with at
-most one model commit when the iteration is flushed:
+events across an entire Event Bus cascade, including follow-up events. When the
+bus becomes idle, `CoreLoop` flushes the batch and commits one model snapshot if
+any changes remain.
 
 ```typescript
 import { CoreLoop, EffectScheduler, ModelStore } from '@yantrix/automata';
@@ -90,8 +91,10 @@ await loop.whenIdle();
 ```
 
 Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
-A batch processes events in enqueue order, matrices in registration order, and
-effects within each matrix in declaration order. Each effect receives the model
+A batch processes adapter-emitted events in the order the scheduler received them.
+Each event matches against every registered slice's matrix. Matrices run in
+registration order, and effects within a matrix run in declaration order.
+Each effect receives the model
 returned by the previous effect. Return the same reference for a no-op so
 `ModelStore` can skip notifying its subscribers. If a pure effect throws,
 `flush()` discards that batch and the store retains its previous snapshot.

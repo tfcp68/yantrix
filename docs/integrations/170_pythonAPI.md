@@ -89,7 +89,7 @@ Multiple automata can share an event bus for reactive wiring. Each factory that 
 instance dict. `create_event_bus()` connects N automata to a shared `_EventBus`.
 
 ```python
-from automata_a_generated import create_automata_a, event_dictionary
+from automata_a_generated import create_automata_a, create_event_bus, event_dictionary
 from automata_b_generated import create_automata_b
 
 bus, automatas, cleanup = create_event_bus('my_bus', {
@@ -109,6 +109,12 @@ cleanup()
 - `bus` - `_EventBus` instance; call `bus.dispatch(...)` to inject events
 - `automatas` - `dict[str, instance_dict]` of created FSM instances
 - `cleanup()` - unsubscribes all handlers
+
+The generated Python bus delivers pending events in FIFO order by default.
+Use `--eventBusOrder lifo` when generating the module to deliver the newest
+pending event first. All automata connected to that bus share its order.
+Python's shared model store, effect batching at the end of a cascade, and live
+slice registration are planned in the [Python runtime parity plan](../contributing/10_codegen_python.html#python-runtime-parity-plan).
 
 ### Diagram syntax
 

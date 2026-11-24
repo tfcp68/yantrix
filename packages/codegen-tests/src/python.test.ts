@@ -691,6 +691,36 @@ print('ok')
 	});
 });
 
+describeExec('python codegen - event bus order', () => {
+	it.each([
+		{ order: undefined, expected: [1, 2, 3] },
+		{ order: 'lifo' as const, expected: [2, 3, 1] },
+	])('delivers pending and nested events in $order order', async ({ order, expected }) => {
+		const file = `py_order_${order ?? 'default'}`;
+		await generateAndSave({
+			input: trafficInput,
+			automataName: 'TrafficLight',
+			lang: ModuleNames.Python,
+			eventBusOrder: order,
+		}, file);
+		const script = `
+from ${file}_generated import create_event_bus
+bus, _, _ = create_event_bus('order', {})
+seen = []
+def capture(event):
+    seen.append(event['event'])
+    if len(seen) == 1:
+        bus.dispatch({'event': 3})
+for event_id in (1, 2, 3):
+    bus.subscribe(event_id, capture)
+bus.dispatch({'event': 1}, {'event': 2})
+print(seen)
+`;
+		const output = execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, encoding: 'utf8', timeout: 10000 });
+		expect(JSON.parse(output)).toEqual(expected);
+	});
+});
+
 describeExec('python codegen - event dispatch sequence', async () => {
 	it('cascading: Sender dispatch -> emit -> Receiver transition in one bus.dispatch call', () => {
 		const script = `

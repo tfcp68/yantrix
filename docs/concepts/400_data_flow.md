@@ -113,7 +113,14 @@ _Figure 3: Yantrix Main Loop_
 
 ## Effects
 
-While Main Loop drives the sequence of execution, every `FSM` is locked onto oneself and cannot directly update the "outer world data" that is expressed by `Data Model`. To do so, `Effects` are invoked by Main Loop every time it repeats its cycle. `Effects` are pure functions that take `Data Model` and `Event Meta` as parameters and return updated `Data Model`. While every `FSM` can declare its own `Effects`, in fact they are invoked after all `FSM`s are already done with their `Reducer` loops, and some `Events` are produced by `Event Adapters`. Only those `Events` would be translated to `Effects`, while `Events` emitted by `Sources` are first translated into `Actions`.
+Sources publish input events to the shared Event Bus. An FSM's event adapter can translate an
+input into an action, then emit events when the transition commits. The bus delivers these
+events to subscribers across slices. The scheduler collects adapter-emitted events for effects.
+
+When the bus finishes the cascade, including follow-up events, the scheduler applies each
+collected event to all matching effect matrices in registration order. Within a matrix,
+effects run in declaration order. The scheduler passes each effect's result to the next effect
+and commits the final model once if it changed. Destinations then receive the committed model.
 
 ```mermaid
 sequenceDiagram
@@ -121,7 +128,7 @@ sequenceDiagram
 	participant ED as Effect Dictionary
 	participant MDL as Data Model (Anemic)
 	participant DB as Storages (Persistent)
-	Note over MT, ED: Generate Effects as defined by Effect Matrix
+	Note over MT, ED: Match emitted events across registered matrices
 	MT ->> ED: <TAutomataEventMetaType>
 	Note over ED, MDL: Update Model based on its current state and generated Events
 	ED ->> MDL: <TAutomataEventMetaType>, Data Model => Data Model
@@ -156,7 +163,7 @@ sequenceDiagram
 	loop Main Loop iteration
 		activate MT
 		loop While events are queued
-			MT ->> MT: Dequeue oldest event and run FSM reducers
+			MT ->> MT: Dequeue next event and run FSM reducers
 			opt A committed transition emits an event
 				MT ->> EL: Enqueue the emitted event for this batch
 			end

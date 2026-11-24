@@ -114,3 +114,30 @@ python/runtime/event_bus.py.tpl         - _EventBus and _EventAdapter class defi
     'event_adapter': event_adapter,  # _EventAdapter instance, or None if no events
 }
 ```
+
+## Python runtime parity plan
+
+Generated Python already wires multiple FSMs to one bus with `create_event_bus()`. The
+`eventBusOrder` codegen option defaults to `fifo` and accepts `lifo`. If A and B are
+queued together and the first handler emits C, Python delivers A, B, C in FIFO mode
+and B, C, A in LIFO mode. The codegen tests execute both traces in Python.
+
+The Python bus currently calls the adapter after dispatching an action. For example, a
+paused receiver can emit its old state's event, then resume and enter its new state
+without emitting the corresponding event. The first step below addresses that gap.
+
+The following work brings the generated runtime up to the TypeScript model and effect contracts.
+
+| Step | Implementation | Acceptance test |
+| --- | --- | --- |
+| 1. Committed events | Wire adapter emissions to committed FSM transitions, including direct dispatch and queued actions consumed on resume. | A paused, disabled, or ignored action produces no immediate event. An explicit self-transition and a replayed transition each emit once. |
+| 2. Shared model and effects | Add an application model store with subscriptions and an effect scheduler. Run matching effects from all registered matrices in registration and declaration order. | Two registered matrices handle the same event. Returning the original snapshot preserves its identity. A failed effect leaves the model intact and a later batch succeeds. |
+| 3. Loop and slice lifecycle | Connect committed emissions to the scheduler through one shared bus. Register and unregister slice machines and effect matrices together. Commit after the whole cascade drains, then notify matching destinations. | Run the TypeScript Checkout/Audit scenario in generated Python for both orders. Both slices handle `OrderPlaced`, a follow-up joins the same commit, observers see one final snapshot, and unregistering Audit removes its effects. |
+
+Once TypeScript supports generating effect matrices and slice factories from diagrams,
+extend the Python generator to emit the equivalent wiring. Run the Checkout/Audit fixture
+with that generated wiring as well as with the manually registered matrices.
+
+Use the same input diagrams and expected event traces, snapshots, and subscriber counts for
+TypeScript and Python. Keep the Python coverage in `packages/codegen-tests/src/python.test.ts`
+so it exercises the emitted module in a Python interpreter.

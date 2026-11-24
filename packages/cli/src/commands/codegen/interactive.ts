@@ -2,11 +2,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import * as p from '@clack/prompts';
-import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
+import { generateAutomataFromStateDiagram, ModuleNames } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 import c from 'ansis';
 import { TLanguage } from '../../types/common';
-import { DISABLE_FLAGS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
+import { DISABLE_FLAGS, EVENT_BUS_ORDERS, EXIT_ERROR_CODE, EXIT_SUCCESS_CODE, LANGUAGES } from '../../utils/constants';
 import { isGitClean, isJSON } from '../../utils/utils';
 
 export async function interactive() {
@@ -64,6 +64,17 @@ export async function interactive() {
 				options: LANGUAGES.map(lang => ({
 					value: lang,
 					label: lang,
+				})),
+			});
+		},
+		eventBusOrder: async ({ results }: { results: { language?: TLanguage } }) => {
+			if (results.language === ModuleNames.Java) return;
+			return p.select({
+				initialValue: EVENT_BUS_ORDERS[0],
+				message: 'Select the order for queued events',
+				options: EVENT_BUS_ORDERS.map(value => ({
+					value,
+					label: value === 'fifo' ? 'FIFO (oldest first)' : 'LIFO (newest first)',
 				})),
 			});
 		},
@@ -262,6 +273,7 @@ export async function interactive() {
 		className: results.className,
 		constants: results.constants,
 		functionFilePath: results.functionFile ?? undefined,
+		eventBusOrder: results.eventBusOrder,
 		beautify: results.beautify === true,
 	}).catch((err) => {
 		const msg1 = 'An error occurred while generating Automata';

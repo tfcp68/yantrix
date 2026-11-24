@@ -142,6 +142,28 @@ describe('pure-javascript codegen - state transitions and context', async () => 
 	});
 });
 
+describe.each([ModuleNames.PureJavaScript, ModuleNames.PureTypeScript])('%s event bus order', (lang) => {
+	it.each([
+		{ order: undefined, expected: [1, 2, 3] },
+		{ order: 'lifo' as const, expected: [2, 3, 1] },
+	])('delivers pending and nested events in $order order', async ({ order, expected }) => {
+		const file = `pure_order_${lang}_${order ?? 'default'}`;
+		await generateAndSave({ input: trafficInput, automataName: 'TrafficLight', lang, eventBusOrder: order }, file);
+		const { createEventBus } = await import(getGeneratedPath(`${file}_generated.js`));
+		const [bus] = createEventBus('order', {});
+		const seen: number[] = [];
+		for (const id of [1, 2, 3]) {
+			bus.subscribe(id, ({ event }: { event: number }) => {
+				seen.push(event);
+				if (seen.length === 1) bus.dispatch({ event: 3, meta: null });
+			});
+		}
+		bus.dispatch({ event: 1, meta: null }, { event: 2, meta: null });
+		expect(seen).toEqual(expected);
+		expect(bus.getEventStack().map(({ event }: { event: number }) => event)).toEqual(expected);
+	});
+});
+
 describe('pure-javascript codegen - module-level exports', async () => {
 	await generateAndSave(
 		{ input: trafficInput, automataName: 'TrafficLightExports', lang: ModuleNames.PureJavaScript },

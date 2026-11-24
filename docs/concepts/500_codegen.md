@@ -39,16 +39,36 @@ See [CLI Reference](../integrations/050_cli.html) for all options.
 **API** -- embed generation in Node.js tooling:
 
 ```typescript
+import { readFile } from 'node:fs/promises';
 import { generateAutomataFromStateDiagram } from '@yantrix/codegen';
 import { parseStateDiagram, createStateDiagram } from '@yantrix/mermaid-parser';
 
+const diagramText = await readFile('./diagram.mermaid', 'utf8');
 const structure = await parseStateDiagram(diagramText);
 const matrix = await createStateDiagram(structure);
 const code = await generateAutomataFromStateDiagram(matrix, {
   outLang: 'typescript',
   className: 'MyAutomata',
+  eventBusOrder: 'lifo',
 });
 ```
+
+## Event bus order
+
+The generated bus delivers pending events in first-in, first-out order by default.
+Set `eventBusOrder` to `'lifo'` to deliver the newest pending event first, as in
+the TypeScript example above. For example, if `A` and `B` are both queued in that
+order before delivery starts, FIFO delivers `A` then `B`. LIFO delivers `B` then
+`A`. The option configures the generated bus. In the TypeScript reference runtime,
+all machines and slices connected to one `CoreLoop` follow the delivery order
+of that loop's shared bus. For a
+given emitted event, effects still run in matrix registration order and then
+in their declaration order.
+
+`generateAutomataFromStateDiagram` and `generateAutomataFiles` accept this option
+for JavaScript, TypeScript, their pure dialects, and Python. Java generates an
+FSM without an event bus and rejects an explicit `eventBusOrder` option. On the
+command line, use `--eventBusOrder fifo` or `--eventBusOrder lifo`.
 
 ## Supported languages
 

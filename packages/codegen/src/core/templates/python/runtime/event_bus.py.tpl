@@ -1,8 +1,12 @@
 
+from collections import deque as _deque
+
+
 class _EventBus:
-    def __init__(self):
+    def __init__(self, order='fifo'):
         self._subs = {}
-        self._stack = []
+        self._stack = _deque()
+        self._next_event = self._stack.pop if order == 'lifo' else self._stack.popleft
         self._processing = False
 
     def subscribe(self, event_id, handler):
@@ -18,7 +22,7 @@ class _EventBus:
             self._processing = True
             try:
                 while self._stack:
-                    ev = self._stack.pop(0)
+                    ev = self._next_event()
                     for h in list(self._subs.get(ev.get('event'), [])):
                         h(ev)
             finally:

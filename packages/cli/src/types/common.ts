@@ -1,4 +1,4 @@
-import { Modules } from '@yantrix/codegen';
+import { IGenerateOptions, Modules } from '@yantrix/codegen';
 
 export type TLanguage = keyof typeof Modules;
 
@@ -14,6 +14,8 @@ export interface IArgv {
 	'className'?: string;
 	/** The name of the generated Automata class. */
 	'class-name'?: string;
+	/** Order in which the generated event bus delivers queued events. */
+	'eventBusOrder'?: IGenerateOptions['eventBusOrder'];
 	/** Stringified JSON with constants to be used in generated Automata. */
 	'constants'?: string;
 	/** Path to JSON file with constants to be used in generated Automata. */

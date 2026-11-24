@@ -778,6 +778,55 @@ describe('coreLoop Effect batches', () => {
 		expect(store.get()).toEqual({ count: 1 });
 	});
 
+	it('commits one snapshot for a cascade handled by effects in two registered slices', async () => {
+		enum OrderEvent { PlaceOrder = 1, OrderPlaced, OrderAudited }
+
+		function emitOn(input: OrderEvent, output: OrderEvent) {
+			const machine = new GenericAutomata().init({
+				state: UStates.S1,
+				context: null,
+				rootReducer: () => ({ state: UStates.S2, context: null }),
+			});
+			const adapter = new AutomataEventAdapter();
+			adapter.addEventListener(input, () => ({ action: UActions.DO, payload: null }));
+			adapter.addEventEmitter(UStates.S2, () => ({ event: output, meta: null }));
+			return machine.setEventAdapter(adapter);
+		}
+
+		const initial = { orders: 0, observedOrders: 0, auditRecords: 0 };
+		const store = new ModelStore(initial);
+		const loop = new CoreLoop({ effectScheduler: new EffectScheduler({ store }) });
+		const commits = vi.fn();
+		store.subscribe(commits);
+		const checkout = new AutomataSlice<typeof initial>({
+			id: 'checkout',
+			effectMatrix: {
+				[OrderEvent.OrderPlaced]: [(_event, model) => ({ ...model, orders: model.orders + 1 })],
+			},
+		});
+		checkout.addMachine('checkout', emitOn(OrderEvent.PlaceOrder, OrderEvent.OrderPlaced));
+		const audit = new AutomataSlice<typeof initial>({
+			id: 'audit',
+			effectMatrix: {
+				[OrderEvent.OrderPlaced]: [(_event, model) => ({ ...model, observedOrders: model.observedOrders + 1 })],
+				[OrderEvent.OrderAudited]: [(_event, model) => ({ ...model, auditRecords: model.auditRecords + 1 })],
+			},
+		});
+		audit.addMachine('audit', emitOn(OrderEvent.OrderPlaced, OrderEvent.OrderAudited));
+		loop.registerSlice(checkout).registerSlice(audit);
+
+		const order = { event: OrderEvent.PlaceOrder, meta: null };
+		loop.getBus().dispatch(order);
+		await loop.whenIdle();
+		const first = { orders: 1, observedOrders: 1, auditRecords: 1 };
+		expect(commits.mock.calls).toEqual([[first, initial]]);
+
+		loop.unregisterSlice(audit.id);
+		loop.getBus().dispatch(order);
+		await loop.whenIdle();
+		expect(commits.mock.calls).toEqual([[first, initial], [{ ...first, orders: 2 }, first]]);
+	});
+
 	it('routes events to the current slice members and detaches the slice on unregister', async () => {
 		const { effectLoop, adapter } = createEffectLoop();
 		const first = new AutomataStub().setEventAdapter(adapter);

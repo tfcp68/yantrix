@@ -3,13 +3,89 @@ import path from 'node:path';
 import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
-import { AutomataEventAdapter } from '@yantrix/core';
+import { AutomataEventAdapter, BasicEventBus } from '@yantrix/core';
+import ts from 'typescript';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import templates from './fixtures/eventsTemplates';
-import { generateAndSave, generateAutomata } from './fixtures/utils';
+import { generateAndSave, generateAutomata, saveFile } from './fixtures/utils';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
+
+describe.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+] as const)('generated %s event bus', (lang, extension) => {
+	it.each([
+		[undefined, [1, 2]],
+		['fifo', [1, 2]],
+		['lifo', [2, 1]],
+	] as const)('delivers buffered events with order %s', async (eventBusOrder, expected) => {
+		const fixture = `event_order_${extension}_${eventBusOrder ?? 'default'}`;
+		await generateAndSave({ input: templates.basicSubscribe, automataName: 'Ordered', lang, eventBusOrder }, fixture);
+		const { createEventBus } = await import(getGeneratedFixturePath(`${fixture}_generated.${extension}`));
+		const [bus, , cleanup] = createEventBus('ordered', {});
+		const seen: Array<number | null> = [];
+		const record: Parameters<BasicEventBus['subscribe']>[1] = (entry) => {
+			seen.push(entry.event);
+			return { ...entry, task_id: 'record', result: null };
+		};
+		bus.subscribe(1, record).subscribe(2, record);
+		bus.pause().dispatch({ event: 1, meta: null }, { event: 2, meta: null });
+		expect(seen).toEqual([]);
+		bus.resume();
+		await bus.whenIdle();
+		expect(seen).toEqual(expected);
+		cleanup();
+	});
+});
+
+it('types a generated ordered bus and cleanup for TypeScript consumers', async () => {
+	const machine = await generateAutomata({
+		input: templates.basicSubscribe,
+		automataName: 'Ordered',
+		lang: ModuleNames.TypeScript,
+		eventBusOrder: 'lifo',
+	});
+	saveFile('event_order_types', machine, 'ts');
+	saveFile('event_order_consumer', `
+		import { createEventBus } from './event_order_types_generated.js';
+		const [bus, , cleanup] = createEventBus('example', {});
+		bus.pause().dispatch({ event: 1, meta: null }, { event: 2, meta: null }).resume();
+		await bus.whenIdle();
+		cleanup();
+	`, 'ts');
+
+	const program = ts.createProgram([getGeneratedFixturePath('event_order_consumer_generated.ts')], {
+		module: ts.ModuleKind.NodeNext,
+		target: ts.ScriptTarget.ES2022,
+		strict: true,
+		skipLibCheck: true,
+	});
+	const diagnostics = ts.getPreEmitDiagnostics(program);
+	expect(diagnostics.map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n'))).toEqual([]);
+}, 20000);
+
+describe('event bus order option validation', () => {
+	it('rejects an unknown order from a JavaScript caller', async () => {
+		await expect(generateAutomata({
+			input: templates.basicEvents,
+			automataName: 'Ordered',
+			lang: ModuleNames.JavaScript,
+			// @ts-expect-error Exercise the untyped API boundary.
+			eventBusOrder: 'random',
+		})).rejects.toThrow(/eventBusOrder.*fifo.*lifo/);
+	});
+
+	it.each(['fifo', 'lifo'] as const)('rejects an explicit %s order on Java', async (eventBusOrder) => {
+		await expect(generateAutomata({
+			input: templates.defaultTemplate,
+			automataName: 'Ordered',
+			lang: ModuleNames.Java,
+			eventBusOrder,
+		})).rejects.toThrow(/eventBusOrder.*Java/);
+	});
+});
 
 describe('automata Events', () => {
 	describe('per-instance event adapter factory', async () => {

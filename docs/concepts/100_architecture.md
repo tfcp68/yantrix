@@ -106,9 +106,10 @@ and `States`, they can use the same `Event Adapter` too, if needed.
 
 ### Event Stack
 
-Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, that are put into a FIFO queue known
-in Yantrix as `Event Stack`. It is processed continuously by the `Main Loop`, which handles them one by one, always
-taking the oldest queued `Event` and passing it to all connected `Slices`, and thus `FSMs`.
+UI components, sources, and FSMs publish events to the application's shared Event Bus. By default it
+delivers the oldest pending event first (FIFO). A generated Event Bus configured with
+`eventBusOrder: 'lifo'` delivers the newest pending event first. Both modes deliver each event to
+its subscribers across all registered slices. See [Code Generation](500_codegen.html#event-bus-order).
 
 ## Data operations
 
@@ -139,13 +140,15 @@ They can be:
 
 ### Effects
 
-`Effects` are pure high-order functions that update `Data Model` based on its current state and emitted `Events`, very
-similar to the way `FSMs` operate (and Redux's _reducers_). However, `FSMs` cannot alter the `Data Model` directly,
-locked inside their local scope, they can emit `Events` through the `Event Adapter`, which is mapped to a
-particular `Effect` by the `Effect Matrix` of the owning slice.
+`Effects` are pure functions that compute the next Data Model from the current model and an
+emitted event. When an FSM's adapter emits an event, the Effect Scheduler looks it up in every
+registered slice's Effect Matrix. For example, a single `OrderPlaced` event can update inventory
+in one slice and accounting in another.
 
-All the `Effects` triggered by different slices are batched every iteration of `Main Loop`, yielding exactly one (or
-none) `Data Model` update regardless of how many `FSM` transitions were performed.
+An event cascade includes the queued events and the follow-up events their handlers produce
+until the Event Bus becomes idle. The Main Loop then flushes the effects as one batch.
+If the model changed, the store commits one snapshot and matching destinations receive it.
+If all effects preserve the original model reference, there is no update.
 
 ## APIs relation diagram
 
