@@ -17,83 +17,71 @@ Let's build a slider component. First, we need a diagram for a State Machine des
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
 	note left of ENABLED
 		+Init
-		#{min, max}<=$min, $max
+		#{min=0, max=100, value=0}
+	end note
+	note left of RESETTING
+		+ByPass
+		#{min, max, value} <= $min=0, $max=100, $min=0
 	end note
 	note right of SETTING
 		+ByPass
-		#{value}<=min(#max,max(#min,$value))
+		#{min, max}
+		#{value} <= min(#max, max(#min, $value))
 	end note
 	note right of INCREMENT
 		+ByPass
-		#{value}<=min(#max,max(#min,add(#value,$by)))
+		#{min, max}
+		#{value} <= min(#max, max(#min, add(#value, $by=1)))
 	end note
 	note right of DECREMENT
 		+ByPass
-		#{value}<=min(#max,max(#min,diff($by,#value))
+		#{min, max}
+		#{value} <= min(#max, max(#min, diff($by=1, #value)))
 	end note
 note right of [*]
 #{min, max, value}
 end note
 ```
 
-The details of what's going on here are explained [below](#syntax-breakdown). For now, assume it's saved to a file named `slider.mermaid`. Then, we pass that source to a code generator and choose a language we need
+Save the diagram as `slider.mermaid`. Install the CLI and the runtime, then generate the TypeScript class in your project.
 
 ```shell
-$ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language JavaScript --className Slider
+npm install @yantrix/core
+npm install --save-dev @yantrix/cli
+npx yantrix codegen ./slider.mermaid --outfile slider_controller.ts --language typescript --className Slider
 ```
 
-Now, we import the generated file into your projects:
+The following TypeScript module creates one slider and exports handlers you can bind to UI controls. The position passed to `setPosition` is a fraction of the range, so `setPosition(0.5)` selects the midpoint.
 
-```javascript
+```typescript
 import Slider from './slider_controller.js';
 
-const SLIDER_MAX = 1000;
-const SLIDER_MIN = -1000;
+const min = -1000;
+const max = 1000;
+export const slider = new Slider();
+slider.dispatch(Slider.createAction('RESET', { min, max }));
 
-const SliderController = new Slider();
-
-SliderController.dispatch(
-	Slider.createAction('RESET', {
-		min: SLIDER_MIN,
-		max: SLIDER_MAX,
-	}),
-); // adjusted to local needs
-
-/*
- * ...somewhere later on at UI ...
- */
-
-// bind these to buttons and/or keys
-const rightHandler = () => SliderController.dispatch(Slider.createAction('INCREASE', { by: 50 }));
-const leftHandler = () => SliderController.dispatch(Slider.createAction('DECREASE', { by: 50 }));
-
-// bind this to a click handler, using relative coordinate
-const setHandler = percentage =>
-	SliderController.dispatch(
-		Slider.createAction('SET', {
-			value: SLIDER_MIN + percentage * (SLIDER_MAX - SLIDER_MIN),
-		}),
-	);
-
-// use this to display value in the GUI
-const getSliderValue = () => SliderController.getContext().value;
-
-// and this - to prevent UI from changing the slider value
-const isDisabled = () => Slider.hasState(SliderConroller, 'DISABLED');
+export const moveRight = () => slider.dispatch(Slider.createAction('INCREASE', { by: 50 }));
+export const moveLeft = () => slider.dispatch(Slider.createAction('DECREASE', { by: 50 }));
+export const setPosition = (fraction: number) =>
+	slider.dispatch(Slider.createAction('SET', { value: min + fraction * (max - min) }));
+export const getValue = () => slider.getContext().context.value;
+export const isDisabled = () => Slider.hasState(slider, 'DISABLED');
 ```
 
-Or you can use one of the available [Integrations](./integrations/) with a framework of your choice, i.e. [Redux](./integrations/200_redux.html)
+The `.js` import above points to the JavaScript emitted by TypeScript. You can also connect the generated class to [React or Redux](./integrations/).
 
 ## Syntax Breakdown
 
@@ -103,6 +91,7 @@ Let's see what's happening in depth. The diagram describes an [`FSM`](concepts/2
 
 Every `State` is independent on another and difference between `States` is _qualitative_, i.e. they represent some scenarios in App that are independent on each other and never happen simultaneously:
 
+-   Slider is resetting the range and its value
 -   Slider is usable and idle (enabled)
 -   Slider can't be interacted with (disabled)
 -   Slider is being switched to a particular position
@@ -111,6 +100,7 @@ Every `State` is independent on another and difference between `States` is _qual
 ```mermaid
 stateDiagram-v2
 	direction TB
+	RESETTING
 	ENABLED
 	DISABLED
 	SETTING
@@ -125,27 +115,30 @@ To change the `State` of the machine, an `Action` must be invoked. Every `Action
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET
+	[*] --> RESETTING: RESET
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 ```
 
 Also note that not every `Action` can be invoked from every `State` by default. A `[*]` node is used to define an `Action` that can be invoked from every `State`. The binding between `States` and `Action` define a [many-to-many relation](https://en.wikipedia.org/wiki/Incidence_matrix), called `Transition Matrix`, that is another way to define the `FSM`. Every item in this matrix is either null or an `Action` name, while columns and rows correspond to `States` in the same order.
 
-| From/To      | ENABLED | DISABLED |
-| ------------ | ------- | -------- |
-| _any_        | RESET   |          |
-| **ENABLED**  |         | DISABLE  |
-| **DISABLED** | ENABLE  |          |
+| From/To      | ENABLED | DISABLED | RESETTING |
+| ------------ | ------- | -------- | --------- |
+| _any_        |         |          | RESET     |
+| **RESETTING** | [-]     |          |           |
+| **ENABLED**  |         | DISABLE  |           |
+| **DISABLED** | ENABLE  |          |           |
 
 ### Payload
 
-Every `Action` can carry a `Payload`, which is a plain data object that represents some meta-information about the change requested by it. For instance, when resetting (instantiating) a Slider, it's wise to provide its min and max values. `Payload` is represented with a list of parameters in parentheses, each possible having a default value:
+Every `Action` can carry a `Payload`, which is a plain data object that represents some meta-information about the change requested by it. For instance, when resetting (instantiating) a Slider, it's wise to provide its min and max values. `Payload` fields are listed in parentheses on the action. The reducer reads these fields with `$` and can supply a default, as in `$min=0`.
 
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 ```
@@ -155,7 +148,8 @@ Technically, nudging Slider can be processed the same way as setting it directly
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> ENABLED: MODIFY(value, diff)
@@ -172,14 +166,15 @@ In fact, even synchronous operations could have an intermediate `State` which ac
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
 ```
 
@@ -194,15 +189,19 @@ Here we use `[-]` labels on `Actions`, which is a special symbol for [ByPass](/s
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
+	note left of RESETTING
+		+ByPass
+	end note
 	note right of SETTING
 		+ByPass
 	end note
@@ -216,31 +215,36 @@ stateDiagram-v2
 
 Our Transition Matrix now looks like this:
 
-| From/To   | ENABLED  | DISABLED | INCREMENT | DECREMENT | SETTING |
-| --------- | -------- | -------- | --------- | --------- | ------- |
-| _any_     | RESET    |          |           |           |         |
-| ENABLED   |          | DISABLE  | INCREASE  | DECREASE  | SET     |
-| DISABLED  | ENABLE   |          |           |           |         |
-| INCREMENT | INCREASE |          |           |           |         |
-| DECREMENT | DECREASE |          |           |           |         |
-| SETTING   | SET      |          |           |           |         |
+| From/To   | ENABLED | DISABLED | RESETTING | INCREMENT | DECREMENT | SETTING |
+| --------- | ------- | -------- | --------- | --------- | --------- | ------- |
+| _any_     |         |          | RESET     |           |           |         |
+| ENABLED   |         | DISABLE  |           | INCREASE  | DECREASE  | SET     |
+| DISABLED  | ENABLE  |          |           |           |           |         |
+| RESETTING | [-]     |          |           |           |           |         |
+| INCREMENT | [-]     |          |           |           |           |         |
+| DECREMENT | [-]     |          |           |           |           |         |
+| SETTING   | [-]     |          |           |           |           |         |
 
 ### Context
 
-Now, we need to define `Context` &mdash; values that are stored within `FSM` along with the current `State` and represent some of its _quantitative_ properties. We define it with [Reducers](./syntax/110_reducers.html) along with `State`, and they are calculated whenever the `FSM` is switched to that `State`. The `Reducers` defined at `[*]` node are run on **every** transition, and the `Context` properties found there are persistent through every `Action`, unless specified otherwise.
+Now, we need to define `Context` &mdash; values that are stored within `FSM` along with the current `State` and represent some of its _quantitative_ properties. We define it with [Reducers](./syntax/110_reducers.html) along with `State`, and they are calculated whenever the `FSM` is switched to that `State`. The reducer on `[*]` makes the previous `min`, `max` and `value` available to each destination reducer. When an operation computes a new `value`, its `#{min, max}` also copies both bounds into the new context.
 
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
+	note left of RESETTING
+		+ByPass
+	end note
 	note right of SETTING
 		+ByPass
 	end note
@@ -255,7 +259,7 @@ note left of [*]
 end note
 ```
 
-here we have defined 3 `Context` properties, that are copied from the previous values with every `Action`:
+The slider tracks three context properties.
 
 -   **value** stores current Slider position
 -   **min** stores minimal selectable value
@@ -263,23 +267,28 @@ here we have defined 3 `Context` properties, that are copied from the previous v
 
 ### Initial Context
 
-When **RESET** `Action` is invoked, a new **min** and **max** values can be set with `Payload`. Since that `Action` resolves to **ENABLED** `State`, that's where the related `Reducer` belongs:
+The **RESET** action enters **RESETTING**. Its reducer reads the bounds from the payload, using defaults of `0` and `100`, and sets the new value to the lower bound. Supply bounds with `min <= max`. The bypass returns the slider to **ENABLED**, including when it was disabled before the reset.
 
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
 	note left of ENABLED
 		+Init
-		#{min, max} <= $min, $max
+		#{min=0, max=100, value=0}
+	end note
+	note left of RESETTING
+		+ByPass
+		#{min, max, value} <= $min=0, $max=100, $min=0
 	end note
 	note right of SETTING
 		+ByPass
@@ -295,7 +304,7 @@ note right of [*]
 end note
 ```
 
-Here we have also specified that **ENABLED** is the starting `State` of the `FSM` with [Init flag](/syntax/100_data_objects.html#init).
+The [Init flag](./syntax/100_data_objects.html#init) starts a new slider in **ENABLED**. Its reducer supplies the initial bounds and value, and copies them on later entries.
 
 ### Operations on data
 
@@ -304,66 +313,81 @@ Now we specify the arithmetics for intermediate "nudge" `States` **INCREMENT** a
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
 	note left of ENABLED
 		+Init
-		#{min, max}<=$min, $max
+		#{min=0, max=100, value=0}
+	end note
+	note left of RESETTING
+		+ByPass
+		#{min, max, value} <= $min=0, $max=100, $min=0
 	end note
 	note right of SETTING
 		+ByPass
 	end note
 	note right of INCREMENT
 		+ByPass
-		#{value}<=min(#max,max(#min,add(#value,$by))
+		#{min, max}
+		#{value} <= min(#max, max(#min, add(#value, $by=1)))
 	end note
 	note right of DECREMENT
 		+ByPass
-		#{value}<=min(#max,max(#min,diff($by,#value))
+		#{min, max}
+		#{value} <= min(#max, max(#min, diff($by=1, #value)))
 	end note
 note right of [*]
 #{min, max, value}
 end note
 ```
 
-Note that we use built-in [Transformer Functions](./syntax/160_transformers.html) `min`,`max`,`add` and `diff` here in such a manner, that the resulting **value** always stays within **min** and **max** bounds.
+An omitted `$by` defaults to `1` in each reducer, while an explicit `0` leaves the value unchanged. We use built-in [Transformer Functions](./syntax/160_transformers.html) `min`,`max`,`add` and `diff` here in such a manner, that the resulting **value** always stays within **min** and **max** bounds.
 
-Finally, we write a simple assignment `Reducer` for **SETTING** intermediate `State`, that will copy **value** from `Paylod` to `Context`, and we are done:
+Finally, the **SETTING** reducer clamps the value from the payload and stores it in context.
 
 ```mermaid
 stateDiagram-v2
 	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
+	[*] --> RESETTING: RESET (min, max)
+	RESETTING --> ENABLED: [-]
 	ENABLED --> DISABLED: DISABLE
 	DISABLED --> ENABLED: ENABLE
 	ENABLED --> SETTING: SET (value)
 	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
+	ENABLED --> INCREMENT: INCREASE (by)
 	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
+	ENABLED --> DECREMENT: DECREASE (by)
 	DECREMENT --> ENABLED: [-]
 	note left of ENABLED
 		+Init
-		#{min, max} <= $min, $max
+		#{min=0, max=100, value=0}
+	end note
+	note left of RESETTING
+		+ByPass
+		#{min, max, value} <= $min=0, $max=100, $min=0
 	end note
 	note right of SETTING
 		+ByPass
+		#{min, max}
 		#{value} <= min(#max, max(#min, $value))
 	end note
 	note right of INCREMENT
 		+ByPass
-		#{value} <= min(#max, max(#min, add(#value, $by))
+		#{min, max}
+		#{value} <= min(#max, max(#min, add(#value, $by=1)))
 	end note
 	note right of DECREMENT
 		+ByPass
-		#{value} <= min(#max, max(#min, diff($by, #value))
+		#{min, max}
+		#{value} <= min(#max, max(#min, diff($by=1, #value)))
 	end note
 note right of [*]
 #{min, max, value}
