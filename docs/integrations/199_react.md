@@ -4,227 +4,133 @@ title: React
 
 # Integrating with React
 
-Since React team advocates consistently for functional style, we also aim to provide functional API with [Hooks](https://react.dev/reference/react/hooks). However, Yantrix still exports [objective API](../API/automata/interfaces/IAutomata.html), so it has to be tuned in a way.
+`@yantrix/react` provides `useFSM` and `useFSMWithSelector` for components that subscribe to a generated FSM instance.
 
 ## Setup
 
-Define a diagram, for instance, a simple traffic light scheme:
+In a React application, install the adapter and the runtime used by generated TypeScript machines. The adapter uses the application's existing React installation as a peer (`^18.3.1 || ^19.0.0`). Applications that use only `@yantrix/core` can omit React and the adapter.
+
+```shell
+npm install @yantrix/react @yantrix/core
+npm install --save-dev @yantrix/cli @yantrix/codegen @types/node
+```
+
+The generated TypeScript includes a timing helper that also runs on Node. Its `process` reference uses the Node type declarations during compilation.
+
+Save the traffic light diagram as `schemas/traffic-light.mermaid`:
 
 ```mermaid
 stateDiagram-v2
-	[*] --> Off: Reset (initialCounter=0)
-	Off --> Red: Switch
-	Red --> RedYellow: Switch
-	RedYellow --> Green: Switch
-	Green --> Yellow: Switch
-	Yellow --> Red: Switch
-	note left of Off
-		+Init
-	end note
-note right of [*]
-#{ counter = 0 } <= coalesce($initialCounter, inc(#counter))
-end note
+    [*] --> Off: Reset (initialCounter=0)
+    Off --> Red: Switch
+    Red --> RedYellow: Switch
+    RedYellow --> Green: Switch
+    Green --> Yellow: Switch
+    Yellow --> Red: Switch
+
+    note left of Off
+        +Init
+        #{ counter = 0 }
+    end note
+
+    note right of [*]
+        #{ counter } <= coalesce($initialCounter, inc(#counter))
+    end note
 ```
 
-build your `FSM`:
+Generate the TypeScript class from the project root:
 
 ```shell
-$ yantrix codegen ../schemas/traffic_light.mermaid --outfile ../generated/traffic_light.ts --language TypeScript --className TrafficLight
-```
-
-**(Optional):** Import the adapters and the generated `Automata` into your project
-
-```typescript
-// importing bridge toolset
-import * as Yantrix from '@yantrix/react';
-
-// import a generated automata
-import TrafficLight from '../generated/traffic-light.ts';
-
-// will export `className` passed to codegen in static variable:
-const fsmId = TrafficLight.id; // 'TrafficLight'
+npx yantrix codegen schemas/traffic-light.mermaid --outfile src/generated/traffic-light.ts --language TypeScript --className TrafficLight
 ```
 
 ## Hook
 
-To use imported `FSM` in React, there's a hook provided by integration bridge. The following example implements reading from `Context` property as well as dispatching `Actions` to the created FSM.
-The hook returns an object with key APIs and some helper functions to make usage of Yantrix with React smooth and easy
+Create a machine once for the lifetime of the component and pass the instance to `useFSM`. The hook subscribes to state and context changes. Action and state names match the case used in the diagram.
 
-```javascript
+```tsx
+import { useState } from 'react';
 import { useFSM } from '@yantrix/react';
-import TrafficLight from '../generated/traffic-light.ts';
+import TrafficLight from './generated/traffic-light.js';
 
-const ToggleComponent = () => {
-	// creates a singleton FSM
-	const { getContext, dispatch } = useFSM(TrafficLight);
+export function TrafficLightButton() {
+    const [machine] = useState(() => new TrafficLight());
+    const { dispatch, getContext, state } = useFSM<{ counter: number }>(machine);
+    const isRed = state === TrafficLight.getState('Red');
 
-	// Event handlers are redux-like and can be wrapped in React.useCallback
-	const clickHandler = () =>
-		dispatch({
-			action: TrafficLight.getAction('switch'),
-		});
-
-	// obtains a value from FSM Context
-	const { counter } = getContext().context;
-
-	// defines a mapping between FSM State and a CSS class property
-	const bgClasses = {
-		[TrafficLight.getState('Red')]: 'bg-red',
-		[TrafficLight.getState('RedYellow')]: 'bg-red bg-yellow',
-		[TrafficLight.getState('Yellow')]: 'bg-yellow',
-		[TrafficLight.getState('Green')]: 'bg-green',
-	};
-
-	const defaultClass = 'bg-white';
-
-	// Key-based dispatching is eloquent and extendable with no effort
-	const className = bgClasses[getContext().state] ?? defaultClass;
-
-	return (
-		<div class={className} onClick={clickHandler}>
-			{counter}
-		</div>
-	);
-};
+    return (
+        <button
+            className={isRed ? 'red' : 'other'}
+            onClick={() => dispatch(TrafficLight.createAction('Switch', {}))}
+        >
+            Switch ({getContext().context.counter})
+        </button>
+    );
+}
 ```
 
 ## Multiple instances
 
-Since an `IAutomata` created by a hook call is a singleton, every component will receive the same `Context` at the given moment of time. Thus, dispatching an `Action` will update all subscribed components. If you need a different behavior, i.e., create a separate instance of the generated `FSM` for a component, you can specify a unique handle for a created `FSM`. All hooks invoked with the same handle share a single instance of `FSM` requested. In the previous example the `id` property is inherited from class static property `id` (i.e., `TrafficLight.id === "TrafficLight"`)
+The generator sets `TrafficLight.id` to the class name plus a generation-time timestamp. All instances of that generated class share this value. Within a hook result, `id` exposes the same static class ID. When starting from an instance in TypeScript, `(machine.constructor as typeof TrafficLight).id` reads the static property.
 
-**WARNING:** note that you still don't need to instantiate an `FSM` and should pass a constructor as a property value
+Each `new TrafficLight()` gets its own `machine.correlationId`. To give the instance a readable name in the React registry, pass `{ name: 'north' }` to `useFSM`, or add `name` alongside `selector` in `useFSMWithSelector`. Without a name the registry uses `machine.correlationId`. The hook's `getInstanceAutomata().id` returns the effective registry key. Its top-level `id` still identifies the class.
+
+Pass the same machine to components that should observe the same light. They reuse its current registration until the last subscriber unmounts. If a different live machine requests an occupied name, the adapter warns and uses that machine's own `correlationId`. Use distinct names for independent lights.
 
 ```tsx
-const Toggler = ({ id: string }) => {
-	const { dispatch } = useFSM({
-		fsm: TrafficLight,
-		id
-	});
+import { useState } from 'react';
+import { useFSM, useFSMWithSelector } from '@yantrix/react';
+import TrafficLight from './generated/traffic-light.js';
 
-	const clickHandler = React.useCallback(
-		() =>
-			dispatch({
-				action: TrafficLight.getAction('switch')
-			}),
-		[dispatch]
-	);
+type LightProps = { machine: TrafficLight; name?: string };
 
-	return (
-		<div
-			class="toggle"
-			onClick={clickHandler}
-		>
-		</div>
-	);
-};
+function SwitchButton({ machine, name }: LightProps) {
+    const { dispatch, createAction } = useFSM(machine, { name });
+    return <button onClick={() => dispatch(createAction('Switch', {}))}>Switch</button>;
+}
 
-const Counter = ({ id: string }) => {
-	const { getContext } = useFSM({
-		fsm: TrafficLight,
-		id
-	});
+function Counter({ machine, name }: LightProps) {
+    const { selection } = useFSMWithSelector(machine, {
+        name,
+        selector: (light): number => light.getContext().context.counter,
+    });
+    return <output>{selection}</output>;
+}
 
-	const { counter } = getContext();
-
-	return <div class="counter">{counter}</div>;
-};
-
-// The parent component creates a unique ID that makes both children Components use the same FSM
-const TrafficLight = () => {
-	const [id, setId] = useState(Math.random().toFixed(6));
-	return (
-		<div class="trafficLight">
-			<Toggler id={id} />
-			<Counter id={id} />
-		</div>
-	);
-};
+export function TrafficLightPanel({ name }: { name?: string }) {
+    const [machine] = useState(() => new TrafficLight());
+    return (
+        <>
+            <SwitchButton machine={machine} name={name} />
+            <Counter machine={machine} name={name} />
+        </>
+    );
+}
 ```
+
+For example, `<TrafficLightPanel name="north" />` and `<TrafficLightPanel name="south" />` own independent lights. Inside either panel, pressing the button updates its sibling counter. `useFSMWithSelector` re-renders its subscriber when the selected value changes. For selectors returning objects, you can supply `isEqual(previous, next)` to reuse a logically equal selection.
 
 ## Dictionaries
 
-To avoid importing generated class into your modules for the sake of having access to `Action` and `State` dictionaries, you could rather import those helpers from the same hook:
-
-```tsx
-const Toggler = () => {
-	const FSM = useFSM(TrafficLight);
-
-	const { getState, StateDictionary } = FSM;
-	const { getAction, ActionDictionary } = FSM;
-
-	const state = FSM.getContext().state;
-
-	const className = [
-		StateDictionary.Red, // same as getState('Red')
-		getState('RedYellow'), // same as StateDictionary.RedYellow
-	].includes(getContext().state)
-		? 'red'
-		: '';
-	return (
-		<div
-			class={className}
-			onClick={() =>
-				dispatch({
-					action: getAction('switch'),
-				})}
-		>
-		</div>
-	);
-};
-```
+The hook exposes the generated class's `getState`, `getAction`, and `createAction` helpers. For example, `getState('Red')` returns the numeric state ID, and `createAction('Switch', {})` builds the action and payload accepted by `dispatch`.
 
 ## Debugging
 
-`trace` method returns the last dispatched `Payload` and the preceding `Context`, which is useful for debugging or even for building some kind of dev tools. The resulting `Context` is not returned by this function as it is always identical to `getContext()` return value at the moment of call.
+Call `trace()` on the same hook that dispatched the action to inspect its last payload and previous state/context. Use `getContext()` for the current state/context. Each call to `trace()` assigns the diagnostic record its own ID and timestamp.
 
 ```tsx
-const DebugBar = ({ id: string }) => {
-	const { trace } = useFSM({
-		fsm: TrafficLight,
-		id,
-	});
+import { useFSM } from '@yantrix/react';
+import TrafficLight from './generated/traffic-light.js';
 
-	const { lastPayload, previousContext } = trace();
+export function DebugSwitch({ machine }: { machine: TrafficLight }) {
+    const { dispatch, createAction, trace, getContext } = useFSM(machine);
 
-	// Warning: the shape of the Context may differ from getContext()
-	// since the FSM could have been in a different State
-	const previousState = previousContext.state;
+    function advance() {
+        dispatch(createAction('Switch', {}));
+        const { lastPayload, previousContext } = trace();
+        console.log(lastPayload, previousContext, getContext());
+    }
 
-	return (
-		<div class="debug">
-			<span>{JSON.stringify(lastPayload)}</span>
-			<hr />
-			<span>{JSON.stringify(previousContext)}</span>
-		</div>
-	);
-};
-
-const TrafficLight = () => {
-	const [id, setId] = useState(Math.random().toFixed(6));
-	return (
-		<>
-			<div class="trafficLight">
-				<Toggler id={id} />
-				<Counter id={id} />
-			</div>
-			<div class="debugContainer">
-				<DebugBar id={id} />
-			</div>
-		</>
-	);
-};
-```
-
-Each dispatched `Action` gets a unique transaction id and timestamp, so essentially `trace` is a one-entry log. It's probably easy enough to extend this instrument to a full debug log, however, we believe such a functionality is something that React-Yantrix integration bridge should not be responsible for. The transaction stores the call stack of the original `dispatch` call.
-
-```typescript
-type TTraceTransaction<StateType, ContextType, ActionType, PayloadType> = {
-	lastPayload: TAutomataActionPayload<ActionType, PayloadType>;
-	previousContext: TAutomataStateContext<StateType, ContextType>;
-	timestamp: Date; // in local timezone
-	id: string; // random uuid
-	stack: Error['stack'];
-};
-const transaction: TTraceTransaction = trace();
-logs.push(transaction);
+    return <button onClick={advance}>Switch and log</button>;
+}
 ```
