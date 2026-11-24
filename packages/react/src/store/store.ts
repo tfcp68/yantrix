@@ -10,19 +10,29 @@ import {
 	TUseFSMInput,
 } from '../types';
 
-export const automatasList: TAutomataList = {};
+export const automatasList: TAutomataList = Object.create(null);
 
-const stores: Record<string, IYantrixBoundStore> = {};
+// Subscriptions belong to the instance even if its public route changes.
+const instances = new Map<string, TAutomata>();
+const routes = new WeakMap<TAutomata, string>();
+const restoreDispatch = new WeakMap<TAutomata, () => void>();
+const stores = new Map<string, IYantrixBoundStore>();
+
+export function getRoute(inst: TAutomata, name?: string): string {
+	const registered = routes.get(inst);
+	if (registered !== undefined) return registered;
+	if (!name || automatasList[name] || instances.has(name)) return inst.correlationId;
+	return name;
+}
+
+function warnDuplicate(name: string, fallback: string) {
+	console.warn(`Yantrix React: route "${name}" is already in use. Using correlationId "${fallback}".`);
+}
 
 /** Lazily creates and caches a bound store for the given FSM id. */
 function ensureStore(id: string): IYantrixBoundStore {
-	let store = stores[id];
+	let store = stores.get(id);
 	if (!store) {
-		// Cache last known instance so getSnapshot survives the window between
-		// destroyFSM (which clears automatasList) and the next render that
-		// re-registers the instance (e.g. React StrictMode cleanup/remount).
-		let lastInst: TAutomata | null = null;
-
 		const self: IYantrixBoundStore = {
 			callbacksIdCounter: 0,
 			callbacks: new Map<number, TListenerCallback>(),
@@ -36,12 +46,8 @@ function ensureStore(id: string): IYantrixBoundStore {
 			},
 
 			getSnapshot() {
-				const inst = automatasList[id];
-				if (inst) {
-					lastInst = inst;
-					return inst;
-				}
-				if (lastInst) return lastInst;
+				const inst = instances.get(id);
+				if (inst) return inst;
 				throw new Error(`FSM '${id}' not initialized`);
 			},
 
@@ -50,7 +56,7 @@ function ensureStore(id: string): IYantrixBoundStore {
 			},
 		};
 
-		stores[id] = self;
+		stores.set(id, self);
 		store = self;
 	}
 	return store;
@@ -61,34 +67,57 @@ function ensureStore(id: string): IYantrixBoundStore {
  * Patches `instance.dispatch` to notify React subscribers on state/context change.
  */
 export const fsm_context: IContextFSM = {
-	initializeFSM: (inst: TUseFSMInput) => {
-		const id = inst.correlationId;
-		if (!automatasList[id]) {
-			automatasList[id] = inst;
-
-			const original = inst.dispatch.bind(inst);
-			inst.dispatch = (action) => {
-				const { state: prevState, context: prevCtx } = inst.getContext();
-				const result = original(action);
-				if (result.state !== prevState || !deepEqual(prevCtx, result.context)) {
-					ensureStore(id).changeState();
-				}
-				return result;
-			};
+	initializeFSM: (inst: TUseFSMInput, name?: string) => {
+		const registered = routes.get(inst);
+		if (registered !== undefined) return registered;
+		const { correlationId } = inst;
+		const occupant = automatasList[correlationId];
+		if (occupant && occupant !== inst) {
+			// An explicit alias cannot hide a new machine's intrinsic route.
+			warnDuplicate(correlationId, occupant.correlationId);
+			delete automatasList[correlationId];
+			routes.set(occupant, occupant.correlationId);
+			automatasList[occupant.correlationId] = occupant;
+			ensureStore(occupant.correlationId).changeState();
 		}
-		ensureStore(id);
+
+		const id = getRoute(inst, name);
+		if (name && id !== name) warnDuplicate(name, id);
+		instances.set(correlationId, inst);
+		routes.set(inst, id);
+		automatasList[id] = inst;
+
+		const store = ensureStore(correlationId);
+		const original = inst.dispatch;
+		const dispatch: typeof original = (action) => {
+			const before = inst.getContext();
+			const after = original.call(inst, action);
+			if (after.state !== before.state || !deepEqual(before.context, after.context)) store.changeState();
+			return after;
+		};
+		inst.dispatch = dispatch;
+		restoreDispatch.set(inst, () => {
+			if (inst.dispatch === dispatch) inst.dispatch = original;
+		});
 		return id;
 	},
 
 	getStore: (id: string) => ensureStore(id),
 
 	destroyFSM: (id: string): void => {
-		delete automatasList[id];
+		const inst = instances.get(id);
+		if (!inst) return;
+		delete automatasList[routes.get(inst)!];
+		routes.delete(inst);
+		instances.delete(id);
+		stores.delete(id);
+		restoreDispatch.get(inst)?.();
+		restoreDispatch.delete(inst);
 	},
 };
 
 export function getSnapshotWithSelector<Selection, Statics>(
-	store: IYantrixBoundStore,
+	store: Pick<IYantrixBoundStore, 'getSnapshot'>,
 	staticsRef: TRef<Statics>,
 	selector: (inst: TAutomata, statics: Statics) => Selection,
 	versionRef: TRef<number>,

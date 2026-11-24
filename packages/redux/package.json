@@ -1,7 +1,7 @@
 {
 	"name": "@yantrix/redux",
 	"type": "module",
-	"version": "0.5.4",
+	"version": "0.5.5",
 	"description": "Redux integration for Yantrix framework",
 	"author": "Alexander Uskov <neolord.tmb@gmail.com>",
 	"license": "MIT",
@@ -34,7 +34,7 @@
 		"format": "eslint --fix .",
 		"lint": "eslint .",
 		"test": "pnpm run generate_test_fixtures && vitest run --outputFile=../../test_reports/redux.md",
-		"generate_test_fixtures": "bash __tests__/generate_test_fixtures.sh"
+		"generate_test_fixtures": "node __tests__/generate_test_fixtures.mjs"
 	},
 	"directories": {
 		"lib": "src",
@@ -49,8 +49,8 @@
 	},
 	"devDependencies": {
 		"@reduxjs/toolkit": "^2.2.7",
-		"@yantrix/cli": "workspace:^",
 		"@yantrix/codegen": "workspace:^",
-		"@yantrix/core": "workspace:^"
+		"@yantrix/core": "workspace:^",
+		"@yantrix/mermaid-parser": "workspace:^"
 	}
 }

@@ -128,6 +128,14 @@ export class CoreLoop<
 		// Subscribe to the Event Bus for events observed by the adapter
 		const observed = bridge.getObservedEvents();
 		const unsubs: TUnsub[] = [];
+		let currentBatch: TAutomataEventStack<EventType, EventMetaType> | null = null;
+		const unsubscribeEmissions = machine.onEmittedEvents?.((events) => {
+			// A dispatch handled by this loop returns its events to the bus with the other subscribers' results.
+			// A direct dispatch or a resumed action has no active bus task.
+			if (currentBatch) currentBatch.push(...events);
+			else this.bus.dispatch(...events);
+		});
+		if (unsubscribeEmissions) unsubs.push(unsubscribeEmissions);
 
 		for (const evt of observed) {
 			const handler = ({ event, meta }: TAutomataEventMetaType<EventType, EventMetaType>) => {
@@ -137,12 +145,18 @@ export class CoreLoop<
 				const actions = bridge.handleEvent({ event, meta });
 
 				// 2) Actions -> FSM -> Transition -> Emitted Events
-				for (const a of actions) {
-					machine.dispatch(a);
-					const emitted = bridge.handleTransition(machine.getContext()) ?? [];
-					if (emitted?.length) {
-						nextEventsToProcess.push(...emitted);
+				const previousBatch = currentBatch;
+				currentBatch = nextEventsToProcess;
+				try {
+					for (const a of actions) {
+						machine.dispatch(a);
+						// Older IAutomata implementations delegate transition mapping to the loop.
+						if (!unsubscribeEmissions && machine.isEnabled() && !machine.isPaused()) {
+							nextEventsToProcess.push(...(bridge.handleTransition(machine.getContext()) ?? []));
+						}
 					}
+				} finally {
+					currentBatch = previousBatch;
 				}
 
 				return {
