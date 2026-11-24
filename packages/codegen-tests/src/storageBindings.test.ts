@@ -119,4 +119,15 @@ describe('programmatic storage bindings', () => {
 			bindings: [{ ...binding, mapper: { module: '../preferences.js', exportName: 'invalid.name' } }],
 		})).toThrow(/mapper/i);
 	});
+
+	it.each([ModuleNames.Java, ModuleNames.PureJavaScript, ModuleNames.PureTypeScript])(
+		'rejects the unsupported %s dialect passed by a JavaScript caller',
+		(outLang) => {
+			expect(() => generateStorageBindings({
+				// @ts-expect-error Java and the standalone FSM dialects are outside the public storage API.
+				outLang,
+				bindings: [],
+			})).toThrow(`Unsupported storage bindings language: ${outLang}`);
+		},
+	);
 });

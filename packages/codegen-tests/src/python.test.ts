@@ -1,8 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ModuleNames } from '@yantrix/codegen';
+import { generateStorageBindings, ModuleNames } from '@yantrix/codegen';
 import { describe, expect, it } from 'vitest';
 import { generateAndSave, generateAutomata } from './fixtures/utils.js';
 
@@ -41,6 +42,60 @@ function isPythonAvailable(): string | null {
 
 const pythonCmd = isPythonAvailable();
 const describeExec = pythonCmd ? describe : describe.skip;
+
+function pythonStorageBinding(module: string) {
+	return {
+		name: 'user-preferences',
+		connector: { module, exportName: 'connect' },
+		mapper: { module: '.preferences', exportName: 'preferences_mapper' },
+	};
+}
+
+describeExec('python storage bindings', () => {
+	it.each(['memory', 'sqlite'])('round-trips the projection through the selected %s connector', (backend) => {
+		const output = generateStorageBindings({
+			outLang: ModuleNames.Python,
+			bindings: [pythonStorageBinding(`.${backend}_connector`)],
+		});
+		const other = backend === 'memory' ? 'sqlite' : 'memory';
+		expect(output).not.toContain(`${other}_connector`);
+
+		const directory = fs.mkdtempSync(path.join(tmpdir(), 'yantrix-storage-'));
+		try {
+			const pkg = path.join(directory, 'storage_example');
+			fs.mkdirSync(pkg);
+			// Only the selected connector is installed in the consuming Python package.
+			for (const file of ['preferences.py', 'round_trip.py', `${backend}_connector.py`]) {
+				fs.copyFileSync(path.join(dirname, 'fixtures/storage/python', file), path.join(pkg, file));
+			}
+			fs.writeFileSync(path.join(pkg, 'bindings.py'), output);
+			execFileSync(pythonCmd!, ['-B', '-m', 'storage_example.round_trip', backend], { cwd: directory, timeout: 10000 });
+		} finally {
+			fs.rmSync(directory, { recursive: true, force: true });
+		}
+	});
+
+	it('can create an empty binding list without imports or arguments', () => {
+		const output = generateStorageBindings({ outLang: ModuleNames.Python, bindings: [] });
+		expect(output).not.toMatch(/\bimport\b/);
+		execFileSync(pythonCmd!, ['-c', `${output}\nassert create_storage_bindings() == []`], { timeout: 10000 });
+	});
+});
+
+describe('python storage module references', () => {
+	it.each(['.drivers..sqlite', './memory.py', 'pkg.class', 'pkg\nimport sys'])('rejects invalid module %j', (module) => {
+		expect(() => generateStorageBindings({
+			outLang: ModuleNames.Python,
+			bindings: [pythonStorageBinding(module)],
+		})).toThrow(/connector/i);
+	});
+
+	it('rejects Python keywords as imported exports', () => {
+		const binding = pythonStorageBinding('drivers.memory');
+		binding.mapper.exportName = 'class';
+		expect(() => generateStorageBindings({ outLang: ModuleNames.Python, bindings: [binding] })).toThrow(/mapper/i);
+	});
+});
 
 describe('python codegen - structural validation', async () => {
 	const code = await generateAutomata({
