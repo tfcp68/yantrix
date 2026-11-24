@@ -73,37 +73,42 @@ export function TrafficLightButton() {
 
 The generator sets `TrafficLight.id` to the class name plus a generation-time timestamp. All instances of that generated class share this value. Within a hook result, `id` exposes the same static class ID. When starting from an instance in TypeScript, `(machine.constructor as typeof TrafficLight).id` reads the static property.
 
-Each `new TrafficLight()` gets its own `machine.correlationId`. The React adapter uses this key for its subscriptions, and `getInstanceAutomata().id` returns it. Pass the same machine to components that should observe the same traffic light. Create another instance for an independent light.
+Each `new TrafficLight()` gets its own `machine.correlationId`. To give the instance a readable name in the React registry, pass `{ name: 'north' }` to `useFSM`, or add `name` alongside `selector` in `useFSMWithSelector`. Without a name the registry uses `machine.correlationId`. The hook's `getInstanceAutomata().id` returns the effective registry key. Its top-level `id` still identifies the class.
+
+Pass the same machine to components that should observe the same light. They reuse its current registration until the last subscriber unmounts. If a different live machine requests an occupied name, the adapter warns and uses that machine's own `correlationId`. Use distinct names for independent lights.
 
 ```tsx
 import { useState } from 'react';
 import { useFSM, useFSMWithSelector } from '@yantrix/react';
 import TrafficLight from './generated/traffic-light.js';
 
-function SwitchButton({ machine }: { machine: TrafficLight }) {
-    const { dispatch, createAction } = useFSM(machine);
+type LightProps = { machine: TrafficLight; name?: string };
+
+function SwitchButton({ machine, name }: LightProps) {
+    const { dispatch, createAction } = useFSM(machine, { name });
     return <button onClick={() => dispatch(createAction('Switch', {}))}>Switch</button>;
 }
 
-function Counter({ machine }: { machine: TrafficLight }) {
+function Counter({ machine, name }: LightProps) {
     const { selection } = useFSMWithSelector(machine, {
+        name,
         selector: (light): number => light.getContext().context.counter,
     });
     return <output>{selection}</output>;
 }
 
-export function TrafficLightPanel() {
+export function TrafficLightPanel({ name }: { name?: string }) {
     const [machine] = useState(() => new TrafficLight());
     return (
         <>
-            <SwitchButton machine={machine} />
-            <Counter machine={machine} />
+            <SwitchButton machine={machine} name={name} />
+            <Counter machine={machine} name={name} />
         </>
     );
 }
 ```
 
-Each mounted panel owns an independent light. Inside a panel, pressing the button updates the counter in its sibling. `useFSMWithSelector` re-renders its subscriber when the selected value changes. For selectors returning objects, you can supply `isEqual(previous, next)` to reuse a logically equal selection.
+For example, `<TrafficLightPanel name="north" />` and `<TrafficLightPanel name="south" />` own independent lights. Inside either panel, pressing the button updates its sibling counter. `useFSMWithSelector` re-renders its subscriber when the selected value changes. For selectors returning objects, you can supply `isEqual(previous, next)` to reuse a logically equal selection.
 
 ## Dictionaries
 

@@ -12,10 +12,10 @@ that runtime can omit the Redux adapter, Redux Toolkit, and React.
 npm install @yantrix/core @yantrix/redux @reduxjs/toolkit@^2.2.7
 ```
 
-If you generate TypeScript from diagrams in this project, install the generation tools as development dependencies.
+If you generate TypeScript from diagrams in this project, install the generation tools as development dependencies. The generated timing helper uses Node type declarations when compiling its `process` check.
 
 ```shell
-npm install --save-dev @yantrix/cli @yantrix/codegen
+npm install --save-dev @yantrix/cli @yantrix/codegen @types/node
 ```
 
 ## Setup
@@ -46,10 +46,9 @@ npx yantrix codegen schemas/traffic-light.mermaid --outfile generated/traffic-li
 
 ## RTK Slice
 
-`createFSMSlice` accepts an options object. Pass the generated **constructor** as `Fsm` and choose
-the slice `name`. Each call creates a machine instance. Redux Toolkit uses the name to prefix the
-slice's action types. The key supplied to `configureStore` determines where the reducer's state
-lives in the store.
+`createFSMSlice` accepts the generated **constructor** as `Fsm`. Each call creates a machine
+instance. Supply a `name` to use as its Redux action prefix, or omit it to use that instance's
+`correlationId`. The key supplied to `configureStore` determines where the reducer's state lives.
 
 ```mermaid
 sequenceDiagram
@@ -69,17 +68,20 @@ import { configureStore } from '@reduxjs/toolkit';
 import { createFSMSlice } from '@yantrix/redux';
 import TrafficLight from './generated/traffic-light.js';
 
-const signals = createFSMSlice<keyof typeof TrafficLight.actions, object>({
+const signals = createFSMSlice<keyof typeof TrafficLight.actions, { count: number }>({
     Fsm: TrafficLight,
     name: 'intersection',
     reducerPath: 'signals',
+    contextToRedux: ({ context }) => ({ count: context.counter ?? 0 }),
 });
 const store = configureStore({ reducer: { signals: signals.reducer } });
 
+console.log(store.getState().signals.context.count); // 0
 const switchLight = signals.actions.Switch({});
 console.log(switchLight.type); // 'intersection/Switch'
 store.dispatch(switchLight);
 console.log(store.getState().signals.state === TrafficLight.getState('Red')); // true
+console.log(store.getState().signals.context.count); // 1
 ```
 
 ### State
@@ -87,6 +89,12 @@ console.log(store.getState().signals.state === TrafficLight.getState('Red')); //
 `reducerPath` tells the slice's generated selectors where to look in the root state. The example
 mounts the reducer under the same key, `signals`. It can have a different name from the action
 prefix, `intersection`.
+
+The slice stores `{ state, context }` from initialization onward. By default, `context` contains
+the machine's current context. When you supply `contextToRedux`, its return value
+becomes the slice's `context`. The mapper receives the current numeric machine state and its
+context together, both on initialization and after handled actions. The example projects
+the machine's `counter` field to `count`.
 
 ### Actions
 
@@ -99,12 +107,14 @@ The action type combines the slice name and the diagram's case-sensitive action 
 | --- | --- | --- |
 | `TrafficLight.id` | The generated class. Instances of this generation share the value. Regenerating code can change its timestamp suffix. | `TrafficLight_<generation timestamp>` |
 | `new TrafficLight().correlationId` | One machine instance. Constructing a second traffic light gives it a separate key. | Used by the [React integration](199_react.html) to locate the instance. |
-| `signals.name` | The application-chosen Redux action prefix. | `intersection` produces `intersection/Switch` and `intersection/Reset`. |
+| `signals.name` | The Redux action prefix, defaulting to the slice machine's `correlationId`. | An explicit `intersection` produces `intersection/Switch` and `intersection/Reset`. |
 
 For `const light = new TrafficLight()`, `light.constructor === TrafficLight`. Read the class
 identifier as `TrafficLight.id` and the instance key as `light.correlationId`. You can pass
 `TrafficLight.id` as the slice `name` explicitly. Choose a stable application name when Redux
 actions are persisted, or distinct names when two independently routed slices use the same class.
+If two different machines share an explicit slice name in the same store, Yantrix warns and
+both reducers still handle actions with that prefix. Separate stores may reuse the same name.
 
 ## Middleware
 
@@ -113,8 +123,11 @@ constructor, an input mapper that selects the actions the machine should receive
 mapper that converts the machine's resulting state and context into a Redux action. Returning
 `null` from the input mapper lets an unrelated action continue through Redux.
 
-This example is an alternative to the slice above. Dispatching `advance()` moves the traffic
-light to Red. The Redux reducer records the resulting numeric state.
+This middleware replaces a matched command with the action returned by the output mapper.
+For example, a reducer can define cases for both `signals/advance` and `signals/observed`.
+After `dispatch(advance())`, only its `observed` case runs, because that is the action the
+middleware forwards. Returning `null` from the output mapper sends no action to downstream
+reducers for that command. An unrelated input still reaches reducers unchanged.
 
 ```typescript
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
@@ -129,8 +142,11 @@ const lightMiddleware = createMiddleware(
     action => advance.match(action) ? TrafficLight.createAction('Switch', {}) : null,
     snapshot => observed(snapshot.state),
 );
-const initialState: { color: number | null } = { color: null };
+const initialState: { presses: number; color: number | null } = { presses: 0, color: null };
 const reducer = createReducer(initialState, builder => {
+    builder.addCase(advance, state => {
+        state.presses++;
+    });
     builder.addCase(observed, (state, action) => {
         state.color = action.payload;
     });
@@ -141,6 +157,7 @@ const store = configureStore({
 });
 
 store.dispatch(advance());
+console.log(store.getState().presses); // 0
 console.log(store.getState().color === TrafficLight.getState('Red')); // true
 ```
 
