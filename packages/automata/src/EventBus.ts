@@ -5,6 +5,10 @@ import { IAutomataEventBus } from './types/interfaces.js';
 
 export const STACK_RECURSION_LIMIT_RATIO = 2;
 export const STACK_PROCESSING_BATCH_SIZE = 32;
+
+/** Order in which the `Event Bus` takes its next `Event` from the pending queue. */
+export type TEventBusOrder = 'fifo' | 'lifo';
+
 export function createEventBus<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
@@ -15,12 +19,17 @@ export function createEventBus<
 			implements IAutomataEventBus<EventType, EventMetaType> {
 			#isProcessing: boolean;
 			#isPaused: boolean;
+			readonly #order: TEventBusOrder;
 			#eventStack: TAutomataEventStack<EventType, EventMetaType>;
 			#eventSubscriptions: Map<EventType, Set<TEventBusHandler<EventType, EventMetaType>>>;
-			#idleWaiters: Set<() => void>;
+			#idleWaiters: Set<{ resolve: () => void; reject: (reason: unknown) => void }>;
+			#failure?: { reason: unknown };
+			readonly #recursiveGrowthBudget = new Map<EventType, number>();
 
-			constructor() {
+			constructor(order: TEventBusOrder = 'fifo') {
 				super();
+				if (order !== 'fifo' && order !== 'lifo') throw new TypeError('Event bus order must be fifo or lifo');
+				this.#order = order;
 				this.#eventStack = [];
 				this.#eventSubscriptions = new Map();
 				this.#idleWaiters = new Set();
@@ -77,6 +86,7 @@ export function createEventBus<
 			 * @returns This event bus instance
 			 */
 			public dispatch(...events: TAutomataEventStack<EventType, EventMetaType>): this {
+				if (events.length && !this.#isProcessing && !this.#eventStack.length) this.#failure = undefined;
 				this.#eventStack.push(...events);
 				this._processEvents();
 				return this;
@@ -94,7 +104,7 @@ export function createEventBus<
 			/** *****  12c97ac8-1158-4225-8ad9-1724f95adea2  */
 			public clearEventStack(): this {
 				this.#eventStack = [];
-				this.#resolveIdleWaiters();
+				this.#settleIdleWaiters();
 				return this;
 			}
 
@@ -113,36 +123,59 @@ export function createEventBus<
 				return !this.#isPaused;
 			}
 
+			/** Reports the first failure in the current drain, including to observers arriving after it ended. */
 			public whenIdle(): Promise<void> {
 				if (!this.#isProcessing && this.#eventStack.length === 0) {
-					return Promise.resolve();
+					return this.#failure ? Promise.reject(this.#failure.reason) : Promise.resolve();
 				}
 
-				return new Promise((resolve) => {
-					this.#idleWaiters.add(resolve);
+				return new Promise((resolve, reject) => {
+					this.#idleWaiters.add({ resolve, reject });
 				});
 			}
 
-			#resolveIdleWaiters(): void {
+			#settleIdleWaiters(): void {
 				if (this.#isProcessing || this.#eventStack.length > 0) return;
 				const waiters = [...this.#idleWaiters];
 				this.#idleWaiters.clear();
-				for (const resolve of waiters) resolve();
+				for (const waiter of waiters) {
+					if (this.#failure) waiter.reject(this.#failure.reason);
+					else waiter.resolve();
+				}
 			}
 
-			/**
-			 * Processes events in the event stack and handles them using subscribed callbacks.
-			 *
-			 * This method iterates over the event stack, invoking the corresponding callbacks for each valid event,
-			 * and processes a batch of events limited by `STACK_PROCESSING_BATCH_SIZE`. It checks for recursive event
-			 * emissions and ensures that the recursion limit does not exceed the defined
-			 * `STACK_RECURSION_LIMIT_RATIO` relative to the current stack length.
-			 *
-			 * @returns {TAutomataEventStack<EventType, EventMetaType>} new events acquired from processing the queue.
-			 *
-			 * @throws {Error} If the recursion limit, calculated as a ratio of the stack length, is exceeded for any event.
-			 *
-			 */
+			#finishBatch(failure?: { reason: unknown }): void {
+				this.#failure ??= failure;
+				this.#isProcessing = false;
+				if (!this.#eventStack.length) {
+					this.#recursiveGrowthBudget.clear();
+					this.#settleIdleWaiters();
+				} else if (!this.#isPaused) {
+					queueMicrotask(() => {
+						try {
+							this._processEvents();
+						} catch {
+							// Scheduled batches have no synchronous caller. whenIdle reports the failure.
+						}
+					});
+				}
+			}
+
+			#checkRecursiveGrowth(selfGrowth: Map<EventType, number>, pending: number): void {
+				for (const [source, growth] of selfGrowth) {
+					const budget = this.#recursiveGrowthBudget.get(source);
+					if (growth <= 0) {
+						this.#recursiveGrowthBudget.delete(source);
+					} else if (budget === undefined) {
+						const baseline = Math.max(STACK_PROCESSING_BATCH_SIZE, pending);
+						this.#recursiveGrowthBudget.set(source, baseline * STACK_RECURSION_LIMIT_RATIO);
+					} else if (growth > budget) {
+						throw new Error(`Stack is growing too fast: event ${source} repeatedly emits itself`);
+					} else {
+						this.#recursiveGrowthBudget.set(source, budget - growth);
+					}
+				}
+			}
 
 			public [Symbol.dispose](): void {
 				this.pause();
@@ -150,68 +183,88 @@ export function createEventBus<
 				this.#eventSubscriptions.clear();
 			}
 
+			/**
+			 * Processes `Events` in the `Event Stack` and handles them using subscribed callbacks.
+			 *
+			 * This method iterates over the `Event Stack`, invoking the corresponding callbacks for each valid `Event`,
+			 * and processes a batch of `Events` limited by `STACK_PROCESSING_BATCH_SIZE`. When tasks repeatedly
+			 * return more copies of their own `Event` ID than the batch consumed, limit their cumulative growth
+			 * relative to the queue size after the first expanding batch. An isolated fan-out is allowed.
+			 *
+			 * @returns {TAutomataEventStack<EventType, EventMetaType>} new `Events` acquired from processing the queue.
+			 *
+			 * @throws {Error} If the recursion limit, calculated as a ratio of the stack length, is exceeded for any `Event`.
+			 *
+			 */
 			_processEvents(): Promise<TAutomataEventStack<EventType, EventMetaType>> {
 				if (this.#isProcessing || this.#isPaused) {
 					return Promise.resolve([]);
 				}
-				const promiseStack: Array<Promise<TAutomataEventStack<EventType, EventMetaType>>> = [];
+				const tasks: Array<{
+					source: EventType;
+					result: Promise<TAutomataEventStack<EventType, EventMetaType>>;
+				}> = [];
+				const selfGrowth = new Map<EventType, number>();
 				let counter = 0;
 				this.#isProcessing = true;
-				while (
-					this.#eventStack.length > 0
-					&& counter++ < STACK_PROCESSING_BATCH_SIZE
-				) {
-					const eventObject = this.#eventStack.shift();
-					if (!eventObject)
-						continue;
-
-					if (!this.validateEventMeta(eventObject)) throw new TypeError('Invalid Event in the queue');
-
-					const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
-
-					if (!eventCallbacks?.size) continue;
-
-					eventCallbacks.forEach((callback) => {
-						const eventResult = callback(eventObject);
-
-						if (!eventResult?.result) return;
-
-						promiseStack.push(eventResult.result);
-					});
-					if (
-						promiseStack.length > STACK_RECURSION_LIMIT_RATIO * this.#eventStack.length
-						&& (this.#eventStack.length > 1)
+				try {
+					while (
+						this.#eventStack.length > 0
+						&& counter++ < STACK_PROCESSING_BATCH_SIZE
 					) {
-						throw new Error(
-							`Stack is growing too fast: ${eventObject}`,
-						);
+						const eventObject = this.#order === 'fifo' ? this.#eventStack.shift() : this.#eventStack.pop();
+						if (!eventObject)
+							continue;
+
+						if (!this.validateEventMeta(eventObject)) throw new TypeError('Invalid Event in the queue');
+
+						const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
+
+						if (!eventCallbacks?.size) continue;
+
+						selfGrowth.set(eventObject.event, (selfGrowth.get(eventObject.event) ?? 0) - 1);
+						eventCallbacks.forEach((callback) => {
+							const eventResult = callback(eventObject);
+
+							if (!eventResult?.result) return;
+
+							tasks.push({ source: eventObject.event, result: eventResult.result });
+						});
 					}
+				} catch (reason) {
+					if (tasks.length) {
+						// Tasks started before the throw still belong to this batch.
+						void Promise.allSettled(tasks.map(task => task.result))
+							.then(() => this.#finishBatch({ reason }));
+					} else {
+						this.#finishBatch({ reason });
+					}
+					throw reason;
 				}
 
-				if (!promiseStack.length) {
-					this.#isProcessing = false;
-					if (this.#eventStack.length > 0) {
-						queueMicrotask(() => this._processEvents());
-					} else {
-						this.#resolveIdleWaiters();
-					}
+				if (!tasks.length) {
+					this.#finishBatch();
 					return Promise.resolve([]);
 				}
 
-				const returnValue = Promise.all(promiseStack).then(events => events.flat());
-
-				returnValue.then((events) => {
-					if (events.some(event => !this.validateEventMeta(event)))
-						throw new TypeError('Invalid event received from promise');
-
+				const returnValue = Promise.allSettled(tasks.map(task => task.result)).then((results) => {
+					const events = results.flatMap((result, index) => {
+						if (result.status === 'rejected') throw result.reason;
+						const source = tasks[index]!.source;
+						for (const event of result.value) {
+							if (!this.validateEventMeta(event)) throw new TypeError('Invalid event received from promise');
+							if (event.event === source) selfGrowth.set(source, selfGrowth.get(source)! + 1);
+						}
+						return result.value;
+					});
+					this.#checkRecursiveGrowth(selfGrowth, this.#eventStack.length + events.length);
 					this.#eventStack.push(...events);
-					this.#isProcessing = false;
-
-					if (this.#eventStack.length)
-						this._processEvents();
-					else
-						this.#resolveIdleWaiters();
+					return events;
 				});
+				void returnValue.then(
+					() => this.#finishBatch(),
+					reason => this.#finishBatch({ reason }),
+				);
 
 				return returnValue;
 			}
@@ -224,8 +277,8 @@ export function createEventBus<
 export class BasicEventBus
 	extends createEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>>()(AbstractBaseClass)
 	implements IAutomataEventBus<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>> {
-	constructor() {
-		super();
+	constructor(order: TEventBusOrder = 'fifo') {
+		super(order);
 	}
 }
 

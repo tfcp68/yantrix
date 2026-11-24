@@ -15,23 +15,22 @@ React integration for the [Yantrix](https://github.com/tfcp68/yantrix/) framewor
 
 ## 📖 Usage
 
-Install the primary package using your prefered package manager. All the secondary dependencies will be installed automatically. However, you will need `@yantrix/automata` at least for types. Most likely, you will also need `@yantrix/cli` to build diagrams into code.
+`@yantrix/react` is an optional integration. Only applications using this adapter need its React (`^18.3.1 || ^19.0.0`) peer dependency. Applications running generated TypeScript machines with `@yantrix/core` alone can omit both adapters and their peers.
 
-```bash
-# Via NPM
-$ npm install @yantrix/react @yantrix/automata @yantrix/cli
+For a new React 19 project, install the following packages. An existing React 18.3.1 project can keep its current React version.
 
-# Via Yarn
-$ yarn add @yantrix/react @yantrix/automata @yantrix/cli
+```sh
+# npm
+npm install @yantrix/core @yantrix/react react@19
 
-# Via PNPM
-$ pnpm install @yantrix/react @yantrix/automata @yantrix/cli
+# pnpm
+pnpm add @yantrix/core @yantrix/react react@19
 
-# ✨ Auto-detection
-$ npx nypm install @yantrix/react @yantrix/automata @yantrix/cli
+# Yarn
+yarn add @yantrix/core @yantrix/react react@19
 ```
 
-> We suggest using `pnpm`
+If your project generates machines from Mermaid diagrams, add `@yantrix/cli` as a development dependency.
 
 Then, see the docs:
 

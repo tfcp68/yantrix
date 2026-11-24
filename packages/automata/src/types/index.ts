@@ -157,7 +157,10 @@ export type TAutomataReducer<
 	NewStateType extends StateType = StateType,
 > = (
 	params: TAutomataEvent<StateType, ActionType, ContextType, PayloadType>,
-) => TAutomataStateContext<NewStateType, ContextType>;
+) => TAutomataStateContext<NewStateType, ContextType> & {
+	/** Set to false when the action does not match a transition, including a failed guard. */
+	transitioned?: boolean;
+};
 
 /**
  * Represents a dispatch function for an automata,
@@ -262,10 +265,10 @@ export type TAutomataEffect<
 ) => ModelType;
 
 /**
- * Maps each event to the ordered Effects it triggers.
+ * Maps each `Event` to the ordered `Effects` it triggers.
  *
- * A matrix usually belongs to a Slice. Multiple matrices can be registered in
- * an Effect Scheduler and are evaluated in registration order.
+ * An `Effect Matrix` usually belongs to a `Slice`. Multiple `Effect Matrices` can be registered in
+ * an `Effect Scheduler` and are evaluated in registration order.
  */
 export type TEffectMatrix<
 	ModelType extends object,
@@ -275,13 +278,13 @@ export type TEffectMatrix<
 	readonly [Event in EventType]?: ReadonlyArray<TAutomataEffect<ModelType, Event, EventMetaType>>;
 };
 
-/** Listener notified after the Data Model snapshot has changed. */
+/** Listener notified after the `Data Model` snapshot has changed. */
 export type TModelListener<ModelType extends object> = (
 	model: ModelType,
 	previousModel: ModelType,
 ) => void;
 
-/** Summary of one Effect Scheduler batch. */
+/** Summary of one `Effect Scheduler` batch. */
 export type TEffectFlushResult<ModelType extends object> = {
 	model: ModelType;
 	previousModel: ModelType;

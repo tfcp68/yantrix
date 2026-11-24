@@ -8,10 +8,10 @@ function assertModel(model: unknown): asserts model is object {
 }
 
 /**
- * In-memory store for the application-global Data Model.
+ * In-memory store for the application-global `Data Model`.
  *
  * The store deliberately remains anemic: it owns a snapshot and subscriptions,
- * while all business changes are calculated by pure Effects. A commit is based
+ * while all business changes are calculated by pure `Effects`. A commit is based
  * on reference identity, matching Yantrix's immutable data flow.
  */
 export class ModelStore<ModelType extends object> implements IDataModelStore<ModelType> {
@@ -23,7 +23,7 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		this.#model = initialModel;
 	}
 
-	/** Returns the current model snapshot. */
+	/** Returns the current `Data Model` snapshot. */
 	public get(): ModelType {
 		return this.#model;
 	}
@@ -46,7 +46,7 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		}
 	}
 
-	/** Subscribes to committed model changes. */
+	/** Subscribes to committed `Data Model` changes. */
 	public subscribe(listener: TModelListener<ModelType>): TSubscriptionCancelFunction {
 		if (typeof listener !== 'function') {
 			throw new TypeError('Data Model listener must be a function');

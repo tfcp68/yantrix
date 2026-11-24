@@ -33,11 +33,12 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
-### Data Model and Effects
+### `Data Model` and `Effects`
 
-`ModelStore` owns the current application snapshot. `EffectScheduler` collects
-Events during a Main Loop iteration and applies all matching Effects with at
-most one model commit when the iteration is flushed:
+`ModelStore` owns the current `Data Model` snapshot. `EffectScheduler` collects
+`Events` across an entire `Event Bus` cascade, including follow-up `Events`. When the
+`Event Bus` becomes idle, `CoreLoop` flushes the batch and commits one `Data Model` snapshot if
+any changes remain.
 
 ```typescript
 import { CoreLoop, EffectScheduler, ModelStore } from '@yantrix/automata';
@@ -69,11 +70,17 @@ const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
 
 effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
 effects.flush();
+console.log(model.get().count); // 2
 ```
 
-For application wiring, pass the scheduler to `CoreLoop`. The loop enqueues only
-Events emitted by registered FSM Event Adapters, waits for the full EventBus
-cascade, and flushes the batch before updating Data Destinations:
+For application wiring, pass the `EffectScheduler` to `CoreLoop`. Built-in `FSMs`
+notify the `Main Loop` when a transition commits, including a self-transition or a
+queued `Action` consumed on resume. The `Main Loop` collects the `Events` emitted
+by the `Event Adapter`, waits for the `Event` cascade, and flushes the batch before
+updating matching `Destinations` with the committed snapshot. Custom `FSMs` can
+provide `onEmittedEvents` for the same behavior. For an `FSM` without that hook,
+the `Main Loop` asks its `Event Adapter` for `Events` after dispatching an `Action`
+while the `FSM` is enabled and unpaused.
 
 ```typescript
 const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effects });
@@ -83,7 +90,22 @@ const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effec
 await loop.whenIdle();
 ```
 
-Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
+Direct `enqueue()` and `flush()` remain available for custom `Main Loop` drivers.
+A batch processes `Events` from `Event Adapters` in the order the `EffectScheduler`
+received them. Each `Event` matches against the `Effect Matrix` of every registered
+`Slice`. The `Effect Matrices` run in registration order, and the `Effects` within
+each run in declaration order. Each `Effect` receives the `Data Model` returned by
+the previous `Effect`. Return the same reference for a no-op so `ModelStore` can
+skip notifying its subscribers. If a pure `Effect` throws, `flush()` discards that
+batch and `ModelStore` retains its previous snapshot.
+
+With the built-in `AutomataSlice`, `registerSlice(slice)` connects the `Slice`'s
+`FSMs` and `Effect Matrix` to the `Main Loop`. Adding or removing an `FSM` on that
+`Slice` updates its `Event` subscriptions. `unregisterSlice(slice.id)` disconnects
+the `Slice`'s current `FSMs` and removes its `Effect Matrix`. A custom `Slice`
+with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
+notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
+wires the `FSMs` returned by `getMachines()` at registration.
 
 ### Storage and persistence
 

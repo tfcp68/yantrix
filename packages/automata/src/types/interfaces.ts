@@ -43,9 +43,9 @@ import {
 } from './index.js';
 
 /**
- * Observable store for the application-global, serializable Data Model.
+ * Observable store for the application-global, serializable `Data Model`.
  *
- * The model is replaced as one snapshot. Business logic reads it and Effects
+ * The `Data Model` is replaced as one snapshot. Business logic reads it and `Effects`
  * produce the next snapshot; consumers observe committed changes.
  */
 export interface IDataModelStore<ModelType extends object> {
@@ -55,10 +55,10 @@ export interface IDataModelStore<ModelType extends object> {
 }
 
 /**
- * Persistence adapter for one complete or projected Data Model snapshot.
+ * Persistence adapter for one complete or projected `Data Model` snapshot.
  *
- * A `null` load result means that the Storage has no persisted snapshot yet.
- * Platform-specific transports belong in implementations, not in ModelStore.
+ * A `null` load result means that the `Storage` has no persisted snapshot yet.
+ * Platform-specific transports belong in implementations, not in `ModelStore`.
  */
 export interface IStorageAdapter<SnapshotType = unknown> {
 	readonly id: string;
@@ -68,7 +68,7 @@ export interface IStorageAdapter<SnapshotType = unknown> {
 }
 
 /**
- * Batches Events and applies their Effects to a Data Model in one transaction.
+ * Batches `Events` and applies their `Effects` to a `Data Model` in one transaction.
  */
 export interface IEffectScheduler<
 	ModelType extends object,
@@ -369,7 +369,7 @@ export interface IAutomata<
 	 */
 	getContext: <K extends StateType = StateType>() => TAutomataStateContext<K, ContextType>;
 
-	/** Restores the current State and Context snapshot. */
+	/** Restores the current `State` and `Context` snapshot. */
 	setContext: (context: TAutomataStateContext<StateType, ContextType>) => this;
 
 	/**
@@ -406,6 +406,9 @@ export interface IAutomata<
 	 * Returns the final result of all Actions, including the Queue
 	 */
 	dispatch: TAutomataDispatch<StateType, ActionType, ContextType, PayloadType>;
+
+	/** Subscribe to events produced by committed transitions, including queued actions when consumed. */
+	onEmittedEvents?: (listener: (events: TAutomataEventStack<EventType, EventMetaType>) => void) => () => void;
 
 	/**
 	 * Sets the event adapter for handling and mapping events.
@@ -637,13 +640,19 @@ export interface IAutomataSlice<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 	ModelType extends object = Record<string, any>,
 > extends IAutomataEventContainer<EventType> {
-	/** Stable Slice identifier used by the application composition root. */
+	/** Stable `Slice` identifier used by the `Application` composition root. */
 	readonly id: string;
 
 	/**
 	 * A record of machines, where each machine is an instance of `IAutomata`.
 	 */
 	getMachines: () => Readonly<Record<string, IAutomata<any, any, EventType, any, any, EventMetaType>>>;
+
+	/** Observe later membership changes. Mutable `Slices` notify on addition before enabling the `FSM`. */
+	onMachinesChanged?: (
+		onAdded: (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => void,
+		onRemoved: (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => void,
+	) => () => void;
 
 	/**
 	 * Adds a machine to the automata slice.
@@ -817,7 +826,7 @@ export interface IAutomataEventBus<
 	isRunning: () => boolean;
 
 	/**
-	 * Resolves after the Event stack and all asynchronous follow-up Events have
+	 * Resolves after the `Event Stack` and all asynchronous follow-up `Events` have
 	 * been fully processed.
 	 */
 	whenIdle: () => Promise<void>;

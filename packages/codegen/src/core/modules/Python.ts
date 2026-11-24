@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import {
 	ContextStatement,
@@ -32,7 +32,7 @@ import {
 import { ByPassAction } from '../../constants.js';
 import { ICodegen, TConstants, TExpressionRecord, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { eta, etaViewsPath } from '../eta.js';
-import { fillDictionaries, getStatesByPass } from '../shared.js';
+import { fillDictionaries, getStatesByPass, resolveEventBusOrder } from '../shared.js';
 import { ModuleNames } from './index.js';
 import { getExpressionValue } from './JavaScript/JavaScriptCompiler/expressions/core.js';
 import { getPredicates } from './JavaScript/JavaScriptCompiler/forks/core.js';
@@ -563,7 +563,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		this.expressions = setupPythonExpressions(constants, this._usedFunctions);
 	}
 
-	private buildTemplateModel(className: string) {
+	private buildTemplateModel(className: string, eventBusOrder?: TEventBusOrder) {
 		this._usedFunctions = new Set<string>();
 		const expressions = setupPythonExpressions(this.constants, this._usedFunctions);
 		const pyFuncCall = makePyFuncCall(this._usedFunctions);
@@ -579,7 +579,6 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		const startStateValue = this.stateDictionary.getStateValues({ keys: [StartState] })[0] ?? null;
 
 		const rawBuiltins = readFileSync(resolve(etaViewsPath, 'python/runtime/builtins.py.tpl'), 'utf8');
-		const eventBusRuntime = readFileSync(resolve(etaViewsPath, 'python/runtime/event_bus.py.tpl'), 'utf8');
 		const injectedCode = this.injectedFunctionPath
 			? readFileSync(this.injectedFunctionPath, 'utf8')
 			: null;
@@ -612,13 +611,13 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 
 		return {
 			className,
+			eventBusOrder: resolveEventBusOrder(eventBusOrder),
 			initialStateValue,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 			eventDictionary: this.eventDictionary,
 			python: {
 				builtins,
-				eventBusRuntime,
 				functionDict: filteredFunctionDict,
 				snakeName: `create_${camelToSnake(className)}`,
 				initialContext,
@@ -640,7 +639,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	}
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]): string {
-		const it = this.buildTemplateModel(options.className);
+		const it = this.buildTemplateModel(options.className, options.eventBusOrder);
 		const rendered = eta.render('python/module.eta', it);
 		if (rendered == null) throw new Error('Eta render returned null/undefined for python/module');
 		return rendered;

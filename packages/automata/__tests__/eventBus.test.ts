@@ -1,6 +1,6 @@
 import { randomInteger, randomString, uniqId } from '@yantrix/utils';
 import { beforeEach, describe, expect, it, vitest } from 'vitest';
-import { createEventBus, TAutomataEventMetaType, TAutomataEventStack } from '../src';
+import { BasicEventBus, createEventBus, STACK_PROCESSING_BATCH_SIZE, TAutomataEventMetaType, TAutomataEventStack } from '../src';
 import { AbstractBaseClass } from '../src/mixins/BaseClass.js';
 import { TTestEvent, TTestEventMeta } from './fixtures';
 
@@ -45,6 +45,108 @@ describe('eventBus', () => {
 		});
 		it('is empty by default', () => {
 			expect(sampleInstance.getEventStack()).toEqual([]);
+		});
+	});
+
+	describe('delivery order', () => {
+		function recordDelivery(bus: BasicEventBus, ids: number[]): number[] {
+			const seen: number[] = [];
+			for (const id of ids) {
+				bus.subscribe(id, (event) => {
+					seen.push(id);
+					return { ...event, task_id: String(id), result: null };
+				});
+			}
+			return seen;
+		}
+
+		it.each([
+			[undefined, [1, 2, 3]],
+			['fifo', [1, 2, 3]],
+			['lifo', [3, 2, 1]],
+		] as const)('delivers buffered events in %s order', async (order, expected) => {
+			const bus = new BasicEventBus(order);
+			const seen = recordDelivery(bus, [1, 2, 3]);
+			const buffered = [1, 2, 3].map(event => ({ event, meta: null }));
+			bus.pause().dispatch(...buffered);
+			expect(bus.getEventStack()).toEqual(buffered);
+			bus.resume();
+			await bus.whenIdle();
+			expect(seen).toEqual(expected);
+		});
+
+		it.each([
+			['fifo', [2, 3, 4]],
+			['lifo', [4, 3, 2]],
+		] as const)('applies %s to async follow-ups alongside already queued events', async (order, expected) => {
+			const bus = new BasicEventBus(order);
+			const seen = recordDelivery(bus, [2, 3, 4]);
+			bus.subscribe(1, event => ({
+				...event,
+				task_id: 'source',
+				result: Promise.resolve([{ event: 3, meta: null }, { event: 4, meta: null }]),
+			}));
+			bus.dispatch({ event: 1, meta: null });
+			bus.dispatch({ event: 2, meta: null });
+			await bus.whenIdle();
+			expect(seen).toEqual(expected);
+		});
+
+		it('retains LIFO order for remaining events after a subscriber throws', async () => {
+			const bus = new BasicEventBus('lifo');
+			const seen = recordDelivery(bus, [1, 2, 3]);
+			bus.subscribe(3, () => {
+				throw new Error('subscriber failed');
+			});
+			bus.pause().dispatch(...[1, 2, 3].map(event => ({ event, meta: null })));
+			const waiting = bus.whenIdle();
+			expect(() => bus.resume()).toThrow('subscriber failed');
+			await expect(waiting).rejects.toThrow('subscriber failed');
+			expect(seen).toEqual([3, 2, 1]);
+		});
+
+		it('rejects an unknown order at construction', () => {
+			// @ts-expect-error JavaScript consumers can pass an unsupported order.
+			expect(() => new BasicEventBus('random')).toThrow(/order/);
+		});
+
+		it.each(['fifo', 'lifo'] as const)('drains a multi-batch %s buffer when subscribers return empty tasks', async (order) => {
+			const bus = new BasicEventBus(order);
+			const seen: number[] = [];
+			const buffer = Array.from({ length: STACK_PROCESSING_BATCH_SIZE + 10 }, (_, index) => index + 1);
+			bus.subscribe(1, (input) => {
+				seen.push(input.meta.index);
+				return { ...input, task_id: 'work', result: Promise.resolve([]) };
+			});
+			bus.pause().dispatch(...buffer.map(meta => ({ event: 1, meta: { index: meta } })));
+			bus.resume();
+			await bus.whenIdle();
+			expect(seen).toEqual(order === 'fifo' ? buffer : buffer.reverse());
+			expect(bus.getEventStack()).toEqual([]);
+		});
+
+		it('allows one wide fan-out and rejects repeatedly multiplying follow-ups of the same event', async () => {
+			const bus = new BasicEventBus();
+			const count = STACK_PROCESSING_BATCH_SIZE * 3;
+			const children = Array.from({ length: count }, () => ({ event: 2, meta: null }));
+			bus.subscribe(1, input => ({ ...input, task_id: 'start', result: Promise.resolve(children) }));
+			const received = recordDelivery(bus, [2]);
+			bus.dispatch({ event: 1, meta: null });
+			await bus.whenIdle();
+			expect(received).toHaveLength(count);
+
+			let calls = 0;
+			bus.subscribe(3, (input) => {
+				// Keep a broken guard bounded during regression testing.
+				const result = calls++ < 200 ? [input, input] : [];
+				return { ...input, task_id: 'multiply', result: Promise.resolve(result) };
+			});
+			bus.dispatch({ event: 3, meta: null });
+			await expect(bus.whenIdle()).rejects.toThrow('Stack is growing too fast');
+			expect(calls).toBeLessThan(200);
+			bus.dispatch({ event: 2, meta: null });
+			await bus.whenIdle();
+			expect(received).toHaveLength(count + 1);
 		});
 	});
 
@@ -375,6 +477,92 @@ describe('eventBus', () => {
 		});
 	});
 	describe('/whenIdle', () => {
+		it('rejects waiting callers on a synchronous subscriber error and drains remaining events', async () => {
+			const failure = new Error('subscriber failed');
+			const seen: string[] = [];
+			sampleInstance.subscribe(1, () => {
+				throw failure;
+			});
+			sampleInstance.subscribe(2, (event) => {
+				seen.push(event.meta!.meta);
+				return { ...event, task_id: uniqId(), result: null };
+			});
+			sampleInstance.pause().dispatch(
+				{ event: 1, meta: { meta: 'fails' } },
+				{ event: 2, meta: { meta: 'already queued' } },
+			);
+			const waiting = sampleInstance.whenIdle();
+			expect(() => sampleInstance.resume()).toThrow(failure);
+			await expect(waiting).rejects.toBe(failure);
+			expect(seen).toEqual(['already queued']);
+
+			sampleInstance.dispatch({ event: 2, meta: { meta: 'later dispatch' } });
+			await sampleInstance.whenIdle();
+			expect(seen).toEqual(['already queued', 'later dispatch']);
+		});
+
+		it('reports an asynchronous task failure to all observers and recovers for the next drain', async () => {
+			const failure = new Error('task failed');
+			let failTask!: (reason: Error) => void;
+			sampleInstance.subscribe(1, event => ({
+				...event,
+				task_id: uniqId(),
+				result: new Promise((_resolve, reject) => { failTask = reject; }),
+			}));
+			const seen: string[] = [];
+			sampleInstance.subscribe(2, (event) => {
+				seen.push(event.meta!.meta);
+				return { ...event, task_id: uniqId(), result: null };
+			});
+			sampleInstance.dispatch({ event: 1, meta: null });
+			const observer1 = sampleInstance.whenIdle();
+			sampleInstance.dispatch({ event: 2, meta: { meta: 'first' } }, { event: 2, meta: { meta: 'second' } });
+			const observer2 = sampleInstance.whenIdle();
+			failTask(failure);
+			await Promise.all([expect(observer1).rejects.toBe(failure), expect(observer2).rejects.toBe(failure)]);
+			expect(seen).toEqual(['first', 'second']);
+			await expect(sampleInstance.whenIdle()).rejects.toBe(failure);
+
+			sampleInstance.dispatch({ event: 2, meta: { meta: 'third' } });
+			await sampleInstance.whenIdle();
+			expect(seen).toEqual(['first', 'second', 'third']);
+		});
+
+		it('reports invalid async follow-up events without preventing later dispatch', async () => {
+			sampleInstance.subscribe(1, event => ({
+				...event,
+				task_id: uniqId(),
+				result: Promise.resolve([{ event: -1, meta: null }]),
+			}));
+			sampleInstance.dispatch({ event: 1, meta: null });
+			await expect(sampleInstance.whenIdle()).rejects.toThrow('Invalid event received from promise');
+			sampleInstance.dispatch({ event: 2, meta: null });
+			await sampleInstance.whenIdle();
+		});
+
+		it('waits for tasks already started when another subscriber throws in the same batch', async () => {
+			const failure = new Error('second subscriber failed');
+			let finishTask!: (events: TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>) => void;
+			const pendingTask = new Promise<TAutomataEventStack<TTestEvent, TTestEventMeta<TTestEvent>>>((resolve) => {
+				finishTask = resolve;
+			});
+			sampleInstance.subscribe(1, event => ({ ...event, task_id: uniqId(), result: pendingTask }));
+			sampleInstance.subscribe(1, () => {
+				throw failure;
+			});
+			const followup = vitest.fn();
+			sampleInstance.subscribe(2, followup);
+			expect(() => sampleInstance.dispatch({ event: 1, meta: null })).toThrow(failure);
+			const onFailure = vitest.fn();
+			const idle = sampleInstance.whenIdle().catch(onFailure);
+			await Promise.resolve();
+			expect(onFailure).not.toHaveBeenCalled();
+			finishTask([{ event: 2, meta: { meta: 'from the failed batch' } }]);
+			await idle;
+			expect(onFailure).toHaveBeenCalledWith(failure);
+			expect(followup).not.toHaveBeenCalled();
+		});
+
 		it('resolves after asynchronous follow-up Events are fully drained', async () => {
 			const firstEvent = randomInteger(1, 100);
 			const secondEvent = randomInteger(101, 200);

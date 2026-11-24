@@ -1,3 +1,4 @@
+import { TEventBusOrder } from '@yantrix/automata';
 import { ICodegen, TGetCodeOptionsMap, TModuleParams } from '../../../types/common';
 import { eta } from '../../eta';
 import { ModuleNames } from '../index';
@@ -14,12 +15,12 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 		});
 	}
 
-	protected override buildTemplateModel(className: string) {
-		return { ...super.buildTemplateModel(className), hasTypes: true };
+	protected override buildTemplateModel(className: string, eventBusOrder?: TEventBusOrder) {
+		return { ...super.buildTemplateModel(className, eventBusOrder), hasTypes: true };
 	}
 
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.TypeScript]) {
-		const it = this.buildTemplateModel(options.className);
+		const it = this.buildTemplateModel(options.className, options.eventBusOrder);
 		const rendered = eta.render('ts/module.eta', it);
 		if (rendered == null) throw new Error('Eta render returned null/undefined for ts/module');
 		return rendered;

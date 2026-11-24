@@ -16,6 +16,7 @@ export type TRootReducerInput = {
 };
 
 export type TRootReducerOutput = {
+  transitioned?: boolean;
   state: number;
   context: TAutomataContext;
 };

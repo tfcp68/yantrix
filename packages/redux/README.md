@@ -15,28 +15,27 @@ Redux integration for the [Yantrix](https://github.com/tfcp68/yantrix/) framewor
 
 ## 📖 Usage
 
-Install the primary package using your prefered package manager. All the secondary dependencies will be installed automatically. However, you will need `@yantrix/automata` at least for types. Most likely, you will also need `@yantrix/cli` to build diagrams into code.
+`@yantrix/redux` is an optional integration. Only applications using this adapter need its Redux Toolkit (`^2.2.7`) peer dependency. Applications running generated TypeScript machines with `@yantrix/core` alone can omit both adapters and their peers.
 
-```bash
-# Via NPM
-$ npm install @yantrix/redux @yantrix/automata @yantrix/cli
+Install the adapter, its peer, and the runtime imported by generated TypeScript machines.
 
-# Via Yarn
-$ yarn add @yantrix/redux @yantrix/automata @yantrix/cli
+```sh
+# npm
+npm install @yantrix/core @yantrix/redux @reduxjs/toolkit@^2.2.7
 
-# Via PNPM
-$ pnpm install @yantrix/redux @yantrix/automata @yantrix/cli
+# pnpm
+pnpm add @yantrix/core @yantrix/redux @reduxjs/toolkit@^2.2.7
 
-# ✨ Auto-detection
-$ npx nypm install @yantrix/redux @yantrix/automata @yantrix/cli
+# Yarn
+yarn add @yantrix/core @yantrix/redux @reduxjs/toolkit@^2.2.7
 ```
 
-> We suggest using `pnpm`
+If your project generates machines from Mermaid diagrams, add `@yantrix/cli` as a development dependency.
 
 Then, see the docs:
 
 - [Redux Integration](https://tfcp68.github.io/yantrix/integrations/200_redux.html)
-- [Example: Redux](https://tfcp68.github.io/yantrix/examples/100_react.html)
+- [Example: Redux](https://tfcp68.github.io/yantrix/examples/100_redux.html)
 - [More Examples](https://tfcp68.github.io/yantrix/concepts/999_design_examples.html)
 
 ## [🌱 Contributing](https://tfcp68.github.io/yantrix/contributing/)

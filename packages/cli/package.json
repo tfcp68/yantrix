@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/cli",
 	"type": "module",
-	"version": "0.5.4",
+	"version": "0.5.5",
 	"description": "Yantrix framework command line tools",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -41,6 +41,7 @@
 	},
 	"scripts": {
 		"build": "tsc --noEmit && tsup",
+		"test": "vitest run --outputFile=../../test_reports/cli.md",
 		"format": "eslint --fix .",
 		"lint": "eslint ."
 	},

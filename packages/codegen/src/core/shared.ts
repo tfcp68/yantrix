@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import {
 	getEmitStatements,
 	getSubscribeStatements,
@@ -7,6 +7,13 @@ import {
 
 import { ByPassAction } from '../constants.js';
 import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+
+export function resolveEventBusOrder(order: TEventBusOrder = 'fifo'): TEventBusOrder {
+	if (order !== 'fifo' && order !== 'lifo') {
+		throw new TypeError('eventBusOrder must be either "fifo" or "lifo"');
+	}
+	return order;
+}
 
 export function fillDictionaries(
 	diagram: TStateDiagramMatrixIncludeNotes,
