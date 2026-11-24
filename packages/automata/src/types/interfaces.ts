@@ -359,6 +359,9 @@ export interface IAutomata<
 	 */
 	dispatch: TAutomataDispatch<StateType, ActionType, ContextType, PayloadType>;
 
+	/** Subscribe to events produced by committed transitions, including queued actions when consumed. */
+	onEmittedEvents?: (listener: (events: TAutomataEventStack<EventType, EventMetaType>) => void) => () => void;
+
 	/**
 	 * Sets the event adapter for handling and mapping events.
 	 *

@@ -8,6 +8,7 @@ import {
 	createPromiseDataAdapter,
 	createTimeoutClock,
 	DEFAULT_TICK_MS,
+	GenericAutomata,
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
@@ -194,6 +195,88 @@ IDataDestination<UEvents, TMeta, null, { tag: string }, void> {
 	});
 	return dst as unknown as IDataDestination<UEvents, TMeta, null, { tag: string }, void>;
 }
+
+describe('committed transitions', () => {
+	it('publishes an accepted self-transition once, ignores unavailable actions, and waits for queued actions to commit', async () => {
+		const loop = new CoreLoop();
+		const bus = loop.getBus();
+		const machine = new GenericAutomata();
+		const adapter = new AutomataEventAdapter();
+		const emit = vi.fn(({ context }) => ({ event: UEvents.EVT_OUT, meta: { count: context.count } }));
+		adapter.addEventListener(UEvents.EVT_IN, ({ meta }) => ({ action: meta.action, payload: null }));
+		adapter.addEventEmitter(UStates.S1, emit);
+		machine.init({
+			state: UStates.S1,
+			context: { count: 0 },
+			rootReducer: ({ state, context, action }) => {
+				if (action === 1) return { state, context };
+				if (action === 2) return { state, context: { count: context.count + 1 } };
+				return { state, context, transitioned: false };
+			},
+		});
+		loop.registerAutomata(machine, adapter);
+		const counts: number[] = [];
+		bus.subscribe(UEvents.EVT_OUT, ({ event, meta }) => {
+			counts.push(meta.count);
+			return { event, meta, task_id: 'observe', result: null };
+		});
+		const send = async (action: number) => {
+			bus.dispatch({ event: UEvents.EVT_IN, meta: { action } });
+			await new Promise(resolve => setTimeout(resolve, 0));
+		};
+
+		await send(3);
+		expect(emit).not.toHaveBeenCalled();
+		await send(1);
+		expect(emit).toHaveBeenCalledTimes(1);
+		expect(counts).toEqual([0]);
+
+		machine.disable();
+		await send(2);
+		expect(emit).toHaveBeenCalledTimes(1);
+		machine.enable().pause();
+		await send(2);
+		await send(3);
+		await send(2);
+		expect(machine.getContext().context.count).toBe(0);
+		expect(emit).toHaveBeenCalledTimes(1);
+		machine.resume();
+		expect(machine.getContext().context.count).toBe(2);
+		expect(emit).toHaveBeenCalledTimes(3);
+		expect(counts).toEqual([0, 1, 2]);
+
+		loop.unregisterAutomata(machine.correlationId);
+		machine.dispatch({ action: 2, payload: null });
+		expect(emit).toHaveBeenCalledTimes(4);
+		expect(counts).toEqual([0, 1, 2]);
+	});
+	it('keeps emitted events in subscriber order alongside asynchronous bus tasks', async () => {
+		const loop = new CoreLoop();
+		const bus = loop.getBus();
+		const outputs: string[] = [];
+		bus.subscribe(UEvents.EVT_IN, ({ event, meta }) => ({
+			event,
+			meta,
+			task_id: 'first',
+			result: Promise.resolve([{ event: UEvents.EVT_OUT, meta: { origin: 'first' } }]),
+		}));
+		const adapter = new AutomataEventAdapter();
+		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: { origin: 'second' } }));
+		const machine = new GenericAutomata();
+		machine.init({ state: UStates.S1, context: null, rootReducer: () => ({ state: UStates.S2, context: null }) });
+		loop.registerAutomata(machine, adapter);
+		bus.subscribe(UEvents.EVT_OUT, ({ event, meta }) => {
+			outputs.push(meta.origin);
+			return { event, meta, task_id: 'observe', result: null };
+		});
+
+		bus.dispatch({ event: UEvents.EVT_IN, meta: null });
+		expect(outputs).toEqual([]);
+		await new Promise(resolve => setTimeout(resolve, 0));
+		expect(outputs).toEqual(['first', 'second']);
+	});
+});
 
 describe('coreLoop unit tests (with stubbed Automata)', () => {
 	let loop: CoreLoop<UEvents, TMeta>;
