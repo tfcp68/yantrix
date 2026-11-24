@@ -579,7 +579,6 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		const startStateValue = this.stateDictionary.getStateValues({ keys: [StartState] })[0] ?? null;
 
 		const rawBuiltins = readFileSync(resolve(etaViewsPath, 'python/runtime/builtins.py.tpl'), 'utf8');
-		const eventBusRuntime = readFileSync(resolve(etaViewsPath, 'python/runtime/event_bus.py.tpl'), 'utf8');
 		const injectedCode = this.injectedFunctionPath
 			? readFileSync(this.injectedFunctionPath, 'utf8')
 			: null;
@@ -619,7 +618,6 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 			eventDictionary: this.eventDictionary,
 			python: {
 				builtins,
-				eventBusRuntime,
 				functionDict: filteredFunctionDict,
 				snakeName: `create_${camelToSnake(className)}`,
 				initialContext,
