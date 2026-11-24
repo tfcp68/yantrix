@@ -16,6 +16,7 @@ import { formatByDialect, formatByFilename } from './postprocess.js';
 import { IGenerateOptions, TCodegenFiles, TStateIncludingNotes } from './types/common.js';
 
 export * from './core/modules/index.js';
+export * from './core/storageBindings.js';
 export * from './types/common.js';
 
 /**
