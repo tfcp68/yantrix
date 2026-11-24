@@ -85,7 +85,7 @@ function generateExpressionStringAndExpectedObject(args: [string, (...args: any)
 	return templateFunctions.default?.(templateStringWithName, propertyName, func);
 }
 
-function generateExpressionCases(templates: any[], casesAmount: number = randomInteger(1, 50)) {
+function generateExpressionCases(templates: any[], casesAmount: number) {
 	return templates.flatMap((template) => {
 		return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
 	});
