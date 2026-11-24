@@ -26,6 +26,11 @@ function validateModuleExport(reference: IStorageModuleExport, role: string, bin
 		throw new TypeError(`Invalid ${role} export name for storage binding ${JSON.stringify(binding)}`);
 }
 
+/**
+ * Generates a TypeScript or JavaScript module that imports the selected `Storage`
+ * connector factories and mappers. The generated `createStorageBindings()`
+ * function accepts each connector’s arguments at runtime.
+ */
 export function generateStorageBindings({
 	bindings,
 	outLang = ModuleNames.TypeScript,
