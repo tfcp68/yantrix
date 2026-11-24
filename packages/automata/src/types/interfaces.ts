@@ -394,6 +394,9 @@ export interface IAutomata<
 	 */
 	dispatch: TAutomataDispatch<StateType, ActionType, ContextType, PayloadType>;
 
+	/** Subscribe to events produced by committed transitions, including queued actions when consumed. */
+	onEmittedEvents?: (listener: (events: TAutomataEventStack<EventType, EventMetaType>) => void) => () => void;
+
 	/**
 	 * Sets the event adapter for handling and mapping events.
 	 *
@@ -631,6 +634,12 @@ export interface IAutomataSlice<
 	 * A record of machines, where each machine is an instance of `IAutomata`.
 	 */
 	getMachines: () => Readonly<Record<string, IAutomata<any, any, EventType, any, any, EventMetaType>>>;
+
+	/** Observe later membership changes. Mutable slices notify on addition before enabling the machine. */
+	onMachinesChanged?: (
+		onAdded: (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => void,
+		onRemoved: (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => void,
+	) => () => void;
 
 	/**
 	 * Adds a machine to the automata slice.

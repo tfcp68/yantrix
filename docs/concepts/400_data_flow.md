@@ -153,17 +153,19 @@ sequenceDiagram
 	end
 	DB ->> MDL: Sync application state on launch
 	SRC -->> MT: Event Meta
-	loop Process Event Stack every 1/60s
+	loop Main Loop iteration
 		activate MT
-		Note over MT: Dequeue oldest Event from Event Stack
-		MT ->> MT: Run FSM Reducers
-		Note over MT: See if new Events are emitted
-		MT ->>+ EL: Event Meta
-		note over EL: Update Data Model based on Emitted Events
-		EL ->> MDL: Data Model
-		MDL ->> DST: Data Model
-		note over MT: Proceed to the next queued Event
-		EL ->>- MT: Event Meta
+		loop While events are queued
+			MT ->> MT: Dequeue oldest event and run FSM reducers
+			opt A committed transition emits an event
+				MT ->> EL: Enqueue the emitted event for this batch
+			end
+		end
+		MT ->> EL: Flush the batch
+		opt The model changed
+			EL ->> MDL: Commit one snapshot
+			MT ->> DST: Deliver matching events with the committed model
+		end
 		deactivate MT
 	end
 	Note over MDL, DB: Model is persisted asynchronously

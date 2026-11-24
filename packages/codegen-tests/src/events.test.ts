@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
 import { AutomataEventAdapter } from '@yantrix/core';
@@ -147,6 +148,72 @@ describe('automata Events', () => {
 	});
 
 	describe('event interactions', () => {
+		it.each([
+			[ModuleNames.JavaScript, 'js'],
+			[ModuleNames.TypeScript, 'ts'],
+		] as const)('delivers one event for each committed %s transition', async (lang, extension) => {
+			const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Ready: LOGIN
+Ready --> Ready: REFRESH
+note right of Idle
+  +Init
+  subscribe/login LOGIN
+  subscribe/refresh REFRESH
+end note
+note right of Ready
+  emit/sessionStarted
+end note`;
+			const fixture = `event_committed_${extension}`;
+			await generateAndSave({ input, automataName: 'Session', lang }, fixture);
+			const { Session, createEventBus, eventDictionary, statesDictionary } = await import(
+				getGeneratedFixturePath(`${fixture}_generated.${extension}`),
+			);
+			const [bus, machines, cleanup] = createEventBus('sessions', { session: Session });
+			const machine = machines.session;
+			const emit = vi.spyOn(machine.eventAdapter, 'handleTransition');
+			const delivered = vi.fn();
+			bus.subscribe(eventDictionary.sessionStarted, delivered);
+			const send = async (event: number) => {
+				bus.dispatch({ event, meta: {} });
+				await setImmediate();
+			};
+
+			await send(eventDictionary.login);
+			expect(machine.state).toBe(statesDictionary.Ready);
+			expect(emit).toHaveBeenCalledTimes(1);
+			expect(delivered).toHaveBeenCalledTimes(1);
+
+			await send(eventDictionary.login); // LOGIN is unavailable in Ready.
+			expect(emit).toHaveBeenCalledTimes(1);
+			expect(delivered).toHaveBeenCalledTimes(1);
+
+			await send(eventDictionary.refresh); // An explicit Ready → Ready transition.
+			expect(emit).toHaveBeenCalledTimes(2);
+			expect(delivered).toHaveBeenCalledTimes(2);
+
+			machine.pause();
+			await send(eventDictionary.refresh);
+			expect(emit).toHaveBeenCalledTimes(2);
+			expect(delivered).toHaveBeenCalledTimes(2);
+			machine.resume();
+			await setImmediate();
+			expect(emit).toHaveBeenCalledTimes(3);
+			expect(delivered).toHaveBeenCalledTimes(3);
+
+			machine.disable();
+			await send(eventDictionary.refresh);
+			expect(emit).toHaveBeenCalledTimes(3);
+			expect(delivered).toHaveBeenCalledTimes(3);
+
+			cleanup();
+			machine.enable();
+			machine.dispatch(Session.createAction('REFRESH', {}));
+			await setImmediate();
+			expect(emit).toHaveBeenCalledTimes(4);
+			expect(delivered).toHaveBeenCalledTimes(3);
+		});
+
 		it('automata can listen to events dispatched by event bus', async () => {
 			await generateAndSave({ input: templates.basicSubscribe, automataName: 'BasicSubscribeAutomata', lang: ModuleNames.JavaScript }, `event_basicSubscribe`);
 			const { BasicSubscribeAutomata, createEventBus, statesDictionary, eventDictionary } = await import(

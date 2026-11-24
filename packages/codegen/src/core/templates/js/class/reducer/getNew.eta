@@ -3,21 +3,21 @@ const getNew = (
   localState<% if (it.hasTypes) { %>: number<% } %>,
   localContext<% if (it.hasTypes) { %>: TAutomataContext<% } %>,
   localPayload<% if (it.hasTypes) { %>: TReducerPayload<% } %>,
-)<% if (it.hasTypes) { %>: TRootReducerOutput<% } %> => {
+)<% if (it.hasTypes) { %>: TRootReducerOutput | undefined<% } %> => {
   this.lastAction = localAction;
 
   const stateTransitions = transitions[localState];
-  if (!stateTransitions) return { state: localState, context: localContext };
+  if (!stateTransitions) return;
 
   const actionMove = stateTransitions[localAction];
-  if (!actionMove) return { state: localState, context: localContext };
+  if (!actionMove) return;
 
   const newStateObject = { state: actionMove.state[0] ?? localState };
   const contextWithInitial = getDefaultContext(localContext, localPayload);
 
   if (actionMove.state.length > 1 && actionMove.predicate != null) {
     const resolvedPredicateValue = actionMove.predicate(contextWithInitial, localPayload, functionDictionary);
-    if (resolvedPredicateValue == null) return { state: localState, context: localContext };
+    if (resolvedPredicateValue == null) return;
     newStateObject.state = resolvedPredicateValue;
   }
 

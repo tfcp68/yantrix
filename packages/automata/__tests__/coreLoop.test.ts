@@ -10,6 +10,7 @@ import {
 	createTimeoutClock,
 	DEFAULT_TICK_MS,
 	EffectScheduler,
+	GenericAutomata,
 	IAutomata,
 	IAutomataEventAdapter,
 	IAutomataEventBus,
@@ -203,6 +204,107 @@ IDataDestination<UEvents, TMeta, null, { tag: string }, void> {
 	});
 	return dst as unknown as IDataDestination<UEvents, TMeta, null, { tag: string }, void>;
 }
+
+describe('committed transitions', () => {
+	it('publishes an accepted self-transition once, ignores unavailable actions, and waits for queued actions to commit', async () => {
+		const store = new ModelStore<{ counts: number[] }>({ counts: [] });
+		const commits = vi.fn();
+		store.subscribe(commits);
+		const scheduler = new EffectScheduler<{ counts: number[] }, number, Record<number, any>>({
+			store,
+			matrices: [{
+				[UEvents.EVT_OUT]: [({ meta }, model) => ({ counts: [...model.counts, meta.count] })],
+			}],
+		});
+		const loop = new CoreLoop({ effectScheduler: scheduler });
+		const bus = loop.getBus();
+		const machine = new GenericAutomata();
+		const adapter = new AutomataEventAdapter();
+		const emit = vi.fn(({ context }) => ({ event: UEvents.EVT_OUT, meta: { count: context.count } }));
+		adapter.addEventListener(UEvents.EVT_IN, ({ meta }) => ({ action: meta.action, payload: null }));
+		adapter.addEventEmitter(UStates.S1, emit);
+		machine.init({
+			state: UStates.S1,
+			context: { count: 0 },
+			rootReducer: ({ state, context, action }) => {
+				if (action === 1) return { state, context };
+				if (action === 2) return { state, context: { count: context.count + 1 } };
+				return { state, context, transitioned: false };
+			},
+		});
+		loop.registerAutomata(machine, adapter);
+		const counts: number[] = [];
+		bus.subscribe(UEvents.EVT_OUT, ({ event, meta }) => {
+			counts.push(meta.count);
+			return { event, meta, task_id: 'observe', result: null };
+		});
+		const send = async (action: number) => {
+			bus.dispatch({ event: UEvents.EVT_IN, meta: { action } });
+			await loop.whenIdle();
+		};
+
+		await send(3);
+		expect(store.get().counts).toEqual([]);
+		expect(emit).not.toHaveBeenCalled();
+		await send(1);
+		expect(emit).toHaveBeenCalledTimes(1);
+		expect(counts).toEqual([0]);
+		expect(store.get().counts).toEqual([0]);
+
+		machine.disable();
+		await send(2);
+		expect(emit).toHaveBeenCalledTimes(1);
+		expect(store.get().counts).toEqual([0]);
+		machine.enable().pause();
+		await send(2);
+		await send(3);
+		await send(2);
+		expect(machine.getContext().context.count).toBe(0);
+		expect(emit).toHaveBeenCalledTimes(1);
+		expect(store.get().counts).toEqual([0]);
+		machine.resume();
+		await loop.whenIdle();
+		expect(machine.getContext().context.count).toBe(2);
+		expect(emit).toHaveBeenCalledTimes(3);
+		expect(counts).toEqual([0, 1, 2]);
+
+		expect(store.get().counts).toEqual([0, 1, 2]);
+		expect(commits).toHaveBeenCalledTimes(2);
+
+		loop.unregisterAutomata(machine.correlationId);
+		machine.dispatch({ action: 2, payload: null });
+		await loop.whenIdle();
+		expect(commits).toHaveBeenCalledTimes(2);
+		expect(emit).toHaveBeenCalledTimes(4);
+		expect(counts).toEqual([0, 1, 2]);
+	});
+	it('keeps emitted events in subscriber order alongside asynchronous bus tasks', async () => {
+		const loop = new CoreLoop();
+		const bus = loop.getBus();
+		const outputs: string[] = [];
+		bus.subscribe(UEvents.EVT_IN, ({ event, meta }) => ({
+			event,
+			meta,
+			task_id: 'first',
+			result: Promise.resolve([{ event: UEvents.EVT_OUT, meta: { origin: 'first' } }]),
+		}));
+		const adapter = new AutomataEventAdapter();
+		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: { origin: 'second' } }));
+		const machine = new GenericAutomata();
+		machine.init({ state: UStates.S1, context: null, rootReducer: () => ({ state: UStates.S2, context: null }) });
+		loop.registerAutomata(machine, adapter);
+		bus.subscribe(UEvents.EVT_OUT, ({ event, meta }) => {
+			outputs.push(meta.origin);
+			return { event, meta, task_id: 'observe', result: null };
+		});
+
+		bus.dispatch({ event: UEvents.EVT_IN, meta: null });
+		expect(outputs).toEqual([]);
+		await new Promise(resolve => setTimeout(resolve, 0));
+		expect(outputs).toEqual(['first', 'second']);
+	});
+});
 
 describe('coreLoop unit tests (with stubbed Automata)', () => {
 	let loop: CoreLoop<UEvents, TMeta>;
@@ -509,6 +611,77 @@ describe('coreLoop Effect batches', () => {
 		expect(listener).toHaveBeenCalledOnce();
 	});
 
+	it('waits for a direct dispatch and its asynchronous follow-up before committing effects in order', async () => {
+		const store = new ModelStore<{ counts: number[] }>({ counts: [] });
+		const commits = vi.fn();
+		store.subscribe(commits);
+		const scheduler = new EffectScheduler<{ counts: number[] }, number, Record<number, any>>({
+			store,
+			matrices: [{
+				[UEvents.EVT_OUT]: [({ meta }, model) => ({ counts: [...model.counts, meta.count] })],
+			}],
+		});
+		const loop = new CoreLoop({ effectScheduler: scheduler });
+		const machine = new GenericAutomata();
+		machine.init({
+			state: UStates.S1,
+			context: { count: 0 },
+			rootReducer: ({ state, context }) => ({ state, context: { count: context.count + 1 } }),
+		});
+		const adapter = new AutomataEventAdapter();
+		adapter.addEventListener(UEvents.EVT_IN, () => ({ action: UActions.DO, payload: null }));
+		adapter.addEventEmitter(UStates.S1, ({ context }) => ({
+			event: UEvents.EVT_OUT,
+			meta: { count: context.count },
+		}));
+		loop.registerAutomata(machine, adapter);
+		let release!: () => void;
+		const work = new Promise<void>((resolve) => {
+			release = resolve;
+		});
+		loop.getBus().subscribe(UEvents.EVT_OUT, ({ event, meta }) => ({
+			event,
+			meta,
+			task_id: 'delayed-input',
+			result: meta.count === 1 ? work.then(() => [{ event: UEvents.EVT_IN, meta: {} }]) : null,
+		}));
+
+		machine.dispatch({ action: UActions.DO, payload: null });
+		await Promise.resolve();
+		expect(commits).not.toHaveBeenCalled();
+		release();
+		await loop.whenIdle();
+
+		expect(store.get().counts).toEqual([1, 2]);
+		expect(commits).toHaveBeenCalledOnce();
+	});
+
+	it('discards emissions from a failed bus drain when a fresh input is dispatched immediately', async () => {
+		const { effectLoop, adapter, store } = createEffectLoop();
+		const commits = vi.fn();
+		store.subscribe(commits);
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		const machine = new GenericAutomata();
+		machine.init({ state: UStates.S1, context: null, rootReducer: () => ({ state: UStates.S2, context: null }) });
+		effectLoop.registerAutomata(machine, adapter);
+		const bus = effectLoop.getBus();
+		const fail = () => {
+			throw new Error('subscriber failed');
+		};
+		bus.subscribe(UEvents.EVT_OUT, fail);
+		const input = toEvent<UEvents, TMeta>(UEvents.EVT_IN, {});
+
+		expect(() => machine.dispatch({ action: UActions.DO, payload: null })).toThrow('subscriber failed');
+		const failedDrain = effectLoop.whenIdle();
+		bus.unsubscribe(UEvents.EVT_OUT, fail);
+		bus.dispatch(input);
+
+		await expect(failedDrain).rejects.toThrow('subscriber failed');
+		await effectLoop.whenIdle();
+		expect(store.get().count).toBe(1);
+		expect(commits).toHaveBeenCalledOnce();
+	});
+
 	it('updates wildcard Destinations with the committed Data Model after Effects', async () => {
 		const { store, effectLoop, adapter } = createEffectLoop();
 		const update = vi.fn();
@@ -603,6 +776,44 @@ describe('coreLoop Effect batches', () => {
 		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
 		await effectLoop.whenIdle();
 		expect(store.get()).toEqual({ count: 1 });
+	});
+
+	it('routes events to the current slice members and detaches the slice on unregister', async () => {
+		const { effectLoop, adapter } = createEffectLoop();
+		const first = new AutomataStub().setEventAdapter(adapter);
+		const replacement = new AutomataStub().setEventAdapter(adapter);
+		const slice = new AutomataSlice<ITestModel, UEvents, TMeta>({ id: 'counter' });
+		slice.addMachine('active', first);
+		effectLoop.registerSlice(slice);
+		slice.removeMachine('active').addMachine('active', replacement);
+
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+		expect(first.lastAction).toBeNull();
+		expect(replacement.lastAction).toBe(UActions.DO);
+
+		effectLoop.unregisterSlice(slice.id);
+		replacement.lastAction = null;
+		slice.addMachine('inactive', first);
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+		expect(first.lastAction).toBeNull();
+		expect(replacement.lastAction).toBeNull();
+	});
+
+	it('preserves an existing registration if a running slice cannot add a duplicate machine', async () => {
+		const { effectLoop, adapter } = createEffectLoop();
+		const existing = new AutomataStub().setEventAdapter(adapter);
+		effectLoop.registerAutomata(existing);
+		const slice = new AutomataSlice<ITestModel, UEvents, TMeta>({ id: 'counter' });
+		effectLoop.registerSlice(slice);
+
+		expect(() => slice.addMachine('duplicate', existing)).toThrow('already registered');
+		expect(slice.getMachines()).toEqual({});
+		effectLoop.unregisterSlice(slice.id);
+		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
+		await effectLoop.whenIdle();
+		expect(existing.lastAction).toBe(UActions.DO);
 	});
 
 	it('exposes Effect failures through whenIdle without a partial commit', async () => {

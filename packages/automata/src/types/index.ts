@@ -157,7 +157,10 @@ export type TAutomataReducer<
 	NewStateType extends StateType = StateType,
 > = (
 	params: TAutomataEvent<StateType, ActionType, ContextType, PayloadType>,
-) => TAutomataStateContext<NewStateType, ContextType>;
+) => TAutomataStateContext<NewStateType, ContextType> & {
+	/** Set to false when the action does not match a transition, including a failed guard. */
+	transitioned?: boolean;
+};
 
 /**
  * Represents a dispatch function for an automata,

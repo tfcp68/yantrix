@@ -17,7 +17,8 @@ export function createEventBus<
 			#isPaused: boolean;
 			#eventStack: TAutomataEventStack<EventType, EventMetaType>;
 			#eventSubscriptions: Map<EventType, Set<TEventBusHandler<EventType, EventMetaType>>>;
-			#idleWaiters: Set<() => void>;
+			#idleWaiters: Set<{ resolve: () => void; reject: (reason: unknown) => void }>;
+			#failure?: { reason: unknown };
 
 			constructor() {
 				super();
@@ -77,6 +78,7 @@ export function createEventBus<
 			 * @returns This event bus instance
 			 */
 			public dispatch(...events: TAutomataEventStack<EventType, EventMetaType>): this {
+				if (events.length && !this.#isProcessing && !this.#eventStack.length) this.#failure = undefined;
 				this.#eventStack.push(...events);
 				this._processEvents();
 				return this;
@@ -94,7 +96,7 @@ export function createEventBus<
 			/** *****  12c97ac8-1158-4225-8ad9-1724f95adea2  */
 			public clearEventStack(): this {
 				this.#eventStack = [];
-				this.#resolveIdleWaiters();
+				this.#settleIdleWaiters();
 				return this;
 			}
 
@@ -113,21 +115,47 @@ export function createEventBus<
 				return !this.#isPaused;
 			}
 
+			/** Reports the first failure in the current drain, including to observers arriving after it ended. */
 			public whenIdle(): Promise<void> {
 				if (!this.#isProcessing && this.#eventStack.length === 0) {
-					return Promise.resolve();
+					return this.#failure ? Promise.reject(this.#failure.reason) : Promise.resolve();
 				}
 
-				return new Promise((resolve) => {
-					this.#idleWaiters.add(resolve);
+				return new Promise((resolve, reject) => {
+					this.#idleWaiters.add({ resolve, reject });
 				});
 			}
 
-			#resolveIdleWaiters(): void {
+			#settleIdleWaiters(): void {
 				if (this.#isProcessing || this.#eventStack.length > 0) return;
 				const waiters = [...this.#idleWaiters];
 				this.#idleWaiters.clear();
-				for (const resolve of waiters) resolve();
+				for (const waiter of waiters) {
+					if (this.#failure) waiter.reject(this.#failure.reason);
+					else waiter.resolve();
+				}
+			}
+
+			#finishBatch(failure?: { reason: unknown }): void {
+				this.#failure ??= failure;
+				this.#isProcessing = false;
+				if (!this.#eventStack.length) {
+					this.#settleIdleWaiters();
+				} else if (!this.#isPaused) {
+					queueMicrotask(() => {
+						try {
+							this._processEvents();
+						} catch {
+							// Scheduled batches have no synchronous caller. whenIdle reports the failure.
+						}
+					});
+				}
+			}
+
+			public [Symbol.dispose](): void {
+				this.pause();
+				this.clearEventStack();
+				this.#eventSubscriptions.clear();
 			}
 
 			/**
@@ -143,13 +171,6 @@ export function createEventBus<
 			 * @throws {Error} If the recursion limit, calculated as a ratio of the stack length, is exceeded for any event.
 			 *
 			 */
-
-			public [Symbol.dispose](): void {
-				this.pause();
-				this.clearEventStack();
-				this.#eventSubscriptions.clear();
-			}
-
 			_processEvents(): Promise<TAutomataEventStack<EventType, EventMetaType>> {
 				if (this.#isProcessing || this.#isPaused) {
 					return Promise.resolve([]);
@@ -157,61 +178,66 @@ export function createEventBus<
 				const promiseStack: Array<Promise<TAutomataEventStack<EventType, EventMetaType>>> = [];
 				let counter = 0;
 				this.#isProcessing = true;
-				while (
-					this.#eventStack.length > 0
-					&& counter++ < STACK_PROCESSING_BATCH_SIZE
-				) {
-					const eventObject = this.#eventStack.shift();
-					if (!eventObject)
-						continue;
-
-					if (!this.validateEventMeta(eventObject)) throw new TypeError('Invalid Event in the queue');
-
-					const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
-
-					if (!eventCallbacks?.size) continue;
-
-					eventCallbacks.forEach((callback) => {
-						const eventResult = callback(eventObject);
-
-						if (!eventResult?.result) return;
-
-						promiseStack.push(eventResult.result);
-					});
-					if (
-						promiseStack.length > STACK_RECURSION_LIMIT_RATIO * this.#eventStack.length
-						&& (this.#eventStack.length > 1)
+				try {
+					while (
+						this.#eventStack.length > 0
+						&& counter++ < STACK_PROCESSING_BATCH_SIZE
 					) {
-						throw new Error(
-							`Stack is growing too fast: ${eventObject}`,
-						);
+						const eventObject = this.#eventStack.shift();
+						if (!eventObject)
+							continue;
+
+						if (!this.validateEventMeta(eventObject)) throw new TypeError('Invalid Event in the queue');
+
+						const eventCallbacks = this.#eventSubscriptions.get(eventObject.event);
+
+						if (!eventCallbacks?.size) continue;
+
+						eventCallbacks.forEach((callback) => {
+							const eventResult = callback(eventObject);
+
+							if (!eventResult?.result) return;
+
+							promiseStack.push(eventResult.result);
+						});
+						if (
+							promiseStack.length > STACK_RECURSION_LIMIT_RATIO * this.#eventStack.length
+							&& (this.#eventStack.length > 1)
+						) {
+							throw new Error(
+								`Stack is growing too fast: ${eventObject}`,
+							);
+						}
 					}
+				} catch (reason) {
+					if (promiseStack.length) {
+						// Tasks started before the throw still belong to this batch.
+						void Promise.allSettled(promiseStack).then(() => this.#finishBatch({ reason }));
+					} else {
+						this.#finishBatch({ reason });
+					}
+					throw reason;
 				}
 
 				if (!promiseStack.length) {
-					this.#isProcessing = false;
-					if (this.#eventStack.length > 0) {
-						queueMicrotask(() => this._processEvents());
-					} else {
-						this.#resolveIdleWaiters();
-					}
+					this.#finishBatch();
 					return Promise.resolve([]);
 				}
 
-				const returnValue = Promise.all(promiseStack).then(events => events.flat());
-
-				returnValue.then((events) => {
+				const returnValue = Promise.allSettled(promiseStack).then((results) => {
+					const events = results.flatMap((result) => {
+						if (result.status === 'rejected') throw result.reason;
+						return result.value;
+					});
 					if (events.some(event => !this.validateEventMeta(event)))
 						throw new TypeError('Invalid event received from promise');
-
 					this.#eventStack.push(...events);
-					this.#isProcessing = false;
-
-					if (this.#eventStack.length)
-						this._processEvents();
-					else
-						this.#resolveIdleWaiters();
+					return events;
 				});
+				void returnValue.then(
+					() => this.#finishBatch(),
+					reason => this.#finishBatch({ reason }),
+				);
 
 				return returnValue;
 			}

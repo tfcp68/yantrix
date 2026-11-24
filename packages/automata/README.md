@@ -69,11 +69,17 @@ const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
 
 effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
 effects.flush();
+console.log(model.get().count); // 2
 ```
 
-For application wiring, pass the scheduler to `CoreLoop`. The loop enqueues only
-Events emitted by registered FSM Event Adapters, waits for the full EventBus
-cascade, and flushes the batch before updating Data Destinations:
+For application wiring, pass the scheduler to `CoreLoop`. Built-in machines
+notify the loop when a transition commits, including a self-transition or a
+queued action consumed on resume. The loop collects the adapter's emitted
+events, waits for the event cascade, and flushes the batch before updating
+matching destinations with the committed snapshot. Custom machines can provide
+`onEmittedEvents` for the same behavior. For a machine without that hook, the
+loop asks its adapter for events after dispatching an action while the machine
+is enabled and unpaused.
 
 ```typescript
 const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effects });
@@ -84,6 +90,19 @@ await loop.whenIdle();
 ```
 
 Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
+A batch processes events in enqueue order, matrices in registration order, and
+effects within each matrix in declaration order. Each effect receives the model
+returned by the previous effect. Return the same reference for a no-op so
+`ModelStore` can skip notifying its subscribers. If a pure effect throws,
+`flush()` discards that batch and the store retains its previous snapshot.
+
+With the built-in `AutomataSlice`, `registerSlice(slice)` connects the slice's
+machines and effect matrix to the loop. Adding or removing a machine on that
+slice updates its event subscriptions. `unregisterSlice(slice.id)` disconnects
+the slice's current machines and removes its effect matrix. A custom slice
+with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
+notify the loop of additions and removals. Without that hook the loop wires
+the machines returned by `getMachines()` at registration.
 
 Then, see the docs:
 
