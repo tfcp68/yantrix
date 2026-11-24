@@ -29,6 +29,7 @@ import {
 	isInjectStatement,
 	isNestedDefineFunction,
 	isNumberLiteral,
+	isPacketReference,
 	isPayloadReference,
 	isStringLiteral,
 	isSubscribeStatement,
@@ -92,18 +93,11 @@ export type TExpressionType =
 	| 'array'
 	| 'integer'
 	| 'decimal'
-	| 'constant'
-	| 'payload'
-	| 'context';
+	| ReturnType<typeof getReferenceType>;
 
 export function getExpressionType(expr: Expression | KeyItem): TExpressionType {
 	if (isFunctionCall(expr)) return 'function';
-	if (isDataObject(expr)) {
-		const ref = expr.reference;
-		if (isConstant(ref)) return 'constant';
-		if (isPayloadReference(ref)) return 'payload';
-		if (isContextReference(ref)) return 'context';
-	}
+	if (isDataObject(expr)) return getReferenceType(expr);
 	if (isArrayLiteral(expr)) return 'array';
 	if (isStringLiteral(expr)) return 'string';
 	if (isNumberLiteral(expr)) {
@@ -149,10 +143,11 @@ export function getReferenceIdentifier(expr: DataObject): string {
 	return expr.reference.identifier;
 }
 
-export function getReferenceType(expr: DataObject): 'constant' | 'payload' | 'context' {
+export function getReferenceType(expr: DataObject): 'constant' | 'payload' | 'context' | 'packet' {
 	if (isConstant(expr.reference)) return 'constant';
 	if (isPayloadReference(expr.reference)) return 'payload';
 	if (isContextReference(expr.reference)) return 'context';
+	if (isPacketReference(expr.reference)) return 'packet';
 	throw new Error('Unknown reference type');
 }
 

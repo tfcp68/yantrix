@@ -128,7 +128,11 @@ export function setupExpressions(props: {
 
 const expressionHandlers = {
 	FunctionCall: (expr: FunctionCall, record: TExpressionRecord) => record.function(expr),
-	DataObject: (expr: DataObject, record: TExpressionRecord) => record[getReferenceType(expr)](expr),
+	DataObject: (expr: DataObject, record: TExpressionRecord) => {
+		const refType = getReferenceType(expr);
+		if (refType === 'packet') throw new Error('Packet references are only supported in sequence diagram notes');
+		return record[refType](expr);
+	},
 	ArrayLiteral: (expr: ArrayLiteral, record: TExpressionRecord) => record.array(expr),
 	StringLiteral: (expr: StringLiteral, record: TExpressionRecord) => record.string(expr),
 	NumberLiteral: (expr: NumberLiteral, record: TExpressionRecord) =>

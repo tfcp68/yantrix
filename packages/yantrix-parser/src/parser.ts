@@ -7,12 +7,17 @@ import {
 	DefineStatement,
 	Document,
 	FunctionCall,
+	isContextReference,
 	isContextStatement,
 	isDefineFunction,
 	isDefineStatement,
 	isFunctionCall,
 	isNestedDefineFunction,
+	isPacketReference,
+	isSequencePacketStatement,
 	NestedDefineFunction,
+	SequenceNoteDocument,
+	SequencePacketStatement,
 } from './generated/ast.js';
 import { createYantrixServices } from './langium/yantrix-module.js';
 
@@ -74,11 +79,13 @@ function traverseAndValidateFunctions(node: AstNode): void {
 }
 
 /**
- * Validate semantic constraints on the parsed document.
+ * Validate semantic constraints shared by both document types.
+ * The `space` argument guards data references that only exist in one
+ * document kind: '#' (context) in state notes, '@' (packet) in sequence notes.
  */
-function validateSemantics(doc: Document): void {
+function validateSemantics(doc: Document | SequenceNoteDocument, space: 'context' | 'packet'): void {
 	for (const stmt of doc.statements) {
-		if (isContextStatement(stmt)) {
+		if (isContextStatement(stmt) || isSequencePacketStatement(stmt)) {
 			validateContextStatement(stmt);
 		}
 		if (isDefineStatement(stmt)) {
@@ -86,13 +93,42 @@ function validateSemantics(doc: Document): void {
 		}
 		// Traverse all statements to find function calls
 		traverseAndValidateFunctions(stmt);
+		traverseAndValidateReferences(stmt, space);
+	}
+}
+
+/**
+ * Reject data references that do not belong to the document's data space.
+ */
+function traverseAndValidateReferences(node: AstNode, space: 'context' | 'packet'): void {
+	if (space === 'context' && isPacketReference(node)) {
+		throw new Error(`Packet references (@${node.identifier}) are not allowed in state diagram notes`);
+	}
+	if (space === 'packet' && isContextReference(node)) {
+		throw new Error(`Context references (#${node.identifier}) are not allowed in sequence diagram notes`);
+	}
+
+	for (const [key, value] of Object.entries(node)) {
+		if (key.startsWith('$')) {
+			continue;
+		}
+
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				if (item && typeof item === 'object' && '$type' in item) {
+					traverseAndValidateReferences(item as AstNode, space);
+				}
+			}
+		} else if (value && typeof value === 'object' && '$type' in value) {
+			traverseAndValidateReferences(value as AstNode, space);
+		}
 	}
 }
 
 /**
  * Validate that reducer has <= items than context.
  */
-function validateContextStatement(ctx: ContextStatement): void {
+function validateContextStatement(ctx: ContextStatement | SequencePacketStatement): void {
 	if (ctx.reducer && ctx.reducer.length > ctx.items.length) {
 		throw new Error(
 			'The number of arguments must be equal to or less than the number of context arguments.',
@@ -127,7 +163,32 @@ export function parseYantrix(input: string): Document {
 	}
 
 	const doc = result.value as Document;
-	validateSemantics(doc);
+	validateSemantics(doc, 'context');
+	return doc;
+}
+
+/**
+ * Parse the Yantrix sequence-note subsyntax and return the AST document.
+ * Accepted statements: packet reducers (@{...}), emit, subscribe (actionName
+ * optional), define and inject. State-only statements (+Init, +ByPass,
+ * expressions) and context references (#) are rejected.
+ * @param input - The note text (newline-separated statements)
+ * @returns The parsed SequenceNoteDocument AST node
+ */
+export function parseYantrixSequenceNote(input: string): SequenceNoteDocument {
+	const { YantrixSequence } = getServices();
+	const parser = YantrixSequence.parser.LangiumParser;
+	const result = parser.parse(input);
+
+	if (result.lexerErrors.length > 0) {
+		throw new Error(`Lexer errors: ${result.lexerErrors.map(e => e.message).join(', ')}`);
+	}
+	if (result.parserErrors.length > 0) {
+		throw new Error(`Parser errors: ${result.parserErrors.map(e => e.message).join(', ')}`);
+	}
+
+	const doc = result.value as SequenceNoteDocument;
+	validateSemantics(doc, 'packet');
 	return doc;
 }
 

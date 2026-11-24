@@ -13,6 +13,9 @@ pids
 
 # Env
 .env
+.omo/
+.codegraph
+
 
 # Dist
 dist
