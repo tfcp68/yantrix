@@ -1,86 +1,67 @@
-import { describe, expect, it } from 'vitest';
-import { IIndexedDBFactoryLike, IndexedDBStorageAdapter } from '../src';
-
-type TRequest = {
-	result?: unknown;
-	error?: unknown;
-	onsuccess: ((event?: unknown) => void) | null;
-	onerror: ((event?: unknown) => void) | null;
-};
-
-class IndexedDBFactoryStub implements IIndexedDBFactoryLike {
-	readonly values = new Map<string, unknown>();
-	readonly stores = new Set<string>();
-
-	open(_name: string, _version?: number) {
-		const request: TRequest & {
-			result: any;
-			onupgradeneeded: ((event?: unknown) => void) | null;
-		} = {
-			result: null,
-			onsuccess: null,
-			onerror: null,
-			onupgradeneeded: null,
-		};
-		const database = {
-			objectStoreNames: { contains: (name: string) => this.stores.has(name) },
-			createObjectStore: (name: string) => { this.stores.add(name); },
-			close: () => {},
-			transaction: (storeName: string) => {
-				const transaction: any = {
-					oncomplete: null,
-					onerror: null,
-					onabort: null,
-					error: null,
-					objectStore: () => ({
-						get: (key: string) => this.operation(transaction, () => this.values.get(`${storeName}:${key}`)),
-						put: (value: unknown, key: string) => this.operation(transaction, () => {
-							this.values.set(`${storeName}:${key}`, value);
-						}),
-						delete: (key: string) => this.operation(transaction, () => {
-							this.values.delete(`${storeName}:${key}`);
-						}),
-					}),
-				};
-				return transaction;
-			},
-		};
-		request.result = database;
-		queueMicrotask(() => {
-			request.onupgradeneeded?.();
-			request.onsuccess?.();
-		});
-		return request;
-	}
-
-	private operation(transaction: any, operation: () => unknown): TRequest {
-		const request: TRequest = { onsuccess: null, onerror: null };
-		queueMicrotask(() => {
-			request.result = operation();
-			request.onsuccess?.();
-			transaction.oncomplete?.();
-		});
-		return request;
-	}
-}
+import { IDBFactory } from 'fake-indexeddb';
+import { describe, expect, it, vi } from 'vitest';
+import { IndexedDBStorageAdapter } from '../src';
 
 describe('indexedDB Storage adapter', () => {
 	it('creates its object store and persists one snapshot by key', async () => {
-		const indexedDB = new IndexedDBFactoryStub();
 		const storage = new IndexedDBStorageAdapter<{ count: number }>({
 			id: 'indexed',
 			databaseName: 'app',
 			storeName: 'models',
 			key: 'current',
-			indexedDB,
+			indexedDB: new IDBFactory(),
 		});
 
-		expect(await storage.load()).toBeNull();
-		await storage.save({ count: 5 });
-		expect(await storage.load()).toEqual({ count: 5 });
-		expect(indexedDB.stores.has('models')).toBe(true);
-		await storage.clear();
-		expect(await storage.load()).toBeNull();
+		try {
+			expect(await storage.load()).toBeNull();
+			await storage.save({ count: 5 });
+			expect(await storage.load()).toEqual({ count: 5 });
+			await storage.clear();
+			expect(await storage.load()).toBeNull();
+		} finally {
+			await storage.close();
+		}
+	});
+
+	it('releases its connection on versionchange so another adapter can upgrade', async () => {
+		const indexedDB = new IDBFactory();
+		const first = new IndexedDBStorageAdapter({ id: 'counter', indexedDB });
+		// Release a blocking connection even if the regression returns, so the assertion can report it.
+		const onBlocked = vi.fn(() => first.close());
+		const second = new IndexedDBStorageAdapter({
+			id: 'counter',
+			databaseVersion: 2,
+			indexedDB: {
+				open(name, version) {
+					const request = indexedDB.open(name, version);
+					request.onblocked = onBlocked;
+					return request;
+				},
+			},
+		});
+
+		try {
+			await first.save({ count: 5 });
+			expect(await second.load()).toEqual({ count: 5 });
+			expect(onBlocked).not.toHaveBeenCalled();
+			await expect(first.save({ count: 0 })).rejects.toMatchObject({ name: 'VersionError' });
+			expect(await second.load()).toEqual({ count: 5 });
+		} finally {
+			await first.close();
+			await second.close();
+		}
+	});
+
+	it('reopens when a new operation overlaps an explicit close', async () => {
+		const storage = new IndexedDBStorageAdapter({ id: 'counter', indexedDB: new IDBFactory() });
+		try {
+			await storage.save(1);
+			const closing = storage.close();
+			expect(await storage.load()).toBe(1);
+			await closing;
+		} finally {
+			await storage.close();
+		}
 	});
 
 	it('fails explicitly when IndexedDB is unavailable', () => {

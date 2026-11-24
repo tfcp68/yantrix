@@ -107,11 +107,13 @@ with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
 notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
 wires the `FSMs` returned by `getMachines()` at registration.
 
-### Storage and persistence
+### `Storage` and persistence
 
 `Storage` is separate from `ModelStore`: adapters load and save serializable
-snapshots, `hydrateModel()` builds the initial Data Model, and an independent
-`StorageSyncLoop` persists committed changes without blocking the Main Loop.
+snapshots, `hydrateModel()` builds the initial `Data Model`, and an independent
+`StorageSyncLoop` persists committed changes without blocking the `Main Loop`.
+
+The `Sync Loop` skips a `Storage` whose load or hydration failed and reports a non-blocking error through `onError`. A successful `hydrateModel()` retry with the same connector enables automatic writes to that `Storage` again.
 
 ```typescript
 import {
@@ -159,7 +161,7 @@ await storageSync.whenIdle();
 `InMemoryStorageAdapter` is the reference/test adapter.
 `IndexedDBStorageAdapter` stores structured-clone-compatible snapshots, while
 `VersionedStorageAdapter` decorates any adapter with ordered schema migrations.
-Multiple bindings may project and hydrate independent subsets of one Data Model;
+Multiple bindings may project and hydrate independent subsets of one `Data Model`;
 loads happen concurrently and successful snapshots are composed in registration
 order.
 

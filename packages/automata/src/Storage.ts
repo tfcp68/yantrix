@@ -17,12 +17,33 @@ export type TStorageBinding<ModelType extends object, SnapshotType = unknown> = 
 
 type TAnyStorageBinding<ModelType extends object> = TStorageBinding<ModelType, any>;
 
+type THydrationAttempt = { ready: boolean; failure?: TStorageFailure };
+
+// The current attempt governs automatic writes for this connector, even if a
+// loop is given new binding objects. Stale attempts can only update their own result.
+const hydrationAttempts = new WeakMap<IStorageAdapter<any>, THydrationAttempt>();
+
 export type TModelHydrationResult<ModelType extends object> = {
 	model: ModelType;
 	loadedStorageIds: string[];
 	emptyStorageIds: string[];
 	failures: TStorageFailure[];
 };
+
+export type TModelHydrationOptions = {
+	onError?: (failure: TStorageFailure) => void;
+};
+
+function recordFailure(failures: TStorageFailure[], failure: TStorageFailure, onError?: TModelHydrationOptions['onError']): void {
+	failures.push(failure);
+	if (!onError) return;
+	try {
+		// An observer can return a promise, even when called as a void callback.
+		void Promise.resolve(onError(failure)).catch(() => {});
+	} catch {
+		// An error in an observer must not interrupt independent Storages.
+	}
+}
 
 function assertNonEmptyId(id: string): void {
 	if (typeof id !== 'string' || id.length === 0) {
@@ -48,19 +69,24 @@ function assertUniqueBindings<ModelType extends object>(bindings: ReadonlyArray<
 /**
  * Polls every Storage concurrently, then composes successful snapshots in
  * registration order so hydration stays deterministic regardless of I/O timing.
+ * After a failed load or hydration, the `Sync Loop` skips that `Storage` until
+ * an explicit retry succeeds.
  */
 export async function hydrateModel<ModelType extends object>(
 	initialModel: ModelType,
 	bindings: ReadonlyArray<TAnyStorageBinding<ModelType>>,
+	{ onError }: TModelHydrationOptions = {},
 ): Promise<TModelHydrationResult<ModelType>> {
 	assertModel(initialModel);
 	assertUniqueBindings(bindings);
 
 	const loads = await Promise.all(bindings.map(async (binding) => {
+		const attempt: THydrationAttempt = { ready: false };
+		hydrationAttempts.set(binding.storage, attempt);
 		try {
-			return { ok: true as const, binding, snapshot: await binding.storage.load() };
+			return { ok: true as const, binding, attempt, snapshot: await binding.storage.load() };
 		} catch (error) {
-			return { ok: false as const, binding, error };
+			return { ok: false as const, binding, attempt, error };
 		}
 	}));
 
@@ -70,24 +96,21 @@ export async function hydrateModel<ModelType extends object>(
 	const failures: TStorageFailure[] = [];
 
 	for (const load of loads) {
-		const { binding } = load;
-		if (!load.ok) {
-			failures.push({ storageId: binding.storage.id, phase: 'load', error: load.error });
-			continue;
-		}
-		const { snapshot } = load;
-		if (snapshot === null) {
-			emptyStorageIds.push(binding.storage.id);
-			continue;
-		}
-
+		const { binding, attempt } = load;
 		try {
-			const hydratedModel = binding.hydrate(model, snapshot);
-			assertModel(hydratedModel);
-			model = hydratedModel as ModelType;
-			loadedStorageIds.push(binding.storage.id);
-		} catch (hydrationError) {
-			failures.push({ storageId: binding.storage.id, phase: 'hydrate', error: hydrationError });
+			if (!load.ok) throw load.error;
+			if (load.snapshot === null) {
+				emptyStorageIds.push(binding.storage.id);
+			} else {
+				const hydratedModel = binding.hydrate(model, load.snapshot);
+				assertModel(hydratedModel);
+				model = hydratedModel as ModelType;
+				loadedStorageIds.push(binding.storage.id);
+			}
+			attempt.ready = true;
+		} catch (error) {
+			attempt.failure = { storageId: binding.storage.id, phase: load.ok ? 'hydrate' : 'load', error };
+			recordFailure(failures, attempt.failure, onError);
 		}
 	}
 
@@ -144,7 +167,8 @@ export type TStorageSyncLoopProps<ModelType extends object> = {
 export class StorageSyncLoop<ModelType extends object> {
 	readonly #store: IDataModelStore<ModelType>;
 	readonly #bindings = new Map<string, TAnyStorageBinding<ModelType>>();
-	readonly #lastPersistedProjection = new Map<string, unknown>();
+	readonly #lastPersistedProjection = new Map<string, { projection: unknown; hydration?: THydrationAttempt }>();
+	readonly #reportedHydrations = new WeakSet<THydrationAttempt>();
 	readonly #failures: TStorageFailure[] = [];
 	readonly #idleWaiters = new Set<() => void>();
 	readonly #debounceMs: number;
@@ -195,6 +219,7 @@ export class StorageSyncLoop<ModelType extends object> {
 			this.#cancelScheduledDrain();
 			this.#pendingModel = null;
 			this.#hasPendingModel = false;
+			this.#resolveIdleWaiters();
 		} else {
 			this.#flushImmediately = true;
 			this.#cancelScheduledDrain();
@@ -273,38 +298,36 @@ export class StorageSyncLoop<ModelType extends object> {
 
 	async #persist(model: ModelType, bindings: ReadonlyArray<TAnyStorageBinding<ModelType>>): Promise<void> {
 		await Promise.all(bindings.map(async (binding) => {
+			const hydration = hydrationAttempts.get(binding.storage);
+			if (hydration && !hydration.ready) {
+				if (hydration.failure && !this.#reportedHydrations.has(hydration)) {
+					this.#reportedHydrations.add(hydration);
+					recordFailure(this.#failures, hydration.failure, this.#onError);
+				}
+				return;
+			}
 			let projection: unknown;
 			try {
 				projection = binding.select(model);
 			} catch (error) {
-				this.#recordFailure({ storageId: binding.storage.id, phase: 'select', error });
+				recordFailure(this.#failures, { storageId: binding.storage.id, phase: 'select', error }, this.#onError);
 				return;
 			}
 
-			if (this.#lastPersistedProjection.has(binding.storage.id)
-				&& Object.is(this.#lastPersistedProjection.get(binding.storage.id), projection)) {
+			const previous = this.#lastPersistedProjection.get(binding.storage.id);
+			if (previous && previous.hydration === hydration && Object.is(previous.projection, projection)) {
 				return;
 			}
 
 			try {
 				await binding.storage.save(projection);
 				if (this.#bindings.get(binding.storage.id) === binding) {
-					this.#lastPersistedProjection.set(binding.storage.id, projection);
+					this.#lastPersistedProjection.set(binding.storage.id, { projection, hydration });
 				}
 			} catch (error) {
-				this.#recordFailure({ storageId: binding.storage.id, phase: 'save', error });
+				recordFailure(this.#failures, { storageId: binding.storage.id, phase: 'save', error }, this.#onError);
 			}
 		}));
-	}
-
-	#recordFailure(failure: TStorageFailure): void {
-		this.#failures.push(failure);
-		try {
-			this.#onError?.(failure);
-		} catch {
-			// Error observers are representation-layer hooks and cannot compromise
-			// persistence of other independent Storages.
-		}
 	}
 
 	#resolveIdleWaiters(): void {
@@ -363,6 +386,8 @@ export class VersionedStorageAdapter<SnapshotType> implements IStorageAdapter<Sn
 	}
 
 	public async save(snapshot: SnapshotType): Promise<void> {
+		// Another client may have upgraded its save since this connector last loaded.
+		await this.load();
 		await this.#storage.save({ version: this.#version, data: snapshot });
 	}
 

@@ -65,7 +65,8 @@
 		"underscore": "^1.13.7"
 	},
 	"devDependencies": {
-		"@types/underscore": "^1.11.15"
+		"@types/underscore": "^1.11.15",
+		"fake-indexeddb": "^6.2.8"
 	},
 	"publishConfig": {
 		"access": "public",

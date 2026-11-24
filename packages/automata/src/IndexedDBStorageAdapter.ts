@@ -1,10 +1,13 @@
 import { IStorageAdapter } from './types/interfaces.js';
 
+// The adapter registers callbacks without reading their DOM-specific event arguments.
+type TIndexedDBEventHandler = ((event: never) => void) | null;
+
 interface IIndexedDBRequestLike<ResultType = unknown> {
 	result?: ResultType;
 	error?: unknown;
-	onsuccess: ((event?: unknown) => void) | null;
-	onerror: ((event?: unknown) => void) | null;
+	onsuccess: TIndexedDBEventHandler;
+	onerror: TIndexedDBEventHandler;
 }
 
 interface IIndexedDBObjectStoreLike {
@@ -15,14 +18,15 @@ interface IIndexedDBObjectStoreLike {
 
 interface IIndexedDBTransactionLike {
 	error?: unknown;
-	oncomplete: ((event?: unknown) => void) | null;
-	onerror: ((event?: unknown) => void) | null;
-	onabort: ((event?: unknown) => void) | null;
+	oncomplete: TIndexedDBEventHandler;
+	onerror: TIndexedDBEventHandler;
+	onabort: TIndexedDBEventHandler;
 	objectStore: (name: string) => IIndexedDBObjectStoreLike;
 }
 
 interface IIndexedDBDatabaseLike {
 	objectStoreNames: { contains: (name: string) => boolean };
+	onversionchange?: TIndexedDBEventHandler;
 	createObjectStore: (name: string) => unknown;
 	transaction: (storeName: string, mode: 'readonly' | 'readwrite') => IIndexedDBTransactionLike;
 	close: () => void;
@@ -30,7 +34,7 @@ interface IIndexedDBDatabaseLike {
 
 interface IIndexedDBOpenRequestLike extends IIndexedDBRequestLike<IIndexedDBDatabaseLike> {
 	result: IIndexedDBDatabaseLike;
-	onupgradeneeded: ((event?: unknown) => void) | null;
+	onupgradeneeded: TIndexedDBEventHandler;
 }
 
 export interface IIndexedDBFactoryLike {
@@ -92,10 +96,9 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 	}
 
 	public async close(): Promise<void> {
-		if (!this.#databasePromise) return;
-		const database = await this.#databasePromise;
-		database.close();
+		const opening = this.#databasePromise;
 		this.#databasePromise = null;
+		if (opening) (await opening).close();
 	}
 
 	#open(): Promise<IIndexedDBDatabaseLike> {
@@ -108,10 +111,17 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 					request.result.createObjectStore(this.#storeName);
 				}
 			};
-			request.onsuccess = () => resolve(request.result);
+			request.onsuccess = () => {
+				const database = request.result;
+				database.onversionchange = () => {
+					if (this.#databasePromise === databasePromise) this.#databasePromise = null;
+					database.close();
+				};
+				resolve(database);
+			};
 			request.onerror = () => reject(request.error ?? new Error(`Failed to open IndexedDB "${this.#databaseName}"`));
 		}).catch((error) => {
-			this.#databasePromise = null;
+			if (this.#databasePromise === databasePromise) this.#databasePromise = null;
 			throw error;
 		});
 		this.#databasePromise = databasePromise;
