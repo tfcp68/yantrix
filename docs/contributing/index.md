@@ -29,6 +29,10 @@ When working with the repository, do the following steps:
 
 For advanced repository management, you can read [this](01_advanced_managment.html) article.
 
+## Documentation terminology
+
+Use inline backticks for every Yantrix ontology term in prose, headings, tables, and link text. Follow the spelling and capitalization in the [Architecture guide](../concepts/100_architecture.html).
+
 ## Common Operations
 
 | Command                                        | What it does                                            |

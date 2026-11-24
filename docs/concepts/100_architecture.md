@@ -104,12 +104,13 @@ which contains asymmetrical `Mapping Matrix`, that is responsible for:
 The reason `Event Adapter` is separated from `FSM` is reusability. If two `FSMs` share compatible contracts of `Actions`
 and `States`, they can use the same `Event Adapter` too, if needed.
 
-### Event Stack
+### `Event Stack`
 
-UI components, sources, and FSMs publish events to the application's shared Event Bus. By default it
-delivers the oldest pending event first (FIFO). A generated Event Bus configured with
-`eventBusOrder: 'lifo'` delivers the newest pending event first. Both modes deliver each event to
-its subscribers across all registered slices. See [Code Generation](500_codegen.html#event-bus-order).
+`UI Components`, `Sources`, and `FSMs` publish `Events` to the `Application`'s shared `Event Bus`.
+By default, the `Event Bus` delivers the oldest pending `Event` in the `Event Stack` first (FIFO).
+A generated `Event Bus` configured with `eventBusOrder: 'lifo'` delivers the newest pending `Event`
+first. Both modes deliver each `Event` to its subscribers across all registered `Slices`.
+See [Code Generation](500_codegen.html#event-bus-order).
 
 ## Data operations
 
@@ -138,17 +139,17 @@ They can be:
 -   `Generic Transformers` are built-in and user-defined pure functions that operate on any contract type and map the
     values. They are the basic building blocks of data manipulation.
 
-### Effects
+### `Effects`
 
-`Effects` are pure functions that compute the next Data Model from the current model and an
-emitted event. When an FSM's adapter emits an event, the Effect Scheduler looks it up in every
-registered slice's Effect Matrix. For example, a single `OrderPlaced` event can update inventory
-in one slice and accounting in another.
+`Effects` are pure functions that compute the next `Data Model` from its current value and an
+emitted `Event`. When an `FSM`'s `Event Adapter` emits an `Event`, the `Effect Scheduler` looks it
+up in the `Effect Matrix` of every registered `Slice`. For example, a single `OrderPlaced` `Event`
+can update inventory in one `Slice` and accounting in another.
 
-An event cascade includes the queued events and the follow-up events their handlers produce
-until the Event Bus becomes idle. The Main Loop then flushes the effects as one batch.
-If the model changed, the store commits one snapshot and matching destinations receive it.
-If all effects preserve the original model reference, there is no update.
+The cascade includes all queued `Events` and any follow-up `Events` their handlers produce
+until the `Event Bus` becomes idle. The `Main Loop` then flushes the `Effects` as one batch.
+If the `Data Model` changed, the store commits one snapshot and matching `Destinations` receive it.
+If all `Effects` preserve the original `Data Model` reference, there is no update.
 
 ## APIs relation diagram
 

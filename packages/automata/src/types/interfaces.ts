@@ -43,9 +43,9 @@ import {
 } from './index.js';
 
 /**
- * Observable store for the application-global, serializable Data Model.
+ * Observable store for the application-global, serializable `Data Model`.
  *
- * The model is replaced as one snapshot. Business logic reads it and Effects
+ * The `Data Model` is replaced as one snapshot. Business logic reads it and `Effects`
  * produce the next snapshot; consumers observe committed changes.
  */
 export interface IDataModelStore<ModelType extends object> {
@@ -55,7 +55,7 @@ export interface IDataModelStore<ModelType extends object> {
 }
 
 /**
- * Batches Events and applies their Effects to a Data Model in one transaction.
+ * Batches `Events` and applies their `Effects` to a `Data Model` in one transaction.
  */
 export interface IEffectScheduler<
 	ModelType extends object,
@@ -356,7 +356,7 @@ export interface IAutomata<
 	 */
 	getContext: <K extends StateType = StateType>() => TAutomataStateContext<K, ContextType>;
 
-	/** Restores the current State and Context snapshot. */
+	/** Restores the current `State` and `Context` snapshot. */
 	setContext: (context: TAutomataStateContext<StateType, ContextType>) => this;
 
 	/**
@@ -627,7 +627,7 @@ export interface IAutomataSlice<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 	ModelType extends object = Record<string, any>,
 > extends IAutomataEventContainer<EventType> {
-	/** Stable Slice identifier used by the application composition root. */
+	/** Stable `Slice` identifier used by the `Application` composition root. */
 	readonly id: string;
 
 	/**
@@ -635,7 +635,7 @@ export interface IAutomataSlice<
 	 */
 	getMachines: () => Readonly<Record<string, IAutomata<any, any, EventType, any, any, EventMetaType>>>;
 
-	/** Observe later membership changes. Mutable slices notify on addition before enabling the machine. */
+	/** Observe later membership changes. Mutable `Slices` notify on addition before enabling the `FSM`. */
 	onMachinesChanged?: (
 		onAdded: (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => void,
 		onRemoved: (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => void,
@@ -813,7 +813,7 @@ export interface IAutomataEventBus<
 	isRunning: () => boolean;
 
 	/**
-	 * Resolves after the Event stack and all asynchronous follow-up Events have
+	 * Resolves after the `Event Stack` and all asynchronous follow-up `Events` have
 	 * been fully processed.
 	 */
 	whenIdle: () => Promise<void>;

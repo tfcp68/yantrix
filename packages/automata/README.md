@@ -33,11 +33,11 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
-### Data Model and Effects
+### `Data Model` and `Effects`
 
-`ModelStore` owns the current application snapshot. `EffectScheduler` collects
-events across an entire Event Bus cascade, including follow-up events. When the
-bus becomes idle, `CoreLoop` flushes the batch and commits one model snapshot if
+`ModelStore` owns the current `Data Model` snapshot. `EffectScheduler` collects
+`Events` across an entire `Event Bus` cascade, including follow-up `Events`. When the
+`Event Bus` becomes idle, `CoreLoop` flushes the batch and commits one `Data Model` snapshot if
 any changes remain.
 
 ```typescript
@@ -73,14 +73,14 @@ effects.flush();
 console.log(model.get().count); // 2
 ```
 
-For application wiring, pass the scheduler to `CoreLoop`. Built-in machines
-notify the loop when a transition commits, including a self-transition or a
-queued action consumed on resume. The loop collects the adapter's emitted
-events, waits for the event cascade, and flushes the batch before updating
-matching destinations with the committed snapshot. Custom machines can provide
-`onEmittedEvents` for the same behavior. For a machine without that hook, the
-loop asks its adapter for events after dispatching an action while the machine
-is enabled and unpaused.
+For application wiring, pass the `EffectScheduler` to `CoreLoop`. Built-in `FSMs`
+notify the `Main Loop` when a transition commits, including a self-transition or a
+queued `Action` consumed on resume. The `Main Loop` collects the `Events` emitted
+by the `Event Adapter`, waits for the `Event` cascade, and flushes the batch before
+updating matching `Destinations` with the committed snapshot. Custom `FSMs` can
+provide `onEmittedEvents` for the same behavior. For an `FSM` without that hook,
+the `Main Loop` asks its `Event Adapter` for `Events` after dispatching an `Action`
+while the `FSM` is enabled and unpaused.
 
 ```typescript
 const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effects });
@@ -90,22 +90,22 @@ const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effec
 await loop.whenIdle();
 ```
 
-Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
-A batch processes adapter-emitted events in the order the scheduler received them.
-Each event matches against every registered slice's matrix. Matrices run in
-registration order, and effects within a matrix run in declaration order.
-Each effect receives the model
-returned by the previous effect. Return the same reference for a no-op so
-`ModelStore` can skip notifying its subscribers. If a pure effect throws,
-`flush()` discards that batch and the store retains its previous snapshot.
+Direct `enqueue()` and `flush()` remain available for custom `Main Loop` drivers.
+A batch processes `Events` from `Event Adapters` in the order the `EffectScheduler`
+received them. Each `Event` matches against the `Effect Matrix` of every registered
+`Slice`. The `Effect Matrices` run in registration order, and the `Effects` within
+each run in declaration order. Each `Effect` receives the `Data Model` returned by
+the previous `Effect`. Return the same reference for a no-op so `ModelStore` can
+skip notifying its subscribers. If a pure `Effect` throws, `flush()` discards that
+batch and `ModelStore` retains its previous snapshot.
 
-With the built-in `AutomataSlice`, `registerSlice(slice)` connects the slice's
-machines and effect matrix to the loop. Adding or removing a machine on that
-slice updates its event subscriptions. `unregisterSlice(slice.id)` disconnects
-the slice's current machines and removes its effect matrix. A custom slice
+With the built-in `AutomataSlice`, `registerSlice(slice)` connects the `Slice`'s
+`FSMs` and `Effect Matrix` to the `Main Loop`. Adding or removing an `FSM` on that
+`Slice` updates its `Event` subscriptions. `unregisterSlice(slice.id)` disconnects
+the `Slice`'s current `FSMs` and removes its `Effect Matrix`. A custom `Slice`
 with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
-notify the loop of additions and removals. Without that hook the loop wires
-the machines returned by `getMachines()` at registration.
+notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
+wires the `FSMs` returned by `getMachines()` at registration.
 
 Then, see the docs:
 

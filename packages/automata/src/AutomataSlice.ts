@@ -20,13 +20,13 @@ export type TAutomataSliceProps<
 	eventValidator?: TValidator<EventType>;
 };
 
-/** A machine that shares its slice's event IDs and event metadata. */
+/** An `FSM` that shares its `Slice`'s `Event` IDs and `Event Meta`. */
 export type TSliceMachine<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
 > = IAutomata<any, any, EventType, any, any, EventMetaType>;
 
-/** Independent unit of Yantrix business logic: FSMs plus an Effect Matrix. */
+/** Independent unit of Yantrix business logic: `FSMs` plus an `Effect Matrix`. */
 export class AutomataSlice<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,

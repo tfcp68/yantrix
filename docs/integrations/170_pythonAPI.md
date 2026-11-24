@@ -82,11 +82,11 @@ fsm['destroy']()         # clears internal queue
 
 ---
 
-## Event Bus
+## `Event Bus`
 
-Multiple automata can share an event bus for reactive wiring. Each factory that uses
+Multiple `FSMs` can share an `Event Bus` for reactive wiring. Each factory that uses
 `subscribe/` or `emit/` notes in its diagram will have a wired `event_adapter` in its
-instance dict. `create_event_bus()` connects N automata to a shared `_EventBus`.
+instance dict. `create_event_bus()` connects those `FSMs` to a shared `_EventBus`.
 
 ```python
 from automata_a_generated import create_automata_a, create_event_bus, event_dictionary
@@ -106,19 +106,17 @@ cleanup()
 
 `create_event_bus(bus_id, factories)` returns `(bus, automatas, cleanup)`:
 
-- `bus` - `_EventBus` instance; call `bus.dispatch(...)` to inject events
-- `automatas` - `dict[str, instance_dict]` of created FSM instances
+- `bus` - `_EventBus` instance; call `bus.dispatch(...)` to inject `Events`
+- `automatas` - `dict[str, instance_dict]` of created `FSM` instances
 - `cleanup()` - unsubscribes all handlers
 
-The generated Python bus delivers pending events in FIFO order by default.
+The generated Python `Event Bus` delivers pending `Events` in FIFO order by default.
 Use `--eventBusOrder lifo` when generating the module to deliver the newest
-pending event first. All automata connected to that bus share its order.
-Python's shared model store, effect batching at the end of a cascade, and live
-slice registration are planned in the [Python runtime parity plan](../contributing/10_codegen_python.html#python-runtime-parity-plan).
+pending `Event` first. All `FSMs` connected to that `Event Bus` share its order.
 
 ### Diagram syntax
 
-Use standard Yantrix note syntax to wire events:
+Use standard Yantrix note syntax to wire `Events`:
 
 ```text
 note left of StateA
@@ -130,8 +128,8 @@ note left of StateB
 end note
 ```
 
-When `StateB` is entered, it emits `EventName` onto the bus. Any automata listening to
-`EventName` (via `subscribe/EventName`) will have their `ActionName` action dispatched.
+The `emit/EventName` note maps `StateB` to an `Event` named `EventName`. Each `FSM` with
+the subscription shown dispatches the `Action` named `ActionName` when it receives that `Event`.
 
 ---
 

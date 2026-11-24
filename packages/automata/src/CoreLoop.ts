@@ -114,7 +114,7 @@ export class CoreLoop<
 		return this.effectScheduler;
 	}
 
-	/** Resolves after the Event cascade and its Effect batch have both completed. */
+	/** Resolves after the `Event` cascade and its `Effect` batch have both completed. */
 	public async whenIdle(): Promise<void> {
 		await this.bus.whenIdle();
 		const flushPromise = this.effectFlushPromise;
@@ -200,7 +200,7 @@ export class CoreLoop<
 		return result;
 	}
 
-	/** Registers a Slice's machines and Effect Matrix as one composition unit. */
+	/** Registers a `Slice`'s `FSMs` and `Effect Matrix` as one composition unit. */
 	public registerSlice(slice: IAutomataSlice<EventType, EventMetaType, ModelType>): this {
 		if (!this.effectScheduler) throw new Error('CoreLoop requires an Effect Scheduler to register a Slice');
 		if (!slice.id) throw new Error('Slice must provide a non-empty string id');
@@ -237,7 +237,7 @@ export class CoreLoop<
 		return this;
 	}
 
-	/** Removes a Slice's machines and Effect Matrix together. */
+	/** Removes a `Slice`'s `FSMs` and `Effect Matrix` together. */
 	public unregisterSlice(id: string): this {
 		const registered = this.slices.get(id);
 		if (!registered) return this;

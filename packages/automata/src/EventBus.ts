@@ -6,7 +6,7 @@ import { IAutomataEventBus } from './types/interfaces.js';
 export const STACK_RECURSION_LIMIT_RATIO = 2;
 export const STACK_PROCESSING_BATCH_SIZE = 32;
 
-/** Order in which the event bus takes its next event from the pending queue. */
+/** Order in which the `Event Bus` takes its next `Event` from the pending queue. */
 export type TEventBusOrder = 'fifo' | 'lifo';
 
 export function createEventBus<
@@ -184,16 +184,16 @@ export function createEventBus<
 			}
 
 			/**
-			 * Processes events in the event stack and handles them using subscribed callbacks.
+			 * Processes `Events` in the `Event Stack` and handles them using subscribed callbacks.
 			 *
-			 * This method iterates over the event stack, invoking the corresponding callbacks for each valid event,
-			 * and processes a batch of events limited by `STACK_PROCESSING_BATCH_SIZE`. When tasks repeatedly
-			 * return more copies of their own event ID than the batch consumed, limit their cumulative growth
+			 * This method iterates over the `Event Stack`, invoking the corresponding callbacks for each valid `Event`,
+			 * and processes a batch of `Events` limited by `STACK_PROCESSING_BATCH_SIZE`. When tasks repeatedly
+			 * return more copies of their own `Event` ID than the batch consumed, limit their cumulative growth
 			 * relative to the queue size after the first expanding batch. An isolated fan-out is allowed.
 			 *
-			 * @returns {TAutomataEventStack<EventType, EventMetaType>} new events acquired from processing the queue.
+			 * @returns {TAutomataEventStack<EventType, EventMetaType>} new `Events` acquired from processing the queue.
 			 *
-			 * @throws {Error} If the recursion limit, calculated as a ratio of the stack length, is exceeded for any event.
+			 * @throws {Error} If the recursion limit, calculated as a ratio of the stack length, is exceeded for any `Event`.
 			 *
 			 */
 			_processEvents(): Promise<TAutomataEventStack<EventType, EventMetaType>> {

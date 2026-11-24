@@ -111,16 +111,29 @@ sequenceDiagram
 
 _Figure 3: Yantrix Main Loop_
 
-## Effects
+## `Effects`
 
-Sources publish input events to the shared Event Bus. An FSM's event adapter can translate an
-input into an action, then emit events when the transition commits. The bus delivers these
-events to subscribers across slices. The scheduler collects adapter-emitted events for effects.
+Each `FSM` works with its own `State` and `Context`. Its `Reducer` can update those local values,
+but it cannot directly update the shared `Data Model`. `Effects` bridge that gap.
 
-When the bus finishes the cascade, including follow-up events, the scheduler applies each
-collected event to all matching effect matrices in registration order. Within a matrix,
-effects run in declaration order. The scheduler passes each effect's result to the next effect
-and commits the final model once if it changed. Destinations then receive the committed model.
+The `FSM` emits an `Event` describing what happened. Each matching `Effect` is a pure function that takes the
+current `Data Model` and the emitted `Event`, including its `Event Meta`, and returns the next
+`Data Model`.
+
+A `Source` publishes an input `Event` to the shared `Event Bus`. An `Event Adapter` can translate
+that input into an `Action` for its `FSM`. Once the transition commits, the `Event Adapter` can
+emit an `Event` of its own.
+
+For example, the `Checkout` `Slice` can emit `OrderPlaced` once, and
+both `Checkout` and `Audit` can register `Effects` for it in their respective `Effect Matrices`.
+
+The `Main Loop` waits until the `Event Bus` has delivered those `Events` and any follow-up `Events`.
+The `Effect Scheduler` then applies the matching `Effects` in `Effect Matrix` registration order
+and, within each `Effect Matrix`, in declaration order.
+
+Each `Effect` receives the `Data Model` returned by the previous one.
+If it changed, the `Main Loop` delivers one committed snapshot to
+the matching `Destinations`.
 
 ```mermaid
 sequenceDiagram
@@ -128,7 +141,7 @@ sequenceDiagram
 	participant ED as Effect Dictionary
 	participant MDL as Data Model (Anemic)
 	participant DB as Storages (Persistent)
-	Note over MT, ED: Match emitted events across registered matrices
+	Note over MT, ED: Match emitted Events across registered Effect Matrices
 	MT ->> ED: <TAutomataEventMetaType>
 	Note over ED, MDL: Update Model based on its current state and generated Events
 	ED ->> MDL: <TAutomataEventMetaType>, Data Model => Data Model
@@ -162,16 +175,16 @@ sequenceDiagram
 	SRC -->> MT: Event Meta
 	loop Main Loop iteration
 		activate MT
-		loop While events are queued
-			MT ->> MT: Dequeue next event and run FSM reducers
-			opt A committed transition emits an event
-				MT ->> EL: Enqueue the emitted event for this batch
+		loop While Events are queued
+			MT ->> MT: Dequeue next Event and run FSM Reducers
+			opt A committed transition emits an Event
+				MT ->> EL: Enqueue the emitted Event for this batch
 			end
 		end
 		MT ->> EL: Flush the batch
-		opt The model changed
+		opt The Data Model changed
 			EL ->> MDL: Commit one snapshot
-			MT ->> DST: Deliver matching events with the committed model
+			MT ->> DST: Deliver matching Events with the committed Data Model
 		end
 		deactivate MT
 	end

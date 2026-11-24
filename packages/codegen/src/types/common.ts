@@ -33,7 +33,7 @@ export interface IGenerateOptions {
 	 */
 	className: string;
 
-	/** Order in which the generated event bus delivers pending events. Defaults to 'fifo'. */
+	/** Order in which the generated `Event Bus` delivers pending `Events`. Defaults to `'fifo'`. */
 	eventBusOrder?: TEventBusOrder;
 
 	/**

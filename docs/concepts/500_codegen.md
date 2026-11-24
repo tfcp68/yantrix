@@ -53,21 +53,20 @@ const code = await generateAutomataFromStateDiagram(matrix, {
 });
 ```
 
-## Event bus order
+## `Event Bus` order
 
-The generated bus delivers pending events in first-in, first-out order by default.
-Set `eventBusOrder` to `'lifo'` to deliver the newest pending event first, as in
+The generated `Event Bus` delivers pending `Events` in first-in, first-out order by default.
+Set `eventBusOrder` to `'lifo'` to deliver the newest pending `Event` first, as in
 the TypeScript example above. For example, if `A` and `B` are both queued in that
 order before delivery starts, FIFO delivers `A` then `B`. LIFO delivers `B` then
-`A`. The option configures the generated bus. In the TypeScript reference runtime,
-all machines and slices connected to one `CoreLoop` follow the delivery order
-of that loop's shared bus. For a
-given emitted event, effects still run in matrix registration order and then
+`A`. The option configures the generated `Event Bus`. In the TypeScript reference runtime, all `FSMs` and `Slices` connected to
+one `CoreLoop` follow the delivery order of its shared `Event Bus`. For a given
+emitted `Event`, `Effects` still run in `Effect Matrix` registration order and then
 in their declaration order.
 
 `generateAutomataFromStateDiagram` and `generateAutomataFiles` accept this option
 for JavaScript, TypeScript, their pure dialects, and Python. Java generates an
-FSM without an event bus and rejects an explicit `eventBusOrder` option. On the
+`FSM` without an `Event Bus` and rejects an explicit `eventBusOrder` option. On the
 command line, use `--eventBusOrder fifo` or `--eventBusOrder lifo`.
 
 ## Supported languages
