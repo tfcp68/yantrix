@@ -1,20 +1,23 @@
 <% if (it.hasTypes) { %>((input: TRootReducerInput): TRootReducerOutput => {
   const { action, context, payload, state } = input;
 <% } else { %>({ action, context, payload, state }) => {<% } %>
-  if (<% if (it.hasTypes) { %>action === null || state === null<% } else { %>!action || !state<% } %> || payload === null) return { state: <% if (it.hasTypes) { %>(state ?? 0)<% } else { %>state<% } %>, context };
+  if (<% if (it.hasTypes) { %>action === null || state === null<% } else { %>!action || !state<% } %> || payload === null) return { state: <% if (it.hasTypes) { %>(state ?? 0)<% } else { %>state<% } %>, context, transitioned: false };
 
   if (!this.isKeyOf(state, actionToStateFromStateDict)) throw new Error("Invalid state, maybe machine isn't running.");
 
-  if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context };
+  if (!this.isKeyOf(action, actionToStateFromStateDict[state])) return { state, context, transitioned: false };
 
   const transitions<% if (it.hasTypes) { %>: TTransitions<% } %> = actionToStateFromStateDict;
 
   <%~ include('getNew', it) %>
 
   let localCtx = getNew(action, state, context, payload);
+  if (!localCtx) return { state, context, transitioned: false };
 
   while (byPassedStates.has(localCtx.state)) {
-    localCtx = getNew(<%~ it.byPassActionValue %>, localCtx.state, localCtx.context, {});
+    const next = getNew(<%~ it.byPassActionValue %>, localCtx.state, localCtx.context, {});
+    if (!next) break;
+    localCtx = next;
   }
 
   incrementEpoch();
