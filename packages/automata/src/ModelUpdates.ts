@@ -1,6 +1,4 @@
 type TModelObject<ObjectType extends object> = Exclude<ObjectType, ReadonlyArray<unknown>>;
-type TModelListResult<ListType extends ReadonlyArray<unknown>> =
-	ListType extends unknown[] ? Array<ListType[number]> : ReadonlyArray<ListType[number]>;
 
 function assertModelObject(object: object): void {
 	if (Array.isArray(object)) throw new TypeError('Object update helpers cannot be used with arrays');
@@ -64,7 +62,7 @@ export function updateModelItem<ListType extends ReadonlyArray<unknown>, Index e
 	list: ListType,
 	index: Index,
 	update: (item: ListType[Index], index: Index) => ListType[Index],
-): TModelListResult<ListType>;
+): ListType extends unknown[] ? Array<ListType[number]> : ReadonlyArray<ListType[number]>;
 export function updateModelItem<ItemType>(
 	list: ReadonlyArray<ItemType>,
 	index: number,
@@ -83,7 +81,7 @@ export function updateModelItem<ItemType>(
 export function removeModelItem<ListType extends ReadonlyArray<unknown>>(
 	list: ListType,
 	index: number,
-): TModelListResult<ListType>;
+): ListType extends unknown[] ? Array<ListType[number]> : ReadonlyArray<ListType[number]>;
 export function removeModelItem<ItemType>(list: ReadonlyArray<ItemType>, index: number): ReadonlyArray<ItemType> {
 	if (!Number.isInteger(index) || index < 0 || index >= list.length) return list;
 	return [...list.slice(0, index), ...list.slice(index + 1)];
