@@ -12,7 +12,7 @@ In a React application, install the adapter and the runtime used by generated Ty
 
 ```shell
 npm install @yantrix/react @yantrix/core
-npm install --save-dev @yantrix/cli @yantrix/codegen @types/node
+npm install --save-dev @yantrix/cli @types/node
 ```
 
 The generated TypeScript includes a timing helper that also runs on Node. Its `process` reference uses the Node type declarations during compilation.

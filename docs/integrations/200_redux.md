@@ -15,7 +15,7 @@ npm install @yantrix/core @yantrix/redux @reduxjs/toolkit@^2.2.7
 If you generate TypeScript from diagrams in this project, install the generation tools as development dependencies. The generated timing helper uses Node type declarations when compiling its `process` check.
 
 ```shell
-npm install --save-dev @yantrix/cli @yantrix/codegen @types/node
+npm install --save-dev @yantrix/cli @types/node
 ```
 
 ## Setup
