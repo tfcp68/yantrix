@@ -85,6 +85,38 @@ it.each([
 	cleanup();
 });
 
+it.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+	[ModuleNames.PureJavaScript, 'js'],
+	[ModuleNames.PureTypeScript, 'js'],
+] as const)('reads subscribe/ fallback fields from incoming meta in %s', async (lang, extension) => {
+	const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Done: Move
+note right of Idle
++Init
+subscribe/renamed Move ($value) <= ($original=$alternate)
+subscribe/shorthand Move ($value=$alternate)
+end note`;
+	const fixture = `subscribe_fallback_${lang}`;
+	await generateAndSave({ input, automataName: 'Receiver', lang }, fixture);
+	const mod = await import(getGeneratedFixturePath(`${fixture}_generated.${extension}`));
+	const adapter = mod.createReceiverEventAdapter();
+	for (const [event, key] of [[mod.eventDictionary.renamed, 'original'], [mod.eventDictionary.shorthand, 'value']] as const) {
+		for (const [meta, expected] of [
+			[{ [key]: false, alternate: 9 }, false],
+			[{ [key]: null, alternate: 0 }, 0],
+			[{ alternate: '' }, ''],
+			[{}, null],
+		] as const) {
+			expect(adapter.handleEvent({ event, meta })).toEqual([
+				{ action: mod.actionsDictionary.Move, payload: { value: expected } },
+			]);
+		}
+	}
+});
+
 it('types a generated ordered bus and cleanup for TypeScript consumers', async () => {
 	const machine = await generateAutomata({
 		input: templates.basicSubscribe,

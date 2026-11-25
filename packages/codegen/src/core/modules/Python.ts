@@ -16,7 +16,6 @@ import {
 	getReferenceIdentifier,
 	getReferenceType,
 	getStringValue,
-	getSubscribeStatements,
 	hasInitialState,
 	hasReducer,
 	isConstant,
@@ -33,7 +32,8 @@ import { ICodegen, TConstants, TExpressionRecord, TGetCodeOptionsMap, TModulePar
 import { eta, etaViewsPath } from '../eta.js';
 import { fillDictionaries, getStatesByPass, resolveEventBusOrder } from '../shared.js';
 import { ModuleNames } from './index.js';
-import { getEventEmittersModel } from './JavaScript/JavaScriptCompiler/events/core.js';
+import { TReducerBoundValueVM } from './JavaScript/JavaScriptCompiler/context/serializer.js';
+import { getEventEmittersModel, getEventListenersModel } from './JavaScript/JavaScriptCompiler/events/core.js';
 import { getExpressionValue } from './JavaScript/JavaScriptCompiler/expressions/core.js';
 import { getPredicates } from './JavaScript/JavaScriptCompiler/forks/core.js';
 
@@ -454,17 +454,13 @@ function buildDefinesData(
 // Event model builders
 // ---------------------------------------------------------------------------
 
-type TPythonListenerVM = {
-	eventIdentifier: string;
-	actionName: string;
-	payloadLines: string[];
-};
-
-function pyNullMeta(identifier: string, fallback: string | null): string {
-	const path = '_meta_inner';
-	const val = `${path}.get('${identifier}')`;
-	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
-	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+function renderEventFields(entries: TReducerBoundValueVM[], sourcePath: 'prev_context' | 'payload'): string[] {
+	return entries.map(({ targetProperty, source }) => {
+		const value = source.kind === 'defaultProperty'
+			? pyNull(sourcePath, source.identifier, source.fallbackExpression)
+			: source.expressionValueRight;
+		return `'${targetProperty}': ${value}`;
+	});
 }
 
 function buildEventEmittersData(diagram: TStateDiagramMatrixIncludeNotes, expressions: TExpressionRecord) {
@@ -472,44 +468,17 @@ function buildEventEmittersData(diagram: TStateDiagramMatrixIncludeNotes, expres
 		stateId,
 		events: events.map(({ eventIdentifier, metaEntries }) => ({
 			eventIdentifier,
-			metaLines: metaEntries.map(({ targetProperty, source }) => {
-				const value = source.kind === 'defaultProperty'
-					? pyNull('prev_context', source.identifier, source.fallbackExpression)
-					: source.expressionValueRight;
-				return `'${targetProperty}': ${value}`;
-			}),
+			metaLines: renderEventFields(metaEntries, 'prev_context'),
 		})),
 	}));
 }
 
-function buildEventListenersData(
-	diagram: TStateDiagramMatrixIncludeNotes,
-): TPythonListenerVM[] {
-	const result: TPythonListenerVM[] = [];
-	for (const state of diagram.states) {
-		if (!state.notes) continue;
-		const subs = getSubscribeStatements(state.notes);
-		for (const sub of subs) {
-			const payloadLines: string[] = [];
-			if ('metaItems' in sub && Array.isArray((sub as any).metaItems)) {
-				const targets = 'payload' in sub && Array.isArray((sub as any).payload)
-					? (sub as any).payload as RawKeyItem[]
-					: (sub as any).metaItems as RawKeyItem[];
-				const sources = (sub as any).metaItems as RawKeyItem[];
-				sources.forEach((src: RawKeyItem, i: number) => {
-					const target = targets[i] ?? src;
-					const val = pyNullMeta(src.identifier, null);
-					payloadLines.push(`'${target.identifier}': ${val}`);
-				});
-			}
-			result.push({
-				eventIdentifier: sub.identifier,
-				actionName: sub.actionName,
-				payloadLines,
-			});
-		}
-	}
-	return result;
+function buildEventListenersData(diagram: TStateDiagramMatrixIncludeNotes, expressions: TExpressionRecord) {
+	return getEventListenersModel({ diagram, expressions }).map(({ eventIdentifier, actionName, payloadEntries }) => ({
+		eventIdentifier,
+		actionName,
+		payloadLines: renderEventFields(payloadEntries, 'payload'),
+	}));
 }
 
 // ---------------------------------------------------------------------------
@@ -571,7 +540,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		const defines = buildDefinesData(this.diagram, expressions, pyFuncCall);
 
 		const emitters = buildEventEmittersData(this.diagram, expressions);
-		const listeners = buildEventListenersData(this.diagram);
+		const listeners = buildEventListenersData(this.diagram, expressions);
 
 		const builtins = injectedCode
 			? rawBuiltins

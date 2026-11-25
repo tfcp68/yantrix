@@ -712,6 +712,44 @@ print('ok')
 		expect(out.trim()).toBe('ok');
 	});
 
+	it('maps incoming Event Meta into the Action Payload used by the receiver', async () => {
+		const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Active: Move
+note right of Idle
++Init
+subscribe/mapped Move ($value, $label) <= ($original=$alternate, $text='default')
+subscribe/sameName Move ($value)
+subscribe/bare Move
+end note
+note right of Active
+#{count, label} <= $value, $label
+end note
+`;
+		await generateAndSave({ input, automataName: 'Receiver', lang: ModuleNames.Python }, 'py_subscribe_meta');
+		const script = `
+from py_subscribe_meta_generated import actions_dictionary, create_event_bus, create_receiver, event_dictionary
+bus, machines, cleanup = create_event_bus('test', {'receiver': create_receiver})
+receiver = machines['receiver']
+adapter = receiver['event_adapter']
+
+def payload(name, meta):
+    action, = adapter.handle_event({'event': event_dictionary[name], 'meta': meta})
+    assert action['action'] == actions_dictionary['Move']
+    return action['payload']
+
+assert payload('mapped', {'original': 0, 'alternate': 99, 'text': ''}) == {'value': 0, 'label': ''}
+assert payload('mapped', {'original': None, 'alternate': 2}) == {'value': 2, 'label': 'default'}
+assert payload('mapped', None) == {'value': None, 'label': 'default'}
+assert payload('sameName', {'value': False})['value'] is False
+assert payload('bare', {'unused': 1}) == {}
+bus.dispatch({'event': event_dictionary['mapped'], 'meta': {'original': 3, 'text': 'ready'}})
+assert receiver['context']() == {'count': 3, 'label': 'ready'}
+cleanup()
+`;
+		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });
+	});
+
 	it('cleanup unsubscribes all handlers - dispatch after cleanup has no effect', () => {
 		const script = `
 import sys
@@ -725,6 +763,24 @@ print('ok')
 `.trim();
 		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
+	});
+
+	it('starts listeners registered during delivery on the next Event', () => {
+		const script = `
+from py_receiver_generated import actions_dictionary, create_receiver, event_dictionary
+adapter = create_receiver()['event_adapter']
+event = {'event': event_dictionary['FsmSignal'], 'meta': {}}
+trigger = actions_dictionary['Trigger']
+
+def register_late(_event):
+    adapter.add_event_listener(event['event'], lambda ev: {'action': trigger, 'payload': {'late': True}})
+
+adapter.add_event_listener(event['event'], register_late)
+generated = {'action': trigger, 'payload': {}}
+assert adapter.handle_event(event) == [generated]
+assert adapter.handle_event(event) == [generated, {'action': trigger, 'payload': {'late': True}}]
+`;
+		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });
 	});
 });
 

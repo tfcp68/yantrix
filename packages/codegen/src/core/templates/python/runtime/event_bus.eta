@@ -42,7 +42,7 @@ class _EventAdapter:
 
     def handle_event(self, event_meta):
         actions = []
-        for fn in self._listeners.get(event_meta.get('event'), []):
+        for fn in list(self._listeners.get(event_meta.get('event'), [])):
             result = fn(event_meta)
             if result:
                 actions.append(result)

@@ -54,7 +54,7 @@ export function fillDictionaries(
 			}
 
 			const subscribeStatements = getSubscribeStatements(state.notes);
-			const subscribedEventsKeys = subscribeStatements.map(sub => sub.identifier);
+			const subscribedEventsKeys = Array.from(new Set(subscribeStatements.map(sub => sub.identifier)));
 			if (subscribedEventsKeys.length > 0) {
 				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
 				eventDictionary.addEvents({ keys: uniqueKeys });

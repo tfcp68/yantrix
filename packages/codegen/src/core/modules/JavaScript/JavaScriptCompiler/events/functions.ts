@@ -92,13 +92,21 @@ export function getActionPayloadModel(props: {
 
 		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItemsModel({ reducer: event.metaItems, sourcePath: 'meta', expressions }),
+			arr: context.serializer.mapReducerItemsModel({
+				reducer: event.metaItems,
+				sourcePath: pathRecord.payload,
+				expressions,
+			}),
 			context: targetIdentifiers,
 		});
 	} else if (subscribeHasPayload(event)) {
 		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItemsModel({ reducer: event.payload, sourcePath: 'meta', expressions }),
+			arr: context.serializer.mapReducerItemsModel({
+				reducer: event.payload,
+				sourcePath: pathRecord.payload,
+				expressions,
+			}),
 			context: keyItemsToRawKeyItems(event.payload),
 		});
 	} else {

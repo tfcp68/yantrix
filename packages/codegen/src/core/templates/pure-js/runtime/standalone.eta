@@ -30,12 +30,12 @@ export function createEventAdapter() {
       if (!_emitters.has(stateId)) _emitters.set(stateId, []);
       _emitters.get(stateId).push(fn);
     },
-    addEventListener(eventId, fn) { _listeners.set(eventId, fn); },
-    handleEvent({ event, meta }) {
-      const handler = _listeners.get(event);
-      if (!handler) return [];
-      const result = handler({ event, meta });
-      return result ? [result] : [];
+    addEventListener(eventId, fn) {
+      if (!_listeners.has(eventId)) _listeners.set(eventId, []);
+      _listeners.get(eventId).push(fn);
+    },
+    handleEvent(event) {
+      return (_listeners.get(event.event) ?? []).map(handle => handle(event)).filter(Boolean);
     },
     handleTransition(context) {
       return (_emitters.get(context.state) ?? []).map(emit => emit(context)).filter(Boolean);
