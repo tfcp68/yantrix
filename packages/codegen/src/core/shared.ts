@@ -47,7 +47,7 @@ export function fillDictionaries(
 			if (!state.notes) continue;
 
 			const emitStatements = getEmitStatements(state.notes);
-			const emittedEventsKeys = emitStatements.map(emit => emit.identifier);
+			const emittedEventsKeys = Array.from(new Set(emitStatements.map(emit => emit.identifier)));
 			if (emittedEventsKeys.length > 0) {
 				const uniqueKeys = emittedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
 				eventDictionary.addEvents({ keys: uniqueKeys });

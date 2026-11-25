@@ -26,7 +26,10 @@ export function createEventAdapter() {
   const _emitters = new Map();
   const _listeners = new Map();
   return {
-    addEventEmitter(stateId, fn) { _emitters.set(stateId, fn); },
+    addEventEmitter(stateId, fn) {
+      if (!_emitters.has(stateId)) _emitters.set(stateId, []);
+      _emitters.get(stateId).push(fn);
+    },
     addEventListener(eventId, fn) { _listeners.set(eventId, fn); },
     handleEvent({ event, meta }) {
       const handler = _listeners.get(event);
@@ -35,10 +38,7 @@ export function createEventAdapter() {
       return result ? [result] : [];
     },
     handleTransition(context) {
-      const emitter = _emitters.get(context.state);
-      if (!emitter) return [];
-      const result = emitter(context);
-      return result ? [result] : [];
+      return (_emitters.get(context.state) ?? []).map(emit => emit(context)).filter(Boolean);
     },
   };
 }

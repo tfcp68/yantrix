@@ -11,6 +11,7 @@ import {
 	SubscribeStatement,
 } from '@yantrix/yantrix-parser';
 import { TExpressionRecord } from '../../../../../types/common';
+import { pathRecord } from '../../../../shared';
 import { context } from '../context';
 import { TReducerBoundValueVM } from '../context/serializer';
 
@@ -62,7 +63,7 @@ export function getEventMetaModel(props: {
 			expressions,
 			arr: context.serializer.mapReducerItemsModel({
 				reducer: contextAsKeyItems as unknown as KeyItem[],
-				sourcePath: 'context',
+				sourcePath: pathRecord.context,
 				expressions,
 			}),
 			context: keyItemsToRawKeyItems(event.meta),
@@ -70,7 +71,7 @@ export function getEventMetaModel(props: {
 	} else if (emitHasMeta(event)) {
 		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItemsModel({ reducer: event.meta, sourcePath: 'context', expressions }),
+			arr: context.serializer.mapReducerItemsModel({ reducer: event.meta, sourcePath: pathRecord.context, expressions }),
 			context: keyItemsToRawKeyItems(event.meta),
 		});
 	} else {

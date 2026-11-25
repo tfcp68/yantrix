@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateStorageBindings, ModuleNames } from '@yantrix/codegen';
 import { describe, expect, it } from 'vitest';
+import templates from './fixtures/eventsTemplates.js';
 import { generateAndSave, generateAutomata } from './fixtures/utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -743,6 +744,33 @@ print('ok')
 `.trim();
 		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
+	});
+});
+
+describeExec('python codegen - multiple emit declarations', () => {
+	it('delivers each declaration in order with its own metadata', async () => {
+		await generateAndSave({ input: templates.multipleEmits, automataName: 'Emitter', lang: ModuleNames.Python }, 'py_multi_emit');
+		const script = `
+from py_multi_emit_generated import create_event_bus, create_emitter, event_dictionary, states_dictionary
+bus, machines, cleanup = create_event_bus('multi-emit', {'emitter': create_emitter})
+machine = machines['emitter']
+seen = []
+for name in ('First', 'Second'):
+    bus.subscribe(event_dictionary[name], lambda event, name=name: seen.append((name, event['meta'])))
+adapter = machine['event_adapter']
+def runtime(transition):
+    adapter.add_event_emitter(transition['state'], lambda next_transition: {'event': event_dictionary['First'], 'meta': {'value': 'late'}})
+    return [{'event': event_dictionary['Second'], 'meta': {'value': 'runtime'}}]
+adapter.add_event_emitter(states_dictionary['Active'], runtime)
+bus.dispatch({'event': event_dictionary['begin'], 'meta': {}})
+assert machine['state']() == states_dictionary['Active']
+assert adapter.handle_transition(machine['get_context']())[-1]['meta'] == {'value': 'late'}
+bus.dispatch({'event': event_dictionary['finish'], 'meta': {}})
+assert machine['state']() == states_dictionary['Done']
+assert seen == [('First', {'value': 0}), ('Second', {'value': 'second'}), ('First', {'value': 3, 'copied': 0}), ('Second', {'value': 'runtime'})], seen
+cleanup()
+`;
+		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });
 	});
 });
 

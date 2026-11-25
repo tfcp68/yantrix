@@ -10,7 +10,6 @@ import {
 	FunctionCall,
 	getContextStatements,
 	getDefineStatements,
-	getEmitStatements,
 	getFunctionArgs,
 	getFunctionName,
 	getNumberValue,
@@ -34,6 +33,7 @@ import { ICodegen, TConstants, TExpressionRecord, TGetCodeOptionsMap, TModulePar
 import { eta, etaViewsPath } from '../eta.js';
 import { fillDictionaries, getStatesByPass, resolveEventBusOrder } from '../shared.js';
 import { ModuleNames } from './index.js';
+import { getEventEmittersModel } from './JavaScript/JavaScriptCompiler/events/core.js';
 import { getExpressionValue } from './JavaScript/JavaScriptCompiler/expressions/core.js';
 import { getPredicates } from './JavaScript/JavaScriptCompiler/forks/core.js';
 
@@ -454,12 +454,6 @@ function buildDefinesData(
 // Event model builders
 // ---------------------------------------------------------------------------
 
-type TPythonEmitterVM = {
-	stateId: string;
-	stateValue: number;
-	events: Array<{ eventIdentifier: string; metaLines: string[] }>;
-};
-
 type TPythonListenerVM = {
 	eventIdentifier: string;
 	actionName: string;
@@ -473,39 +467,19 @@ function pyNullMeta(identifier: string, fallback: string | null): string {
 	return `(${val} if ${check} else ${fallback ?? 'None'})`;
 }
 
-function pyNullCtx(identifier: string, fallback: string | null): string {
-	const path = '_ctx_inner';
-	const val = `${path}.get('${identifier}')`;
-	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
-	return `(${val} if ${check} else ${fallback ?? 'None'})`;
-}
-
-function buildEventEmittersData(
-	diagram: TStateDiagramMatrixIncludeNotes,
-	stateDictionary: BasicStateDictionary,
-): TPythonEmitterVM[] {
-	const result: TPythonEmitterVM[] = [];
-	for (const state of diagram.states) {
-		if (!state.notes) continue;
-		const emits = getEmitStatements(state.notes);
-		if (emits.length === 0) continue;
-		const sv = stateDictionary.getStateValues({ keys: [state.id] })[0];
-		if (sv == null) continue;
-
-		const events = emits.map((emit) => {
-			const metaLines: string[] = [];
-			if ('meta' in emit && Array.isArray((emit as any).meta)) {
-				for (const item of (emit as any).meta as RawKeyItem[]) {
-					const val = pyNullCtx(item.identifier, null);
-					metaLines.push(`'${item.identifier}': ${val}`);
-				}
-			}
-			return { eventIdentifier: emit.identifier, metaLines };
-		});
-
-		result.push({ stateId: state.id, stateValue: sv, events });
-	}
-	return result;
+function buildEventEmittersData(diagram: TStateDiagramMatrixIncludeNotes, expressions: TExpressionRecord) {
+	return getEventEmittersModel({ diagram, expressions }).map(({ stateId, events }) => ({
+		stateId,
+		events: events.map(({ eventIdentifier, metaEntries }) => ({
+			eventIdentifier,
+			metaLines: metaEntries.map(({ targetProperty, source }) => {
+				const value = source.kind === 'defaultProperty'
+					? pyNull('prev_context', source.identifier, source.fallbackExpression)
+					: source.expressionValueRight;
+				return `'${targetProperty}': ${value}`;
+			}),
+		})),
+	}));
 }
 
 function buildEventListenersData(
@@ -596,7 +570,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		const defaultContextLines = buildDefaultContextLines(startStateValue, this.diagram, expressions);
 		const defines = buildDefinesData(this.diagram, expressions, pyFuncCall);
 
-		const emitters = buildEventEmittersData(this.diagram, this.stateDictionary);
+		const emitters = buildEventEmittersData(this.diagram, expressions);
 		const listeners = buildEventListenersData(this.diagram);
 
 		const builtins = injectedCode
