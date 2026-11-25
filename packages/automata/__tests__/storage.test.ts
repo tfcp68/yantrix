@@ -255,7 +255,7 @@ describe('storage hydration', () => {
 		pending.reject(new Error('offline'));
 		const second = await secondHydration;
 		expect(second.failures).toHaveLength(1);
-		await hydrateModel(firstStore.get(), bindings, { session: first.session });
+		await firstLoop.hydrate();
 		firstStore.commit({ ...initial, count: 3 });
 		secondStore.commit({ ...initial, count: 4 });
 		await Promise.all([firstLoop.whenIdle(), secondLoop.whenIdle()]);
@@ -263,11 +263,44 @@ describe('storage hydration', () => {
 		expect(firstLoop.getFailures()).toEqual([]);
 		expect(secondLoop.getFailures()).toEqual(second.failures);
 
-		const recovered = await hydrateModel(secondStore.get(), [countBinding(storage)], { session: secondSession });
+		const recovered = await secondLoop.hydrate();
 		expect(recovered.failures).toEqual([]);
 		secondLoop.requestSync();
 		await Promise.all([firstLoop.stop(), secondLoop.stop()]);
 		expect(await storage.load()).toEqual({ count: 4 });
+	});
+
+	it('retries hydration in the loop session, reports each failure once, and returns the model for the caller to commit', async () => {
+		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter', initialSnapshot: { count: 7 } });
+		const binding = countBinding(storage);
+		const error = new Error('offline');
+		vi.spyOn(storage, 'load')
+			.mockRejectedValueOnce(error)
+			.mockRejectedValueOnce(error);
+		const initial = { count: 0, name: 'initial' };
+		const startup = await hydrateModel(initial, [binding]);
+		const store = new ModelStore(startup.model);
+		const onError = vi.fn();
+		const loop = new StorageSyncLoop({ store, session: startup.session, onError }).start();
+		loop.addStorage(binding);
+		const save = vi.spyOn(storage, 'save');
+
+		const failed = await loop.hydrate();
+		expect(failed.failures).toEqual([{ storageId: 'counter', phase: 'load', error }]);
+		expect(onError.mock.calls).toEqual([[failed.failures[0]]]);
+		store.commit({ count: 1, name: 'pending' });
+		await loop.whenIdle();
+		expect(save).not.toHaveBeenCalled();
+		expect(loop.getFailures()).toEqual(failed.failures);
+		expect(onError).toHaveBeenCalledOnce();
+
+		const restored = await loop.hydrate({ count: 2, name: 'retry' });
+		expect(restored.session).toBe(startup.session);
+		expect(restored.model).toEqual({ count: 7, name: 'retry' });
+		expect(store.get()).toEqual({ count: 1, name: 'pending' });
+		store.commit(restored.model);
+		await loop.stop();
+		expect(save.mock.calls).toEqual([[{ count: 7 }]]);
 	});
 
 	it('can repersist an identical projection after a failed read is repaired', async () => {
@@ -321,6 +354,15 @@ describe('storage Sync Loop', () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
 		// @ts-expect-error JavaScript callers can omit the session.
 		expect(() => new StorageSyncLoop({ store })).toThrow('hydration session');
+	});
+
+	it('rejects hydration on a write-only loop', async () => {
+		const store = new ModelStore({ count: 0, name: 'initial' });
+		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const load = vi.spyOn(storage, 'load');
+		const loop = new StorageSyncLoop({ store, session: null, bindings: [countBinding(storage)] });
+		await expect(loop.hydrate()).rejects.toThrow('write-only');
+		expect(load).not.toHaveBeenCalled();
 	});
 
 	it('coalesces commits queued before a write starts and does not block ModelStore', async () => {

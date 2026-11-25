@@ -26,6 +26,7 @@ interface IIndexedDBTransactionLike {
 }
 
 interface IIndexedDBDatabaseLike {
+	readonly version: number;
 	objectStoreNames: { contains: (name: string) => boolean };
 	onversionchange?: TIndexedDBEventHandler;
 	createObjectStore: (name: string) => unknown;
@@ -34,6 +35,7 @@ interface IIndexedDBDatabaseLike {
 }
 
 interface IIndexedDBOpenRequestLike extends IIndexedDBRequestLike<IIndexedDBDatabaseLike> {
+	transaction: IIndexedDBTransactionLike | null;
 	result: IIndexedDBDatabaseLike;
 	onblocked: TIndexedDBEventHandler;
 	onupgradeneeded: TIndexedDBEventHandler;
@@ -52,6 +54,60 @@ export type TIndexedDBStorageAdapterProps = {
 	openTimeoutMs?: number;
 	indexedDB?: IIndexedDBFactoryLike;
 };
+
+// Only shared databases that need a physical upgrade to add a store get this record.
+const schemaStore = '\u0000yantrix/storage/schema';
+const schemaRecordKey = 'version';
+const schemaFormat = 'yantrix/storage/schema/1';
+
+type TDatabaseSchema = {
+	format: typeof schemaFormat;
+	configuredVersion: number;
+	physicalVersion: number;
+};
+
+function abortPendingTransaction(transaction: IIndexedDBTransactionLike | null): void {
+	try {
+		transaction?.abort();
+	} catch (error) {
+		// Native I/O may already be committed while its completion event is queued.
+		if ((error as Error)?.name !== 'InvalidStateError') throw error;
+	}
+}
+
+async function configuredDatabaseVersion(database: IIndexedDBDatabaseLike, signal: AbortSignal): Promise<number> {
+	if (!database.objectStoreNames.contains(schemaStore)) return database.version;
+	const transaction = database.transaction(schemaStore, 'readonly');
+	const request = transaction.objectStore(schemaStore).get(schemaRecordKey);
+	const record = await new Promise<unknown>((resolve, reject) => {
+		const onAbort = () => {
+			reject(signal.reason);
+			abortPendingTransaction(transaction);
+		};
+		signal.addEventListener('abort', onAbort, { once: true });
+		transaction.oncomplete = () => {
+			signal.removeEventListener('abort', onAbort);
+			resolve(request.result);
+		};
+		transaction.onabort = () => {
+			signal.removeEventListener('abort', onAbort);
+			reject(transaction.error);
+		};
+	});
+	return readConfiguredVersion(record, database.version);
+}
+
+function readConfiguredVersion(value: unknown, physicalVersion: number): number {
+	const record = value as Partial<TDatabaseSchema> | null | undefined;
+	if (record?.format !== schemaFormat
+		|| typeof record.configuredVersion !== 'number' || typeof record.physicalVersion !== 'number'
+		|| !Number.isSafeInteger(record.configuredVersion) || !Number.isSafeInteger(record.physicalVersion)
+		|| record.configuredVersion < 1 || record.physicalVersion < record.configuredVersion) {
+		throw new Error('IndexedDB schema store conflicts with an existing object store');
+	}
+	// A native upgrade performed outside the adapter has its own schema version.
+	return record.physicalVersion === physicalVersion ? record.configuredVersion : physicalVersion;
+}
 
 /** IndexedDB-backed Storage for structured-clone-compatible snapshots. */
 export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorageAdapter<SnapshotType> {
@@ -76,7 +132,8 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 		if (typeof id !== 'string' || id.length === 0) throw new Error('Storage must provide a non-empty string id');
 		const defaultIndexedDB = (globalThis as { indexedDB?: IIndexedDBFactoryLike }).indexedDB;
 		if (!indexedDB && !defaultIndexedDB) throw new Error('IndexedDB backend is unavailable');
-		if (!Number.isInteger(databaseVersion) || databaseVersion < 1) {
+		if (storeName === schemaStore) throw new Error('IndexedDB object store name is reserved for schema management');
+		if (!Number.isSafeInteger(databaseVersion) || databaseVersion < 1) {
 			throw new TypeError('IndexedDB version must be a positive integer');
 		}
 		if (!Number.isInteger(openTimeoutMs) || openTimeoutMs < 1 || openTimeoutMs > 2_147_483_647) {
@@ -131,48 +188,124 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 	#open(): Promise<IIndexedDBDatabaseLike> {
 		if (this.#databasePromise) return this.#databasePromise;
 
-		const databasePromise = new Promise<IIndexedDBDatabaseLike>((resolve, reject) => {
-			const request = this.#indexedDB.open(this.#databaseName, this.#databaseVersion);
-			let abandoned = false;
-			const abandon = (reason: string) => {
-				abandoned = true;
-				reject(new Error(`Opening IndexedDB "${this.#databaseName}" ${reason}`));
+		const controller = new AbortController();
+		const timer = setTimeout(() => {
+			controller.abort(new Error(`Opening IndexedDB "${this.#databaseName}" timed out`));
+		}, this.#openTimeoutMs);
+		const databasePromise = this.#openStore(controller.signal).then((database) => {
+			clearTimeout(timer);
+			database.onversionchange = () => {
+				if (this.#databasePromise === databasePromise) this.#databasePromise = null;
+				database.close();
 			};
-			// A request queued behind another open may never receive its own blocked event.
-			const timer = setTimeout(() => abandon('timed out'), this.#openTimeoutMs);
-			request.onblocked = () => {
-				clearTimeout(timer);
-				abandon('was blocked by another connection');
-			};
-			request.onupgradeneeded = () => {
-				if (!request.result.objectStoreNames.contains(this.#storeName)) {
-					request.result.createObjectStore(this.#storeName);
-				}
-			};
-			request.onsuccess = () => {
-				clearTimeout(timer);
-				const database = request.result;
-				// IndexedDB open requests cannot be cancelled after a blocked event or timeout.
-				if (abandoned) {
-					database.close();
-					return;
-				}
-				database.onversionchange = () => {
-					if (this.#databasePromise === databasePromise) this.#databasePromise = null;
-					database.close();
-				};
-				resolve(database);
-			};
-			request.onerror = () => {
-				clearTimeout(timer);
-				reject(request.error ?? new Error(`Failed to open IndexedDB "${this.#databaseName}"`));
-			};
-		}).catch((error) => {
+			return database;
+		}, (error) => {
+			clearTimeout(timer);
 			if (this.#databasePromise === databasePromise) this.#databasePromise = null;
 			throw error;
 		});
 		this.#databasePromise = databasePromise;
 		return databasePromise;
+	}
+
+	async #openStore(signal: AbortSignal): Promise<IIndexedDBDatabaseLike> {
+		let physicalVersion: number | undefined = this.#databaseVersion;
+		for (;;) {
+			signal.throwIfAborted();
+			let database: IIndexedDBDatabaseLike;
+			try {
+				database = await this.#requestOpen(physicalVersion, signal);
+			} catch (error) {
+				// A peer may have advanced the physical version to provision another store.
+				if (physicalVersion === undefined || (error as Error)?.name !== 'VersionError') throw error;
+				physicalVersion = undefined;
+				continue;
+			}
+
+			let closing = false;
+			database.onversionchange = () => {
+				closing = true;
+				database.close();
+			};
+			try {
+				const configuredVersion = await configuredDatabaseVersion(database, signal);
+				signal.throwIfAborted();
+				if (configuredVersion > this.#databaseVersion) {
+					const error = new Error(`IndexedDB "${this.#databaseName}" uses schema version ${configuredVersion}`);
+					error.name = 'VersionError';
+					throw error;
+				}
+				if (closing) {
+					physicalVersion = undefined;
+				} else {
+					const hasStore = database.objectStoreNames.contains(this.#storeName);
+					if (hasStore && configuredVersion === this.#databaseVersion) return database;
+					physicalVersion = Math.max(this.#databaseVersion, database.version + 1);
+				}
+			} catch (error) {
+				database.close();
+				throw error;
+			}
+			database.close();
+		}
+	}
+
+	#requestOpen(version: number | undefined, signal: AbortSignal): Promise<IIndexedDBDatabaseLike> {
+		return new Promise((resolve, reject) => {
+			const request = this.#indexedDB.open(this.#databaseName, version);
+			let upgradeError: unknown;
+			const onAbort = () => {
+				reject(signal.reason);
+				abortPendingTransaction(request.transaction);
+			};
+			signal.addEventListener('abort', onAbort, { once: true });
+			// A blocked request may still succeed after an older connection finishes its transaction.
+			request.onupgradeneeded = () => {
+				if (signal.aborted) {
+					request.transaction!.abort();
+					return;
+				}
+				const database = request.result;
+				const transaction = request.transaction!;
+				const provision = () => {
+					if (!database.objectStoreNames.contains(this.#storeName)) {
+						database.createObjectStore(this.#storeName);
+					}
+					if (database.version > this.#databaseVersion) {
+						if (!database.objectStoreNames.contains(schemaStore)) database.createObjectStore(schemaStore);
+						const schema: TDatabaseSchema = {
+							format: schemaFormat,
+							configuredVersion: this.#databaseVersion,
+							physicalVersion: database.version,
+						};
+						transaction.objectStore(schemaStore).put(schema, schemaRecordKey);
+					}
+				};
+				if (database.objectStoreNames.contains(schemaStore)) {
+					const check = transaction.objectStore(schemaStore).get(schemaRecordKey);
+					check.onsuccess = () => {
+						try {
+							readConfiguredVersion(check.result, database.version);
+							provision();
+						} catch (error) {
+							upgradeError = error;
+							transaction.abort();
+						}
+					};
+				} else {
+					provision();
+				}
+			};
+			request.onsuccess = () => {
+				signal.removeEventListener('abort', onAbort);
+				if (signal.aborted) request.result.close();
+				else resolve(request.result);
+			};
+			request.onerror = () => {
+				signal.removeEventListener('abort', onAbort);
+				reject(upgradeError ?? request.error ?? new Error(`Failed to open IndexedDB "${this.#databaseName}"`));
+			};
+		});
 	}
 
 	async #transaction(

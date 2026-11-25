@@ -214,7 +214,7 @@ export class StorageSyncLoop<ModelType extends object> {
 	readonly #session: StorageHydrationSession | null;
 	readonly #bindings = new Map<string, TAnyStorageBinding<ModelType>>();
 	readonly #lastPersistedProjection = new Map<string, { projection: unknown; hydration?: THydrationAttempt }>();
-	readonly #reportedHydrations = new WeakSet<THydrationAttempt>();
+	readonly #reportedHydrationFailures = new WeakSet<TStorageFailure>();
 	readonly #failures: TStorageFailure[] = [];
 	readonly #idleWaiters = new Set<() => void>();
 	readonly #debounceMs: number;
@@ -268,6 +268,15 @@ export class StorageSyncLoop<ModelType extends object> {
 			this.#bindings.delete(binding.storage.id);
 			this.#lastPersistedProjection.delete(binding.storage.id);
 		};
+	}
+
+	/** Hydrates the loop's registered `Storage` bindings and returns the `Data Model` for the caller to commit. */
+	public async hydrate(initialModel: ModelType = this.#store.get()): Promise<TModelHydrationResult<ModelType>> {
+		if (!this.#session) throw new Error('Cannot hydrate a write-only Storage Sync Loop');
+		return hydrateModel(initialModel, [...this.#bindings.values()], {
+			session: this.#session,
+			onError: failure => this.#reportHydrationFailure(failure),
+		});
 	}
 
 	public start(): this {
@@ -371,10 +380,7 @@ export class StorageSyncLoop<ModelType extends object> {
 		await Promise.all(bindings.map(async (binding) => {
 			const hydration = this.#session?.[hydrationAttempts].get(binding.storage);
 			if (hydration && !hydration.ready) {
-				if (hydration.failure && !this.#reportedHydrations.has(hydration)) {
-					this.#reportedHydrations.add(hydration);
-					recordFailure(this.#failures, hydration.failure, this.#onError);
-				}
+				if (hydration.failure) this.#reportHydrationFailure(hydration.failure);
 				return;
 			}
 			let projection: unknown;
@@ -399,6 +405,12 @@ export class StorageSyncLoop<ModelType extends object> {
 				recordFailure(this.#failures, { storageId: binding.storage.id, phase: 'save', error }, this.#onError);
 			}
 		}));
+	}
+
+	#reportHydrationFailure(failure: TStorageFailure): void {
+		if (this.#reportedHydrationFailures.has(failure)) return;
+		this.#reportedHydrationFailures.add(failure);
+		recordFailure(this.#failures, failure, this.#onError);
 	}
 
 	#resolveIdleWaiters(): void {

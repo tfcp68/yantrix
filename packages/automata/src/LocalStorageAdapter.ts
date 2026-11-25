@@ -30,26 +30,42 @@ export class LocalStorageAdapter<SnapshotType = unknown> implements IStorageAdap
 		deserialize = value => JSON.parse(value) as SnapshotType,
 	}: TLocalStorageAdapterProps<SnapshotType>) {
 		if (typeof id !== 'string' || id.length === 0) throw new Error('Storage must provide a non-empty string id');
-		const browserWindow = (globalThis as { window?: { localStorage?: IKeyValueStorage } }).window;
-		const defaultStorage = browserWindow?.localStorage;
-		if (!storage && !defaultStorage) throw new Error('LocalStorage backend is unavailable');
+		const browser = globalThis as { window?: { localStorage?: IKeyValueStorage } };
+		const backend = storage ?? browser.window?.localStorage;
+		if (!backend) throw new Error('LocalStorage backend is unavailable');
 		this.id = id;
 		this.#key = key;
-		this.#storage = storage ?? defaultStorage!;
+		this.#storage = backend;
 		this.#serialize = serialize;
 		this.#deserialize = deserialize;
 	}
 
 	public async load(): Promise<SnapshotType | null> {
-		const value = this.#storage.getItem(this.#key);
-		return value === null ? null : this.#deserialize(value);
+		return this.#readSnapshot();
 	}
 
 	public async save(snapshot: SnapshotType): Promise<void> {
-		this.#storage.setItem(this.#key, this.#serialize(snapshot));
+		this.#writeSnapshot(snapshot);
+	}
+
+	public async saveConditionally(
+		snapshot: SnapshotType,
+		validateCurrent: (current: SnapshotType | null) => void,
+	): Promise<void> {
+		validateCurrent(this.#readSnapshot());
+		this.#writeSnapshot(snapshot);
 	}
 
 	public async clear(): Promise<void> {
 		this.#storage.removeItem(this.#key);
+	}
+
+	#readSnapshot(): SnapshotType | null {
+		const value = this.#storage.getItem(this.#key);
+		return value === null ? null : this.#deserialize(value);
+	}
+
+	#writeSnapshot(snapshot: SnapshotType): void {
+		this.#storage.setItem(this.#key, this.#serialize(snapshot));
 	}
 }
