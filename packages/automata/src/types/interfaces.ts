@@ -38,6 +38,7 @@ import {
 	TEffectMatrixEntry,
 	TEventBusHandler,
 	TModelListener,
+	TReadonlyModel,
 	TSubscriptionCancelFunction,
 	TValidator,
 } from './index.js';
@@ -50,7 +51,7 @@ import {
  */
 export interface IDataModelStore<ModelType extends object> {
 	get: () => ModelType;
-	commit: (model: ModelType) => void;
+	commit: (model: ModelType | TReadonlyModel<ModelType>) => void;
 	subscribe: (listener: TModelListener<ModelType>) => TSubscriptionCancelFunction;
 }
 

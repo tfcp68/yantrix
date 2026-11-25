@@ -1,5 +1,5 @@
 import { assertSerializableModel, deepFreezeModel } from './ModelValidation.js';
-import { TModelListener, TSubscriptionCancelFunction } from './types/index.js';
+import { TModelListener, TReadonlyModel, TSubscriptionCancelFunction } from './types/index.js';
 import { IDataModelStore } from './types/interfaces.js';
 
 export type TModelStoreOptions = {
@@ -44,17 +44,17 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 	 * Atomically replaces the snapshot and notifies subscribers once.
 	 * Re-committing the same reference is a no-op.
 	 */
-	public commit(model: ModelType): void {
+	public commit(model: ModelType | TReadonlyModel<ModelType>): void {
 		if (model === this.#model) return;
 
-		model = this.#prepare(model);
+		const nextModel = this.#prepare(model);
 		const previousModel = this.#model;
-		this.#model = model;
+		this.#model = nextModel;
 
 		// A stable snapshot prevents listeners added during notification from
 		// observing a commit that started before they subscribed.
 		for (const listener of [...this.#listeners]) {
-			listener(model, previousModel);
+			listener(nextModel, previousModel);
 		}
 	}
 
@@ -70,10 +70,10 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		};
 	}
 
-	#prepare(model: ModelType): ModelType {
+	#prepare(model: ModelType | TReadonlyModel<ModelType>): ModelType {
 		assertModel(model);
 		if (this.#options.development?.validateSerializable) assertSerializableModel(model);
 		if (this.#options.development?.freeze) deepFreezeModel(model);
-		return model;
+		return model as ModelType;
 	}
 }

@@ -26,6 +26,7 @@ time.
 ### Examples
 
 -   `#{stepIndex} <= nextStep(#stepIndex)`
+-   `#{counter} <= add(#counter, increaseGlobalCounter($value))`
 -   `#{email, password, input_error} <= sanitize(#email), sanitize(#password), validate(#email, #password)}`
 
 ## Reducer Transformers
@@ -158,7 +159,7 @@ reuse its reference for a no-op where possible.
 | `zip`       | **List**, **List**              | - Keys list<br/>- Value list                      | **Object**  | new **Object** which keys are created from the `Key list` and values - from the `Value list`. Both **Lists** should be of equal length and contain only **String** and/or **Number** values (or none) |
 | `setAttr`       | **Object**, **String**, **any**              | - Object<br/>- Key string<br/>- Value                      | **Object**  | a clone of `Object`, but with its `Key string` property set to `Value` |
 | `unsetAttr`       | **Object**, **String**              | - Object<br/>- Key string                      | **Object**  | a clone of `Object`, but with its `Key string` property removed |
-| `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source objectы` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
+| `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source Objects` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
 | `intersect`       | **Object**, [**Object**...]              | - Source Objects                      | **Object**  | new **Object** that contains only properties that exist in all provided `Source Objects`. Eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
 | `pick`      | **Object**, **List** | - Source Object<br/>- Keys<br/> | **Object**    | returns new **Object** containing values from `Source List` with keys listed in `Keys`, in order of appearance in original `Object` |
 | `pick`      | **Object**, **String** | - Source Object<br/>- Key<br/> | **any**    | returns a single value from `Source Object` with key  `Key` |

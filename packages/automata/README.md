@@ -118,7 +118,7 @@ with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
 notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
 wires the `FSMs` returned by `getMachines()` at registration.
 
-`Model Predicates` and `Model Transformers` can select one value from the `Data Model`. The following `Effect` checks the counter’s limit before applying an increment.
+`Model Predicates` and `Model Transformers` can select one value from the `Data Model`. The following `Effect` checks the counter's limit before applying an increment.
 
 ```typescript
 import {

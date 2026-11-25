@@ -1,4 +1,4 @@
-import { TAutomataEffect, TEffectMatrix, TModelPredicate } from '@yantrix/automata';
+import { IDataModelStore, ModelStore, TAutomataEffect, TEffectMatrix, TModelPredicate } from '@yantrix/automata';
 import { createModelTransformer, TModelSlicePredicate, TModelSliceTransformer, TModelTransformer, whenModel } from '@yantrix/automata/ModelFunctions';
 import { mergeModelObject, removeModelItem, removeModelProperty, setModelProperty, updateModelItem, updateModelProperty } from '@yantrix/automata/ModelUpdates';
 import { assertSerializableModel } from '@yantrix/automata/ModelValidation';
@@ -30,6 +30,18 @@ if (!hasSku(event, initial) || effects[1]!.some(effect => effect(event, initial)
 	throw new Error('Expected the no-op effects to preserve the snapshot');
 if (updateModelItem(initial.cart.skus, 0, sku => sku)[0] !== 'A')
 	throw new Error('Expected the original list item');
+
+const store = new ModelStore<IModel>(initial);
+const observable: IDataModelStore<IModel> = store;
+const commits: IModel[] = [];
+observable.subscribe(model => commits.push(model));
+const appendSku: TModelTransformer<IModel, 1, TMeta> = (event, model) =>
+	event.meta === null ? model : { cart: { skus: [...model.cart.skus, event.meta.sku] } };
+const next = appendSku({ event: 1, meta: { sku: 'B' } }, initial);
+observable.commit(next);
+store.commit(sameSnapshot(event, store.get()));
+if (store.get() !== next || next.cart.skus[1] !== 'B' || commits.length !== 1 || commits[0] !== next)
+	throw new Error('Expected one commit of the exact transformer result');
 
 export const checkPredicateInput: TModelPredicate<IModel> = (_event, model) => {
 	// @ts-expect-error A predicate cannot append to nested model data.
