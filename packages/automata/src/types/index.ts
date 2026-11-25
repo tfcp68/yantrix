@@ -260,7 +260,12 @@ export type TReadonlyModel<Value> = Value extends object
 	? { readonly [Key in keyof Value]: TReadonlyModel<Value[Key]> }
 	: Value;
 
-/** A pure `Effect` projects the current `Data Model` into its next snapshot. */
+/**
+ * A pure `Effect` projects the current `Data Model` into its next snapshot.
+ *
+ * For compatibility, `TAutomataEffect` uses TypeScript's shallow `Readonly<ModelType>`.
+ * Implementations must treat nested values as read-only too. `TModelTransformer` enforces this recursively.
+ */
 export type TAutomataEffect<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
