@@ -250,29 +250,33 @@ export const pick = <T extends object>(obj: T, ...paths: string[]): Partial<T> =
 	});
 	return r;
 };
+// copies only the containers along the path, untouched branches keep their references
+const _setIn = (c: any, ps: string[], i: number, val: unknown): any => {
+	const k = ps[i]!;
+	const r = Array.isArray(c) ? [...c] : { ...c };
+	if (i === ps.length - 1) {
+		r[k] = val;
+		return r;
+	}
+	const next = c[k] != null && typeof c[k] === 'object' ? c[k] : /^\d+$/.test(ps[i + 1]!) ? [] : {};
+	r[k] = _setIn(next, ps, i + 1, val);
+	return r;
+};
+const _unsetIn = (c: any, ps: string[], i: number): any => {
+	const k = ps[i]!;
+	if (c == null || typeof c !== 'object' || !(k in c)) return c;
+	const r = Array.isArray(c) ? [...c] : { ...c };
+	if (i === ps.length - 1) delete r[k];
+	else r[k] = _unsetIn(c[k], ps, i + 1);
+	return r;
+};
 export const setAttr = (obj: any, path: string | string[], val: unknown): any => {
 	if (obj == null) return obj;
-	const ps = _parsePath(path as string);
-	const cur: any = obj;
-	let c = cur;
-	for (let i = 0; i < ps.length - 1; i++) {
-		const k = ps[i]!;
-		if (c[k] == null || typeof c[k] !== 'object') c[k] = /^\d+$/.test(ps[i + 1]!) ? [] : {};
-		c = c[k];
-	}
-	c[ps[ps.length - 1]!] = val;
-	return obj;
+	return _setIn(obj, _parsePath(path), 0, val);
 };
-export const unsetAttr = (obj: any, path: string | string[]): boolean => {
-	if (obj == null) return true;
-	const ps = _parsePath(path as string);
-	let c = obj;
-	for (let i = 0; i < ps.length - 1; i++) {
-		c = c[ps[i]!];
-		if (c == null) return true;
-	}
-	delete c[ps[ps.length - 1]!];
-	return true;
+export const unsetAttr = (obj: any, path: string | string[]): any => {
+	if (obj == null) return obj;
+	return _unsetIn(obj, _parsePath(path), 0);
 };
 export const values = (o: object): any[] => o == null ? [] : Object.values(o);
 export const zip = <T>(...arrays: T[][]): (T | undefined)[][] => {

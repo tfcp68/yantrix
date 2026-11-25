@@ -61,9 +61,9 @@ end note
 // Automata B: CollectionFunctions
 // One self-looping state covering all array/object operations.
 // makeColPayload() factory creates fresh objects each call to
-// prevent lodash mutation side effects (_.set, _.reverse, _.merge).
+// prevent lodash mutation side effects (_.reverse, _.merge).
 // ============================================================
-// Each mutating function (setAttr/_.set, merge/_.merge, reverse/_.reverse) gets
+// Each mutating function (merge/_.merge, reverse/_.reverse) gets
 // its own payload key so mutations don't bleed into sibling computations.
 const collInput = `stateDiagram-v2
 	[*] --> Coll: eval
@@ -73,6 +73,7 @@ note left of Coll
 	#{med_r}      <= med($cNums=[])
 	#{sumsq_r}    <= sumsq($cNums=[])
 	#{setAttr_r}  <= setAttr($saObj, $saPath, $saVal)
+	#{unsetAttr_r} <= unsetAttr($saObj, $saPath)
 	#{omit_r}     <= omit($cObj, $cKey)
 	#{pick_r}     <= pick($cObj, $cKey)
 	#{merge_r}    <= merge($mBase, $mPatch)
@@ -391,7 +392,7 @@ describe('builtin functions codegen', async () => {
 		function makeColPayload(override: Record<string, unknown> = {}) {
 			return {
 				cNums: [1, 2, 3],
-				// saObj/saPath/saVal: exclusive to setAttr (_.set mutates saObj)
+				// saObj/saPath/saVal: exclusive to setAttr/unsetAttr
 				saObj: { a: 1 },
 				saPath: 'a',
 				saVal: 99,
@@ -447,7 +448,23 @@ describe('builtin functions codegen', async () => {
 		describe('setAttr', () => {
 			it('setAttr({a:1}, b, 2) = {a:1, b:2}', () => expect(dispatch({ saObj: { a: 1 }, saPath: 'b', saVal: 2 }).setAttr_r).toStrictEqual({ a: 1, b: 2 }));
 			it('setAttr({a:1}, a, 99) overwrites', () => expect(dispatch({ saObj: { a: 1 }, saPath: 'a', saVal: 99 }).setAttr_r).toStrictEqual({ a: 99 }));
-			it('setAttr(null, k, 1) = null (lodash _.set returns null for null input)', () => expect(dispatch({ saObj: null, saPath: 'k', saVal: 1 }).setAttr_r).toBeNull());
+			it('setAttr(null, k, 1) = null', () => expect(dispatch({ saObj: null, saPath: 'k', saVal: 1 }).setAttr_r).toBeNull());
+			it('setAttr does not mutate its input', () => {
+				const saObj = { a: { b: 1 } };
+				const r = dispatch({ saObj, saPath: 'a.b', saVal: 2 }).setAttr_r;
+				expect(r).toStrictEqual({ a: { b: 2 } });
+				expect(saObj).toStrictEqual({ a: { b: 1 } });
+			});
+		});
+
+		describe('unsetAttr', () => {
+			it('unsetAttr({a:1, b:2}, b) = {a:1}', () => expect(dispatch({ saObj: { a: 1, b: 2 }, saPath: 'b' }).unsetAttr_r).toStrictEqual({ a: 1 }));
+			it('unsetAttr does not mutate its input', () => {
+				const saObj = { a: 1, b: 2 };
+				dispatch({ saObj, saPath: 'b' });
+				expect(saObj).toStrictEqual({ a: 1, b: 2 });
+			});
+			it('unsetAttr(null, k) = null', () => expect(dispatch({ saObj: null, saPath: 'k' }).unsetAttr_r).toBeNull());
 		});
 
 		describe('omit', () => {
