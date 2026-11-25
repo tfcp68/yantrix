@@ -118,9 +118,7 @@ with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
 notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
 wires the `FSMs` returned by `getMachines()` at registration.
 
-Model Predicates and Model Transformers can be scoped to a selected model value
-and composed into an Effect without exposing the whole application model to a
-domain operation:
+`Model Predicates` and `Model Transformers` can select one value from the `Data Model`. The following `Effect` checks the counter’s limit before applying an increment.
 
 ```typescript
 import {
@@ -139,7 +137,7 @@ const canIncrement = createModelPredicate<
 	AppEvent.Increment,
 	IEventMeta
 >(
-	(current: Readonly<ICounterModel>) => current.counter,
+	current => current.counter,
 	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
 );
 const increment = createModelTransformer<
@@ -148,15 +146,14 @@ const increment = createModelTransformer<
 	AppEvent.Increment,
 	IEventMeta
 >(
-	(current: Readonly<ICounterModel>) => current.counter,
+	current => current.counter,
 	(current, counter) => ({ ...current, counter }),
 	(event, counter) => ({ ...counter, value: counter.value + (event.meta?.amount ?? 0) }),
 );
 const incrementWhenAllowed = whenModel(canIncrement, increment);
 ```
 
-`ModelStore` can also enable opt-in development diagnostics. They are disabled
-by default and do not add work to production commits:
+`ModelStore` can also enable opt-in development diagnostics. Both checks are disabled by default.
 
 ```typescript
 const model = new ModelStore(initialModel, {

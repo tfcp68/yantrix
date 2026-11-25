@@ -19,7 +19,6 @@ import {
 	TAutomataBaseEventType,
 	TAutomataBaseStateType,
 	TAutomataDispatch,
-	TAutomataEffect,
 	TAutomataEventEmitter,
 	TAutomataEventHandler,
 	TAutomataEventMetaType,
@@ -36,6 +35,7 @@ import {
 	TDataDestinationOutput,
 	TEffectFlushResult,
 	TEffectMatrix,
+	TEffectMatrixEntry,
 	TEventBusHandler,
 	TModelListener,
 	TSubscriptionCancelFunction,
@@ -761,7 +761,7 @@ export interface IAutomataSlice<
 	 */
 	consumeEvent: () => {
 		events: TAutomataEventStack<EventType, EventMetaType>;
-		effects: Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
+		effects: Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>;
 	};
 
 	/**
@@ -769,7 +769,7 @@ export interface IAutomataSlice<
 	 * @param event - The event for which to retrieve the effects.
 	 * @returns The effects associated with the event.
 	 */
-	getEventEffects: (event: EventType) => Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
+	getEventEffects: (event: EventType) => Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>;
 }
 
 /**

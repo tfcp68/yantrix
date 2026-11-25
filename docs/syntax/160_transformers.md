@@ -34,28 +34,26 @@ Function that translate from `State`+`Action/Payload` to `State/Context` can be 
 
 -   `#{propertyA, propertyB} = reducerA(#propertyA, $payloadA, reducerB(#propertyB, $payloadB)`
 
-## Model Transformers
+## `Model Transformers`
 
-Model Transformers are the context-free subtype of `Effects`. They are pure projections from the current read-only
+`Model Transformers` are the context-free subtype of `Effects`. They are pure projections from the current read-only
 `Data Model` and triggering `Event Meta` to a new model snapshot. They must not mutate their arguments. Returning the
 current snapshot reference denotes a no-op and lets `ModelStore` avoid an unnecessary commit.
 
--   `#{counter} <= add(№counter, increaseGlobalCounter($value))`
+Compose the condition at the `Effect` so the condition and change stay in one place.
 
-The TypeScript runtime exposes two levels of composition:
-
--   `composeModelTransformers` applies transformations in declaration order;
+-   `composeModelTransformers` applies transformations in declaration order.
 -   `whenModel(predicate, transformer)` produces a conditional `Effect` and returns the unchanged model when the
-    Predicate fails.
+    `Predicate` fails.
 
-`createModelTransformer(select, replace, transform)` scopes a Transformer to one model value. `select` reads that value,
+`createModelTransformer(select, replace, transform)` scopes a `Model Transformer` to one model value. `select` reads that value,
 `transform` projects it, and `replace` rebuilds the enclosing model only when the selected value has changed. This keeps
-the event metadata and selected model value strictly typed without coupling a domain transformation to the complete
+the `Event Meta` and selected model value strictly typed without coupling a domain transformation to the complete
 application model.
 
 ```typescript
 const increment = createModelTransformer<AppModel, Counter, AppEvent.Increment, AppEventMeta>(
-	(model: Readonly<AppModel>) => model.counter,
+	model => model.counter,
 	(model, counter) => ({ ...model, counter }),
 	(event, counter) => ({ ...counter, value: counter.value + (event.meta?.amount ?? 0) }),
 );
@@ -133,7 +131,7 @@ reuse its reference for a no-op where possible.
 | `pick`      | **List**, **List** | - Source List<br/>- Keys | **List**    | returns new **List** containing values from `Source List` with indeces in `Keys`, in order of appearance in original `List` |
 | `pick`      | **List**, **Number** | - Source List<br/>- Index | **any**    | returns a value from `Source List` at position `Index` |
 | `reverse`      | **List** | - Source List<br/> | **List**  | returns a new **List** comprised of `Source List` elements in reverse order |
-| `sort` | **List** | - Source List | **List** | returns a new **List** comprised of `Source List` elements in ascending order | 
+| `sort` | **List** | - Source List | **List** | returns a new **List** comprised of `Source List` elements in ascending order |
 
 ## Built-Ins: String Transformers
 
@@ -159,9 +157,9 @@ reuse its reference for a no-op where possible.
 | `values`       | **Object**              | - Object<br/>                      | **List**  | a **List** containing all defined values of `Object` in enumeration order
 | `zip`       | **List**, **List**              | - Keys list<br/>- Value list                      | **Object**  | new **Object** which keys are created from the `Key list` and values - from the `Value list`. Both **Lists** should be of equal length and contain only **String** and/or **Number** values (or none) |
 | `setAttr`       | **Object**, **String**, **any**              | - Object<br/>- Key string<br/>- Value                      | **Object**  | a clone of `Object`, but with its `Key string` property set to `Value` |
-| `unsetAttr`       | **Object**, **String**              | - Object<br/>- Key string                      | **Object**  | a clone of `Object`, but with its `Key string` property removed | 
-| `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source objectы` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority | 
-| `intersect`       | **Object**, [**Object**...]              | - Source Objects                      | **Object**  | new **Object** that contains only properties that exist in all provided `Source Objects`. Eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority | 
+| `unsetAttr`       | **Object**, **String**              | - Object<br/>- Key string                      | **Object**  | a clone of `Object`, but with its `Key string` property removed |
+| `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source objectы` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
+| `intersect`       | **Object**, [**Object**...]              | - Source Objects                      | **Object**  | new **Object** that contains only properties that exist in all provided `Source Objects`. Eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
 | `pick`      | **Object**, **List** | - Source Object<br/>- Keys<br/> | **Object**    | returns new **Object** containing values from `Source List` with keys listed in `Keys`, in order of appearance in original `Object` |
 | `pick`      | **Object**, **String** | - Source Object<br/>- Key<br/> | **any**    | returns a single value from `Source Object` with key  `Key` |
 

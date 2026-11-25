@@ -5,10 +5,13 @@ import {
 	composeModelTransformers,
 	createModelPredicate,
 	createModelTransformer,
+	EffectScheduler,
+	ModelStore,
 	notModelPredicate,
 	TModelPredicate,
 	TModelSlicePredicate,
 	TModelSliceTransformer,
+	TReadonlyModel,
 	whenModel,
 } from '../src';
 
@@ -74,10 +77,43 @@ describe('model functions', () => {
 		const unchanged = createModelTransformer(
 			(current: Readonly<ITestModel>) => current.counter,
 			replace,
-			(_currentEvent, counter) => counter as ICounterSlice,
+			(_currentEvent, counter) => counter,
 		);
 		expect(unchanged(event, model)).toBe(model);
 		expect(replace).toHaveBeenCalledOnce();
+	});
+
+	it('preserves a read-only list selection through a no-op and a subsequent commit', () => {
+		type TShop = { cart: { skus: string[] } };
+		const initial: TShop = { cart: { skus: ['first'] } };
+		const replace = vi.fn((model: TReadonlyModel<TShop>, skus: readonly string[]) => ({
+			...model,
+			cart: { ...model.cart, skus },
+		}));
+		const append = createModelTransformer<TShop, string[], TestEvent.Add, ITestEventMeta>(
+			model => model.cart.skus,
+			replace,
+			(currentEvent, skus) => currentEvent.meta?.amount ? [...skus, 'next'] : skus,
+		);
+		const store = new ModelStore(initial);
+		const notify = vi.fn();
+		store.subscribe(notify);
+		const scheduler = new EffectScheduler<TShop, TestEvent.Add, ITestEventMeta>({
+			store,
+			matrices: [{ [TestEvent.Add]: [append] }],
+		});
+
+		scheduler.enqueue({ event: TestEvent.Add, meta: { amount: 0 } });
+		expect(scheduler.flush().changed).toBe(false);
+		expect(store.get()).toBe(initial);
+		expect(replace).not.toHaveBeenCalled();
+		expect(notify).not.toHaveBeenCalled();
+
+		scheduler.enqueue(event);
+		expect(scheduler.flush().changed).toBe(true);
+		expect(store.get().cart.skus).toEqual(['first', 'next']);
+		expect(initial.cart.skus).toEqual(['first']);
+		expect(notify).toHaveBeenCalledOnce();
 	});
 
 	it('composes Model Transformers from left to right', () => {

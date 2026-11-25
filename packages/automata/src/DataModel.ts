@@ -7,7 +7,7 @@ export type TModelStoreOptions = {
 	development?: {
 		/** Freeze every accepted snapshot recursively. */
 		freeze?: boolean;
-		/** Reject values outside Yantrix's strict JSON-safe Data Model subset. */
+		/** Reject values outside Yantrix's strict JSON-safe `Data Model` subset. */
 		validateSerializable?: boolean;
 	};
 };
@@ -45,9 +45,9 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 	 * Re-committing the same reference is a no-op.
 	 */
 	public commit(model: ModelType): void {
-		model = this.#prepare(model);
 		if (model === this.#model) return;
 
+		model = this.#prepare(model);
 		const previousModel = this.#model;
 		this.#model = model;
 

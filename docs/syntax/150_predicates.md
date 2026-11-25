@@ -2,12 +2,11 @@
 title: Predicates
 ---
 
-# Predicates
+# `Predicates`
 
-`Predicates` are functions that return a Boolean value and are used to fork the flow of operations inside `FSMs`.
-All `Predicates` are high-order functions that allow composition.
+`Predicates` return a boolean. `Built-in Predicates` and `Context Predicates` can select a branch inside an `FSM`.
 
-## Built-in Predicates
+## `Built-in Predicates`
 
 Bundled within Yantrix grammar, they are used to combine other `Predicates` and implement logical operations
 like `not`, `and` and so on.
@@ -24,30 +23,23 @@ like `not`, `and` and so on.
 any(isGreater(value, 0), not(includes(listValue, 'sample')), isGreater(len(stringValue), 0))
 ```
 
-## Model Predicates
+## `Model Predicates`
 
-Model Predicates implement conditions that rely on the current `Data Model` snapshot. In the TypeScript runtime their
-explicit dependencies are the triggering `Event Meta` and a read-only model. `createModelPredicate` can narrow that
-dependency to one selected model value, keeping domain functions independent from the whole application model.
+A `Model Predicate` tests a read-only `Data Model` snapshot and receives the triggering `Event`, including its `Event Meta`. Use `createModelPredicate` to select the model value the condition needs.
 
 ```typescript
 const canIncrement = createModelPredicate<AppModel, Counter, AppEvent.Increment, AppEventMeta>(
-	(model: Readonly<AppModel>) => model.counter,
+	model => model.counter,
 	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
 );
 ```
 
 `allModelPredicates`, `anyModelPredicates`, and `notModelPredicate` compose these conditions and preserve normal
-short-circuit semantics. A Model Predicate only reads the model; changes belong to
-[`Model Transformers`](160_transformers.html#model-transformers) and `Effects`.
+short-circuit semantics. A `Model Predicate` can also guard an `Effect` through `whenModel`.
 
-### Examples
+For example, a `Source` can put an authorization decision in `Event Meta`. The `Event Adapter` maps it into the `Action Payload` so the `FSM` can use it when selecting a transition.
 
--   `isUserAuthorized(user_id)`
--   `isEqual(getHeader(headers, 'Origin'), %%allowed_origin))`
--   `effect/colorize <= #{if(isEven(counter), 'red','green'}}`
-
-## Context Predicates
+## `Context Predicates`
 
 Are declared within a `Slice` and its `State Dictionary`, and have a `State`/`Context` pair as a dependency. It's
 designed to create decision branching within `Forks` and create domain-specific logic
