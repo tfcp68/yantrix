@@ -41,6 +41,7 @@ interface IIndexedDBOpenRequestLike extends IIndexedDBRequestLike<IIndexedDBData
 	onupgradeneeded: TIndexedDBEventHandler;
 }
 
+/** IndexedDB factory whose `open(name, version?)` method opens a named database at an optional physical version. */
 export interface IIndexedDBFactoryLike {
 	open: (name: string, version?: number) => IIndexedDBOpenRequestLike;
 }
