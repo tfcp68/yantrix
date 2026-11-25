@@ -14,7 +14,12 @@ export type TLocalStorageAdapterProps<SnapshotType> = {
 	deserialize?: (value: string) => SnapshotType;
 };
 
-/** Browser key-value persistence adapter with injectable serialization and backend. */
+/**
+ * Browser key-value persistence adapter with injectable serialization and backend.
+ *
+ * `saveConditionally()` reads, checks, and writes the stored value synchronously.
+ * Web Storage provides no transaction across tabs.
+ */
 export class LocalStorageAdapter<SnapshotType = unknown> implements IStorageAdapter<SnapshotType> {
 	public readonly id: string;
 	readonly #key: string;
@@ -48,10 +53,6 @@ export class LocalStorageAdapter<SnapshotType = unknown> implements IStorageAdap
 		this.#writeSnapshot(snapshot);
 	}
 
-	/**
-	 * `LocalStorageAdapter` reads, checks, and writes the stored value synchronously.
-	 * Web Storage provides no transaction across tabs.
-	 */
 	public async saveConditionally(
 		snapshot: SnapshotType,
 		validateCurrent: (current: SnapshotType | null) => void,
