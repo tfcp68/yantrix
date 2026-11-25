@@ -1,4 +1,10 @@
-import { createStorageAdapter, TInMemoryStorageAdapterProps } from '@yantrix/automata';
+import { createStorageAdapter, TStorageAdapterProps } from '@yantrix/automata';
+
+/** @see {@link InMemoryStorageAdapter} */
+export type TInMemoryStorageAdapterProps<SnapshotType> = TStorageAdapterProps & {
+	initialSnapshot?: SnapshotType | null;
+	clone?: (snapshot: SnapshotType) => SnapshotType;
+};
 
 /** Reference `Storage` useful for tests, SSR and ephemeral application sessions. */
 export class InMemoryStorageAdapter<SnapshotType = unknown> extends createStorageAdapter()<SnapshotType> {

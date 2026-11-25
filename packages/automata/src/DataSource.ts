@@ -102,16 +102,6 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 	}
 }
 
-export type TIntervalTimerDataSourceDataPacket = {
-	id: string;
-	timestamp: number;
-	startTimestamp: number;
-} & TCycleIteratorInfo;
-
-export type TIntervalTimerDataSourceProps = TDataSourceConstructorOpts<TIntervalTimerDataSourceDataPacket> & {
-	interval: number;
-};
-
 export class NamedDataSource<T> extends AbstractAgnosticDataSource<T> {
 	override _addDataPacket(dataPacket: T): void {
 		super._addDataPacket(Object.assign({}, dataPacket, { id: this.id }));

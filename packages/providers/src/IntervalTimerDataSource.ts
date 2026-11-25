@@ -2,9 +2,21 @@ import {
 	AbstractAgnosticDataSource,
 	createDataSourceAdapter,
 	TAutomataBaseEventType,
-	TIntervalTimerDataSourceDataPacket,
-	TIntervalTimerDataSourceProps,
+	TCycleIteratorInfo,
+	TDataSourceConstructorOpts,
 } from '@yantrix/automata';
+
+/** @see {@link IntervalTimerDataSource} */
+export type TIntervalTimerDataSourceDataPacket = {
+	id: string;
+	timestamp: number;
+	startTimestamp: number;
+} & TCycleIteratorInfo;
+
+/** @see {@link IntervalTimerDataSource} */
+export type TIntervalTimerDataSourceProps = TDataSourceConstructorOpts<TIntervalTimerDataSourceDataPacket> & {
+	interval: number;
+};
 
 class IntervalTimer extends AbstractAgnosticDataSource<TIntervalTimerDataSourceDataPacket> {
 	#intervalLink: ReturnType<typeof setInterval> | null = null;

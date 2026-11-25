@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { readFile, rm, writeFile } from 'node:fs/promises';
-import { IStorageAdapter } from '@yantrix/automata';
+import { IStorageAdapter } from '@yantrix/core';
 
 export function connect(filename: string, encoding: BufferEncoding = 'utf8'): IStorageAdapter<string> {
 	return {

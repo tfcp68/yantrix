@@ -24,10 +24,12 @@
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
 	"keywords": [
-		"FSM",
-		"Miely Machine",
-		"Yantrix",
-		"Typescript"
+		"yantrix",
+		"storage",
+		"persistence",
+		"indexeddb",
+		"localstorage",
+		"in-memory"
 	],
 	"sideEffects": false,
 	"exports": {
@@ -42,15 +44,37 @@
 				"default": "./dist/index.cjs"
 			}
 		},
-		"./*": {
+		"./InMemoryStorageAdapter": {
 			"import": {
-				"types": "./dist/*.d.ts",
-				"default": "./dist/*.js"
+				"types": "./dist/InMemoryStorageAdapter.d.ts",
+				"default": "./dist/InMemoryStorageAdapter.js"
 			},
 			"require": {
-				"types": "./dist/*.d.cts",
-				"module-sync": "./dist/*.js",
-				"default": "./dist/*.cjs"
+				"types": "./dist/InMemoryStorageAdapter.d.cts",
+				"module-sync": "./dist/InMemoryStorageAdapter.js",
+				"default": "./dist/InMemoryStorageAdapter.cjs"
+			}
+		},
+		"./IndexedDBStorageAdapter": {
+			"import": {
+				"types": "./dist/IndexedDBStorageAdapter.d.ts",
+				"default": "./dist/IndexedDBStorageAdapter.js"
+			},
+			"require": {
+				"types": "./dist/IndexedDBStorageAdapter.d.cts",
+				"module-sync": "./dist/IndexedDBStorageAdapter.js",
+				"default": "./dist/IndexedDBStorageAdapter.cjs"
+			}
+		},
+		"./LocalStorageAdapter": {
+			"import": {
+				"types": "./dist/LocalStorageAdapter.d.ts",
+				"default": "./dist/LocalStorageAdapter.js"
+			},
+			"require": {
+				"types": "./dist/LocalStorageAdapter.d.cts",
+				"module-sync": "./dist/LocalStorageAdapter.js",
+				"default": "./dist/LocalStorageAdapter.cjs"
 			}
 		}
 	},

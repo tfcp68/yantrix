@@ -1,8 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { hydrateModel, ModelStore, StorageSyncLoop } from '@yantrix/automata';
 import { generateStorageBindings, IStorageBindingDefinition, ModuleNames } from '@yantrix/codegen';
+import { hydrateModel, ModelStore, StorageSyncLoop } from '@yantrix/core';
 import ts from 'typescript';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -73,7 +75,7 @@ describe('programmatic storage bindings', () => {
 		const consumer = path.join(directory, 'consumer.ts');
 		writeFileSync(consumer, `
 			import { createStorageBindings } from './typed.js';
-			import { hydrateModel } from '@yantrix/automata';
+			import { hydrateModel } from '@yantrix/core';
 
 			const bindings = createStorageBindings({ 'user-preferences': [{ id: 'user', initialSnapshot: { theme: 'dark' } }], archive: ['db', 'utf8'] });
 			hydrateModel({ theme: 'light', dialogOpen: false }, bindings);
@@ -104,6 +106,32 @@ describe('programmatic storage bindings', () => {
 		rmSync(typed);
 		const consumerDiagnostics = ts.getPreEmitDiagnostics(ts.createProgram([consumer], compilerOptions));
 		expect(consumerDiagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
+	}, 20000);
+
+	it('compiles generated bindings in a consumer with only the core package installed', () => {
+		const consumer = mkdtempSync(path.join(tmpdir(), 'yantrix-core-consumer-'));
+		try {
+			writeFileSync(path.join(consumer, 'package.json'), JSON.stringify({ type: 'module' }));
+			const scope = path.join(consumer, 'node_modules', '@yantrix');
+			mkdirSync(scope, { recursive: true });
+			const coreEntry = createRequire(import.meta.url).resolve('@yantrix/core');
+			symlinkSync(path.resolve(path.dirname(coreEntry), '..'), path.join(scope, 'core'), 'junction');
+			copyFileSync(path.join(fixtures, 'preferences.ts'), path.join(consumer, 'preferences.ts'));
+			writeFileSync(path.join(consumer, 'connector.d.ts'), `
+				import type { IStorageAdapter } from '@yantrix/core';
+				export declare function connect(id: string): IStorageAdapter<string>;
+			`);
+			const generated = path.join(consumer, 'bindings.ts');
+			writeFileSync(generated, generateStorageBindings({
+				bindings: [preferences({ module: './connector.js', exportName: 'connect' })],
+			}));
+			const options = { ...compilerOptions, lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'], types: [], skipLibCheck: false };
+			expect(ts.resolveModuleName('@yantrix/automata', generated, options, ts.sys).resolvedModule).toBeUndefined();
+			const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram([generated], options));
+			expect(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
+		} finally {
+			rmSync(consumer, { recursive: true, force: true });
+		}
 	}, 20000);
 
 	it('emits a factory that needs no arguments or imports for an empty application', async () => {

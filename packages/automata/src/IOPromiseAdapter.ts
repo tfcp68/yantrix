@@ -72,30 +72,3 @@ export function createPromiseDataAdapter<
 
 	return [dataSource, dataDestination];
 }
-
-/** @see {@link THTTPRequestAdapterProps} */
-export type THTTPRequestAdapterRequest = Request | (RequestInit & { url: string | URL });
-
-export type THTTPRequestAdapterInput = {
-	request: THTTPRequestAdapterRequest;
-	event_id: TAutomataBaseEventType;
-};
-
-export type THTTPRequestAdapterOutput = {
-	response: Response;
-	event_id: TAutomataBaseEventType;
-};
-
-/** @see {@link THTTPRequestAdapterRequest} */
-export type THTTPRequestAdapterProps<
-	EventType extends TAutomataBaseEventType,
-	EventMetaType extends Record<EventType, any>,
-> = {
-	/** An optional id for the `Data Source` and `Data Destination`. */
-	id?: string;
-	/** An object with `Event` names as keys and an array with the request options and the response mapper as values. */
-	routes: Partial<{ [K in EventType]: [
-		(event: TAutomataEventMetaType<K, EventMetaType>) => THTTPRequestAdapterRequest | null,
-		(data: Response) => TAutomataEventStack<EventType, EventMetaType>,
-	] }>;
-};

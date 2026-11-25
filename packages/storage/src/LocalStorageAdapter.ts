@@ -1,4 +1,19 @@
-import { createStorageAdapter, IKeyValueStorage, TLocalStorageAdapterProps } from '@yantrix/automata';
+import { createStorageAdapter, TStorageAdapterProps } from '@yantrix/automata';
+
+/** @see {@link TLocalStorageAdapterProps} */
+export interface IKeyValueStorage {
+	getItem: (key: string) => string | null;
+	setItem: (key: string, value: string) => void;
+	removeItem: (key: string) => void;
+}
+
+/** @see {@link LocalStorageAdapter} */
+export type TLocalStorageAdapterProps<SnapshotType> = TStorageAdapterProps & {
+	key?: string;
+	storage?: IKeyValueStorage;
+	serialize?: (snapshot: SnapshotType) => string;
+	deserialize?: (value: string) => SnapshotType;
+};
 
 /**
  * Browser key-value persistence adapter with injectable serialization and backend.

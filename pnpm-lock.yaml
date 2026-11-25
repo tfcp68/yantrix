@@ -497,9 +497,6 @@ importers:
 
   packages/codegen-tests:
     dependencies:
-      '@yantrix/automata':
-        specifier: workspace:^
-        version: link:../automata
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen

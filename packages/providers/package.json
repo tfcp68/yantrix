@@ -24,11 +24,13 @@
 		"url": "https://github.com/tfcp68/yantrix/issues"
 	},
 	"keywords": [
-		"FSM",
-		"Miely Machine",
-		"Yantrix",
-		"Typescript"
+		"yantrix",
+		"data-source",
+		"data-destination",
+		"http",
+		"timer"
 	],
+	"sideEffects": false,
 	"exports": {
 		".": {
 			"import": {
@@ -41,15 +43,26 @@
 				"default": "./dist/index.cjs"
 			}
 		},
-		"./*": {
+		"./HTTPRequestAdapter": {
 			"import": {
-				"types": "./dist/*.d.ts",
-				"default": "./dist/*.js"
+				"types": "./dist/HTTPRequestAdapter.d.ts",
+				"default": "./dist/HTTPRequestAdapter.js"
 			},
 			"require": {
-				"types": "./dist/*.d.cts",
-				"module-sync": "./dist/*.js",
-				"default": "./dist/*.cjs"
+				"types": "./dist/HTTPRequestAdapter.d.cts",
+				"module-sync": "./dist/HTTPRequestAdapter.js",
+				"default": "./dist/HTTPRequestAdapter.cjs"
+			}
+		},
+		"./IntervalTimerDataSource": {
+			"import": {
+				"types": "./dist/IntervalTimerDataSource.d.ts",
+				"default": "./dist/IntervalTimerDataSource.js"
+			},
+			"require": {
+				"types": "./dist/IntervalTimerDataSource.d.cts",
+				"module-sync": "./dist/IntervalTimerDataSource.js",
+				"default": "./dist/IntervalTimerDataSource.cjs"
 			}
 		}
 	},
