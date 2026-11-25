@@ -48,7 +48,7 @@ describe('programmatic storage bindings', () => {
 			const { createStorageBindings } = await import(entry);
 			const bindings = createStorageBindings({ 'user-preferences': [filename] });
 			const store = new ModelStore(initial);
-			const loop = new StorageSyncLoop({ store, bindings }).start();
+			const loop = new StorageSyncLoop({ store, bindings, session: null }).start();
 			store.commit({ theme: 'dark', dialogOpen: true });
 			await loop.stop(true);
 

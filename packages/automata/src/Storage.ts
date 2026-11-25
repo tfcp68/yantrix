@@ -19,18 +19,31 @@ type TAnyStorageBinding<ModelType extends object> = TStorageBinding<ModelType, a
 
 type THydrationAttempt = { ready: boolean; failure?: TStorageFailure };
 
-// The current attempt governs automatic writes for this connector, even if a
-// loop is given new binding objects. Stale attempts can only update their own result.
-const hydrationAttempts = new WeakMap<IStorageAdapter<any>, THydrationAttempt>();
+const hydrationAttempts = Symbol('hydrationAttempts');
+
+/** Tracks the latest hydration of each `Storage` for one `Sync Loop`. */
+export class StorageHydrationSession {
+	readonly [hydrationAttempts] = new WeakMap<IStorageAdapter<any>, THydrationAttempt>();
+}
+
+/** A newer hydration in the same session superseded this call before it returned a `Data Model`. */
+export class StorageHydrationSupersededError extends Error {
+	constructor(storageId: string) {
+		super(`Hydration of Storage "${storageId}" was superseded by a newer attempt`);
+		this.name = 'StorageHydrationSupersededError';
+	}
+}
 
 export type TModelHydrationResult<ModelType extends object> = {
 	model: ModelType;
+	session: StorageHydrationSession;
 	loadedStorageIds: string[];
 	emptyStorageIds: string[];
 	failures: TStorageFailure[];
 };
 
 export type TModelHydrationOptions = {
+	session?: StorageHydrationSession;
 	onError?: (failure: TStorageFailure) => void;
 };
 
@@ -75,14 +88,14 @@ function assertUniqueBindings<ModelType extends object>(bindings: ReadonlyArray<
 export async function hydrateModel<ModelType extends object>(
 	initialModel: ModelType,
 	bindings: ReadonlyArray<TAnyStorageBinding<ModelType>>,
-	{ onError }: TModelHydrationOptions = {},
+	{ onError, session = new StorageHydrationSession() }: TModelHydrationOptions = {},
 ): Promise<TModelHydrationResult<ModelType>> {
 	assertModel(initialModel);
 	assertUniqueBindings(bindings);
 
 	const loads = await Promise.all(bindings.map(async (binding) => {
 		const attempt: THydrationAttempt = { ready: false };
-		hydrationAttempts.set(binding.storage, attempt);
+		session[hydrationAttempts].set(binding.storage, attempt);
 		try {
 			return { ok: true as const, binding, attempt, snapshot: await binding.storage.load() };
 		} catch (error) {
@@ -90,11 +103,29 @@ export async function hydrateModel<ModelType extends object>(
 		}
 	}));
 
+	const failures: TStorageFailure[] = [];
+	const assertCurrent = () => {
+		const stale = loads.find(({ binding, attempt }) => session[hydrationAttempts].get(binding.storage) !== attempt);
+		if (!stale) return;
+		const error = new StorageHydrationSupersededError(stale.binding.storage.id);
+		for (const load of loads) {
+			const { binding, attempt } = load;
+			if (session[hydrationAttempts].get(binding.storage) !== attempt || attempt.failure) continue;
+			// This connector still belongs to the cancelled group. Its snapshot was never applied.
+			attempt.failure = {
+				storageId: binding.storage.id,
+				phase: load.ok ? 'hydrate' : 'load',
+				error: load.ok ? error : load.error,
+			};
+			recordFailure(failures, attempt.failure, onError);
+		}
+		throw error;
+	};
+	assertCurrent();
+
 	let model = initialModel;
 	const loadedStorageIds: string[] = [];
 	const emptyStorageIds: string[] = [];
-	const failures: TStorageFailure[] = [];
-
 	for (const load of loads) {
 		const { binding, attempt } = load;
 		try {
@@ -107,14 +138,18 @@ export async function hydrateModel<ModelType extends object>(
 				model = hydratedModel as ModelType;
 				loadedStorageIds.push(binding.storage.id);
 			}
-			attempt.ready = true;
 		} catch (error) {
+			// A mapper can start another hydration before reporting its own failure.
+			assertCurrent();
 			attempt.failure = { storageId: binding.storage.id, phase: load.ok ? 'hydrate' : 'load', error };
 			recordFailure(failures, attempt.failure, onError);
 		}
 	}
 
-	return { model, loadedStorageIds, emptyStorageIds, failures };
+	// User-supplied mappers and error observers may synchronously start a retry.
+	assertCurrent();
+	for (const { attempt } of loads) attempt.ready = !attempt.failure;
+	return { model, session, loadedStorageIds, emptyStorageIds, failures };
 }
 
 export type TInMemoryStorageAdapterProps<SnapshotType> = {
@@ -148,6 +183,14 @@ export class InMemoryStorageAdapter<SnapshotType = unknown> implements IStorageA
 		this.#snapshot = this.#clone(snapshot);
 	}
 
+	public async saveConditionally(
+		snapshot: SnapshotType,
+		validateCurrent: (current: SnapshotType | null) => void,
+	): Promise<void> {
+		validateCurrent(this.#snapshot === null ? null : this.#clone(this.#snapshot));
+		this.#snapshot = this.#clone(snapshot);
+	}
+
 	public async clear(): Promise<void> {
 		this.#snapshot = null;
 	}
@@ -155,8 +198,10 @@ export class InMemoryStorageAdapter<SnapshotType = unknown> implements IStorageA
 
 export type TStorageSyncLoopProps<ModelType extends object> = {
 	store: IDataModelStore<ModelType>;
+	session: StorageHydrationSession | null;
 	bindings?: ReadonlyArray<TAnyStorageBinding<ModelType>>;
 	debounceMs?: number;
+	maxWaitMs?: number;
 	onError?: (failure: TStorageFailure) => void;
 };
 
@@ -166,28 +211,47 @@ export type TStorageSyncLoopProps<ModelType extends object> = {
  */
 export class StorageSyncLoop<ModelType extends object> {
 	readonly #store: IDataModelStore<ModelType>;
+	readonly #session: StorageHydrationSession | null;
 	readonly #bindings = new Map<string, TAnyStorageBinding<ModelType>>();
 	readonly #lastPersistedProjection = new Map<string, { projection: unknown; hydration?: THydrationAttempt }>();
 	readonly #reportedHydrations = new WeakSet<THydrationAttempt>();
 	readonly #failures: TStorageFailure[] = [];
 	readonly #idleWaiters = new Set<() => void>();
 	readonly #debounceMs: number;
+	readonly #maxWaitMs: number;
 	readonly #onError?: (failure: TStorageFailure) => void;
 
 	#unsubscribe: TSubscriptionCancelFunction | null = null;
 	#pendingModel: ModelType | null = null;
 	#hasPendingModel = false;
+	#burstDeadline = 0;
+	#drainAt = 0;
 	#drainScheduled = false;
 	#drainTimer: ReturnType<typeof setTimeout> | null = null;
 	#activeWrite: Promise<void> | null = null;
 	#flushImmediately = false;
 
-	constructor({ store, bindings = [], debounceMs = 0, onError }: TStorageSyncLoopProps<ModelType>) {
+	constructor({
+		store,
+		session,
+		bindings = [],
+		debounceMs = 0,
+		maxWaitMs = Math.max(debounceMs, 1000),
+		onError,
+	}: TStorageSyncLoopProps<ModelType>) {
 		if (!Number.isFinite(debounceMs) || debounceMs < 0) {
 			throw new TypeError('Storage Sync Loop debounce must be a non-negative finite number');
 		}
+		if (!Number.isFinite(maxWaitMs) || maxWaitMs < debounceMs) {
+			throw new TypeError('Storage Sync Loop maxWaitMs must be finite and at least debounceMs');
+		}
+		if (session === undefined) {
+			throw new TypeError('Pass the hydration session, or null for a write-only Storage Sync Loop');
+		}
 		this.#store = store;
+		this.#session = session;
 		this.#debounceMs = debounceMs;
+		this.#maxWaitMs = maxWaitMs;
 		this.#onError = onError;
 		for (const binding of bindings) this.addStorage(binding);
 	}
@@ -236,6 +300,11 @@ export class StorageSyncLoop<ModelType extends object> {
 	/** Schedules a snapshot without waiting for external I/O. */
 	public requestSync(model: ModelType = this.#store.get()): this {
 		assertModel(model);
+		if (this.#debounceMs > 0) {
+			const now = performance.now();
+			if (!this.#hasPendingModel) this.#burstDeadline = now + this.#maxWaitMs;
+			this.#drainAt = Math.min(now + this.#debounceMs, this.#burstDeadline);
+		}
 		this.#pendingModel = model;
 		this.#hasPendingModel = true;
 		this.#scheduleDrain();
@@ -257,23 +326,25 @@ export class StorageSyncLoop<ModelType extends object> {
 	}
 
 	#scheduleDrain(): void {
-		if (this.#activeWrite) return;
-		if (this.#debounceMs > 0 && !this.#flushImmediately) {
-			this.#cancelScheduledDrain();
-			this.#drainScheduled = true;
+		if (this.#activeWrite || this.#drainScheduled) return;
+		this.#drainScheduled = true;
+		const waitMs = this.#debounceMs > 0 && !this.#flushImmediately ? this.#drainAt - performance.now() : 0;
+		if (waitMs > 0) {
 			this.#drainTimer = setTimeout(() => {
 				this.#drainTimer = null;
-				this.#drain();
-			}, this.#debounceMs);
+				this.#drainScheduled = false;
+				// A commit during this wait may have moved the trailing edge.
+				this.#scheduleDrain();
+			}, Math.min(Math.ceil(waitMs), 2_147_483_647));
 			return;
 		}
-		if (this.#drainScheduled) return;
-		this.#drainScheduled = true;
-		queueMicrotask(() => this.#drain());
+		queueMicrotask(() => {
+			if (this.#drainScheduled && this.#drainTimer === null) this.#drain();
+		});
 	}
 
 	#cancelScheduledDrain(): void {
-		if (this.#drainTimer) clearTimeout(this.#drainTimer);
+		if (this.#drainTimer !== null) clearTimeout(this.#drainTimer);
 		this.#drainTimer = null;
 		this.#drainScheduled = false;
 	}
@@ -298,7 +369,7 @@ export class StorageSyncLoop<ModelType extends object> {
 
 	async #persist(model: ModelType, bindings: ReadonlyArray<TAnyStorageBinding<ModelType>>): Promise<void> {
 		await Promise.all(bindings.map(async (binding) => {
-			const hydration = hydrationAttempts.get(binding.storage);
+			const hydration = this.#session?.[hydrationAttempts].get(binding.storage);
 			if (hydration && !hydration.ready) {
 				if (hydration.failure && !this.#reportedHydrations.has(hydration)) {
 					this.#reportedHydrations.add(hydration);
@@ -364,31 +435,38 @@ export class VersionedStorageAdapter<SnapshotType> implements IStorageAdapter<Sn
 		this.#migrations = migrations;
 	}
 
-	public async load(): Promise<SnapshotType | null> {
-		const envelope = await this.#storage.load();
-		if (envelope === null) return null;
+	#validateEnvelope(envelope: TVersionedStorageEnvelope | null): void {
+		if (envelope === null) return;
 		if (!Number.isInteger(envelope.version) || envelope.version < 1) {
 			throw new TypeError(`Storage "${this.id}" contains an invalid version envelope`);
 		}
 		if (envelope.version > this.#version) {
 			throw new Error(`Storage "${this.id}" snapshot is newer than supported version ${this.#version}`);
 		}
+		for (let version = envelope.version; version < this.#version; version++) {
+			if (!this.#migrations[version]) throw new Error(`Storage "${this.id}" is missing migration from version ${version}`);
+		}
+	}
 
-		let version = envelope.version;
+	public async load(): Promise<SnapshotType | null> {
+		const envelope = await this.#storage.load();
+		if (envelope === null) return null;
+		this.#validateEnvelope(envelope);
 		let data = envelope.data;
-		while (version < this.#version) {
-			const migrate = this.#migrations[version];
-			if (!migrate) throw new Error(`Storage "${this.id}" is missing migration from version ${version}`);
-			data = migrate(data);
-			version++;
+		for (let version = envelope.version; version < this.#version; version++) {
+			data = this.#migrations[version]!(data);
 		}
 		return data as SnapshotType;
 	}
 
 	public async save(snapshot: SnapshotType): Promise<void> {
-		// Another client may have upgraded its save since this connector last loaded.
-		await this.load();
-		await this.#storage.save({ version: this.#version, data: snapshot });
+		const next = { version: this.#version, data: snapshot };
+		if (this.#storage.saveConditionally) {
+			return this.#storage.saveConditionally(next, current => this.#validateEnvelope(current));
+		}
+		// Without an atomic write, another client can upgrade the snapshot between this check and save.
+		this.#validateEnvelope(await this.#storage.load());
+		await this.#storage.save(next);
 	}
 
 	public async clear(): Promise<void> {

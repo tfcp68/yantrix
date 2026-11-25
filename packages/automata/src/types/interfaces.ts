@@ -64,6 +64,11 @@ export interface IStorageAdapter<SnapshotType = unknown> {
 	readonly id: string;
 	load: () => Promise<SnapshotType | null>;
 	save: (snapshot: SnapshotType) => Promise<void>;
+	/** Atomically replace the current snapshot if the synchronous validator returns normally. */
+	saveConditionally?: (
+		snapshot: SnapshotType,
+		validateCurrent: (current: SnapshotType | null) => void,
+	) => Promise<void>;
 	clear: () => Promise<void>;
 }
 

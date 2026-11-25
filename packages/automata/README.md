@@ -113,7 +113,7 @@ wires the `FSMs` returned by `getMachines()` at registration.
 snapshots, `hydrateModel()` builds the initial `Data Model`, and an independent
 `StorageSyncLoop` persists committed changes without blocking the `Main Loop`.
 
-The `Sync Loop` skips a `Storage` whose load or hydration failed and reports a non-blocking error through `onError`. A successful `hydrateModel()` retry with the same connector enables automatic writes to that `Storage` again.
+Pass the session returned by `hydrateModel()` to the `Sync Loop`. If a `Storage` fails to load or hydrate, the loop reports the failure through `onError` and keeps saving to healthy connectors. Retry `hydrateModel()` with the same session to restore writes to that `Storage`. Pass `session: null` for a write-only loop.
 
 ```typescript
 import {
@@ -148,6 +148,7 @@ const hydration = await hydrateModel<IModel>(
 const model = new ModelStore(hydration.model);
 const storageSync = new StorageSyncLoop({
 	store: model,
+	session: hydration.session,
 	bindings: storageBindings,
 	debounceMs: 250,
 	onError: failure => console.error(failure),
@@ -158,9 +159,14 @@ storageSync.requestSync();
 await storageSync.whenIdle();
 ```
 
+During continuous commits, `maxWaitMs` bounds how long the `Sync Loop` waits to start a save. With a positive `debounceMs`, the default is the greater of one second and `debounceMs`. If a save is already running, the next one starts when it finishes.
+
 `InMemoryStorageAdapter` is the reference/test adapter.
 `IndexedDBStorageAdapter` stores structured-clone-compatible snapshots, while
 `VersionedStorageAdapter` decorates any adapter with ordered schema migrations.
+
+`VersionedStorageAdapter` runs migrations on load. IndexedDB and in-memory connectors check the stored schema and save atomically. Connectors with only `load()` and `save()` use a best-effort schema check.
+
 Multiple bindings may project and hydrate independent subsets of one `Data Model`;
 loads happen concurrently and successful snapshots are composed in registration
 order.
