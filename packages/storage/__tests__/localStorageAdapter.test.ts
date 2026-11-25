@@ -1,5 +1,6 @@
+import { TVersionedStorageEnvelope, VersionedStorageAdapter } from '@yantrix/automata';
 import { describe, expect, it, vi } from 'vitest';
-import { LocalStorageAdapter, TVersionedStorageEnvelope, VersionedStorageAdapter } from '../src';
+import { createLocalStorageAdapter, LocalStorageAdapter } from '../src';
 
 class KeyValueStorageStub {
 	readonly values = new Map<string, string>();
@@ -20,7 +21,7 @@ class KeyValueStorageStub {
 describe('localStorage adapter', () => {
 	it('persists, loads and clears a JSON snapshot under its configured key', async () => {
 		const backend = new KeyValueStorageStub();
-		const storage = new LocalStorageAdapter<{ count: number }>({
+		const storage = createLocalStorageAdapter<{ count: number }>({
 			id: 'browser',
 			key: 'yantrix:model',
 			storage: backend,

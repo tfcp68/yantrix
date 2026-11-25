@@ -1,5 +1,6 @@
+import { TVersionedStorageEnvelope, VersionedStorageAdapter } from '@yantrix/automata';
 import { describe, expect, it, vi } from 'vitest';
-import { InMemoryStorageAdapter, TVersionedStorageEnvelope, VersionedStorageAdapter } from '../src';
+import { InMemoryStorageAdapter } from '../src';
 
 describe('versioned writes', () => {
 	it('rejects an overlapping v1 save when the v2 write takes effect first', async () => {

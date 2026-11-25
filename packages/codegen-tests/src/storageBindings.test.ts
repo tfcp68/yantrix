@@ -1,8 +1,8 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateStorageBindings, ModuleNames } from '@yantrix/codegen';
-import { hydrateModel, ModelStore, StorageSyncLoop } from '@yantrix/core';
+import { hydrateModel, ModelStore, StorageSyncLoop } from '@yantrix/automata';
+import { generateStorageBindings, IStorageBindingDefinition, ModuleNames } from '@yantrix/codegen';
 import ts from 'typescript';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -16,7 +16,7 @@ const compilerOptions = {
 };
 
 beforeAll(() => {
-	const sources = ['preferences.ts', 'memory.ts', 'file.ts'].map(file => path.join(fixtures, file));
+	const sources = ['preferences.ts', 'numbers.ts', 'file.ts'].map(file => path.join(fixtures, file));
 	const program = ts.createProgram(sources, { ...compilerOptions, declaration: true, outDir: directory });
 	const diagnostics = ts.getPreEmitDiagnostics(program);
 	expect(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
@@ -24,12 +24,16 @@ beforeAll(() => {
 });
 afterAll(() => rmSync(directory, { recursive: true, force: true }));
 
-function preferences(connector: string) {
-	return {
-		name: 'user-preferences',
-		connector: { module: `./${connector}.js`, exportName: 'connect' },
-		mapper: { module: './preferences.js', exportName: 'preferencesMapper' },
-	};
+const memoryConnector = {
+	module: '@yantrix/storage',
+	exportName: 'createInMemoryStorageAdapter',
+	snapshotTypeArgument: true,
+};
+const fileConnector = { module: './file.js', exportName: 'connect' };
+const mapper = { module: './preferences.js', exportName: 'preferencesMapper' };
+
+function preferences(connector: IStorageBindingDefinition['connector']) {
+	return { name: 'user-preferences', connector, mapper };
 }
 
 describe('programmatic storage bindings', () => {
@@ -37,16 +41,16 @@ describe('programmatic storage bindings', () => {
 		const initial = { theme: 'light', dialogOpen: false };
 		const filename = path.join(directory, `saved-${outLang}.txt`);
 
-		for (const driver of ['memory', 'file']) {
-			const output = generateStorageBindings({ outLang, bindings: [preferences(driver)] });
-			expect(output).toContain(`./${driver}.js`);
-			expect(output).not.toContain(driver === 'memory' ? './file.js' : './memory.js');
+		for (const [connector, args] of [[memoryConnector, [{ id: filename }]], [fileConnector, [filename]]] as const) {
+			const output = generateStorageBindings({ outLang, bindings: [preferences(connector)] });
+			expect(output).toContain(connector.module);
+			expect(output).not.toContain(connector === memoryConnector ? fileConnector.module : memoryConnector.module);
 
 			const extension = outLang === ModuleNames.JavaScript ? 'js' : 'ts';
-			const entry = path.join(directory, `${driver}-${outLang}.${extension}`);
+			const entry = path.join(directory, `${connector.exportName}-${outLang}.${extension}`);
 			writeFileSync(entry, output);
 			const { createStorageBindings } = await import(entry);
-			const bindings = createStorageBindings({ 'user-preferences': [filename] });
+			const bindings = createStorageBindings({ 'user-preferences': args });
 			const store = new ModelStore(initial);
 			const loop = new StorageSyncLoop({ store, bindings, session: null }).start();
 			store.commit({ theme: 'dark', dialogOpen: true });
@@ -62,25 +66,27 @@ describe('programmatic storage bindings', () => {
 	});
 
 	it('checks connector arguments and snapshot compatibility in the generated TypeScript module', () => {
-		const memory = preferences('memory');
-		const file = { ...preferences('file'), name: 'archive' };
+		const memory = { ...preferences(memoryConnector), mapper: { ...mapper, exportName: 'objectPreferencesMapper' } };
+		const file = { ...preferences(fileConnector), name: 'archive' };
 		const typed = path.join(directory, 'typed.ts');
 		writeFileSync(typed, generateStorageBindings({ bindings: [memory, file] }));
 		const consumer = path.join(directory, 'consumer.ts');
 		writeFileSync(consumer, `
 			import { createStorageBindings } from './typed.js';
-			import { hydrateModel } from '@yantrix/core';
+			import { hydrateModel } from '@yantrix/automata';
 
-			const bindings = createStorageBindings({ 'user-preferences': ['user'], archive: ['db', 'utf8'] });
+			const bindings = createStorageBindings({ 'user-preferences': [{ id: 'user', initialSnapshot: { theme: 'dark' } }], archive: ['db', 'utf8'] });
 			hydrateModel({ theme: 'light', dialogOpen: false }, bindings);
 			// @ts-expect-error the memory connector requires a string id
-			createStorageBindings({ 'user-preferences': [123], archive: ['db'] });
+			createStorageBindings({ 'user-preferences': [{ id: 123 }], archive: ['db'] });
+			// @ts-expect-error the mapper's snapshot requires a string theme
+			createStorageBindings({ 'user-preferences': [{ id: 'user', initialSnapshot: { theme: 123 } }], archive: ['db'] });
 			// @ts-expect-error the file connector requires a valid encoding
-			createStorageBindings({ 'user-preferences': ['user'], archive: ['db', 'invalid'] });
+			createStorageBindings({ 'user-preferences': [{ id: 'user' }], archive: ['db', 'invalid'] });
 		`);
 		const incompatible = path.join(directory, 'incompatible.ts');
 		writeFileSync(incompatible, generateStorageBindings({
-			bindings: [{ ...memory, connector: { ...memory.connector, exportName: 'connectNumbers' } }],
+			bindings: [preferences({ module: './numbers.js', exportName: 'connectNumbers' })],
 		}));
 
 		const program = ts.createProgram([typed, incompatible], {
@@ -94,7 +100,7 @@ describe('programmatic storage bindings', () => {
 		expect(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')).join('\n'))
 			.toMatch(/number.*string|string.*number/s);
 		expect(program.emit(program.getSourceFile(typed)).diagnostics).toEqual([]);
-		// Resolve the consumer against the emitted .d.ts with the mapper's private model type.
+		// Resolve the consumer against the emitted .d.ts with the mapper's private model and snapshot types.
 		rmSync(typed);
 		const consumerDiagnostics = ts.getPreEmitDiagnostics(ts.createProgram([consumer], compilerOptions));
 		expect(consumerDiagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
@@ -110,7 +116,7 @@ describe('programmatic storage bindings', () => {
 	});
 
 	it('rejects duplicate binding names and malformed module references during generation', () => {
-		const binding = preferences('memory');
+		const binding = preferences(memoryConnector);
 		expect(() => generateStorageBindings({ bindings: [binding, binding] })).toThrow(/duplicate.*user-preferences/i);
 		expect(() => generateStorageBindings({
 			bindings: [{ ...binding, connector: { module: ' ', exportName: 'connect' } }],

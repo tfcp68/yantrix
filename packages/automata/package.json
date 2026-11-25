@@ -37,7 +37,19 @@
 			},
 			"require": {
 				"types": "./dist/index.d.cts",
+				"module-sync": "./dist/index.js",
 				"default": "./dist/index.cjs"
+			}
+		},
+		"./*": {
+			"import": {
+				"types": "./dist/modules/*.d.ts",
+				"default": "./dist/modules/*.js"
+			},
+			"require": {
+				"types": "./dist/modules/*.d.cts",
+				"module-sync": "./dist/modules/*.js",
+				"default": "./dist/modules/*.cjs"
 			}
 		}
 	},
@@ -65,8 +77,7 @@
 		"underscore": "^1.13.7"
 	},
 	"devDependencies": {
-		"@types/underscore": "^1.11.15",
-		"fake-indexeddb": "^6.2.8"
+		"@types/underscore": "^1.11.15"
 	},
 	"publishConfig": {
 		"access": "public",

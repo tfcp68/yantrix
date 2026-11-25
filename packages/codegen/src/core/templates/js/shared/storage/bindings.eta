@@ -4,13 +4,18 @@ export function createStorageBindings()<% if (it.hasTypes) { %>: []<% } %> {
 }
 <% } else { %>
 <% if (it.hasTypes) { %>
-import type { TStorageBinding } from '@yantrix/core';
+import type { TStorageBinding } from '@yantrix/automata';
 <% } %>
 <% for (const [i, { connector, mapper }] of it.bindings.entries()) { %>
-import { <%~ connector.exportName %> as connector<%~ i %> } from <%~ JSON.stringify(connector.module) %>;
+import { <%~ connector.exportName %> as <%~ it.hasTypes && connector.snapshotTypeArgument ? 'genericConnector' : 'connector' %><%~ i %> } from <%~ JSON.stringify(connector.module) %>;
 import { <%~ mapper.exportName %> as mapper<%~ i %> } from <%~ JSON.stringify(mapper.module) %>;
 <% } %>
 
+<% for (const [i, { connector }] of it.bindings.entries()) { %>
+<% if (it.hasTypes && connector.snapshotTypeArgument) { %>
+const connector<%~ i %>: typeof genericConnector<%~ i %><ReturnType<typeof mapper<%~ i %>.select>> = genericConnector<%~ i %>;
+<% } %>
+<% } %>
 export function createStorageBindings(args<% if (it.hasTypes) { %>: {
 <% for (const [i, binding] of it.bindings.entries()) { %>
   <%~ JSON.stringify(binding.name) %>: Parameters<typeof connector<%~ i %>>;

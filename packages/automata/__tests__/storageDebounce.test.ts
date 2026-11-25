@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { InMemoryStorageAdapter, ModelStore, StorageSyncLoop } from '../src';
+import { ModelStore, StorageSyncLoop } from '../src';
+import { createTestStorage } from './fixtures/storage';
 
 function createLoop(debounceMs: number, maxWaitMs?: number) {
 	const store = new ModelStore({ revision: 0 });
-	const storage = new InMemoryStorageAdapter<number>({ id: 'revisions' });
+	const storage = createTestStorage<number>({ id: 'revisions' });
 	const save = vi.spyOn(storage, 'save');
 	const loop = new StorageSyncLoop({
 		store,

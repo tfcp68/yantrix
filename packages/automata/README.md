@@ -33,6 +33,17 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
+### Package ownership
+
+`@yantrix/automata` owns the public types, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. These are available from the package index and from individual modules. `@yantrix/core` re-exports the agnostic API.
+
+Concrete implementations extend the agnostic classes through their factories. Import the interval timer and HTTP providers from `@yantrix/providers`. Import the in-memory, Web Storage, and IndexedDB connectors from `@yantrix/storage`. Both packages can be used independently.
+
+```typescript
+import type { IStorageAdapter } from '@yantrix/automata/types/interfaces';
+import { AbstractAgnosticDataSource, createDataSourceAdapter } from '@yantrix/automata/DataSource';
+```
+
 ### `Data Model` and `Effects`
 
 `ModelStore` owns the current `Data Model` snapshot. `EffectScheduler` collects
@@ -120,10 +131,10 @@ Call `storageSync.hydrate()` to retry the loop’s registered bindings in its ow
 ```typescript
 import {
 	hydrateModel,
-	LocalStorageAdapter,
 	ModelStore,
 	StorageSyncLoop,
 } from '@yantrix/automata';
+import { LocalStorageAdapter } from '@yantrix/storage';
 
 interface IModel {
 	counter: { count: number };
@@ -165,15 +176,9 @@ The `Sync Loop` compares projections with `Object.is`. Changing only `transientM
 
 During continuous commits, `maxWaitMs` bounds how long the `Sync Loop` waits to start a save. With a positive `debounceMs`, the default is the greater of one second and `debounceMs`. If a save is already running, the next one starts when it finishes.
 
-`InMemoryStorageAdapter` is the reference/test adapter.
-`IndexedDBStorageAdapter` stores structured-clone-compatible snapshots, while
 `VersionedStorageAdapter` decorates any adapter with ordered schema migrations.
 
-Use the same `databaseVersion` (default `1`) for all adapters sharing a `databaseName`. An adapter configured below the stored schema version gets `VersionError`. Adding a missing object store to an existing database raises its physical IndexedDB version, which can exceed `databaseVersion`. All other open connections to that database, including those in other tabs, must close before the upgrade can finish. Yantrix adapters close on `versionchange` and reopen on their next operation.
-
-The store name `'\u0000yantrix/storage/schema'` is reserved. `openTimeoutMs` defaults to 5000 ms and covers the entire open, including waiting for connections to close and provisioning the store.
-
-`VersionedStorageAdapter` runs migrations on load. IndexedDB and in-memory connectors check the stored schema and save atomically. `LocalStorageAdapter` checks and writes synchronously within one tab. Other tabs can write between those operations. Connectors with only `load()` and `save()` use a best-effort schema check.
+[Connector options and write guarantees](https://www.npmjs.com/package/@yantrix/storage#connector-options-and-write-guarantees).
 
 Multiple bindings may project and hydrate independent subsets of one `Data Model`;
 loads happen concurrently and successful snapshots are composed in registration

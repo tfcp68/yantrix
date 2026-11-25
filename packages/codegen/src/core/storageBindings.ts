@@ -14,7 +14,10 @@ export interface IStorageBindingDefinition {
 	/** @example `"user-preferences"` */
 	name: string;
 	/** @example `{ module: "./storage/memory.js", exportName: "connect" }` */
-	connector: IStorageModuleExport;
+	connector: IStorageModuleExport & {
+		/** Pass the mapper's projected snapshot type to a generic connector factory. */
+		snapshotTypeArgument?: boolean;
+	};
 	/** @example `{ module: "./preferences.js", exportName: "preferencesMapper" }` */
 	mapper: IStorageModuleExport;
 }

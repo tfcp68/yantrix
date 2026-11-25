@@ -1,0 +1,86 @@
+{
+	"$schema": "https://json.schemastore.org/package.json",
+	"name": "@yantrix/storage",
+	"type": "module",
+	"version": "0.6.0",
+	"description": "Storage connectors for Yantrix",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/storage"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"FSM",
+		"Miely Machine",
+		"Yantrix",
+		"Typescript"
+	],
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"module-sync": "./dist/index.js",
+				"default": "./dist/index.cjs"
+			}
+		},
+		"./*": {
+			"import": {
+				"types": "./dist/*.d.ts",
+				"default": "./dist/*.js"
+			},
+			"require": {
+				"types": "./dist/*.d.cts",
+				"module-sync": "./dist/*.js",
+				"default": "./dist/*.cjs"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"build": "tsc --noEmit && tsup",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
+		"test": "vitest run --outputFile=../../test_reports/storage.md"
+	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^"
+	},
+	"devDependencies": {
+		"fake-indexeddb": "^6.2.8"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}

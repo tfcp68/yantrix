@@ -410,6 +410,9 @@ importers:
       '@yantrix/core':
         specifier: workspace:^
         version: link:../../packages/core
+      '@yantrix/providers':
+        specifier: workspace:^
+        version: link:../../packages/providers
       typescript:
         specifier: ~5.8.3
         version: 5.8.3
@@ -429,9 +432,6 @@ importers:
       '@types/underscore':
         specifier: ^1.11.15
         version: 1.13.0
-      fake-indexeddb:
-        specifier: ^6.2.8
-        version: 6.2.8
 
   packages/cli:
     dependencies:
@@ -497,6 +497,9 @@ importers:
 
   packages/codegen-tests:
     dependencies:
+      '@yantrix/automata':
+        specifier: workspace:^
+        version: link:../automata
       '@yantrix/codegen':
         specifier: workspace:^
         version: link:../codegen
@@ -506,6 +509,9 @@ importers:
       '@yantrix/mermaid-parser':
         specifier: workspace:^
         version: link:../mermaid-parser
+      '@yantrix/storage':
+        specifier: workspace:^
+        version: link:../storage
       '@yantrix/utils':
         specifier: workspace:^
         version: link:../utils
@@ -555,6 +561,15 @@ importers:
       mermaid:
         specifier: 11.0.2
         version: 11.0.2
+
+  packages/providers:
+    dependencies:
+      '@yantrix/automata':
+        specifier: workspace:^
+        version: link:../automata
+      '@yantrix/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   packages/react:
     dependencies:
@@ -617,6 +632,16 @@ importers:
       '@turbo/gen':
         specifier: ^2.1.2
         version: 2.3.3(@swc/core@1.9.3)(@types/node@22.10.1)(typescript@5.9.2)
+
+  packages/storage:
+    dependencies:
+      '@yantrix/automata':
+        specifier: workspace:^
+        version: link:../automata
+    devDependencies:
+      fake-indexeddb:
+        specifier: ^6.2.8
+        version: 6.2.8
 
   packages/utils:
     devDependencies:

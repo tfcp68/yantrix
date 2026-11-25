@@ -1,14 +1,13 @@
 import { isPositiveInteger } from '@yantrix/utils';
 import { TAbstractConstructor, TAutomataBaseEventType, TValidator } from '../types/index.js';
 
-export default function BasicEventContainer<EventType extends TAutomataBaseEventType>() {
+export function BasicEventContainer<EventType extends TAutomataBaseEventType>() {
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicEventContainer extends Base {
-			#_defaultEventValidator = isPositiveInteger as TValidator<EventType>;
 			#_eventValidator: TValidator<EventType> | undefined;
 
 			public get validateEvent(): TValidator<EventType> {
-				return this.#_eventValidator ?? this.#_defaultEventValidator;
+				return this.#_eventValidator ?? (isPositiveInteger as TValidator<EventType>);
 			}
 
 			setEventValidator(eventValidator: TValidator<EventType> | null = null): this {
@@ -23,3 +22,5 @@ export default function BasicEventContainer<EventType extends TAutomataBaseEvent
 			}
 		};
 }
+
+export default BasicEventContainer;

@@ -8,7 +8,7 @@ import BasicActionContainer from './BasicActionContainer.js';
 import BasicEventContainer from './BasicEventContainer.js';
 import BasicStateContainer from './BasicStateContainer.js';
 
-export default function BasicValidatorContainer<
+export function BasicValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
 	EventType extends TAutomataBaseEventType,
@@ -18,3 +18,5 @@ export default function BasicValidatorContainer<
 			BasicEventContainer<EventType>()(BasicActionContainer<ActionType>()(Proto)),
 		) {};
 }
+
+export default BasicValidatorContainer;

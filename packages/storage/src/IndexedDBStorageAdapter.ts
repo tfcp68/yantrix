@@ -1,89 +1,21 @@
-import { IStorageAdapter } from './types/interfaces.js';
-
-// The adapter registers callbacks without reading their DOM-specific event arguments.
-type TIndexedDBEventHandler = ((event: never) => void) | null;
-
-interface IIndexedDBRequestLike<ResultType = unknown> {
-	result?: ResultType;
-	error?: unknown;
-	onsuccess: TIndexedDBEventHandler;
-	onerror: TIndexedDBEventHandler;
-}
-
-interface IIndexedDBObjectStoreLike {
-	get: (key: string) => IIndexedDBRequestLike;
-	put: (value: unknown, key: string) => IIndexedDBRequestLike;
-	delete: (key: string) => IIndexedDBRequestLike;
-}
-
-interface IIndexedDBTransactionLike {
-	error?: unknown;
-	abort: () => void;
-	oncomplete: TIndexedDBEventHandler;
-	onerror: TIndexedDBEventHandler;
-	onabort: TIndexedDBEventHandler;
-	objectStore: (name: string) => IIndexedDBObjectStoreLike;
-}
-
-interface IIndexedDBDatabaseLike {
-	readonly version: number;
-	objectStoreNames: { contains: (name: string) => boolean };
-	onversionchange?: TIndexedDBEventHandler;
-	createObjectStore: (name: string) => unknown;
-	transaction: (storeName: string, mode: 'readonly' | 'readwrite') => IIndexedDBTransactionLike;
-	close: () => void;
-}
-
-interface IIndexedDBOpenRequestLike extends IIndexedDBRequestLike<IIndexedDBDatabaseLike> {
-	transaction: IIndexedDBTransactionLike | null;
-	result: IIndexedDBDatabaseLike;
-	onblocked: TIndexedDBEventHandler;
-	onupgradeneeded: TIndexedDBEventHandler;
-}
-
-/** IndexedDB factory whose `open(name, version?)` method opens a named database at an optional physical version. */
-export interface IIndexedDBFactoryLike {
-	open: (name: string, version?: number) => IIndexedDBOpenRequestLike;
-}
-
-/** Connection and snapshot options for an IndexedDB-backed `Storage`. */
-export type TIndexedDBStorageAdapterProps = {
-	/** Identifies this `Storage` and supplies the default snapshot key. */
-	id: string;
-	/** Key for the snapshot in the object store. Defaults to `id`. */
-	key?: string;
-	/** IndexedDB database name. Defaults to `'yantrix'`. All adapters sharing this name use the same `databaseVersion`. */
-	databaseName?: string;
-	/** Object store for snapshots. Defaults to `'models'`. The store name `'\u0000yantrix/storage/schema'` is reserved. */
-	storeName?: string;
-	/**
-	 * Use the same `databaseVersion` (default `1`) for all adapters sharing a `databaseName`.
-	 * An adapter configured below the stored schema version gets `VersionError`.
-	 * Adding a missing object store to an existing database raises its physical IndexedDB version,
-	 * which can exceed `databaseVersion`. All other open connections to that database, including
-	 * those in other tabs, must close before the upgrade can finish. Yantrix adapters close on
-	 * `versionchange` and reopen on their next operation.
-	 */
-	databaseVersion?: number;
-	/**
-	 * `openTimeoutMs` defaults to 5000 ms and covers the entire open, including waiting for
-	 * connections to close and provisioning the store.
-	 */
-	openTimeoutMs?: number;
-	/** IndexedDB factory to use. Defaults to the environment's `indexedDB`. */
-	indexedDB?: IIndexedDBFactoryLike;
-};
+import {
+	createStorageAdapter,
+	IIndexedDBDatabaseLike,
+	IIndexedDBFactoryLike,
+	IIndexedDBObjectStoreLike,
+	IIndexedDBRequestLike,
+	IIndexedDBTransactionLike,
+	TIndexedDBStorageAdapterProps,
+} from '@yantrix/automata';
 
 // Only shared databases that need a physical upgrade to add a store get this record.
 const schemaStore = '\u0000yantrix/storage/schema';
 const schemaRecordKey = 'version';
 const schemaFormat = 'yantrix/storage/schema/1';
 
-type TDatabaseSchema = {
-	format: typeof schemaFormat;
-	configuredVersion: number;
-	physicalVersion: number;
-};
+function schemaRecord(configuredVersion: number, physicalVersion: number) {
+	return { format: schemaFormat, configuredVersion, physicalVersion };
+}
 
 function abortPendingTransaction(transaction: IIndexedDBTransactionLike | null): void {
 	try {
@@ -117,7 +49,7 @@ async function configuredDatabaseVersion(database: IIndexedDBDatabaseLike, signa
 }
 
 function readConfiguredVersion(value: unknown, physicalVersion: number): number {
-	const record = value as Partial<TDatabaseSchema> | null | undefined;
+	const record = value as Partial<ReturnType<typeof schemaRecord>> | null | undefined;
 	if (record?.format !== schemaFormat
 		|| typeof record.configuredVersion !== 'number' || typeof record.physicalVersion !== 'number'
 		|| !Number.isSafeInteger(record.configuredVersion) || !Number.isSafeInteger(record.physicalVersion)
@@ -128,9 +60,8 @@ function readConfiguredVersion(value: unknown, physicalVersion: number): number 
 	return record.physicalVersion === physicalVersion ? record.configuredVersion : physicalVersion;
 }
 
-/** IndexedDB-backed Storage for structured-clone-compatible snapshots. */
-export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorageAdapter<SnapshotType> {
-	public readonly id: string;
+/** IndexedDB-backed `Storage` for structured-clone-compatible snapshots. */
+export class IndexedDBStorageAdapter<SnapshotType = unknown> extends createStorageAdapter()<SnapshotType> {
 	readonly #key: string;
 	readonly #databaseName: string;
 	readonly #storeName: string;
@@ -148,7 +79,7 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 		openTimeoutMs = 5000,
 		indexedDB,
 	}: TIndexedDBStorageAdapterProps) {
-		if (typeof id !== 'string' || id.length === 0) throw new Error('Storage must provide a non-empty string id');
+		super({ id });
 		const defaultIndexedDB = (globalThis as { indexedDB?: IIndexedDBFactoryLike }).indexedDB;
 		if (!indexedDB && !defaultIndexedDB) throw new Error('IndexedDB backend is unavailable');
 		if (storeName === schemaStore) throw new Error('IndexedDB object store name is reserved for schema management');
@@ -158,7 +89,6 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 		if (!Number.isInteger(openTimeoutMs) || openTimeoutMs < 1 || openTimeoutMs > 2_147_483_647) {
 			throw new TypeError('IndexedDB open timeout must be a positive 32-bit integer in milliseconds');
 		}
-		this.id = id;
 		this.#key = key;
 		this.#databaseName = databaseName;
 		this.#storeName = storeName;
@@ -167,12 +97,12 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 		this.#indexedDB = indexedDB ?? defaultIndexedDB!;
 	}
 
-	public async load(): Promise<SnapshotType | null> {
+	protected override async read(): Promise<SnapshotType | null> {
 		const result = await this.#transaction('readonly', store => store.get(this.#key));
 		return result === undefined ? null : result as SnapshotType;
 	}
 
-	public async save(snapshot: SnapshotType): Promise<void> {
+	protected override async write(snapshot: SnapshotType): Promise<void> {
 		await this.#transaction('readwrite', store => store.put(snapshot, this.#key));
 	}
 
@@ -194,7 +124,7 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 		});
 	}
 
-	public async clear(): Promise<void> {
+	protected override async remove(): Promise<void> {
 		await this.#transaction('readwrite', store => store.delete(this.#key));
 	}
 
@@ -292,11 +222,7 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 					}
 					if (database.version > this.#databaseVersion) {
 						if (!database.objectStoreNames.contains(schemaStore)) database.createObjectStore(schemaStore);
-						const schema: TDatabaseSchema = {
-							format: schemaFormat,
-							configuredVersion: this.#databaseVersion,
-							physicalVersion: database.version,
-						};
+						const schema = schemaRecord(this.#databaseVersion, database.version);
 						transaction.objectStore(schemaStore).put(schema, schemaRecordKey);
 					}
 				};
@@ -344,4 +270,11 @@ export class IndexedDBStorageAdapter<SnapshotType = unknown> implements IStorage
 			request.onerror = () => reject(request.error ?? new Error('IndexedDB request failed'));
 		});
 	}
+}
+
+/** @see {@link IndexedDBStorageAdapter} */
+export function createIndexedDBStorageAdapter<SnapshotType = unknown>(
+	props: TIndexedDBStorageAdapterProps,
+): IndexedDBStorageAdapter<SnapshotType> {
+	return new IndexedDBStorageAdapter<SnapshotType>(props);
 }

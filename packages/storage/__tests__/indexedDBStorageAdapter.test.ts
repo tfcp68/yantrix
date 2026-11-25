@@ -1,6 +1,7 @@
+import { hydrateModel } from '@yantrix/automata';
 import { IDBFactory } from 'fake-indexeddb';
 import { describe, expect, it, vi } from 'vitest';
-import { hydrateModel, IndexedDBStorageAdapter, InMemoryStorageAdapter } from '../src';
+import { createIndexedDBStorageAdapter, IndexedDBStorageAdapter, InMemoryStorageAdapter } from '../src';
 
 function requestResult<Request extends {
 	result: unknown;
@@ -16,7 +17,7 @@ function requestResult<Request extends {
 
 describe('indexedDB Storage adapter', () => {
 	it('creates its object store and persists one snapshot by key', async () => {
-		const storage = new IndexedDBStorageAdapter<{ count: number }>({
+		const storage = createIndexedDBStorageAdapter<{ count: number }>({
 			id: 'indexed',
 			databaseName: 'app',
 			storeName: 'models',

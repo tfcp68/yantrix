@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
+	AbstractAgnosticStorageAdapter,
+	createStorageAdapter,
 	hydrateModel,
-	InMemoryStorageAdapter,
 	IStorageAdapter,
 	ModelStore,
 	StorageHydrationSession,
@@ -10,6 +11,7 @@ import {
 	TStorageBinding,
 	VersionedStorageAdapter,
 } from '../src';
+import { createTestStorage } from './fixtures/storage';
 
 interface ITestModel {
 	count: number;
@@ -31,9 +33,9 @@ function countBinding(
 describe('storage hydration', () => {
 	it('loads Storages concurrently and composes snapshots in registration order', async () => {
 		const firstLoad = Promise.withResolvers<TCountSnapshot>();
-		const first = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'first' });
+		const first = createTestStorage<TCountSnapshot>({ id: 'first' });
 		vi.spyOn(first, 'load').mockReturnValue(firstLoad.promise);
-		const second = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'second', initialSnapshot: { count: 2 } });
+		const second = createTestStorage<TCountSnapshot>({ id: 'second', initialSnapshot: { count: 2 } });
 		const secondLoad = vi.spyOn(second, 'load');
 
 		const hydration = hydrateModel<ITestModel>({ count: 0, name: 'initial' }, [
@@ -53,15 +55,15 @@ describe('storage hydration', () => {
 	});
 
 	it('reports load and hydration failures while preserving successful snapshots', async () => {
-		const broken = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'broken' });
+		const broken = createTestStorage<TCountSnapshot>({ id: 'broken' });
 		// JavaScript permits rejecting with null; this must not be confused with
 		// a successful load of an empty Storage.
 		vi.spyOn(broken, 'load').mockRejectedValue(null);
-		const invalid = new InMemoryStorageAdapter<TCountSnapshot>({
+		const invalid = createTestStorage<TCountSnapshot>({
 			id: 'invalid',
 			initialSnapshot: { count: 4 },
 		});
-		const valid = new InMemoryStorageAdapter<TCountSnapshot>({
+		const valid = createTestStorage<TCountSnapshot>({
 			id: 'valid',
 			initialSnapshot: { count: 3 },
 		});
@@ -81,7 +83,7 @@ describe('storage hydration', () => {
 	});
 
 	it('rejects duplicate Storage identifiers before loading', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'duplicate' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'duplicate' });
 
 		await expect(hydrateModel({ count: 0, name: 'initial' }, [
 			countBinding(storage),
@@ -91,9 +93,9 @@ describe('storage hydration', () => {
 
 	it('preserves a newer snapshot through startup and commits, while other bindings sync', async () => {
 		const newer = { version: 2, data: { count: 8, extra: 'keep' } };
-		const raw = new InMemoryStorageAdapter<{ version: number; data: unknown }>({ id: 'counter', initialSnapshot: newer });
+		const raw = createTestStorage<{ version: number; data: unknown }>({ id: 'counter', initialSnapshot: newer });
 		const storage = new VersionedStorageAdapter<TCountSnapshot>({ storage: raw, version: 1 });
-		const healthy = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'other' });
+		const healthy = createTestStorage<TCountSnapshot>({ id: 'other' });
 		const initial = { count: 0, name: 'initial' };
 		const bindings = [countBinding(storage), countBinding(healthy)];
 		const onHydrationError = vi.fn(() => {
@@ -127,7 +129,7 @@ describe('storage hydration', () => {
 	});
 
 	it('protects a connector after mapper failure, including against stale hydration completion', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter', initialSnapshot: { count: 8 } });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter', initialSnapshot: { count: 8 } });
 		const pending = Promise.withResolvers<TCountSnapshot>();
 		vi.spyOn(storage, 'load').mockReturnValueOnce(pending.promise);
 		const initial = { count: 0, name: 'initial' };
@@ -159,7 +161,7 @@ describe('storage hydration', () => {
 	});
 
 	it('rejects a superseded success before its model can overwrite a newer successful retry', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'shared', initialSnapshot: { count: 2 } });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'shared', initialSnapshot: { count: 2 } });
 		const pending = Promise.withResolvers<TCountSnapshot>();
 		vi.spyOn(storage, 'load').mockReturnValueOnce(pending.promise);
 		const binding = countBinding(storage);
@@ -185,8 +187,8 @@ describe('storage hydration', () => {
 	});
 
 	it('reports untouched connectors from a cancelled group and protects them until their own retry', async () => {
-		const first = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'first', initialSnapshot: { count: 2 } });
-		const second = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'second', initialSnapshot: { count: 8 } });
+		const first = createTestStorage<TCountSnapshot>({ id: 'first', initialSnapshot: { count: 2 } });
+		const second = createTestStorage<TCountSnapshot>({ id: 'second', initialSnapshot: { count: 8 } });
 		const pending = Promise.withResolvers<TCountSnapshot>();
 		vi.spyOn(first, 'load').mockReturnValueOnce(pending.promise);
 		const bindings = [countBinding(first), countBinding(second)];
@@ -216,7 +218,7 @@ describe('storage hydration', () => {
 	});
 
 	it('recognizes a retry started by a mapper before it returns', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'shared', initialSnapshot: { count: 3 } });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'shared', initialSnapshot: { count: 3 } });
 		const binding = countBinding(storage);
 		const initial = { count: 0, name: 'initial' };
 		const session = new StorageHydrationSession();
@@ -233,7 +235,7 @@ describe('storage hydration', () => {
 	});
 
 	it('isolates pending loads, failures and retries between loops sharing a connector', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'shared' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'shared' });
 		const bindings = [countBinding(storage)];
 		const initial = { count: 0, name: 'initial' };
 		const first = await hydrateModel(initial, bindings);
@@ -271,7 +273,7 @@ describe('storage hydration', () => {
 	});
 
 	it('retries hydration in the loop session, reports each failure once, and returns the model for the caller to commit', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter', initialSnapshot: { count: 7 } });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter', initialSnapshot: { count: 7 } });
 		const binding = countBinding(storage);
 		const error = new Error('offline');
 		vi.spyOn(storage, 'load')
@@ -304,7 +306,7 @@ describe('storage hydration', () => {
 	});
 
 	it('can repersist an identical projection after a failed read is repaired', async () => {
-		const storage = new InMemoryStorageAdapter<number>({ id: 'counter' });
+		const storage = createTestStorage<number>({ id: 'counter' });
 		const bindings: TStorageBinding<ITestModel, number>[] = [{
 			storage,
 			select: model => model.count,
@@ -328,27 +330,6 @@ describe('storage hydration', () => {
 	});
 });
 
-describe('in-memory Storage', () => {
-	it('loads, saves and clears snapshots through an optional clone boundary', async () => {
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({
-			id: 'memory',
-			clone: snapshot => ({ ...snapshot }),
-		});
-		const snapshot = { count: 1 };
-
-		await storage.save(snapshot);
-		snapshot.count = 99;
-
-		expect(await storage.load()).toEqual({ count: 1 });
-		await storage.clear();
-		expect(await storage.load()).toBeNull();
-	});
-
-	it('requires a non-empty identifier', () => {
-		expect(() => new InMemoryStorageAdapter({ id: '' })).toThrow('non-empty');
-	});
-});
-
 describe('storage Sync Loop', () => {
 	it('requires an explicit hydration session or write-only mode before syncing', () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
@@ -358,7 +339,7 @@ describe('storage Sync Loop', () => {
 
 	it('rejects hydration on a write-only loop', async () => {
 		const store = new ModelStore({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter' });
 		const load = vi.spyOn(storage, 'load');
 		const loop = new StorageSyncLoop({ store, session: null, bindings: [countBinding(storage)] });
 		await expect(loop.hydrate()).rejects.toThrow('write-only');
@@ -367,7 +348,7 @@ describe('storage Sync Loop', () => {
 
 	it('coalesces commits queued before a write starts and does not block ModelStore', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter' });
 		const save = vi.spyOn(storage, 'save');
 		const loop = new StorageSyncLoop({ store, session: null, bindings: [countBinding(storage)] }).start();
 
@@ -382,7 +363,7 @@ describe('storage Sync Loop', () => {
 
 	it('coalesces commits arriving during an in-flight write to the latest snapshot', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter' });
 		const firstSave = Promise.withResolvers<void>();
 		const saved: number[] = [];
 		vi.spyOn(storage, 'save').mockImplementation(async (snapshot) => {
@@ -405,7 +386,7 @@ describe('storage Sync Loop', () => {
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] });
 		try {
 			const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-			const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'debounced' });
+			const storage = createTestStorage<TCountSnapshot>({ id: 'debounced' });
 			const save = vi.spyOn(storage, 'save');
 			const loop = new StorageSyncLoop({
 				store,
@@ -434,7 +415,7 @@ describe('storage Sync Loop', () => {
 		interface IProjectionModel { persistent: TCountSnapshot; transient: number }
 		const persistent = { count: 1 };
 		const store = new ModelStore<IProjectionModel>({ persistent, transient: 0 });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'projection' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'projection' });
 		const save = vi.spyOn(storage, 'save');
 		const loop = new StorageSyncLoop<IProjectionModel>({
 			store,
@@ -456,9 +437,9 @@ describe('storage Sync Loop', () => {
 
 	it('reports selector and save failures and continues syncing other Storages', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const selectorStorage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'selector' });
-		const saveStorage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'save' });
-		const validStorage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'valid' });
+		const selectorStorage = createTestStorage<TCountSnapshot>({ id: 'selector' });
+		const saveStorage = createTestStorage<TCountSnapshot>({ id: 'save' });
+		const validStorage = createTestStorage<TCountSnapshot>({ id: 'valid' });
 		vi.spyOn(saveStorage, 'save').mockRejectedValue(new Error('disk full'));
 		const onError = vi.fn();
 		const loop = new StorageSyncLoop<ITestModel>({
@@ -487,7 +468,7 @@ describe('storage Sync Loop', () => {
 
 	it('can explicitly persist the current snapshot without starting observation', async () => {
 		const store = new ModelStore<ITestModel>({ count: 4, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'manual' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'manual' });
 		const loop = new StorageSyncLoop({ store, session: null, bindings: [countBinding(storage)] });
 
 		loop.requestSync();
@@ -507,8 +488,8 @@ describe('storage Sync Loop', () => {
 
 	it('isolates the persistence drain from errors thrown by an onError observer', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const broken = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'broken-observer' });
-		const valid = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'valid-observer' });
+		const broken = createTestStorage<TCountSnapshot>({ id: 'broken-observer' });
+		const valid = createTestStorage<TCountSnapshot>({ id: 'valid-observer' });
 		vi.spyOn(broken, 'save').mockRejectedValue(new Error('offline'));
 		const loop = new StorageSyncLoop({
 			store,
@@ -526,7 +507,7 @@ describe('storage Sync Loop', () => {
 
 	it('waits for an in-flight write when stopped with flushing enabled', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'slow' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'slow' });
 		const save = Promise.withResolvers<void>();
 		vi.spyOn(storage, 'save').mockReturnValue(save.promise);
 		const loop = new StorageSyncLoop({
@@ -552,7 +533,7 @@ describe('storage Sync Loop', () => {
 
 	it('settles existing idle waiters when discarding a debounced write', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter' });
 		const loop = new StorageSyncLoop({
 			store,
 			session: null,
@@ -570,7 +551,7 @@ describe('storage Sync Loop', () => {
 
 	it('discards pending work but settles waiters only after an active write finishes', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter' });
 		const active = Promise.withResolvers<void>();
 		const save = vi.spyOn(storage, 'save').mockReturnValue(active.promise);
 		const loop = new StorageSyncLoop({ store, session: null, bindings: [countBinding(storage)] }).start();
@@ -589,7 +570,7 @@ describe('storage Sync Loop', () => {
 
 	it('rejects duplicate Storage registrations', () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'duplicate' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'duplicate' });
 		const loop = new StorageSyncLoop({ store, session: null, bindings: [countBinding(storage)] });
 
 		expect(() => loop.addStorage(countBinding(storage))).toThrow('already registered');
@@ -597,7 +578,7 @@ describe('storage Sync Loop', () => {
 
 	it('unsubscribes on stop and removes bindings idempotently', async () => {
 		const store = new ModelStore<ITestModel>({ count: 0, name: 'initial' });
-		const storage = new InMemoryStorageAdapter<TCountSnapshot>({ id: 'counter' });
+		const storage = createTestStorage<TCountSnapshot>({ id: 'counter' });
 		const save = vi.spyOn(storage, 'save');
 		const loop = new StorageSyncLoop({ store, session: null });
 		const remove = loop.addStorage(countBinding(storage));
@@ -618,7 +599,7 @@ describe('storage Sync Loop', () => {
 
 describe('versioned Storage decorator', () => {
 	it('migrates older snapshots and writes the current version envelope', async () => {
-		const raw = new InMemoryStorageAdapter<{ version: number; data: unknown }>({
+		const raw = createTestStorage<{ version: number; data: unknown }>({
 			id: 'versioned',
 			initialSnapshot: { version: 1, data: { value: 2 } },
 		});
@@ -637,11 +618,11 @@ describe('versioned Storage decorator', () => {
 	});
 
 	it('rejects snapshots from a newer version and missing migrations', async () => {
-		const newer = new InMemoryStorageAdapter<{ version: number; data: unknown }>({
+		const newer = createTestStorage<{ version: number; data: unknown }>({
 			id: 'newer',
 			initialSnapshot: { version: 4, data: {} },
 		});
-		const missing = new InMemoryStorageAdapter<{ version: number; data: unknown }>({
+		const missing = createTestStorage<{ version: number; data: unknown }>({
 			id: 'missing',
 			initialSnapshot: { version: 1, data: {} },
 		});
@@ -651,7 +632,7 @@ describe('versioned Storage decorator', () => {
 	});
 
 	it('refuses to save over a newer envelope, even for a new connector instance', async () => {
-		const raw = new InMemoryStorageAdapter<{ version: number; data: unknown }>({ id: 'shared' });
+		const raw = createTestStorage<{ version: number; data: unknown }>({ id: 'shared' });
 		const older = new VersionedStorageAdapter<TCountSnapshot>({ storage: raw, version: 1 });
 		expect(await older.load()).toBeNull();
 		const newer = { version: 2, data: { count: 8, extra: 'keep' } };
@@ -660,5 +641,35 @@ describe('versioned Storage decorator', () => {
 		const reopened = new VersionedStorageAdapter<TCountSnapshot>({ storage: raw, version: 1 });
 		await expect(reopened.save({ count: 0 })).rejects.toThrow('newer');
 		expect(await raw.load()).toEqual(newer);
+	});
+});
+
+describe('storage adapter factory', () => {
+	it('preserves a custom base constructor, its members and its snapshot type', async () => {
+		abstract class NamespacedStorage extends AbstractAgnosticStorageAdapter<number> {
+			static readonly separator = '/';
+
+			constructor(id: string, private readonly namespace: string) {
+				super({ id });
+			}
+
+			public getKey() {
+				return `${this.namespace}${NamespacedStorage.separator}${this.id}`;
+			}
+		}
+
+		class Counts extends createStorageAdapter(NamespacedStorage) {
+			protected override read(): number { return 7; }
+			protected override write(_snapshot: number): void {}
+			protected override remove(): void {}
+		}
+
+		expectTypeOf(Counts).constructorParameters.toEqualTypeOf<[string, string]>();
+		const storage = new Counts('count', 'app');
+		expectTypeOf(storage.load).returns.toEqualTypeOf<Promise<number | null>>();
+		expectTypeOf<Parameters<typeof storage.save>>().toEqualTypeOf<[number]>();
+		expect(Counts.separator).toBe('/');
+		expect(storage.getKey()).toBe('app/count');
+		await expect(storage.load()).resolves.toBe(7);
 	});
 });

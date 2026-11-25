@@ -1,5 +1,6 @@
 import { TSubscriptionCancelFunction } from './types/index.js';
 import { IDataModelStore, IStorageAdapter } from './types/interfaces.js';
+import { TStorageAdapterProps } from './types/storage.js';
 
 export type TStorageOperationPhase = 'load' | 'hydrate' | 'select' | 'save';
 
@@ -152,48 +153,70 @@ export async function hydrateModel<ModelType extends object>(
 	return { model, session, loadedStorageIds, emptyStorageIds, failures };
 }
 
-export type TInMemoryStorageAdapterProps<SnapshotType> = {
-	id: string;
-	initialSnapshot?: SnapshotType | null;
-	clone?: (snapshot: SnapshotType) => SnapshotType;
-};
-
-/** Reference Storage useful for tests, SSR and ephemeral application sessions. */
-export class InMemoryStorageAdapter<SnapshotType = unknown> implements IStorageAdapter<SnapshotType> {
+/**
+ * A connector implements `read()`, `write()`, and `remove()`.
+ * @see {@link createStorageAdapter}
+ */
+export abstract class AbstractAgnosticStorageAdapter<SnapshotType = unknown> {
 	public readonly id: string;
-	readonly #clone: (snapshot: SnapshotType) => SnapshotType;
-	#snapshot: SnapshotType | null;
 
-	constructor({
-		id,
-		initialSnapshot = null,
-		clone = snapshot => snapshot,
-	}: TInMemoryStorageAdapterProps<SnapshotType>) {
+	constructor({ id }: TStorageAdapterProps) {
 		assertNonEmptyId(id);
 		this.id = id;
-		this.#clone = clone;
-		this.#snapshot = initialSnapshot === null ? null : this.#clone(initialSnapshot);
 	}
 
-	public async load(): Promise<SnapshotType | null> {
-		return this.#snapshot === null ? null : this.#clone(this.#snapshot);
-	}
+	protected abstract read(): SnapshotType | null | Promise<SnapshotType | null>;
+	protected abstract write(snapshot: SnapshotType): void | Promise<void>;
+	protected abstract remove(): void | Promise<void>;
+}
 
-	public async save(snapshot: SnapshotType): Promise<void> {
-		this.#snapshot = this.#clone(snapshot);
-	}
+/** @see {@link IStorageAdapter} */
+export type TStorageOperations<SnapshotType> = Pick<IStorageAdapter<SnapshotType>, 'load' | 'save' | 'clear'>;
+/** @see {@link AbstractAgnosticStorageAdapter} */
+export type TAgnosticStorageConstructor = abstract new (...args: any[]) => AbstractAgnosticStorageAdapter<any>;
+/** @see {@link TExtendedStorageAdapter} */
+export type TStorageSnapshotOf<Base extends TAgnosticStorageConstructor> =
+	InstanceType<Base> extends AbstractAgnosticStorageAdapter<infer SnapshotType> ? SnapshotType : never;
 
-	public async saveConditionally(
-		snapshot: SnapshotType,
-		validateCurrent: (current: SnapshotType | null) => void,
-	): Promise<void> {
-		validateCurrent(this.#snapshot === null ? null : this.#clone(this.#snapshot));
-		this.#snapshot = this.#clone(snapshot);
-	}
+/** @see {@link createStorageAdapter} */
+export type TStorageAdapterBase = abstract new<SnapshotType = unknown>(
+	props: TStorageAdapterProps,
+) => AbstractAgnosticStorageAdapter<SnapshotType> & TStorageOperations<SnapshotType>;
 
-	public async clear(): Promise<void> {
-		this.#snapshot = null;
+/** @see {@link createStorageAdapter} */
+export type TExtendedStorageAdapter<Base extends TAgnosticStorageConstructor> = Pick<Base, keyof Base> & (
+	abstract new (...args: ConstructorParameters<Base>) =>
+	InstanceType<Base> & TStorageOperations<TStorageSnapshotOf<Base>>
+);
+
+/**
+ * A connector implements `read()`, `write()`, and `remove()`.
+ * `createStorageAdapter()` exposes those operations as the asynchronous `load()`, `save()`, and `clear()` methods of `IStorageAdapter`.
+ * Pass a custom agnostic base to retain its constructor options and methods.
+ * @see {@link AbstractAgnosticStorageAdapter}
+ */
+export function createStorageAdapter(): TStorageAdapterBase;
+/** Pass a custom agnostic base to retain its constructor options and methods. */
+export function createStorageAdapter<Base extends TAgnosticStorageConstructor>(
+	Base: Base,
+): TExtendedStorageAdapter<Base>;
+export function createStorageAdapter(
+	Base: TAgnosticStorageConstructor = AbstractAgnosticStorageAdapter,
+): TAgnosticStorageConstructor {
+	abstract class StorageAdapter extends Base {
+		public async load(): Promise<unknown> {
+			return this.read();
+		}
+
+		public async save(snapshot: unknown): Promise<void> {
+			return this.write(snapshot);
+		}
+
+		public async clear(): Promise<void> {
+			return this.remove();
+		}
 	}
+	return StorageAdapter;
 }
 
 export type TStorageSyncLoopProps<ModelType extends object> = {

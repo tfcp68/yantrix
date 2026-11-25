@@ -1,12 +1,12 @@
 import {
 	createDataDestinationAdapter,
 	createDataSourceAdapter,
-	IntervalTimerDataSource,
 	NamedDataDestination,
 	NamedDataSource,
 	TAutomataEventMetaType,
 	uniqId,
 } from '@yantrix/core';
+import { IntervalTimerDataSource } from '@yantrix/providers';
 import { ClockEvents, TClockMeta } from '../events/clockEvents';
 
 const TICK_INTERVAL_MS = 100;

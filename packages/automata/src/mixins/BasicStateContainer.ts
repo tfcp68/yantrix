@@ -1,15 +1,13 @@
 import { isPositiveInteger } from '@yantrix/utils';
 import { TAbstractConstructor, TAutomataBaseStateType, TValidator } from '../types/index.js';
 
-export default function BasicStateContainer<StateType extends TAutomataBaseStateType>() {
+export function BasicStateContainer<StateType extends TAutomataBaseStateType>() {
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicStateContainer extends Base {
-			#_defaultStateValidator = isPositiveInteger as TValidator<StateType>;
-
 			#_stateValidator: TValidator<StateType> | undefined;
 
 			public get validateState(): TValidator<StateType> {
-				return this.#_stateValidator ?? this.#_defaultStateValidator;
+				return this.#_stateValidator ?? (isPositiveInteger as TValidator<StateType>);
 			}
 
 			setStateValidator(stateValidator: TValidator<StateType> | null = null): this {
@@ -24,3 +22,5 @@ export default function BasicStateContainer<StateType extends TAutomataBaseState
 			}
 		};
 }
+
+export default BasicStateContainer;
