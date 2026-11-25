@@ -1,10 +1,13 @@
-<% const ev = it.emitter.events[0]; %>
-<% if (ev) { %>
+<% if (it.emitter.events.length > 0) { %>
     event_adapter.add_event_emitter(
         states_dictionary['<%~ it.emitter.stateId %>'],
-        lambda ctx: {
-            'event': event_dictionary['<%~ ev.eventIdentifier %>'],
-            'meta': {<%~ ev.metaLines.length > 0 ? ev.metaLines.map(l => `\n                ${l}`).join(',') + '\n            ' : '' %>},
-        }
+        lambda ctx: [
+<% it.emitter.events.forEach((ev) => { %>
+            {
+                'event': event_dictionary['<%~ ev.eventIdentifier %>'],
+                'meta': {<%~ ev.metaLines.length > 0 ? ev.metaLines.map(l => `\n                    ${l}`).join(',') + '\n                ' : '' %>},
+            },
+<% }) %>
+        ]
     )
 <% } %>

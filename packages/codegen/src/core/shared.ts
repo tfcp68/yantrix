@@ -88,6 +88,11 @@ export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateD
 				throw new Error(`ByPass action ${ByPassAction} not found for state ${state.id}`);
 			}
 
+			// the FSM never rests in a ByPass state, so its emitters would never run
+			if (getEmitStatements(state.notes).length > 0) {
+				throw new Error(`ByPass state ${state.id} can't emit Events`);
+			}
+
 			byPassAction.chains.forEach(({ chain }) => {
 				if (byPassAction.chains.length > 1 && chain.length === 0) {
 					throw new Error(`ByPass action ${ByPassAction} should have more than one transition`);

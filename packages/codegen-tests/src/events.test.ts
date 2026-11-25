@@ -167,7 +167,7 @@ describe('automata Events', () => {
 			);
 			const automata = new BasicEventsAutomata();
 			const adapter = automata.eventAdapter;
-			expect(adapter.getObservedStates()).toStrictEqual([statesDictionary.INIT]);
+			expect(adapter.getObservedStates()).toStrictEqual([statesDictionary.END]);
 			expect(adapter.getObservedEvents()).toStrictEqual([eventDictionary.someEvent]);
 		});
 

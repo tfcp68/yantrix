@@ -96,6 +96,22 @@ describe('byPass state', () => {
 
 		await expect(call).rejects.toThrowError();
 	});
+	it.each([ModuleNames.JavaScript, ModuleNames.PureJavaScript, ModuleNames.Python])(
+		'should throw an error if the ByPass state has emit/ (%s)',
+		async (lang) => {
+			const template = `stateDiagram-v2
+		C --> B: toB
+		B --> F: [-]
+		note left of B
+		 	+ByPass
+		 	emit/viaBypass
+		end note`;
+
+			const call = () => generateAndSave({ input: template, automataName: 'Test', lang }, 'byPassEmitError');
+
+			await expect(call).rejects.toThrowError(/ByPass state B can't emit Events/);
+		},
+	);
 	it('payload is not propagated through ByPass', async () => {
 		const template = `stateDiagram-v2
 		C --> B: toB(a)

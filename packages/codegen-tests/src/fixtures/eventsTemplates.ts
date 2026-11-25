@@ -34,8 +34,6 @@ note right of INIT
     +ByPass
     +Init
     #{counter} <= $counter = 10
-    emit/message
-    emit/specialEvent (#item1, #item2)
 end note
 note left of WORKING
     #{counter} <= add(#counter, neg($value = 1))
@@ -43,6 +41,8 @@ note left of WORKING
 end note
 note right of END
     #{counter} <= 0
+    emit/message
+    emit/specialEvent (#item1, #item2)
 end note
 `;
 

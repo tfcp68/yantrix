@@ -691,6 +691,40 @@ print('ok')
 	});
 });
 
+describeExec('python codegen - event bus execution: every emit/ of a state fires', async () => {
+	await generateAndSave({
+		input: `stateDiagram-v2
+	[*] --> Off: Reset
+	Off --> On: Send
+note left of Off
+	+Init
+end note
+note left of On
+	emit/First
+	emit/Second
+end note
+`,
+		automataName: 'MultiEmit',
+		lang: ModuleNames.Python,
+	}, 'py_multi_emit');
+
+	it('handle_transition returns both events in declaration order', () => {
+		const script = `
+import sys
+sys.path.insert(0, r'${generatedDir}')
+from py_multi_emit_generated import create_multi_emit, actions_dictionary, event_dictionary
+a = create_multi_emit()
+a['dispatch']({'action': actions_dictionary['Send'], 'payload': {}})
+emitted = a['event_adapter'].handle_transition(a['get_context']())
+got = [e['event'] for e in emitted]
+assert got == [event_dictionary['First'], event_dictionary['Second']], f"got {got}"
+print('ok')
+`.trim();
+		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
+		expect(out.trim()).toBe('ok');
+	});
+});
+
 describeExec('python codegen - event bus order', () => {
 	it.each([
 		{ order: undefined, expected: [1, 2, 3] },

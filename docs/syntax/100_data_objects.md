@@ -209,6 +209,8 @@ diagram. The attached `Reducers` are run beforehand, and then the reducers of th
 
 **WARNING:** `Payload` is not propagated through `ByPass` nodes and must be consumed in them.
 
+**WARNING:** A `+ByPass` `State` can't [emit](220_emit.html) `Events`: the `FSM` never rests in it, so its emitters would never run. Code generation fails on `emit/` in a `+ByPass` note; move it to the outbound `State`.
+
 This is the same as emitting an `Event` and subscribing to it at the same time, except for this is shorter and must be
 used whenever a control `State` must be switched through without any information getting out of the `FSM`. Also note,
 that a `+ByPass` `State` can have any number of incoming transitions, but only one outgoing, which is not an `Action`, but is rather coded with `[-]` label:
