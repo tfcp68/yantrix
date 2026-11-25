@@ -39,7 +39,7 @@ Function that translate from `State`+`Action/Payload` to `State/Context` can be 
 Model transformers are a subtype of `Effects` that are context-free and are basically functions that mutates
 the `Data Model`.
 
--   `#{counter} <= add(№counter, increaseGlobalCounter($value))`
+-   `#{counter} <= add(#counter, increaseGlobalCounter($value))`
 
 They can be composed with `Predicates` to create conditional mutations, but this approach is not recommended, since it
 splits the responsibility of `Effects`.
