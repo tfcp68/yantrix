@@ -19,7 +19,7 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | Event subscription | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Event emission | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `createEventBus()` factory | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `generateStorageBindings()` output target | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| `generateStorageBindings()` output target | ✅ | ✅ | ❌ | ❌ | ✅<sup>6</sup> | ❌ |
 | [`Event Bus` order](../concepts/500_codegen.html#event-bus-order) (FIFO or LIFO) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `create<ClassName>EventAdapter()` factory | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | `@yantrix/core` compatible<sup>5</sup> | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
@@ -41,6 +41,8 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 > <b>4</b> User function injection accepts `.ts`/`.js` files for JS/TS dialects and `.py` files for Python.
 >
 > <b>5</b> `@yantrix/core` compatible means the generated code exposes event adapters that can be plugged into `@yantrix/core`'s `CoreLoop` orchestrator. Pure dialects and Python generate self-contained factories without event adapter infrastructure.
+>
+> <b>6</b> Python generates `Storage` bindings for synchronous connectors. The application calls `load()` and `save()` directly and handles `Data Model` hydration and write scheduling itself. In JS/TS, `hydrateModel()` and `StorageSyncLoop` provide those operations.
 
 ## Type Mapping
 

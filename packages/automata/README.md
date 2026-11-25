@@ -113,7 +113,9 @@ wires the `FSMs` returned by `getMachines()` at registration.
 snapshots, `hydrateModel()` builds the initial `Data Model`, and an independent
 `StorageSyncLoop` persists committed changes without blocking the `Main Loop`.
 
-Pass the session returned by `hydrateModel()` to the `Sync Loop`. If a `Storage` fails to load or hydrate, the loop reports the failure through `onError` and keeps saving to healthy connectors. Retry `hydrateModel()` with the same session to restore writes to that `Storage`. Pass `session: null` for a write-only loop.
+Pass the session returned by `hydrateModel()` to the `Sync Loop`. If a `Storage` fails to load or hydrate, the loop reports the failure through `onError` and keeps saving to healthy connectors. Pass `session: null` for a write-only loop.
+
+Call `storageSync.hydrate()` to retry the loop’s registered bindings in its own session. It starts from the current `Data Model` and returns the hydrated model for the caller to commit.
 
 ```typescript
 import {
@@ -124,7 +126,7 @@ import {
 } from '@yantrix/automata';
 
 interface IModel {
-	count: number;
+	counter: { count: number };
 	transientMessage: string | null;
 }
 
@@ -134,15 +136,15 @@ const counterStorage = new LocalStorageAdapter<{ count: number }>({
 });
 const storageBindings = [{
 	storage: counterStorage,
-	select: (model: Readonly<IModel>) => ({ count: model.count }),
+	select: (model: Readonly<IModel>) => model.counter,
 	hydrate: (model: Readonly<IModel>, snapshot: { count: number }) => ({
 		...model,
-		count: snapshot.count,
+		counter: snapshot,
 	}),
 }];
 
 const hydration = await hydrateModel<IModel>(
-	{ count: 0, transientMessage: null },
+	{ counter: { count: 0 }, transientMessage: null },
 	storageBindings,
 );
 const model = new ModelStore(hydration.model);
@@ -158,6 +160,8 @@ const storageSync = new StorageSyncLoop({
 storageSync.requestSync();
 await storageSync.whenIdle();
 ```
+
+The `Sync Loop` compares projections with `Object.is`. Changing only `transientMessage` preserves the `counter` reference and skips the write.
 
 During continuous commits, `maxWaitMs` bounds how long the `Sync Loop` waits to start a save. With a positive `debounceMs`, the default is the greater of one second and `debounceMs`. If a save is already running, the next one starts when it finishes.
 
