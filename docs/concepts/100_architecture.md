@@ -68,10 +68,10 @@ Every particular kind of `Source` or `Destination` is represented by a correspon
 -   `IDataSource` for `Source` channels, which allows to declare rules of publishing `Events` from `Source`. That could
     be done via subscription, long and short polling or by exposing hook methods to be used directly throughout the App,
     notably in frontend `UI Components` and/or webserver routes.
--   `IDataDestionation` for `Destination` channels, which receives chosen `Events` and `Data Model` and propagates the required changes
+-   `IDataDestination` for `Destination` channels, which receives chosen `Events` and `Data Model` and propagates the required changes
     into the target endpoint based on them.
 
-### Storage
+### `Storage`
 
 `Storage` is an adapter class to persist the `Data Model` and to load its snapshot, like:
 
@@ -83,6 +83,16 @@ Every particular kind of `Source` or `Destination` is represented by a correspon
 
 The App can have multiple `Storages` which can store different subsets of `Data Model`. When the App starts, it polls
 all the Storages and integrates the received data into an initial `Data Model` snapshot, using composition of Selectors.
+`Storage` polling may run concurrently, but successful snapshots are composed in declaration order to keep hydration
+deterministic. After launch, an independent `Sync Loop` observes committed `Data Model` snapshots, projects the subset
+owned by each `Storage`, and persists it asynchronously without blocking the `Main Loop`. Implementations may coalesce
+intermediate snapshots while a slower write is in flight, but must eventually persist the latest committed projection.
+
+### Package ownership
+
+`@yantrix/automata` owns the shared contracts, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. Each implementation package owns its connector-specific options and protocols. The public mixins are available from the Automata index and their named module paths. `@yantrix/core` re-exports the agnostic API.
+
+Concrete implementations extend the agnostic classes through their factories. Import the interval timer and HTTP providers from `@yantrix/providers`. Import the in-memory, Web Storage, and IndexedDB connectors from `@yantrix/storage`. Both packages can be used independently.
 
 ## Event Model
 

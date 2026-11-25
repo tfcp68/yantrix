@@ -1,10 +1,16 @@
-<% const ev = it.emitter.events[0]; %>
-<% if (ev) { %>
-    event_adapter.add_event_emitter(
-        states_dictionary['<%~ it.emitter.stateId %>'],
-        lambda ctx: {
-            'event': event_dictionary['<%~ ev.eventIdentifier %>'],
-            'meta': {<%~ ev.metaLines.length > 0 ? ev.metaLines.map(l => `\n                ${l}`).join(',') + '\n            ' : '' %>},
-        }
-    )
+    def _emit(transition):
+        prev_context = transition.get('context')
+        return [
+<% for (const ev of it.emitter.events) { %>
+            {
+                'event': event_dictionary['<%~ ev.eventIdentifier %>'],
+                'meta': {
+<% for (const line of ev.metaLines) { %>
+                    <%~ line %>,
 <% } %>
+                },
+            },
+<% } %>
+        ]
+
+    event_adapter.add_event_emitter(states_dictionary['<%~ it.emitter.stateId %>'], _emit)

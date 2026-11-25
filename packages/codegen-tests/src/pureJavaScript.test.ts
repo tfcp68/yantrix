@@ -2,7 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
-import { generateAndSave } from './fixtures/utils.js';
+import { generateAndSave, generateAndSaveFiles } from './fixtures/utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedPath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
@@ -438,6 +438,47 @@ end note
 		const [EventBus] = createSubBus('t3', { sub: createPJSSubscribeTest });
 		EventBus.dispatch({ event: subEvents.specialEvent, meta: {} });
 		expect(EventBus.getEventStack().length).toBeGreaterThan(0);
+	});
+});
+
+describe.each([ModuleNames.PureJavaScript, ModuleNames.PureTypeScript])('%s listener registration', (lang) => {
+	it.each([false, true])('runs listeners for the same Event in registration order (split: %s)', async (split) => {
+		const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Started: Start
+Started --> Done: Finish
+Done --> Idle: Reset
+note right of Idle
++Init
+subscribe/tick Start
+subscribe/tick Finish
+end note
+`;
+		const options = { input, automataName: 'Steps', lang };
+		const fixture = `multiple_listeners_${lang}_${split}`;
+		let entryPath = getGeneratedPath(`${fixture}_generated.js`);
+		if (split) entryPath = await generateAndSaveFiles(options, fixture);
+		else await generateAndSave(options, fixture);
+		const mod = await import(entryPath);
+		const { actionsDictionary, createEventBus, createSteps, eventDictionary, statesDictionary } = mod;
+		const [bus, machines, cleanup] = createEventBus('steps', { steps: createSteps });
+		const calls: string[] = [];
+		const adapter = machines.steps.eventAdapter;
+		adapter.addEventListener(eventDictionary.tick, () => {
+			calls.push('first');
+			adapter.addEventListener(eventDictionary.tick, () => {
+				calls.push('late');
+				return { action: actionsDictionary.Finish, payload: {} };
+			});
+			return { action: actionsDictionary.Finish, payload: {} };
+		});
+
+		bus.dispatch({ event: eventDictionary.tick, meta: {} });
+		expect(machines.steps.state).toBe(statesDictionary.Done);
+		expect(calls).toEqual(['first']);
+		bus.dispatch({ event: eventDictionary.tick, meta: {} });
+		expect(calls).toEqual(['first', 'first', 'late']);
+		cleanup();
 	});
 });
 

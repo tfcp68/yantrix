@@ -8,7 +8,7 @@ import ExtendedActionContainer from './ExtendedActionContainer.js';
 import ExtendedEventContainer from './ExtendedEventContainer.js';
 import ExtendedStateContainer from './ExtendedStateContainer.js';
 
-export default function ExtendedValidatorContainer<
+export function ExtendedValidatorContainer<
 	StateType extends TAutomataBaseStateType,
 	ActionType extends TAutomataBaseActionType,
 	EventType extends TAutomataBaseEventType,
@@ -23,3 +23,5 @@ export default function ExtendedValidatorContainer<
 			),
 		) {};
 }
+
+export default ExtendedValidatorContainer;

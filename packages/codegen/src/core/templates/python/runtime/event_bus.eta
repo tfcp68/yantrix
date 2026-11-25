@@ -35,23 +35,26 @@ class _EventAdapter:
         self._listeners = {}
 
     def add_event_emitter(self, state_value, fn):
-        self._emitters[state_value] = fn
+        self._emitters.setdefault(state_value, []).append(fn)
 
     def add_event_listener(self, event_id, fn):
         self._listeners.setdefault(event_id, []).append(fn)
 
     def handle_event(self, event_meta):
         actions = []
-        for fn in self._listeners.get(event_meta.get('event'), []):
+        for fn in list(self._listeners.get(event_meta.get('event'), [])):
             result = fn(event_meta)
             if result:
                 actions.append(result)
         return actions
 
     def handle_transition(self, context):
-        fn = self._emitters.get(context.get('state'))
-        if fn:
+        events = []
+        for fn in list(self._emitters.get(context.get('state'), [])):
             result = fn(context)
             if result:
-                return [result] if isinstance(result, dict) else list(result)
-        return []
+                if isinstance(result, dict):
+                    events.append(result)
+                else:
+                    events.extend(result)
+        return events

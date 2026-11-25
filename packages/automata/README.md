@@ -33,6 +33,17 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
+### Package ownership
+
+`@yantrix/automata` owns the shared contracts, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. Each implementation package owns its connector-specific options and protocols. The public mixins are available from the Automata index and their named module paths. `@yantrix/core` re-exports the agnostic API.
+
+Concrete implementations extend the agnostic classes through their factories. Import the interval timer and HTTP providers from `@yantrix/providers`. Import the in-memory, Web Storage, and IndexedDB connectors from `@yantrix/storage`. Both packages can be used independently.
+
+```typescript
+import type { IStorageAdapter } from '@yantrix/automata/types';
+import { AbstractAgnosticDataSource, createDataSourceAdapter } from '@yantrix/automata/DataSource';
+```
+
 ### `Data Model` and `Effects`
 
 `ModelStore` owns the current `Data Model` snapshot. `EffectScheduler` collects
@@ -106,6 +117,72 @@ the `Slice`'s current `FSMs` and removes its `Effect Matrix`. A custom `Slice`
 with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
 notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
 wires the `FSMs` returned by `getMachines()` at registration.
+
+### `Storage` and persistence
+
+`Storage` is separate from `ModelStore`: adapters load and save serializable
+snapshots, `hydrateModel()` builds the initial `Data Model`, and an independent
+`StorageSyncLoop` persists committed changes without blocking the `Main Loop`.
+
+Pass the session returned by `hydrateModel()` to the `Sync Loop`. If a `Storage` fails to load or hydrate, the loop reports the failure through `onError` and keeps saving to healthy connectors. Pass `session: null` for a write-only loop.
+
+Call `storageSync.hydrate()` to retry the loop’s registered bindings in its own session. It starts from the current `Data Model` and returns the hydrated model for the caller to commit.
+
+```typescript
+import {
+	hydrateModel,
+	ModelStore,
+	StorageSyncLoop,
+} from '@yantrix/automata';
+import { LocalStorageAdapter } from '@yantrix/storage';
+
+interface IModel {
+	counter: { count: number };
+	transientMessage: string | null;
+}
+
+const counterStorage = new LocalStorageAdapter<{ count: number }>({
+	id: 'counter',
+	key: 'yantrix:counter',
+});
+const storageBindings = [{
+	storage: counterStorage,
+	select: (model: Readonly<IModel>) => model.counter,
+	hydrate: (model: Readonly<IModel>, snapshot: { count: number }) => ({
+		...model,
+		counter: snapshot,
+	}),
+}];
+
+const hydration = await hydrateModel<IModel>(
+	{ counter: { count: 0 }, transientMessage: null },
+	storageBindings,
+);
+const model = new ModelStore(hydration.model);
+const storageSync = new StorageSyncLoop({
+	store: model,
+	session: hydration.session,
+	bindings: storageBindings,
+	debounceMs: 250,
+	onError: failure => console.error(failure),
+}).start();
+
+// Optional initial write stores defaults and migrated snapshots.
+storageSync.requestSync();
+await storageSync.whenIdle();
+```
+
+The `Sync Loop` compares projections with `Object.is`. Changing only `transientMessage` preserves the `counter` reference and skips the write.
+
+During continuous commits, `maxWaitMs` bounds how long the `Sync Loop` waits to start a save. With a positive `debounceMs`, the default is the greater of one second and `debounceMs`. If a save is already running, the next one starts when it finishes.
+
+`VersionedStorageAdapter` decorates any adapter with ordered schema migrations.
+
+[Connector options and write guarantees](https://www.npmjs.com/package/@yantrix/storage#connector-options-and-write-guarantees).
+
+Multiple bindings may project and hydrate independent subsets of one `Data Model`;
+loads happen concurrently and successful snapshots are composed in registration
+order.
 
 Then, see the docs:
 

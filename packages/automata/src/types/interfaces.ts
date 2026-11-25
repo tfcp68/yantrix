@@ -55,6 +55,27 @@ export interface IDataModelStore<ModelType extends object> {
 }
 
 /**
+ * Persistence adapter for one complete or projected `Data Model` snapshot.
+ *
+ * A `null` load result means that the `Storage` has no persisted snapshot yet.
+ * Platform-specific transports belong in implementations, not in `ModelStore`.
+ */
+export interface IStorageAdapter<SnapshotType = unknown> {
+	readonly id: string;
+	load: () => Promise<SnapshotType | null>;
+	save: (snapshot: SnapshotType) => Promise<void>;
+	/**
+	 * Validate the stored snapshot and save if the validator returns normally,
+	 * using the connector's concurrency guarantees.
+	 */
+	saveConditionally?: (
+		snapshot: SnapshotType,
+		validateCurrent: (current: SnapshotType | null) => void,
+	) => Promise<void>;
+	clear: () => Promise<void>;
+}
+
+/**
  * Batches `Events` and applies their `Effects` to a `Data Model` in one transaction.
  */
 export interface IEffectScheduler<

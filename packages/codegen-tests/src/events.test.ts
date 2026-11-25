@@ -7,7 +7,7 @@ import { AutomataEventAdapter, BasicEventBus } from '@yantrix/core';
 import ts from 'typescript';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import templates from './fixtures/eventsTemplates';
-import { generateAndSave, generateAutomata, saveFile } from './fixtures/utils';
+import { generateAndSave, generateAndSaveFiles, generateAutomata, saveFile } from './fixtures/utils';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
@@ -38,6 +38,83 @@ describe.each([
 		expect(seen).toEqual(expected);
 		cleanup();
 	});
+});
+
+it.each([
+	[ModuleNames.JavaScript, 'js', false],
+	[ModuleNames.TypeScript, 'ts', false],
+	[ModuleNames.PureJavaScript, 'js', false],
+	[ModuleNames.PureJavaScript, 'js', true],
+	[ModuleNames.PureTypeScript, 'js', false],
+	[ModuleNames.PureTypeScript, 'js', true],
+] as const)('delivers every emit/ on state entry in %s (%s, split: %s)', async (lang, extension, split) => {
+	const options = { input: templates.multipleEmits, automataName: 'Emitter', lang };
+	const fixture = `multi_emit_${lang}_${split}`;
+	let entryPath = getGeneratedFixturePath(`${fixture}_generated.${extension}`);
+	if (split) {
+		entryPath = await generateAndSaveFiles(options, fixture);
+	} else {
+		await generateAndSave(options, fixture);
+	}
+	const mod = await import(entryPath);
+	const { First, Second, begin, finish } = mod.eventDictionary;
+	const [bus, machines, cleanup] = mod.createEventBus('multi-emit', { emitter: mod.Emitter ?? mod.createEmitter });
+	const seen: unknown[] = [];
+	const record: Parameters<BasicEventBus['subscribe']>[1] = (entry) => {
+		seen.push([entry.event, entry.meta]);
+		return { ...entry, task_id: 'record', result: null };
+	};
+	bus.subscribe(First, record);
+	bus.subscribe(Second, record);
+	machines.emitter.eventAdapter.addEventEmitter(mod.statesDictionary.Active, () => ({
+		event: Second,
+		meta: { value: 'runtime' },
+	}));
+	bus.dispatch({ event: begin, meta: {} });
+	await bus.whenIdle?.();
+	expect(machines.emitter.state).toBe(mod.statesDictionary.Active);
+	bus.dispatch({ event: finish, meta: {} });
+	await bus.whenIdle?.();
+	expect(machines.emitter.state).toBe(mod.statesDictionary.Done);
+	expect(seen).toEqual([
+		[First, { value: 0 }],
+		[Second, { value: 'second' }],
+		[First, { value: 3, copied: 0 }],
+		[Second, { value: 'runtime' }],
+	]);
+	cleanup();
+});
+
+it.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+	[ModuleNames.PureJavaScript, 'js'],
+	[ModuleNames.PureTypeScript, 'js'],
+] as const)('reads subscribe/ fallback fields from incoming meta in %s', async (lang, extension) => {
+	const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Done: Move
+note right of Idle
++Init
+subscribe/renamed Move ($value) <= ($original=$alternate)
+subscribe/shorthand Move ($value=$alternate)
+end note`;
+	const fixture = `subscribe_fallback_${lang}`;
+	await generateAndSave({ input, automataName: 'Receiver', lang }, fixture);
+	const mod = await import(getGeneratedFixturePath(`${fixture}_generated.${extension}`));
+	const adapter = mod.createReceiverEventAdapter();
+	for (const [event, key] of [[mod.eventDictionary.renamed, 'original'], [mod.eventDictionary.shorthand, 'value']] as const) {
+		for (const [meta, expected] of [
+			[{ [key]: false, alternate: 9 }, false],
+			[{ [key]: null, alternate: 0 }, 0],
+			[{ alternate: '' }, ''],
+			[{}, null],
+		] as const) {
+			expect(adapter.handleEvent({ event, meta })).toEqual([
+				{ action: mod.actionsDictionary.Move, payload: { value: expected } },
+			]);
+		}
+	}
 });
 
 it('types a generated ordered bus and cleanup for TypeScript consumers', async () => {

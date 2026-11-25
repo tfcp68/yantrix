@@ -1,6 +1,9 @@
 import { IAutomataFunctionRegistry } from './interfaces';
 
-export * from './internalsContext';
+export * from './dictionaries.js';
+export * from './interfaces.js';
+export * from './internalsContext.js';
+export * from './storage.js';
 
 /**
  * Represents the base state type for the automata.
