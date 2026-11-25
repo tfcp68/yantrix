@@ -10,6 +10,7 @@ import { GenericAutomata, TAutomataStateContext } from '@yantrix/automata';
 import { uniqId } from '@yantrix/utils';
 import { TActionGenerator, TAutomataId, TReduxConnectedAutomata } from './types.js';
 
+export { createMiddleware } from './middleware/middleware.js';
 export * from './slice/slice.js';
 export * from './types.js';
 

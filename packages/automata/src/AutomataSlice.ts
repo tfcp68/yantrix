@@ -20,12 +20,13 @@ export type TAutomataSliceProps<
 	eventValidator?: TValidator<EventType>;
 };
 
-type TSliceMachine<
+/** An `FSM` that shares its `Slice`'s `Event` IDs and `Event Meta`. */
+export type TSliceMachine<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
 > = IAutomata<any, any, EventType, any, any, EventMetaType>;
 
-/** Independent unit of Yantrix business logic: FSMs plus an Effect Matrix. */
+/** Independent unit of Yantrix business logic: `FSMs` plus an `Effect Matrix`. */
 export class AutomataSlice<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
@@ -33,6 +34,11 @@ export class AutomataSlice<
 > implements IAutomataSlice<EventType, EventMetaType, ModelType> {
 	public readonly id: string;
 	readonly #machines = new Map<string, TSliceMachine<EventType, EventMetaType>>();
+	readonly #machineListeners = new Set<{
+		onAdded: (machine: TSliceMachine<EventType, EventMetaType>) => void;
+		onRemoved: (machine: TSliceMachine<EventType, EventMetaType>) => void;
+	}>();
+
 	readonly #effectMatrix = new Map<
 		EventType,
 		ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>
@@ -77,6 +83,15 @@ export class AutomataSlice<
 		return Object.fromEntries(this.#machines);
 	}
 
+	public onMachinesChanged(
+		onAdded: (machine: TSliceMachine<EventType, EventMetaType>) => void,
+		onRemoved: (machine: TSliceMachine<EventType, EventMetaType>) => void,
+	): () => void {
+		const listener = { onAdded, onRemoved };
+		this.#machineListeners.add(listener);
+		return () => this.#machineListeners.delete(listener);
+	}
+
 	public addMachine<
 		StateType extends number,
 		ActionType extends number,
@@ -89,17 +104,30 @@ export class AutomataSlice<
 		if (!machineId) throw new Error('Slice machine must provide a non-empty string id');
 		if (this.#machines.has(machineId)) throw new Error(`Machine with id "${machineId}" already registered`);
 		this.#machines.set(machineId, automata);
-		if (this.#running) {
-			automata.enable();
-			automata.resume();
+		const notified = [];
+		try {
+			for (const listener of this.#machineListeners) {
+				listener.onAdded(automata);
+				notified.push(listener);
+			}
+			if (this.#running) {
+				automata.enable();
+				automata.resume();
+			}
+		} catch (error) {
+			this.#machines.delete(machineId);
+			for (const listener of notified) listener.onRemoved(automata);
+			throw error;
 		}
 		return this;
 	}
 
 	public removeMachine(machineId: string): this {
 		const machine = this.#machines.get(machineId);
-		if (machine && this.#running) machine.pause();
+		if (!machine) return this;
+		if (this.#running) machine.pause();
 		this.#machines.delete(machineId);
+		for (const listener of this.#machineListeners) listener.onRemoved(machine);
 		return this;
 	}
 

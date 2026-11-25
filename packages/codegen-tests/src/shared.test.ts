@@ -127,11 +127,6 @@ function isPythonAvailable(): string | null {
 	for (const cmd of ['python3', 'python']) {
 		try {
 			execSync(`${cmd} --version`, { stdio: 'ignore' });
-			try {
-				execSync(`${cmd} -c "import pydash"`, { stdio: 'ignore' });
-			} catch {
-				return null;
-			}
 			return cmd;
 		} catch {
 			// try next

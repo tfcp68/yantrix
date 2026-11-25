@@ -16,6 +16,19 @@ describe('useFSM tests', () => {
 		expect(FSM1.current.getInstanceAutomata().id).toBe(FSM2.current.getInstanceAutomata().id);
 	});
 
+	it('exposes the class id while routing each instance by its correlationId', () => {
+		const north = new TLA();
+		const south = new TLA();
+		const { result: first } = renderHook(() => useFSM(north));
+		const { result: second } = renderHook(() => useFSM(south));
+
+		expect(first.current.id).toBe(TLA.id);
+		expect(second.current.id).toBe(TLA.id);
+		expect(first.current.getInstanceAutomata().id).toBe(north.correlationId);
+		expect(second.current.getInstanceAutomata().id).toBe(south.correlationId);
+		expect(north.correlationId).not.toBe(south.correlationId);
+	});
+
 	it('change state after action', async () => {
 		const inst = new TLA();
 		const { result } = renderHook(() => useFSM(inst));

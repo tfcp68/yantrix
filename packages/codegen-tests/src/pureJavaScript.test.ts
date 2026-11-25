@@ -2,7 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
 import { assert, beforeEach, describe, expect, it } from 'vitest';
-import { generateAndSave } from './fixtures/utils.js';
+import { generateAndSave, generateAndSaveFiles } from './fixtures/utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedPath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
@@ -139,6 +139,28 @@ describe('pure-javascript codegen - state transitions and context', async () => 
 		fsm.pause();
 		fsm.dispatch({ action: actionsDictionary.Switch, payload: {} });
 		expect(() => fsm.destroy()).not.toThrow();
+	});
+});
+
+describe.each([ModuleNames.PureJavaScript, ModuleNames.PureTypeScript])('%s event bus order', (lang) => {
+	it.each([
+		{ order: undefined, expected: [1, 2, 3] },
+		{ order: 'lifo' as const, expected: [2, 3, 1] },
+	])('delivers pending and nested events in $order order', async ({ order, expected }) => {
+		const file = `pure_order_${lang}_${order ?? 'default'}`;
+		await generateAndSave({ input: trafficInput, automataName: 'TrafficLight', lang, eventBusOrder: order }, file);
+		const { createEventBus } = await import(getGeneratedPath(`${file}_generated.js`));
+		const [bus] = createEventBus('order', {});
+		const seen: number[] = [];
+		for (const id of [1, 2, 3]) {
+			bus.subscribe(id, ({ event }: { event: number }) => {
+				seen.push(event);
+				if (seen.length === 1) bus.dispatch({ event: 3, meta: null });
+			});
+		}
+		bus.dispatch({ event: 1, meta: null }, { event: 2, meta: null });
+		expect(seen).toEqual(expected);
+		expect(bus.getEventStack().map(({ event }: { event: number }) => event)).toEqual(expected);
 	});
 });
 
@@ -416,6 +438,47 @@ end note
 		const [EventBus] = createSubBus('t3', { sub: createPJSSubscribeTest });
 		EventBus.dispatch({ event: subEvents.specialEvent, meta: {} });
 		expect(EventBus.getEventStack().length).toBeGreaterThan(0);
+	});
+});
+
+describe.each([ModuleNames.PureJavaScript, ModuleNames.PureTypeScript])('%s listener registration', (lang) => {
+	it.each([false, true])('runs listeners for the same Event in registration order (split: %s)', async (split) => {
+		const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Started: Start
+Started --> Done: Finish
+Done --> Idle: Reset
+note right of Idle
++Init
+subscribe/tick Start
+subscribe/tick Finish
+end note
+`;
+		const options = { input, automataName: 'Steps', lang };
+		const fixture = `multiple_listeners_${lang}_${split}`;
+		let entryPath = getGeneratedPath(`${fixture}_generated.js`);
+		if (split) entryPath = await generateAndSaveFiles(options, fixture);
+		else await generateAndSave(options, fixture);
+		const mod = await import(entryPath);
+		const { actionsDictionary, createEventBus, createSteps, eventDictionary, statesDictionary } = mod;
+		const [bus, machines, cleanup] = createEventBus('steps', { steps: createSteps });
+		const calls: string[] = [];
+		const adapter = machines.steps.eventAdapter;
+		adapter.addEventListener(eventDictionary.tick, () => {
+			calls.push('first');
+			adapter.addEventListener(eventDictionary.tick, () => {
+				calls.push('late');
+				return { action: actionsDictionary.Finish, payload: {} };
+			});
+			return { action: actionsDictionary.Finish, payload: {} };
+		});
+
+		bus.dispatch({ event: eventDictionary.tick, meta: {} });
+		expect(machines.steps.state).toBe(statesDictionary.Done);
+		expect(calls).toEqual(['first']);
+		bus.dispatch({ event: eventDictionary.tick, meta: {} });
+		expect(calls).toEqual(['first', 'first', 'late']);
+		cleanup();
 	});
 });
 

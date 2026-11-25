@@ -10,6 +10,10 @@ Core bundle includes the following packages:
 - @yantrix/functions
 - @yantrix/utils
 
+`@yantrix/automata` owns the shared contracts, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. Each implementation package owns its connector-specific options and protocols. The public mixins are available from the Automata index and their named module paths. `@yantrix/core` re-exports the agnostic API.
+
+Concrete implementations extend the agnostic classes through their factories. Import the interval timer and HTTP providers from `@yantrix/providers`. Import the in-memory, Web Storage, and IndexedDB connectors from `@yantrix/storage`. Both packages can be used independently.
+
 <div align="center">
   <img width="128" src="https://github.com/tfcp68/yantrix/blob/main/docs/public/logo.png?raw=true" />
   <h1><code>@yantrix/core</code></h1>

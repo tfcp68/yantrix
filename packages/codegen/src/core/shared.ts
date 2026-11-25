@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import {
 	getEmitStatements,
 	getSubscribeStatements,
@@ -7,6 +7,13 @@ import {
 
 import { ByPassAction } from '../constants.js';
 import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+
+export function resolveEventBusOrder(order: TEventBusOrder = 'fifo'): TEventBusOrder {
+	if (order !== 'fifo' && order !== 'lifo') {
+		throw new TypeError('eventBusOrder must be either "fifo" or "lifo"');
+	}
+	return order;
+}
 
 export function fillDictionaries(
 	diagram: TStateDiagramMatrixIncludeNotes,
@@ -40,14 +47,14 @@ export function fillDictionaries(
 			if (!state.notes) continue;
 
 			const emitStatements = getEmitStatements(state.notes);
-			const emittedEventsKeys = emitStatements.map(emit => emit.identifier);
+			const emittedEventsKeys = Array.from(new Set(emitStatements.map(emit => emit.identifier)));
 			if (emittedEventsKeys.length > 0) {
 				const uniqueKeys = emittedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 
 			const subscribeStatements = getSubscribeStatements(state.notes);
-			const subscribedEventsKeys = subscribeStatements.map(sub => sub.identifier);
+			const subscribedEventsKeys = Array.from(new Set(subscribeStatements.map(sub => sub.identifier)));
 			if (subscribedEventsKeys.length > 0) {
 				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
 				eventDictionary.addEvents({ keys: uniqueKeys });

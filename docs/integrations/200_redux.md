@@ -4,15 +4,23 @@ title: Redux
 
 # Integrating with Redux
 
-The connector allows for integration both with native Redux and with Redux-Toolkit Library. FSMs for Redux integration must be complemented using Typescript codegen, thus providing a [`@yantrix/automata`](..API/automata/) implementation.
+Install the Redux adapter and its Redux Toolkit peer in the application that owns the store.
+The generated machine imports its runtime from `@yantrix/core`. An application using only
+that runtime can omit the Redux adapter, Redux Toolkit, and React.
 
 ```shell
-$ npm install @yantrix/redux @yantrix-codegen
+npm install @yantrix/core @yantrix/redux @reduxjs/toolkit@^2.2.7
+```
+
+If you generate TypeScript from diagrams in this project, install the generation tools as development dependencies. The generated timing helper uses Node type declarations when compiling its `process` check.
+
+```shell
+npm install --save-dev @yantrix/cli @types/node
 ```
 
 ## Setup
 
-Define a diagram, for instance, a simple traffic light scheme:
+Save this diagram as `schemas/traffic-light.mermaid`.
 
 ```mermaid
 stateDiagram-v2
@@ -23,215 +31,146 @@ stateDiagram-v2
 	Green --> Yellow: Switch
 	Yellow --> Red: Switch
 note right of [*]
-#{ counter = 0 } <= coalesce($initialCounter, inc(#counter))
+#{ counter = 0 } <= coalesce($initialCounter, inc(#counter = 0))
 end note
 note left of Off
 +Init
 end note
 ```
 
-build your `FSM`:
+Generate the TypeScript class from the project root.
 
 ```shell
-$ yantrix codegen ../schemas/traffic_light.mermaid --outfile ../generated/traffic_light.ts --language TypeScript --className TrafficLight
+npx yantrix codegen schemas/traffic-light.mermaid --outfile generated/traffic-light.ts --language TypeScript --className TrafficLight
 ```
-
-**(Optional):** Import the adapters and the generated `Automata` into your project
-
-```typescript
-// importing bridge toolset
-import * as Yantrix from '@yantrix/redux';
-
-// import a generated automata
-import TrafficLight from '../generated/traffic-light.ts';
-
-// will export `className` passed to codegen in static variable:
-const fsmId = TrafficLight.id; // 'TrafficLight'
-```
-
-You might be more specific with imports depending on the integration scheme
 
 ## RTK Slice
 
-If you must, you can use a generated `Automata` as is within your Redux Store, explicitly exporint its `Actions` to Redux and possibly providing a mapper to produce a Redux Store from FSM `Context`. If the latter is not provided, which is the default scenario, that mapper would be replaced by shallow copyin. That is not exactly a Redux way, but it works.
+`createFSMSlice` accepts the generated **constructor** as `Fsm`. Each call creates a machine
+instance. Supply a `name` to use as its Redux action prefix, or omit it to use that instance's
+`correlationId`. The key supplied to `configureStore` determines where the reducer's state lives.
 
 ```mermaid
 sequenceDiagram
-	useDispatch ->>+ Redux Slice: Action[+Payload]
-	Redux Slice ->>+ FSM: Action[+Payload] to FSM Payload
-	FSM ->> FSM: Reducer
-	FSM ->>- Redux Slice: FSM Context to Slice State
-	Redux Slice -->>- Subscribers: Slice State
-```
-
-`@yantrix/redux` lib provides a `createFSMSlice` method which creates a Redux Toolkit Slice which exports all `FSM`s `Actions` as reducers, that invoke [`dispatch`](../API/automata/interfaces/IAutomata.html#dispatch) method of an FSM to resolve the next state of the produced slice
-
-You shall provide a string constant do discriminate every particular integration. If you must, you can use a same constant for different slices, assuming `Actions` of `FSM`s are globally unique.
-
-```typescript
-import { createFSMSlice } from '@yantrix/redux';
-
-// import a generated FSM
-import TrafficLight from '../generated/traffic-light.ts';
-
-// provide an integration id as action prefix
-const YantrixSliceId = 'yantrix';
-
-const YantrixSlice = createFSMSlice(TrafficLight);
-```
-
-this will instantiate a `TrafficLight` class and connect it to Redux.
-
-```typescript
-// create a slice for one Automata or for any number of them
-
-const store = configureStore({
-	reducer: combineReducers({
-		// here go all your other slices
-		// ...
-		[YantrixSliceId]: YantrixSlice.reducer,
-	}),
-});
+    participant Store as Redux store
+    participant Slice as Slice reducer
+    participant FSM as Machine instance
+    Store->>Slice: intersection/Switch
+    Slice->>FSM: Dispatch Switch
+    FSM-->>Slice: State and context
+    Slice-->>Store: Updated slice state
 ```
 
 ### API
 
 ```typescript
-declare type TCreateFSMSliceOptions<StateType, ContextType = object> = {
-	name: string;
-	fsm: ClassConstructor<IAutomata>;
-	contextToRedux?: (context: ContextType) => StateType;
-	reducerPath?: string;
-	selectors?: Record<string, (state: StateType) => any>;
-};
+import { configureStore } from '@reduxjs/toolkit';
+import { createFSMSlice } from '@yantrix/redux';
+import TrafficLight from './generated/traffic-light.js';
 
-declare function createFSMSlice(options: TCreateFSMSliceOptions): ReturnType<createSlice>;
+const signals = createFSMSlice<keyof typeof TrafficLight.actions, { count: number }>({
+    Fsm: TrafficLight,
+    name: 'intersection',
+    reducerPath: 'signals',
+    contextToRedux: ({ context }) => ({ count: context.counter ?? 0 }),
+});
+const store = configureStore({ reducer: { signals: signals.reducer } });
+
+console.log(store.getState().signals.context.count); // 0
+const switchLight = signals.actions.Switch({});
+console.log(switchLight.type); // 'intersection/Switch'
+store.dispatch(switchLight);
+console.log(store.getState().signals.state === TrafficLight.getState('Red')); // true
+console.log(store.getState().signals.context.count); // 1
 ```
 
 ### State
 
-The type of the return value is also the shape of `initialState` of a produced slice. In this case it would be:
+`reducerPath` tells the slice's generated selectors where to look in the root state. The example
+mounts the reducer under the same key, `signals`. It can have a different name from the action
+prefix, `intersection`.
 
-```typescript
-type TAutomataContext = {
-	state: 'Off' | 'Red' | 'RedYellow' | 'Yellow' | 'Green';
-	context: {
-		counter: number;
-	};
-};
-
-const initialState: TAutomataContext = {
-	state: 'Off',
-	context: {
-		counter: 0,
-	},
-};
-```
-
-The State of the RTK Slice is represented by the return value of an optional functional parameter:
-
-```typescript
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-
-const YantrixSlice = createFSMSlice({
-	name: TrafficLight.id,
-	fsm: TrafficLight,
-	contextToRedux: context => context, // optional, default mapper
-});
-```
-
-If needed, a `Context` of an FSM can be transformed in a different manner to reduce polymorphism and optimize execution:
-
-```typescript
-const YantrixSlice = createFSMSlice({
-	name: TrafficLight.id,
-	fsm: TrafficLight,
-	contextToRedux: context => ({
-		counter: context.counter,
-		redColorOn: ['Red', 'RedYellow'].includes(context.state),
-		yellowColorOn: ['Yellow', 'RedYellow'].includes(context.state),
-		greenColorOn: ['Green'].includes(context.state),
-	}), // this function can be memoized
-});
-```
-
-In this case, `initialState` is derived by applying the mapper to the automata initial `Context`. It might seem a slightly more reduxish way of using transitional state mapping, however, this makes sense only if the produced flags are used directly by components in respective selectors. Otherwise, flag programming should be evaded as much as possible to enjoy the virtues of finite state machines, like determinism and low cyclomatic complexity.
+The slice stores `{ state, context }` from initialization onward. By default, `context` contains
+the machine's current context. When you supply `contextToRedux`, its return value
+becomes the slice's `context`. The mapper receives the current numeric machine state and its
+context together, both on initialization and after handled actions. The example projects
+the machine's `counter` field to `count`.
 
 ### Actions
 
-The produced object, which is essentially a common RTK Slice, exports redux action creaters, named by pattern `slice.name/fsm.id/action.id`
+The action type combines the slice name and the diagram's case-sensitive action name. Dispatch
+`signals.actions.Switch({})` to send `intersection/Switch` to all reducers handling that type.
 
--   `yantrix/TrafficLight/reset`, having an `initialCounter` parameter
--   `yantrix/TrafficLight/switch`, having no parameters
+### Identifiers
 
-dispatching an action to Redux will actually invoke an `Action` upon the `FSM` and map its resulting `Context` to Redux slice state
+| Value | Identifies | Example |
+| --- | --- | --- |
+| `TrafficLight.id` | The generated class. Instances of this generation share the value. Regenerating code can change its timestamp suffix. | `TrafficLight_<generation timestamp>` |
+| `new TrafficLight().correlationId` | One machine instance. Constructing a second traffic light gives it a separate key. | Used by the [React integration](199_react.html) to locate the instance. |
+| `signals.name` | The Redux action prefix, defaulting to the slice machine's `correlationId`. | An explicit `intersection` produces `intersection/Switch` and `intersection/Reset`. |
+
+For `const light = new TrafficLight()`, `light.constructor === TrafficLight`. Read the class
+identifier as `TrafficLight.id` and the instance key as `light.correlationId`. You can pass
+`TrafficLight.id` as the slice `name` explicitly. Choose a stable application name when Redux
+actions are persisted, or distinct names when two independently routed slices use the same class.
+If two different machines share an explicit slice name in the same store, Yantrix warns and
+both reducers still handle actions with that prefix. Separate stores may reuse the same name.
 
 ## Middleware
 
-Another very controllable option to integrate FSMs with Redux would be to use `FSM`s as an independent asynchronous logic to transduce Redux Actions before they reach already existing reducers. The `FSM` logic then is applied to the whole Redux Store rather than a particular slice, allowing for operating behavior of existing apps. This approach is also super convenient when using Redux Actions as value setters, however, this is not a Redux way either.
+Use `createMiddleware` to connect existing Redux actions to a generated machine. Pass the
+constructor, an input mapper that selects the actions the machine should receive, and an output
+mapper that converts the machine's resulting state and context into a Redux action. Returning
+`null` from the input mapper lets an unrelated action continue through Redux.
 
-The proper way is to dispatch a specific Redux Action that would pass the control to the `FSM`, which, in turn, returns a new `Action` to be dispatched to `Redux`. The original Redux Action may have a separate reducer, or maybe ignored completely.
+When a command matches, the middleware advances the machine and maps its new snapshot.
+It then forwards the original Redux action first, followed by the action from the output
+mapper. If the output mapper returns `null`, it forwards just the original action.
+The middleware returns the result of forwarding the original action.
 
-```mermaid
-sequenceDiagram
-	useDispatch ->>+ Redux Store: Action
-	Redux Store ->> + Middleware: Redux Action
-	Middleware ->>+ FSM: FSM Payload
-	FSM ->> FSM: Reducer
-	FSM ->>- Middleware: FSM Context
-	Middleware ->> - Redux Store: Action
-	Redux Store ->> Redux Store: Reducer
-	Redux Store -->>- Subscribers: Store State
-```
-
-Since `FSM` should not have knowledge about a particular Redux Store at time being, the middleware requires a couple of mappers:
-
--   A function that maps Redux Action to the particular `FSM` `Payload`
--   A function that maps `FSM` `Context` to the particular Redux Action
+In this example, the `signals/advance` reducer case counts the button press. The
+`signals/observed` case then records the new light color.
 
 ```typescript
-import { PayloadAction } from '@reduxjs/toolkit';
-import { Middleware } from 'redux';
-
-function createMiddleware<ActionType extends PayloadAction, AutomataType extends IAutomata, StoreType = any>(
-	FSM: AutomataType,
-	// if the following mapper returns null, the Payload is not dispatched to FSM
-	mapActionToFSMPayload: (action: ActionType) => TInferAutomataPayload<AutomataType>,
-	// if the following mapper returns null, the Action is not dispatched to Redux
-	mapContextToAction: (context: TInferAutomataContext<ActionType>) => ActionType,
-): Middleware<ActionType, StoreType>;
-```
-
-Note that the outbound mapping relies on the `State` of the `FSM` rather than on the `Action` produced on the first stage. This behaviour intentionally copies the [Event Adapter](#event-adapters) API, so that the mappers could be at least somewhat composable/reusable.
-
-```typescript
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
 import { createMiddleware } from '@yantrix/redux';
-import TrafficLight from '../generated/traffic-light.ts';
+import TrafficLight from './generated/traffic-light.js';
 
-export const store = configureStore({
-	reducer: combineReducers({
-		/* ... */
-	}),
-	middleware: getDefaultMiddleware =>
-		getDefaultMiddleware().concat(
-			createMiddleware(
-				TrafficLight,
-				({ type, payload }) => (type !== 'yantrix/trafficLight')
-					? null
-					: TrafficLight.createAction('Switch', payload),
-				({ state, context }) => ({
-					type: 'changeTrafficLight', // assume this action is handled elsewhere in Redux
-					payload: { color: state, counter: context.counter }
-				})
-			)
-		)
+const advance = createAction('signals/advance');
+const observed = createAction<number | null>('signals/observed');
+
+const lightMiddleware = createMiddleware(
+    TrafficLight,
+    action => advance.match(action) ? TrafficLight.createAction('Switch', {}) : null,
+    snapshot => observed(snapshot.state),
+);
+const initialState: { presses: number; color: number | null } = { presses: 0, color: null };
+const reducer = createReducer(initialState, builder => {
+    builder.addCase(advance, state => {
+        state.presses++;
+    });
+    builder.addCase(observed, (state, action) => {
+        state.color = action.payload;
+    });
 });
+const store = configureStore({
+    reducer,
+    middleware: defaults => defaults().concat(lightMiddleware),
+});
+
+const command = advance();
+const result = store.dispatch(command);
+console.log(result === command); // true
+console.log(store.getState().presses); // 1
+console.log(store.getState().color === TrafficLight.getState('Red')); // true
 ```
 
 ## Event Adapters
 
-Event Adapters present yet another way to plug `FSM`s into Redux, which is the most recommended way when you have several (or many) intertwined `FSM`s that communicate with `Events`, allowing for asynchronous processing outside of Redux. Redux itself becomes an observer of `Events` of a `Slice`, connecting with `Event Bus` directly. The Actions are selectively mapped to `Events` which somehow update `FSM`s in `Slice` stack, and, if any `Events` in generated in response to `FSM` transitions, they are selectively mapped to another Redux Actions, which are then dispatched asynchronously (like a thunk)
+For an application with several machines, a Redux store can observe their events through the
+[Event Bus](../concepts/300_event_model.html). This is a separate integration pattern.
+The application maps selected Redux actions to events, then dispatches Redux actions when
+subscribed events arrive.
 
 ```mermaid
 sequenceDiagram
@@ -245,8 +184,4 @@ sequenceDiagram
 	Event Bus -->> Redux Store: Action
 	Redux Store ->> Redux Store: Reducer
 	Redux Store -->> Subscribers: Store State
-```
-
-```typescript
-// here goes the listing with Event Bus...
 ```

@@ -5,7 +5,7 @@
  */
 import { TAbstractConstructor } from '../types/index.js';
 
-export default function DictionaryContainer<ItemType>() {
+export function DictionaryContainer<ItemType>() {
 	return <TBase extends TAbstractConstructor = TAbstractConstructor>(base: TBase) =>
 		class AbstractDictionaryContainer extends base {
 			_dictionary: Record<string, ItemType> = {};
@@ -131,3 +131,5 @@ export default function DictionaryContainer<ItemType>() {
 			}
 		};
 }
+
+export default DictionaryContainer;

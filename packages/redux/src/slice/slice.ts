@@ -2,6 +2,25 @@ import { createSlice, PayloadAction, SliceSelectors } from '@reduxjs/toolkit';
 import { isStaticMethodsAutomata } from '@yantrix/utils';
 import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice } from '../types';
 
+// Each Redux store sends its own initialization action through all mounted reducers.
+// Using that action as the key keeps independent stores' namespaces separate.
+const namesByInitialization = new WeakMap<object, Map<string, TAutomata>>();
+
+function checkSliceName(initialization: object, name: string, machine: TAutomata): void {
+	let names = namesByInitialization.get(initialization);
+	if (!names) {
+		names = new Map();
+		namesByInitialization.set(initialization, names);
+	}
+
+	const previous = names.get(name);
+	if (previous && previous !== machine) {
+		console.warn(`Multiple Yantrix slices use the Redux name "${name}" in this store. Both handle actions in that namespace.`);
+	} else {
+		names.set(name, machine);
+	}
+}
+
 /**
  * Function for creating a wrapper around a Redux slice.
  * Stores the current state of the FSM and returns a ready-to-use slice with reducers
@@ -16,15 +35,16 @@ import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice 
  * @param {TClassConstructor<Automata>} options.Fsm
  * The FSM class used to initialize the FSM and define its actions and states.
  *
- * @param {string} options.name
- * The name of the slice to be created, used in the Redux store.
+ * @param {string} [options.name]
+ * Redux action namespace. An omitted or empty name uses the machine's correlationId.
  *
  * @param {string} [options.reducerPath]
  * Path for the reducer, which can be used to place the reducer in a state hierarchy.
  *
- * @param {(context: ContextType) => StateType} [options.contextToRedux]
- * Function that transforms the FSM context into the Redux context to synchronize data between
- * the FSM and the Redux store. If not specified, the FSM context will be used as is.
+ * @param {Function} [options.contextToRedux]
+ * Maps the current FSM snapshot to the slice's context at initialization and after each handled action.
+ * The snapshot includes the state ID and raw context. Raw context fields are also available at the top level.
+ * Redux receives a shallow copy of the projected object or array; nested values must be treated as immutable.
  *
  * @param {SliceSelectors<TAutomataContext<ContextReduxType>>} [options.selectors]
  * Set of selectors for accessing slice data from the Redux state.
@@ -37,10 +57,10 @@ import { TAutomata, TAutomataContext, TCreateFSMSliceOptions, TReducersFSMSlice 
  * const trafficLightSlice = createFSMSlice({
  *   Fsm: TrafficLightAutomata,
  *   name: 'trafficLight',
- *   contextToRedux: (context) => ({ color: context.state, count: context.counter }),
+ *   contextToRedux: ({ state, context }) => ({ color: state, count: context.counter }),
  *   selectors: {
- *     selectColor: (state) => state.trafficLight.color,
- *     selectCounter: (state) => state.trafficLight.counter,
+ *     selectColor: slice => slice.context.color,
+ *     selectCounter: slice => slice.context.count,
  *   },
  * });
  *
@@ -57,14 +77,21 @@ export function createFSMSlice<Actions extends string
 	| symbol, ContextReduxType extends object, Automata extends TAutomata = TAutomata>(
 	options: TCreateFSMSliceOptions<Automata, ContextReduxType>,
 ) {
-	const { Fsm, name, contextToRedux, selectors, reducerPath } = options;
+	const { Fsm, contextToRedux, selectors, reducerPath } = options;
 	const _fsm = new Fsm();
+	const name = options.name || _fsm.correlationId;
 	let reducers;
 	let actionsNameList;
 	const selectorsSlice = Object.assign(selectors ?? {});
 
-	const contextAutomata: TAutomataContext<ContextReduxType> = _fsm.getContext();
-	const contextRedux = Object.assign({}, contextToRedux?.(contextAutomata) ?? {});
+	function project(
+		{ state, context }: TAutomataContext<ReturnType<Automata['getContext']>['context']>,
+	): TAutomataContext<ContextReduxType> {
+		let projected = contextToRedux ? contextToRedux({ ...context, state, context }) : context;
+		if (Array.isArray(projected)) projected = Array.prototype.slice.call(projected);
+		else if (projected !== null && typeof projected === 'object') projected = { ...projected };
+		return { state, context: projected };
+	}
 
 	if (isStaticMethodsAutomata(Fsm)) {
 		actionsNameList = Object.keys(Fsm.actions);
@@ -72,24 +99,12 @@ export function createFSMSlice<Actions extends string
 			acc[actionName]
 				= (
 					_state: TAutomataContext<ContextReduxType>,
-					action: PayloadAction<(typeof contextAutomata)['context']>,
+					action: PayloadAction<ContextReduxType>,
 				) => {
-					const { state, context } = _fsm.dispatch({
+					return project(_fsm.dispatch({
 						action: Fsm.getAction(actionName),
 						payload: action.payload,
-					});
-
-					// Прокидываем в маппер контекст из автомата, если contextToRedux неопределен,
-					// то прокидываем просто контекст из автомата
-					const newSliceContext = contextToRedux?.({
-						state,
-						...context,
-					}) ?? { ...contextAutomata.context };
-
-					_state.context = {
-						...newSliceContext,
-					};
-					_state.state = state;
+					}));
 				};
 			return acc;
 		}, {} as any);
@@ -97,9 +112,13 @@ export function createFSMSlice<Actions extends string
 
 	return createSlice<TAutomataContext<ContextReduxType>, TReducersFSMSlice<Actions, TAutomataContext<ContextReduxType>['context']>, string, SliceSelectors<TAutomataContext<ContextReduxType>>, string>({
 		name,
-		reducerPath: reducerPath ?? '',
-		initialState: contextRedux as TAutomataContext<ContextReduxType>,
+		reducerPath: reducerPath ?? name,
+		initialState: project(_fsm.getContext()),
 		reducers,
 		selectors: selectorsSlice,
+		extraReducers: builder => builder.addMatcher(
+			action => action.type.startsWith('@@redux/'),
+			(_state, action) => checkSliceName(action, name, _fsm),
+		),
 	});
 }

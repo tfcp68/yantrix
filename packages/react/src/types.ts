@@ -52,7 +52,7 @@ export interface IYantrixBoundStore<Snapshot = TAutomata> {
 }
 
 export interface IContextFSM {
-	initializeFSM: (inst: TUseFSMInput) => string;
+	initializeFSM: (inst: TUseFSMInput, name?: string) => string;
 	getStore: (id: string) => IYantrixBoundStore;
 	destroyFSM: (id: string) => void;
 }
@@ -89,7 +89,10 @@ export type TPreviousContext<Context = any> = {
 	context: Record<string, Context>;
 };
 
-export type TUseFSMOptions<Snapshot, Selection> = {
+/** Optional registry name shared by subscribers of one live instance. */
+export type TUseFSMRegistrationOptions = { name?: string };
+
+export type TUseFSMOptions<Snapshot, Selection> = TUseFSMRegistrationOptions & {
 	selector: (snapshot: Snapshot, statics: TStaticMethods) => Selection;
 	isEqual?: (a: Selection, b: Selection) => boolean;
 };

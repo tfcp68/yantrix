@@ -1,2 +1,2 @@
 <%~ it.python.builtins %>
-<%~ it.python.eventBusRuntime %>
+<%~ include('event_bus', it) %>

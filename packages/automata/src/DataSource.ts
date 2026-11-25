@@ -102,51 +102,6 @@ export abstract class AbstractAgnosticDataSource<T> extends AbstractBaseClass im
 	}
 }
 
-type TIntervalTimerDataSourceDataPacket = {
-	id: string;
-	timestamp: number;
-	startTimestamp: number;
-} & TCycleIteratorInfo;
-export class IntervalTimerDataSource extends AbstractAgnosticDataSource<TIntervalTimerDataSourceDataPacket> {
-	#intervalLink: any = null;
-	#interval: number = 0;
-	#startTimestamp = 0;
-
-	_isValidInterval(interval: any): interval is number {
-		return Number.isFinite(interval) && Number.isInteger(interval) && interval > 0;
-	}
-
-	public constructor(opts: TDataSourceConstructorOpts<TIntervalTimerDataSourceDataPacket> & { interval: number }) {
-		super(opts);
-		if (!this._isValidInterval(opts.interval))
-			throw new RangeError(`Invalid timer interval for Data Source #${this.id}`);
-		this.#interval = opts.interval;
-	}
-
-	override start(): this {
-		super.start();
-		this.#startTimestamp = Date.now();
-		if (this.#intervalLink != null)
-			clearInterval(this.#intervalLink);
-		this.#intervalLink = setInterval(() => this._addDataPacket({
-			id: this.id,
-			startTimestamp: this.#startTimestamp,
-			timestamp: Date.now(),
-			...this._getCycleIteratorInfo(),
-		}), this.#interval);
-		return this;
-	}
-
-	override stop(): this {
-		super.stop();
-		if (this.#intervalLink != null) {
-			clearInterval(this.#intervalLink);
-			this.#intervalLink = null;
-		}
-		return this;
-	}
-}
-
 export class NamedDataSource<T> extends AbstractAgnosticDataSource<T> {
 	override _addDataPacket(dataPacket: T): void {
 		super._addDataPacket(Object.assign({}, dataPacket, { id: this.id }));
