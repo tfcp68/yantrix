@@ -33,6 +33,8 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
+The package declarations require TypeScript >= 5.4.
+
 ### Package ownership
 
 `@yantrix/automata` owns the shared contracts, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. Each implementation package owns its connector-specific options and protocols. The public mixins are available from the Automata index and their named module paths. `@yantrix/core` re-exports the agnostic API.
@@ -120,37 +122,52 @@ wires the `FSMs` returned by `getMachines()` at registration.
 
 `Model Predicates` and `Model Transformers` can select one value from the `Data Model`. The following `Effect` checks the counter's limit before applying an increment.
 
-```typescript
-import {
-	createModelPredicate,
-	createModelTransformer,
-	whenModel,
-} from '@yantrix/automata';
+<!-- eslint ts/naming-convention: off -- Use the application's type names in this example. -->
 
-interface ICounterModel {
-	counter: { value: number; limit: number };
+```typescript
+import type { TEffectMatrix } from '@yantrix/automata';
+import { createModelFunctions } from '@yantrix/automata';
+
+enum AppEvent {
+	Increment = 1,
+	Reset = 2,
 }
 
-const canIncrement = createModelPredicate<
-	ICounterModel,
-	ICounterModel['counter'],
-	AppEvent.Increment,
-	IEventMeta
->(
-	current => current.counter,
+type App = { counter: { value: number; limit: number } };
+type AppEventMeta = {
+	[AppEvent.Increment]: { amount: number };
+	[AppEvent.Reset]: { reason: string };
+};
+
+const fx = createModelFunctions<App, AppEvent, AppEventMeta>();
+const add = fx.forEvent<AppEvent.Increment>();
+
+const canIncrement = add.predicate(
+	model => model.counter,
 	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
 );
-const increment = createModelTransformer<
-	ICounterModel,
-	ICounterModel['counter'],
-	AppEvent.Increment,
-	IEventMeta
->(
-	current => current.counter,
-	(current, counter) => ({ ...current, counter }),
-	(event, counter) => ({ ...counter, value: counter.value + (event.meta?.amount ?? 0) }),
+const increment = add.transformer(
+	model => model.counter.value,
+	(model, value) => ({ ...model, counter: { ...model.counter, value } }),
+	(event, value) => value + (event.meta?.amount ?? 0),
 );
-const incrementWhenAllowed = whenModel(canIncrement, increment);
+const effects = {
+	[AppEvent.Increment]: [add.when(canIncrement, increment)],
+} satisfies TEffectMatrix<App, AppEvent, AppEventMeta>;
+```
+
+`forEvent<AppEvent.Increment>()` binds the key at compile time, so `add` receives `AppEventMeta[AppEvent.Increment] | null` as `Event Meta`. On `fx`, `Event Meta` is the union `AppEventMeta[AppEvent] | null`. The `Effect Matrix` key decides when the handler runs. Supply all three type arguments to `TEffectMatrix`. Omitting the `Event Meta` map supplies `any` as the contextual type for `event.meta`.
+
+An annotated result also gives the standalone helper its `Event` key and `Event Meta` map. The selector determines the selected type. If you annotate its parameter, use `TReadonlyModel<App>`. A mutable `App` parameter is too narrow when the `Data Model` contains arrays.
+
+```typescript
+import type { TModelPredicate, TReadonlyModel } from '@yantrix/automata';
+import { createModelPredicate } from '@yantrix/automata';
+
+const withinLimit: TModelPredicate<App, AppEvent.Increment, AppEventMeta> = createModelPredicate(
+	(model: TReadonlyModel<App>) => model.counter,
+	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
+);
 ```
 
 `ModelStore` can also enable opt-in development diagnostics. Both checks are disabled by default.

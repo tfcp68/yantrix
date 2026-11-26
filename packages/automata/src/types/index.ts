@@ -342,7 +342,7 @@ export type TContextPredicate<
 export type TModelPredicate<
 	ModelType extends object = Record<string, unknown>,
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, unknown>,
 > = (
 	event: TAutomataEventMetaType<EventType, EventMetaType>,
 	model: TReadonlyModel<ModelType>,

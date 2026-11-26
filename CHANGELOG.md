@@ -74,7 +74,9 @@ An HTTP route that sends a request must now return a `Request` or a `RequestInit
 +const getTime = () => ({ url: 'https://example.org/time', method: 'GET' });
 ```
 
-`TModelPredicate` now takes the triggering `Event` and a read-only `Data Model` and returns a boolean. Existing curried predicates must be rewritten.
+`TModelPredicate` now takes the triggering `Event` and a read-only `Data Model` and returns a boolean. Existing curried predicates must be rewritten. In model helpers, un-inferred `Event Meta` now defaults to `unknown` (previously `any`).
+
+The `@yantrix/automata` declarations require TypeScript >= 5.4 for the built-in `NoInfer` type.
 
 ```diff
  import type { TModelPredicate } from '@yantrix/automata';
