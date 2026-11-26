@@ -1,5 +1,6 @@
 import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import {
+	getEffectStatements,
 	getEmitStatements,
 	getSubscribeStatements,
 	hasByPass,
@@ -46,17 +47,23 @@ export function fillDictionaries(
 		for (const state of diagram.states) {
 			if (!state.notes) continue;
 
-			const emitStatements = getEmitStatements(state.notes);
-			const emittedEventsKeys = Array.from(new Set(emitStatements.map(emit => emit.identifier)));
+			const emittedEventsKeys = Array.from(new Set([
+				...getEmitStatements(state.notes).map(emit => emit.identifier),
+				...getEffectStatements(state.notes).map(effect => effect.identifier),
+			]));
 			if (emittedEventsKeys.length > 0) {
-				const uniqueKeys = emittedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				const uniqueKeys = emittedEventsKeys.filter(
+					e => eventDictionary.getEventValues({ keys: [e] })[0] == null,
+				);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 
 			const subscribeStatements = getSubscribeStatements(state.notes);
 			const subscribedEventsKeys = Array.from(new Set(subscribeStatements.map(sub => sub.identifier)));
 			if (subscribedEventsKeys.length > 0) {
-				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				const uniqueKeys = subscribedEventsKeys.filter(
+					e => eventDictionary.getEventValues({ keys: [e] })[0] == null,
+				);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 		}
@@ -72,7 +79,7 @@ export function fillDictionaries(
  * If state is not found in the dictionary then error is thrown.
  * @param {TStateDiagramMatrixIncludeNotes} diagram
  * @param {BasicStateDictionary} stateDictionary
- * @returns {number[]}
+ * @returns {number[]} IDs of the bypassed `States`.
  */
 export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateDictionary: BasicStateDictionary) {
 	const byPassed: number[] = [];
@@ -107,7 +114,7 @@ export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateD
 /**
  * Reference type to path mapping for code generation.
  */
-export const pathRecord: Record<string, string> = {
+export const pathRecord = {
 	constant: 'constant',
 	context: 'prevContext',
 	payload: '_payload',

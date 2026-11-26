@@ -84,7 +84,7 @@ subscribe/finish Finish
 end note
 note right of Active
 #{count=0}
-emit/First ($value) <= #{count=12}
+emit/First ($value, $expires='never') <= #{count=12}
 emit/Second ($value='second')
 emit/First ($value=3, $copied=#count)
 end note

@@ -41,7 +41,12 @@ export default config(
 		test: true,
 		yaml: true,
 		vue: true,
-		ignores: ['**/*_generated.*', 'packages/yantrix-parser/src/generated/*', 'packages/codegen-tests/src/fixtures/generated/**'],
+		ignores: [
+			'**/*_generated.*',
+			'examples/*/src/generated/**',
+			'packages/yantrix-parser/src/generated/*',
+			'packages/codegen-tests/src/fixtures/generated/**',
+		],
 		typescript: {
 			overrides: {
 				'ts/consistent-type-imports': ['error', { prefer: 'no-type-imports' }],

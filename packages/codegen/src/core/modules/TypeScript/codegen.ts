@@ -9,6 +9,9 @@ export class TypeScriptCodegen extends JavaScriptCodegen implements ICodegen<typ
 	constructor(params: TModuleParams) {
 		super(params);
 		this.imports['@yantrix/core']!.push('TAutomataBaseActionType', 'TAutomataBaseStateType');
+		if (this.effectDeclarations.length > 0) {
+			this.imports['@yantrix/core']!.push('TEffectMatrixEntry', 'TEffectMatrix');
+		}
 		this.expressions = JavaScriptCompiler.expressions.functions.setupExpressions({
 			constants: this.constants,
 			hasTypes: true,

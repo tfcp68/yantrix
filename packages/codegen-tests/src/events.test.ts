@@ -77,7 +77,7 @@ it.each([
 	await bus.whenIdle?.();
 	expect(machines.emitter.state).toBe(mod.statesDictionary.Done);
 	expect(seen).toEqual([
-		[First, { value: 0 }],
+		[First, { value: 0, expires: 'never' }],
 		[Second, { value: 'second' }],
 		[First, { value: 3, copied: 0 }],
 		[Second, { value: 'runtime' }],

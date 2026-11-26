@@ -89,6 +89,11 @@ export function createEventDictionary<
 		};
 }
 
+declare const eventName: unique symbol;
+
+/** Numeric ID assigned to a named `Event` by the runtime dictionary. */
+export type TRegisteredEvent<Name extends string> = number & { readonly [eventName]: Name };
+
 /**
  * Basic event dictionary class that's used in Yantrix automatas.
  */
@@ -97,6 +102,15 @@ export class BasicEventDictionary
 	implements IEventDictionary<TAutomataBaseEventType, Record<TAutomataBaseEventType, any>> {
 	constructor() {
 		super();
+	}
+
+	/**
+	 * Returns the registered ID for an `Event`, registering its name on first use.
+	 * @param name - `Event` name in the default namespace.
+	 * @returns The ID used to route this `Event` through the shared `Event Bus`.
+	 */
+	resolveEvent<Name extends string>(name: Name): TRegisteredEvent<Name> {
+		return (this._findItem(name) ?? this._addItemKey(name)) as TRegisteredEvent<Name>;
 	}
 }
 

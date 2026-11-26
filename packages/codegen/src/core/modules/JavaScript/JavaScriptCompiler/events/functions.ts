@@ -1,4 +1,5 @@
 import {
+	EffectStatement,
 	emitHasMeta,
 	EmitStatement,
 	getReferenceIdentifier,
@@ -14,6 +15,7 @@ import { TExpressionRecord } from '../../../../../types/common';
 import { pathRecord } from '../../../../shared';
 import { context } from '../context';
 import { TReducerBoundValueVM } from '../context/serializer';
+import { getExpressionValue } from '../expressions/core';
 
 export type TEventCodeVM = {
 	eventIdentifier: string;
@@ -41,6 +43,22 @@ export function getEventCodeModel(e: EmitStatement, expressions: TExpressionReco
 	};
 }
 
+export function getEffectEventCodeModel(effect: EffectStatement): TEventCodeVM {
+	return {
+		eventIdentifier: effect.identifier,
+		metaEntries: effect.metaKeys.map(identifier => ({
+			targetProperty: identifier,
+			source: {
+				kind: 'defaultProperty',
+				path: pathRecord.context,
+				identifier,
+				fallbackExpression: null,
+			},
+			defaultExpressionValueRight: null,
+		})),
+	};
+}
+
 export function getEventMetaModel(props: {
 	event: EmitStatement;
 	expressions: TExpressionRecord;
@@ -59,7 +77,7 @@ export function getEventMetaModel(props: {
 			};
 		});
 
-		return context.serializer.getBoundValuesModel({
+		const entries = context.serializer.getBoundValuesModel({
 			expressions,
 			arr: context.serializer.mapReducerItemsModel({
 				reducer: contextAsKeyItems as unknown as KeyItem[],
@@ -68,10 +86,29 @@ export function getEventMetaModel(props: {
 			}),
 			context: keyItemsToRawKeyItems(event.meta),
 		});
+		for (const item of event.meta.slice(event.context.length)) {
+			if (!isDataObject(item) || !item.assignedExpression) continue;
+			entries.push({
+				targetProperty: getReferenceIdentifier(item),
+				source: {
+					kind: 'expression',
+					expressionValueRight: getExpressionValue({
+						expressionRecord: expressions,
+						expression: item.assignedExpression,
+					}),
+				},
+				defaultExpressionValueRight: null,
+			});
+		}
+		return entries;
 	} else if (emitHasMeta(event)) {
 		return context.serializer.getBoundValuesModel({
 			expressions,
-			arr: context.serializer.mapReducerItemsModel({ reducer: event.meta, sourcePath: pathRecord.context, expressions }),
+			arr: context.serializer.mapReducerItemsModel({
+				reducer: event.meta,
+				sourcePath: pathRecord.context,
+				expressions,
+			}),
 			context: keyItemsToRawKeyItems(event.meta),
 		});
 	} else {

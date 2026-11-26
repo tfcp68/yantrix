@@ -2,10 +2,11 @@ export const statesDictionary = <%~ JSON.stringify(it.stateDictionary.getDiction
 
 export const actionsDictionary = <%~ JSON.stringify(it.actionDictionary.getDictionary(), null, 2) %>;
 
-export const eventDictionary = <%~ JSON.stringify(it.eventDictionary.getDictionary(), null, 2) %>;
-GlobalEventDictionary.addEvents({
-  keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null)
-});
+export const eventDictionary = {
+<% for (const name of Object.keys(it.eventDictionary.getDictionary())) { %>
+  [<%~ JSON.stringify(name) %>]: GlobalEventDictionary.resolveEvent(<%~ JSON.stringify(name) %>),
+<% } %>
+}<% if (it.hasTypes) { %> as const<% } %>;
 
 export const functionDictionary = new FunctionDictionary();
 

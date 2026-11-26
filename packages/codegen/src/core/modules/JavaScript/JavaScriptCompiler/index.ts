@@ -1,5 +1,6 @@
 import { context } from './context';
 import { dictionaries } from './dictionaries';
+import { effects } from './effects';
 import { events } from './events';
 import { expressions } from './expressions';
 import { forks } from './forks';
@@ -10,6 +11,7 @@ import { state } from './state';
 export const JavaScriptCompiler = {
 	context,
 	dictionaries,
+	effects,
 	expressions,
 	imports,
 	state,

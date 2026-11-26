@@ -23,15 +23,13 @@ export function setupDictionaries(props: {
 	dictionaries.push(
 		`export const actionsDictionary = ${JSON.stringify(props.actionDictionary.getDictionary(), null, 2)}`,
 	);
-	if (Object.keys(props.eventDictionary.getDictionary()).length > 0) {
-		dictionaries.push(
-			`export const eventDictionary = ${JSON.stringify(props.eventDictionary.getDictionary(), null, 2)}`,
-		);
-		dictionaries.push(
-			`GlobalEventDictionary.addEvents({
-				keys: Object.keys(eventDictionary).filter(e => GlobalEventDictionary.getEventValues({ keys: [e] })[0] == null)
-			 });`,
-		);
+	const names = Object.keys(props.eventDictionary.getDictionary());
+	if (names.length > 0) {
+		const entries = names.map((name) => {
+			const key = JSON.stringify(name);
+			return `[${key}]: GlobalEventDictionary.resolveEvent(${key})`;
+		});
+		dictionaries.push(`export const eventDictionary = { ${entries.join(', ')} }`);
 	}
 	dictionaries.push(`export const functionDictionary = new FunctionDictionary();`);
 	imports.functions.checkForCyclicDependencies({

@@ -5,3 +5,6 @@
 <%~ include('shared/events/module', it) %>
 <%~ include('context/module', it) %>
 <%~ include('class/module', it) %>
+<% if (it.effects.declarations.length > 0) { %>
+<%~ include('shared/effects/module', it) %>
+<% } %>

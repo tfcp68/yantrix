@@ -1,12 +1,12 @@
 import {
-	EmitStatement,
-	getEmitStatements,
 	getSubscribeStatements,
+	isEffectStatement,
+	isEmitStatement,
 	SubscribeStatement,
 } from '@yantrix/yantrix-parser';
 import { TExpressionRecord, TStateDiagramMatrixIncludeNotes, TStateIncludingNotes } from '../../../../../types/common';
 import { TReducerBoundValueVM } from '../context/serializer';
-import { getActionPayloadModel, getEventCodeModel, TEventCodeVM } from './functions';
+import { getActionPayloadModel, getEffectEventCodeModel, getEventCodeModel, TEventCodeVM } from './functions';
 
 export type TEventEmitterVM = {
 	stateId: string;
@@ -41,11 +41,15 @@ export function stateToEventEmitterModel(state: TStateIncludingNotes, props: {
 	const { expressions } = props;
 	if (!state.notes) return null;
 
-	const emittedEvents = getEmitStatements(state.notes);
+	const emittedEvents = state.notes.statements.flatMap((statement) => {
+		if (isEmitStatement(statement)) return [getEventCodeModel(statement, expressions)];
+		if (isEffectStatement(statement)) return [getEffectEventCodeModel(statement)];
+		return [];
+	});
 	if (emittedEvents.length > 0) {
 		return {
 			stateId: state.id,
-			events: getEventEmitterEventsModel({ events: emittedEvents, expressions }),
+			events: emittedEvents,
 		};
 	} else {
 		return null;
@@ -70,12 +74,4 @@ function eventToEventListenerModel(event: SubscribeStatement, props: {
 		actionName: event.actionName,
 		payloadEntries: getActionPayloadModel({ event, expressions }),
 	};
-}
-
-function getEventEmitterEventsModel(props: {
-	events: EmitStatement[];
-	expressions: TExpressionRecord;
-}): TEventCodeVM[] {
-	const { events, expressions } = props;
-	return events.map(e => getEventCodeModel(e, expressions));
 }
