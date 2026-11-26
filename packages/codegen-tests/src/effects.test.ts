@@ -89,6 +89,20 @@ describe.each([
 			/Model Transformer "modelUpdated" must be a function/,
 		);
 	});
+
+	it('requires an explicit transformer for an event named constructor', async () => {
+		const fixture = `effect_constructor_${extension}`;
+		await generateAndSave({
+			input: effectDiagram.replace('effect/modelUpdated', 'effect/constructor'),
+			automataName: 'ConstructorEvent',
+			lang: language,
+		}, fixture);
+		const generated = await import(generatedPath(fixture, extension));
+		expect(() => generated.createConstructorEventEffectMatrix({})).toThrow(/"constructor" must be a function/);
+		const transform = () => ({ count: 7 });
+		expect(generated.createConstructorEventEffectMatrix({ constructor: transform }))
+			.toEqual({ [generated.eventDictionary.constructor]: [transform] });
+	});
 });
 
 it('rejects conflicting Event Meta contracts for the same Effect', async () => {
@@ -109,6 +123,49 @@ it('rejects conflicting Event Meta contracts for the same Effect', async () => {
 		automataName: 'ConflictingEffects',
 		lang: ModuleNames.TypeScript,
 	})).rejects.toThrow(/conflicting Event Meta/i);
+});
+
+it.each([
+	['emit/modelUpdated', '()'],
+	['emit/modelUpdated ($reason) <= #{count}', '(reason)'],
+	['emit/modelUpdated (#count, #count)', '(count, count)'],
+	['emit/modelUpdated (3)', '(_item)'],
+])('checks the emitted keys of %s against the Effect contract', async (producer, keys) => {
+	const input = effectDiagram.replace('+Init', `+Init\n\t\t${producer}`);
+	await expect(generateAutomata({
+		input,
+		automataName: 'ConflictingEmitter',
+		lang: ModuleNames.TypeScript,
+	})).rejects.toThrow(`in state "INIT": expected (count), got ${keys}`);
+});
+
+it.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+] as const)('matches reordered, aliased and defaulted keys across producers in %s', async (lang, extension) => {
+	const input = effectDiagram
+		.replace('+Init', '+Init\n\t\teffect/modelUpdated <= (count, label)')
+		.replace('effect/modelUpdated <= (count)', [
+			'emit/modelUpdated ($label, $count=2) <= #{displayName}',
+			'effect/modelUpdated <= (label, count)',
+		].join('\n\t\t'));
+	const fixture = `matching_effect_events_${extension}`;
+	await generateAndSave({
+		input,
+		automataName: 'MatchingEffectEvents',
+		lang,
+	}, fixture);
+	const generated = await import(generatedPath(fixture, extension));
+	const adapter = generated.createMatchingEffectEventsEventAdapter();
+	const context = { count: 1, label: 'state', displayName: 'source' };
+	const initial = adapter.handleTransition({ state: generated.statesDictionary.INIT, context });
+	const applied = adapter.handleTransition({ state: generated.statesDictionary.APPLIED, context });
+
+	expect(Object.keys(initial[0].meta)).toEqual(['count', 'label']);
+	expect(applied.map((event: { meta: object }) => Object.entries(event.meta))).toEqual([
+		[['label', 'source'], ['count', 2]],
+		[['label', 'state'], ['count', 1]],
+	]);
 });
 
 it('preserves declaration order when a state emits a regular Event and an Effect Event', async () => {

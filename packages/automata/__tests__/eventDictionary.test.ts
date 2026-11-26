@@ -250,6 +250,23 @@ describe('eventDictionary', () => {
 	});
 
 	describe('/addEvents', () => {
+		it('keeps lookups and removal unambiguous when both hash candidates collide', () => {
+			class CollidingDictionary extends BasicEventDictionary {
+				override _stringHash() {
+					return 0;
+				}
+			}
+			const dictionary = new CollidingDictionary();
+			const keys = ['constructor', 'toString', '__proto__'];
+			const events = dictionary.addEvents({ keys });
+			expect(events).toEqual([0, 1, 2]);
+			expect(dictionary.getEventValues({ keys })).toEqual(events);
+			expect(dictionary.getEventKeys({ events })).toEqual(keys);
+			expect(() => dictionary.addEvents({ keys: ['constructor'] })).toThrow();
+			dictionary.removeEvents({ events: [0] });
+			expect(dictionary.getEventValues({ keys })).toEqual([null, 1, 2]);
+		});
+
 		describe('without namespace', () => {
 			it('returns valid numeric values', () => {
 				const sampleEvents = sampleInstance.addEvents({

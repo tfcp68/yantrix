@@ -6,21 +6,21 @@ export type T<%~ it.className %>EffectEvent =
   | typeof eventDictionary["<%~ effect.identifier %>"]
 <% } %>;
 
-export type T<%~ it.className %>EventMeta = {
+export type T<%~ it.className %>EventMeta =
 <% for (const effect of it.effects.declarations) { %>
-  <%~ it.eventDictionary.getEventValues({ keys: [effect.identifier] })[0] %>: <% if (effect.metaKeys.length === 0) { %>Record<string, never><% } else { %>{
+  & Record<typeof eventDictionary["<%~ effect.identifier %>"], <% if (effect.metaKeys.length === 0) { %>Record<string, never><% } else { %>{
 <% for (const metaKey of effect.metaKeys) { %>
     "<%~ metaKey %>": unknown;
 <% } %>
-  }<% } %>;
+  }<% } %>>
 <% } %>
-};
+;
 
 export type T<%~ it.className %>ModelTransformers<
   ModelType extends object = T<%~ it.className %>DataModel,
 > = {
 <% for (const effect of it.effects.declarations) { %>
-  "<%~ effect.modelTransformerIdentifier %>": TAutomataEffect<
+  "<%~ effect.modelTransformerIdentifier %>": TEffectMatrixEntry<
     ModelType,
     typeof eventDictionary["<%~ effect.identifier %>"],
     T<%~ it.className %>EventMeta
@@ -42,16 +42,20 @@ export function create<%~ it.className %>EffectMatrix<% if (it.hasTypes) { %><
     throw new TypeError('Model Transformers must be provided as an object');
   }
 <% for (const effect of it.effects.declarations) { %>
-  if (typeof modelTransformers["<%~ effect.modelTransformerIdentifier %>"] !== 'function') {
+  if (!Object.prototype.hasOwnProperty.call(modelTransformers, "<%~ effect.modelTransformerIdentifier %>") ||
+      typeof modelTransformers["<%~ effect.modelTransformerIdentifier %>"] !== 'function') {
     throw new TypeError('Model Transformer "<%~ effect.modelTransformerIdentifier %>" must be a function');
   }
 <% } %>
 
-  return {
-<% for (const effect of it.effects.declarations) { %>
-    [eventDictionary["<%~ effect.identifier %>"]]: [modelTransformers["<%~ effect.modelTransformerIdentifier %>"]],
+<% if (it.hasTypes) { %>
+  type Matrix = TEffectMatrix<ModelType, T<%~ it.className %>EffectEvent, T<%~ it.className %>EventMeta>;
 <% } %>
-  };
+  const matrix<% if (it.hasTypes) { %>: { -readonly [Event in keyof Matrix]: Matrix[Event] }<% } %> = {};
+<% for (const effect of it.effects.declarations) { %>
+  matrix[eventDictionary["<%~ effect.identifier %>"]] = [modelTransformers["<%~ effect.modelTransformerIdentifier %>"]];
+<% } %>
+  return matrix;
 }
 
 export function create<%~ it.className %>Slice<% if (it.hasTypes) { %><
@@ -59,7 +63,7 @@ export function create<%~ it.className %>Slice<% if (it.hasTypes) { %><
 ><% } %>(
   modelTransformers<% if (it.hasTypes) { %>: T<%~ it.className %>ModelTransformers<ModelType><% } %>,
 )<% if (it.hasTypes) { %>: AutomataSlice<ModelType><% } %> {
-<% if (it.hasTypes) { %>  // Generated Automata accept the framework-wide numeric Event space; the Matrix factory stays narrowly typed.
+<% if (it.hasTypes) { %>  // The generated `FSM` subscribes to the global `Event Bus` and can receive any numeric `Event` ID.
 <% } %>
   const slice = new AutomataSlice<% if (it.hasTypes) { %><ModelType><% } %>({
     id: '<%~ it.className %>',

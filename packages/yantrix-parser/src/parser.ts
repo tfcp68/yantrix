@@ -94,7 +94,7 @@ function validateSemantics(doc: Document): void {
 	}
 }
 
-/** Validate that an Effect's Event Meta contract does not contain duplicate keys. */
+/** Validate that an `Effect` declares each `Event Meta` key only once. */
 function validateEffectStatement(effect: EffectStatement): void {
 	if (new Set(effect.metaKeys).size !== effect.metaKeys.length) {
 		throw new Error(`Effect ${effect.identifier} contains duplicate Event Meta keys.`);

@@ -12,47 +12,59 @@ While every `FSM` can declare its own `Effects`, in fact they are invoked all at
 effect/<EFFECT_NAME> [<= (<META_KEY_LIST>)]
 ```
 
-An Effect declaration makes the generated `Event Adapter` emit an Event named `<EFFECT_NAME>` when its `FSM` enters
-the state containing the declaration. The optional keys are copied from that state's `Context` into `Event Meta`, in
-declaration order. Reusing an Effect name in several states is allowed, but every declaration of that name must have
-the same Event Meta keys.
+When an `FSM` enters a `State` with an `effect/` declaration, its `Event Adapter` emits the named `Event`.
+The optional key list copies values from the new `Context` into `Event Meta`. Within a diagram, every `effect/`
+or `emit/` that produces that `Event` must supply the same named keys. Their order can differ.
 
-For the following state:
+In `SaveFlow`, the `saveRequested` `Event` supplies `itemId` to the `Save` `Action`. On entry to `SAVED`, the `Reducer`
+copies `itemId` from the `Action Payload` into `Context`. The `Event Adapter` then emits `itemSaved` with that value
+in `Event Meta`.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> SAVED
-  note right of SAVED
-    #{itemId}
-    effect/itemSaved <= (itemId)
-  end note
+    [*] --> IDLE: Init
+    IDLE --> SAVED: Save
+    note right of IDLE
+        +Init
+        subscribe/saveRequested Save ($itemId) <= ($itemId)
+    end note
+    note right of SAVED
+        #{itemId} <= $itemId
+        effect/itemSaved <= (itemId)
+    end note
 ```
 
-JavaScript and TypeScript codegen export `create<ClassName>EffectMatrix(modelTransformers)` and
-`create<ClassName>Slice(modelTransformers)`. The application composition root provides the actual Model Transformer;
-the diagram declares its Event binding and Event Meta contract:
+JavaScript and TypeScript codegen export `create<ClassName>EffectMatrix()` and `create<ClassName>Slice()`.
+The application supplies each `Model Transformer` by name. Here, the `itemSaved` handler writes the ID to the `Data Model`.
 
 ```ts
-type MyDataModel = { lastSavedId: unknown };
+import { CoreLoop, EffectScheduler, ModelStore } from '@yantrix/core';
+import { createSaveFlowSlice, eventDictionary } from './SaveFlow.js';
 
-const slice = createSaveFlowSlice<MyDataModel>({
-  itemSaved: (event, model) => ({
-    ...model,
-    lastSavedId: event.meta?.itemId,
-  }),
+type TSaveModel = { lastSavedId: number | null };
+
+const store = new ModelStore<TSaveModel>({ lastSavedId: null });
+const loop = new CoreLoop({ effectScheduler: new EffectScheduler({ store }) });
+const slice = createSaveFlowSlice<TSaveModel>({
+	itemSaved: (event, model) => typeof event.meta?.itemId === 'number'
+		? { ...model, lastSavedId: event.meta.itemId }
+		: model,
 });
 
-coreLoop.registerSlice(slice);
+loop.registerSlice(slice).start();
+loop.getBus().dispatch({ event: eventDictionary.saveRequested, meta: { itemId: 42 } });
+await loop.whenIdle();
+console.info(store.get().lastSavedId); // 42
+loop.stop();
 ```
 
-The generated TypeScript API includes the Effect Event, Event Meta, Model Transformer registry and Effect Matrix
-types. Yantrix syntax does not currently declare the complete application Data Model schema, so the generated Data
-Model type defaults to `Record<string, unknown>` and the factory is generic over the application's concrete model.
+TypeScript codegen exports the declared `Event` IDs, their `Event Meta` keys, and the `Model Transformer` registry type.
+The factory accepts the application's `Data Model` type and defaults to `Record<string, unknown>`.
 
 In the TypeScript runtime an `Effect` has the `(event, readonlyModel) => nextModel` contract. A
 [`Model Transformer`](160_transformers.html#model-transformers) has that shape. `whenModel` combines one with a
 [`Model Predicate`](150_predicates.html#model-predicates) when a conditional `Effect` is required. The `Effect Scheduler`
 applies matching `Effects` in order and commits at most one resulting snapshot for the complete `Main Loop` batch.
 
-Side Effects codegen currently targets the `javascript` and `typescript` dialects. Other output dialects reject a
-diagram containing `effect/` instead of silently generating code without its Effect Matrix.
+See [Language support](../integrations/100_language_support.html) for the dialects that generate `effect/` declarations.
+Generating a diagram that uses `effect/` with an unsupported dialect reports an error.

@@ -61,7 +61,9 @@ export function fillDictionaries(
 			const subscribeStatements = getSubscribeStatements(state.notes);
 			const subscribedEventsKeys = Array.from(new Set(subscribeStatements.map(sub => sub.identifier)));
 			if (subscribedEventsKeys.length > 0) {
-				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				const uniqueKeys = subscribedEventsKeys.filter(
+					e => eventDictionary.getEventValues({ keys: [e] })[0] == null,
+				);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 		}
@@ -77,7 +79,7 @@ export function fillDictionaries(
  * If state is not found in the dictionary then error is thrown.
  * @param {TStateDiagramMatrixIncludeNotes} diagram
  * @param {BasicStateDictionary} stateDictionary
- * @returns {number[]}
+ * @returns {number[]} IDs of the bypassed `States`.
  */
 export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateDictionary: BasicStateDictionary) {
 	const byPassed: number[] = [];

@@ -1,5 +1,6 @@
 import { getEffectStatements } from '@yantrix/yantrix-parser';
 import { TStateDiagramMatrixIncludeNotes } from '../../../../../types/common';
+import { TEventEmitterVM } from '../events/core';
 
 export type TEffectDeclarationIR = {
 	identifier: string;
@@ -7,10 +8,6 @@ export type TEffectDeclarationIR = {
 	metaKeys: string[];
 	stateIds: string[];
 };
-
-function haveSameMetaKeys(left: string[], right: string[]): boolean {
-	return left.length === right.length && left.every((key, index) => key === right[index]);
-}
 
 export function getEffectDeclarations(diagram: TStateDiagramMatrixIncludeNotes): TEffectDeclarationIR[] {
 	const declarations = new Map<string, TEffectDeclarationIR>();
@@ -30,12 +27,27 @@ export function getEffectDeclarations(diagram: TStateDiagramMatrixIncludeNotes):
 				continue;
 			}
 
-			if (!haveSameMetaKeys(declaration.metaKeys, effect.metaKeys)) {
-				throw new Error(`Effect "${effect.identifier}" has conflicting Event Meta contracts`);
-			}
 			declaration.stateIds.push(state.id);
 		}
 	}
 
 	return [...declarations.values()];
+}
+
+export function validateEffectProducers(declarations: TEffectDeclarationIR[], emitters: TEventEmitterVM[]): void {
+	if (declarations.length === 0) return;
+	const contracts = new Map(declarations.map(effect => [effect.identifier, effect.metaKeys]));
+	for (const { stateId, events } of emitters) {
+		for (const { eventIdentifier, metaEntries } of events) {
+			const expected = contracts.get(eventIdentifier);
+			if (!expected) continue;
+
+			const keys = metaEntries.map(entry => entry.targetProperty);
+			const emitted = new Set(keys);
+			if (expected.length !== keys.length || !expected.every(key => emitted.has(key))) {
+				throw new Error(`Effect "${eventIdentifier}" has conflicting Event Meta contracts in state "${stateId}": `
+					+ `expected (${expected.join(', ')}), got (${keys.join(', ')})`);
+			}
+		}
+	}
 }

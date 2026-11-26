@@ -130,6 +130,7 @@ export class JavaScriptCodegen implements ICodegen<typeof ModuleNames.JavaScript
 			expressions: this.expressions,
 		});
 		const createEventBus = JavaScriptCompiler.events.serializer.getCreateEventBusModel();
+		JavaScriptCompiler.effects.functions.validateEffectProducers(this.effectDeclarations, eventAdapter.emitters);
 
 		const actionToStateFromState = JavaScriptCompiler.dictionaries.serializer.getActionToStateFromStateModel({
 			diagram: this.diagram,

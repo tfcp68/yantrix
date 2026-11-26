@@ -823,7 +823,12 @@ assert machine['state']() == states_dictionary['Active']
 assert adapter.handle_transition(machine['get_context']())[-1]['meta'] == {'value': 'late'}
 bus.dispatch({'event': event_dictionary['finish'], 'meta': {}})
 assert machine['state']() == states_dictionary['Done']
-assert seen == [('First', {'value': 0}), ('Second', {'value': 'second'}), ('First', {'value': 3, 'copied': 0}), ('Second', {'value': 'runtime'})], seen
+assert seen == [
+    ('First', {'value': 0, 'expires': 'never'}),
+    ('Second', {'value': 'second'}),
+    ('First', {'value': 3, 'copied': 0}),
+    ('Second', {'value': 'runtime'})
+], seen
 cleanup()
 `;
 		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });

@@ -29,7 +29,7 @@ Yantrix aims to transpile to any turing-full language, the primary one being Typ
 | TypeScript declarations | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
 | Pause / resume / disable | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Zero external runtime deps | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| Side effects | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| `effect/` declarations | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
 > [!NOTE]
 > <b>1</b> `pure-javascript` and `pure-typescript` produce self-contained output with zero npm runtime dependencies. No `@yantrix/core` or `@yantrix/automata` import in the generated file.
