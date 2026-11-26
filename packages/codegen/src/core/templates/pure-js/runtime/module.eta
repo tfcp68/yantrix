@@ -22,19 +22,19 @@ function createEventAdapter() {
   const _emitters = new Map();
   const _listeners = new Map();
   return {
-    addEventEmitter(stateId, fn) { _emitters.set(stateId, fn); },
-    addEventListener(eventId, fn) { _listeners.set(eventId, fn); },
-    handleEvent({ event, meta }) {
-      const handler = _listeners.get(event);
-      if (!handler) return [];
-      const result = handler({ event, meta });
-      return result ? [result] : [];
+    addEventEmitter(stateId, fn) {
+      if (!_emitters.has(stateId)) _emitters.set(stateId, []);
+      _emitters.get(stateId).push(fn);
+    },
+    addEventListener(eventId, fn) {
+      if (!_listeners.has(eventId)) _listeners.set(eventId, []);
+      _listeners.get(eventId).push(fn);
+    },
+    handleEvent(event) {
+      return (_listeners.get(event.event) ?? []).map(handle => handle(event)).filter(Boolean);
     },
     handleTransition(context) {
-      const emitter = _emitters.get(context.state);
-      if (!emitter) return [];
-      const result = emitter(context);
-      return result ? [result] : [];
+      return (_emitters.get(context.state) ?? []).map(emit => emit(context)).filter(Boolean);
     },
   };
 }

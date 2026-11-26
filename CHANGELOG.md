@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v0.6.0](#v060)
+  - [Breaking changes](#breaking-changes-in-060)
 - [v0.5.1](#v051)
   - [Other Changes](#other-changes-11)
 - [v0.5.0](#v050)
@@ -45,6 +47,46 @@
   - [Other Changes](#other-changes)
 - [v0.0.2](#v002)
 - [v0.0.1](#v001)
+
+---
+
+## v0.6.0
+
+### Breaking changes in 0.6.0
+
+Install `@yantrix/providers` and import `IntervalTimerDataSource` and `createHTTPRequestAdapter` from it. In 0.5.5 both were available from `@yantrix/automata` and `@yantrix/core`.
+
+```sh
+npm install @yantrix/providers
+```
+
+```diff
+-import type { THTTPRequestAdapterInput, THTTPRequestAdapterOutput } from '@yantrix/automata';
++import type { THTTPRequestAdapterInput, THTTPRequestAdapterOutput } from '@yantrix/providers';
+-import { IntervalTimerDataSource, createHTTPRequestAdapter } from '@yantrix/core';
++import { IntervalTimerDataSource, createHTTPRequestAdapter } from '@yantrix/providers';
+```
+
+An HTTP route that sends a request must now return a `Request` or a `RequestInit` object with a `url`. Return `null` to skip the request.
+
+```diff
+-const getTime = (): RequestInit => ({ method: 'GET' });
++const getTime = () => ({ url: 'https://example.org/time', method: 'GET' });
+```
+
+`TModelPredicate` now takes the triggering `Event` and a read-only `Data Model` and returns a boolean. Existing curried predicates must be rewritten. In model helpers, un-inferred `Event Meta` now defaults to `unknown` (previously `any`).
+
+The `@yantrix/automata` declarations require TypeScript >= 5.4 for the built-in `NoInfer` type.
+
+```diff
+ import type { TModelPredicate } from '@yantrix/automata';
+
+ type Inventory = { stock: number };
+-const hasStock: TModelPredicate<Inventory> = model => (...checks) => checks.every(check => check(model.stock));
+-const available = hasStock({ stock: 2 })(stock => stock > 0);
++const hasStock: TModelPredicate<Inventory> = (_event, model) => model.stock > 0;
++const available = hasStock({ event: 1, meta: null }, { stock: 2 });
+```
 
 ---
 

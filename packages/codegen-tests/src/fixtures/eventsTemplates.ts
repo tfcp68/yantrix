@@ -73,6 +73,23 @@ emit/specialEvent
 end note
 `;
 
+const multipleEmits = `stateDiagram-v2
+[*] --> Idle
+Idle --> Active: Start
+Active --> Done: Finish
+note right of Idle
++Init
+subscribe/begin Start
+subscribe/finish Finish
+end note
+note right of Active
+#{count=0}
+emit/First ($value, $expires='never') <= #{count=12}
+emit/Second ($value='second')
+emit/First ($value=3, $copied=#count)
+end note
+`;
+
 const emitWithMeta = `
 stateDiagram-v2
 direction TB
@@ -190,6 +207,7 @@ export default {
 	basicEvents,
 	basicSubscribe,
 	basicEmit,
+	multipleEmits,
 	selfSubscribeAndEmit,
 	wrongEventEmit,
 	emitWithMeta,

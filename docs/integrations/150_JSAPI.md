@@ -4,60 +4,27 @@ title: Javascript API
 
 # Javascript API
 
-When generating a JS/TS class, it has `@yantrix/automata` as dependency and implements [IAutomata](../API/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
+When generating a JS/TS class, it has `@yantrix/core` as dependency and implements [IAutomata](../API/automata/interfaces/IAutomata.html) interface. The exported class also has static properties to facilitate operating the `FSM` and its constants.
 
-In this section, all snippets are provided with the same diagram analyzed in [Introduction](../):
-
-```mermaid
-stateDiagram-v2
-	direction LR
-	[*] --> ENABLED: RESET (min=0, max=100)
-	ENABLED --> DISABLED: DISABLE
-	DISABLED --> ENABLED: ENABLE
-	ENABLED --> SETTING: SET (value)
-	SETTING --> ENABLED: [-]
-	ENABLED --> INCREMENT: INCREASE (by=1)
-	INCREMENT --> ENABLED: [-]
-	ENABLED --> DECREMENT: DECREASE (by=1)
-	DECREMENT --> ENABLED: [-]
-	note left of ENABLED
-		+Init
-		#{min, max}<=$min, $max
-	end note
-	note right of SETTING
-		+ByPass
-		#{value}<=min(#max,max(#min,$value))
-	end note
-	note right of INCREMENT
-		+ByPass
-		#{value}<=min(#max,max(#min,add(#value,$by))
-	end note
-	note right of DECREMENT
-		+ByPass
-		#{value}<=min(#max,max(#min,diff($by,#value))
-	end note
-note right of [*]
-#{min, max, value}
-end note
-```
+The snippets below use the [Quick Start slider diagram](../#quick-start).
 
 ## Identifier
 
-Yantrix codegen lets you specify a paremeter `className`, which whill result in the name of the generated Class. However, when using default imports, this name is lost, while it's could be a good unique identifier, when using a lot of `FSM`s. To keep it, every exported class has a static property `id` containing the same name
+The `className` option names the generated class. Its static `id` combines that name with a generation timestamp.
 
 ```shell
 $ yantrix codegen ./slider.mermaid --outfile slider_controller.js --language JavaScript --className Slider
 ```
 
 ```javascript
-import { Slider } from '../slider_controller.js';
+import { Slider } from './slider_controller.js';
 ```
 or
 ```javascript
-import Slider from '../slider_controller.js';
+import Slider from './slider_controller.js';
 ```
 ```javascript
-Slider.id === 'Slider'; // true
+Slider.id.startsWith('Slider_'); // true
 ```
 
 ## State Helpers
@@ -65,23 +32,19 @@ Slider.id === 'Slider'; // true
 Internally, `IAutomata` operates on numeric states. To address `States` from the diagram, they must be wrapped in a helper:
 
 ```javascript
-import Slider from '../slider_controller.js';
+import Slider from './slider_controller.js';
 
-Slider.getState('ENABLED'); // returns a numeric internal id of this State, or Null if it's incorrect
+Slider.getState('ENABLED'); // returns the numeric ID of this state
 ```
 
 There's also a helper to check if the `FSM` is in a particular `State` right now:
 
 ```javascript
-const SliderInstance = new Slider({
-	min: 1,
-	max: 10,
-	value: 5,
-});
+const slider = new Slider();
 
-Slider.hasState(SliderInstance, 'ENABLED'); // true
+Slider.hasState(slider, 'ENABLED'); // true
 // this is the same as
-Slider.getState('ENABLED') === SliderInstance.getContext().state;
+Slider.getState('ENABLED') === slider.getContext().state;
 ```
 
 ## Action Helpers
@@ -101,7 +64,7 @@ const payload = Slider.createAction('RESET', {
 	max: 50,
 });
 
-Slider.dispatch(payload);
+slider.dispatch(payload);
 ```
 
 ## Dictionaries
@@ -109,29 +72,20 @@ Slider.dispatch(payload);
 Generated modules export two kinds of dictionaries both for `Actions` and `States`, that are suggested to be used as reference constants when addressing their identifiers:
 
 ```javascript
-import { actionDictionary, actionMap } from '../slider_controller.js';
+import { actionsDictionary, actionsMap } from './slider_controller.js';
 
-assert.isEqual(actionMap, {
-	RESET: 'RESET',
-	ENABLE: 'ENABLE',
-	DISABLE: 'DISABLE',
-	SET: 'SET',
-	INCREASE: 'INCREASE',
-	DECREASE: 'DECREASE',
-}); // true
+actionsMap.DISABLE === 'DISABLE'; // true
+actionsDictionary.DISABLE === Slider.getAction('DISABLE'); // true
 
-// actionDictionary keys are the same as of actionMap
-// actionDictionary values are generated semi-randon numbers, that are actually used in the FSM
-
-SliderInstance.dispatch(Slider.createAction(actionMap.DISABLE));
+slider.dispatch(Slider.createAction(actionsMap.DISABLE, {}));
 ```
 
 Same dictionaries are provided for `State`s:
 
 ```javascript
-import { stateDictionary, stateMap } from '../slider_controller.js';
+import { statesDictionary, statesMap } from './slider_controller.js';
 
-Slider.getState(stateMap.ENABLED);
+statesDictionary.ENABLED === Slider.getState(statesMap.ENABLED); // true
 ```
 
 ## Typescript
@@ -139,10 +93,10 @@ Slider.getState(stateMap.ENABLED);
 In typescript versions [Dictionaries](#dictionaries) are available as types too:
 
 ```typescript
-import { actionMap, stateMap, TActionLiteral, TStateLiteral } from '../slider_controller.js';
+import type { statesMap, TActionsSlider } from './slider_controller.js';
 
-type TActionLiteral = keyof typeof actionMap;
-type TStateLiteral = keyof typeof stateMap;
+type TActionLiteral = TActionsSlider;
+type TStateLiteral = keyof typeof statesMap;
 ```
 
 ## Generated Effects and Slice

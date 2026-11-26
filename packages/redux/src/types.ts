@@ -32,9 +32,16 @@ export type TConnectedAutomataOptions = {
 export type TReduxConnectedAutomata =
 	Record<TAutomataId, TConnectedAutomataOptions>;
 
-export type TCreateFSMSliceOptions<Automata extends TAutomata, StateType, ContextType = object>
+/** Current FSM snapshot passed to the Redux context mapper, including legacy top-level context fields. */
+export type TProjectionInput<Context> = TAutomataContext<Context> & Omit<NonNullable<Context>, 'state' | 'context'>;
+
+export type TCreateFSMSliceOptions<
+	Automata extends TAutomata,
+	StateType,
+	ContextType = TProjectionInput<ReturnType<Automata['getContext']>['context']>,
+>
 	= {
-		name: string;
+		name?: string;
 		Fsm: TClassConstructor<Automata>;
 		contextToRedux?: (context: ContextType) => StateType;
 		reducerPath?: string;

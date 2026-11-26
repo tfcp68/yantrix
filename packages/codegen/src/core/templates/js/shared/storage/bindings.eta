@@ -1,0 +1,38 @@
+<% if (!it.bindings.length) { %>
+export function createStorageBindings()<% if (it.hasTypes) { %>: []<% } %> {
+  return [];
+}
+<% } else { %>
+<% if (it.hasTypes) { %>
+import type { TStorageBinding } from '@yantrix/core';
+<% } %>
+<% for (const [i, { connector, mapper }] of it.bindings.entries()) { %>
+import { <%~ connector.exportName %> as <%~ it.hasTypes && connector.snapshotTypeArgument ? 'genericConnector' : 'connector' %><%~ i %> } from <%~ JSON.stringify(connector.module) %>;
+import { <%~ mapper.exportName %> as mapper<%~ i %> } from <%~ JSON.stringify(mapper.module) %>;
+<% } %>
+
+<% for (const [i, { connector }] of it.bindings.entries()) { %>
+<% if (it.hasTypes && connector.snapshotTypeArgument) { %>
+const connector<%~ i %>: typeof genericConnector<%~ i %><ReturnType<typeof mapper<%~ i %>.select>> = genericConnector<%~ i %>;
+<% } %>
+<% } %>
+export function createStorageBindings(args<% if (it.hasTypes) { %>: {
+<% for (const [i, binding] of it.bindings.entries()) { %>
+  <%~ JSON.stringify(binding.name) %>: Parameters<typeof connector<%~ i %>>;
+<% } %>
+}<% } %>)<% if (it.hasTypes) { %>: [
+<% for (const i of it.bindings.keys()) { %>
+  TStorageBinding<ReturnType<typeof mapper<%~ i %>.hydrate>, ReturnType<typeof mapper<%~ i %>.select>>,
+<% } %>
+]<% } %> {
+  return [
+<% for (const [i, binding] of it.bindings.entries()) { %>
+    {
+      storage: connector<%~ i %>(...args[<%~ JSON.stringify(binding.name) %>]),
+      select: mapper<%~ i %>.select.bind(mapper<%~ i %>),
+      hydrate: mapper<%~ i %>.hydrate.bind(mapper<%~ i %>),
+    },
+<% } %>
+  ];
+}
+<% } %>

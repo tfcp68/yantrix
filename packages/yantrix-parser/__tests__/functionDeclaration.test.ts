@@ -212,7 +212,7 @@ function generateExpressionStringAndExpectedObject(args: [string, (prop?: string
 	return templateFunctions.default?.(templateStringWithNames, propertyName, functionName, func);
 }
 
-function generateExpressionCase(template: any, casesAmount: number = randomInteger(1, 50)) {
+function generateExpressionCase(template: any, casesAmount: number) {
 	return Array.from({ length: casesAmount }, () => generateExpressionStringAndExpectedObject(template));
 }
 
@@ -259,7 +259,7 @@ describe('function declaration', () => {
 		});
 
 		describe('multi-nested arguments as functions', () => {
-			const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments, randomInteger(10, 25));
+			const cases = generateRandomStatementsFromTemplate(multiplyNestedFunctionsArguments, 17);
 			it.each(cases)('%s', (input: string) => {
 				assert.isOk(parser.parse(input));
 			});
@@ -269,7 +269,7 @@ describe('function declaration', () => {
 	describe('functions are correctly separated into types: string,decimal,integer etc', () => {
 		functionCasesAndExpectedTypes.forEach((template) => {
 			describe('function case', () => {
-				const cases = generateExpressionCase(template);
+				const cases = generateExpressionCase(template, 25);
 				it.each(cases)('%s', (input: string, expectedDoc) => {
 					const result = parser.parse(input);
 					const ctx = getContextStatements(result)[0]!;

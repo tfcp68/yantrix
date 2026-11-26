@@ -1,0 +1,167 @@
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { generateStorageBindings, IStorageBindingDefinition, ModuleNames } from '@yantrix/codegen';
+import { hydrateModel, ModelStore, StorageSyncLoop } from '@yantrix/core';
+import ts from 'typescript';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
+const fixtures = fileURLToPath(new URL('./fixtures/storage/', import.meta.url));
+const directory = mkdtempSync(path.join(fixtures, 'generated-'));
+const compilerOptions = {
+	module: ts.ModuleKind.NodeNext,
+	target: ts.ScriptTarget.ES2022,
+	strict: true,
+	skipLibCheck: true,
+};
+
+beforeAll(() => {
+	const sources = ['preferences.ts', 'numbers.ts', 'file.ts'].map(file => path.join(fixtures, file));
+	const program = ts.createProgram(sources, { ...compilerOptions, declaration: true, outDir: directory });
+	const diagnostics = ts.getPreEmitDiagnostics(program);
+	expect(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
+	program.emit();
+});
+afterAll(() => rmSync(directory, { recursive: true, force: true }));
+
+const memoryConnector = {
+	module: '@yantrix/storage',
+	exportName: 'createInMemoryStorageAdapter',
+	snapshotTypeArgument: true,
+};
+const fileConnector = { module: './file.js', exportName: 'connect' };
+const mapper = { module: './preferences.js', exportName: 'preferencesMapper' };
+
+function preferences(connector: IStorageBindingDefinition['connector']) {
+	return { name: 'user-preferences', connector, mapper };
+}
+
+describe('programmatic storage bindings', () => {
+	it.each([ModuleNames.JavaScript, ModuleNames.TypeScript])('round-trips the same projection across connectors in %s', async (outLang) => {
+		const initial = { theme: 'light', dialogOpen: false };
+		const filename = path.join(directory, `saved-${outLang}.txt`);
+
+		for (const [connector, args] of [[memoryConnector, [{ id: filename }]], [fileConnector, [filename]]] as const) {
+			const output = generateStorageBindings({ outLang, bindings: [preferences(connector)] });
+			expect(output).toContain(connector.module);
+			expect(output).not.toContain(connector === memoryConnector ? fileConnector.module : memoryConnector.module);
+
+			const extension = outLang === ModuleNames.JavaScript ? 'js' : 'ts';
+			const entry = path.join(directory, `${connector.exportName}-${outLang}.${extension}`);
+			writeFileSync(entry, output);
+			const { createStorageBindings } = await import(entry);
+			const bindings = createStorageBindings({ 'user-preferences': args });
+			const store = new ModelStore(initial);
+			const loop = new StorageSyncLoop({ store, bindings, session: null }).start();
+			store.commit({ theme: 'dark', dialogOpen: true });
+			await loop.stop(true);
+
+			expect(loop.getFailures()).toEqual([]);
+			const restored = await hydrateModel(initial, bindings);
+			expect(restored.failures).toEqual([]);
+			expect(restored.loadedStorageIds).toEqual([filename]);
+			expect(restored.model).toEqual({ theme: 'dark', dialogOpen: false });
+		}
+		expect(readFileSync(filename, 'utf8')).toBe('dark');
+	});
+
+	it('checks connector arguments and snapshot compatibility in the generated TypeScript module', () => {
+		const memory = { ...preferences(memoryConnector), mapper: { ...mapper, exportName: 'objectPreferencesMapper' } };
+		const file = { ...preferences(fileConnector), name: 'archive' };
+		const typed = path.join(directory, 'typed.ts');
+		writeFileSync(typed, generateStorageBindings({ bindings: [memory, file] }));
+		const consumer = path.join(directory, 'consumer.ts');
+		writeFileSync(consumer, `
+			import { createStorageBindings } from './typed.js';
+			import { hydrateModel } from '@yantrix/core';
+
+			const bindings = createStorageBindings({ 'user-preferences': [{ id: 'user', initialSnapshot: { theme: 'dark' } }], archive: ['db', 'utf8'] });
+			hydrateModel({ theme: 'light', dialogOpen: false }, bindings);
+			// @ts-expect-error the memory connector requires a string id
+			createStorageBindings({ 'user-preferences': [{ id: 123 }], archive: ['db'] });
+			// @ts-expect-error the mapper's snapshot requires a string theme
+			createStorageBindings({ 'user-preferences': [{ id: 'user', initialSnapshot: { theme: 123 } }], archive: ['db'] });
+			// @ts-expect-error the file connector requires a valid encoding
+			createStorageBindings({ 'user-preferences': [{ id: 'user' }], archive: ['db', 'invalid'] });
+		`);
+		const incompatible = path.join(directory, 'incompatible.ts');
+		writeFileSync(incompatible, generateStorageBindings({
+			bindings: [preferences({ module: './numbers.js', exportName: 'connectNumbers' })],
+		}));
+
+		const program = ts.createProgram([typed, incompatible], {
+			...compilerOptions,
+			declaration: true,
+			emitDeclarationOnly: true,
+		});
+		const diagnostics = ts.getPreEmitDiagnostics(program);
+		const unexpected = diagnostics.filter(diagnostic => diagnostic.file?.fileName !== incompatible);
+		expect(unexpected.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
+		expect(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')).join('\n'))
+			.toMatch(/number.*string|string.*number/s);
+		expect(program.emit(program.getSourceFile(typed)).diagnostics).toEqual([]);
+		// Resolve the consumer against the emitted .d.ts with the mapper's private model and snapshot types.
+		rmSync(typed);
+		const consumerDiagnostics = ts.getPreEmitDiagnostics(ts.createProgram([consumer], compilerOptions));
+		expect(consumerDiagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
+	}, 20000);
+
+	it('compiles generated bindings in a consumer with only the core package installed', () => {
+		const consumer = mkdtempSync(path.join(tmpdir(), 'yantrix-core-consumer-'));
+		try {
+			writeFileSync(path.join(consumer, 'package.json'), JSON.stringify({ type: 'module' }));
+			const scope = path.join(consumer, 'node_modules', '@yantrix');
+			mkdirSync(scope, { recursive: true });
+			const coreEntry = createRequire(import.meta.url).resolve('@yantrix/core');
+			symlinkSync(path.resolve(path.dirname(coreEntry), '..'), path.join(scope, 'core'), 'junction');
+			copyFileSync(path.join(fixtures, 'preferences.ts'), path.join(consumer, 'preferences.ts'));
+			writeFileSync(path.join(consumer, 'connector.d.ts'), `
+				import type { IStorageAdapter } from '@yantrix/core';
+				export declare function connect(id: string): IStorageAdapter<string>;
+			`);
+			const generated = path.join(consumer, 'bindings.ts');
+			writeFileSync(generated, generateStorageBindings({
+				bindings: [preferences({ module: './connector.js', exportName: 'connect' })],
+			}));
+			const options = { ...compilerOptions, lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'], types: [], skipLibCheck: false };
+			expect(ts.resolveModuleName('@yantrix/automata', generated, options, ts.sys).resolvedModule).toBeUndefined();
+			const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram([generated], options));
+			expect(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))).toEqual([]);
+		} finally {
+			rmSync(consumer, { recursive: true, force: true });
+		}
+	}, 20000);
+
+	it('emits a factory that needs no arguments or imports for an empty application', async () => {
+		const output = generateStorageBindings({ bindings: [], outLang: ModuleNames.JavaScript });
+		expect(output).not.toMatch(/\bimport\b/);
+		const entry = path.join(directory, 'empty.js');
+		writeFileSync(entry, output);
+		const { createStorageBindings } = await import(entry);
+		expect(createStorageBindings()).toEqual([]);
+	});
+
+	it('rejects duplicate binding names and malformed module references during generation', () => {
+		const binding = preferences(memoryConnector);
+		expect(() => generateStorageBindings({ bindings: [binding, binding] })).toThrow(/duplicate.*user-preferences/i);
+		expect(() => generateStorageBindings({
+			bindings: [{ ...binding, connector: { module: ' ', exportName: 'connect' } }],
+		})).toThrow(/connector/i);
+		expect(() => generateStorageBindings({
+			bindings: [{ ...binding, mapper: { module: '../preferences.js', exportName: 'invalid.name' } }],
+		})).toThrow(/mapper/i);
+	});
+
+	it.each([ModuleNames.Java, ModuleNames.PureJavaScript, ModuleNames.PureTypeScript])(
+		'rejects the unsupported %s dialect passed by a JavaScript caller',
+		(outLang) => {
+			expect(() => generateStorageBindings({
+				// @ts-expect-error Java and the standalone FSM dialects are outside the public storage API.
+				outLang,
+				bindings: [],
+			})).toThrow(`Unsupported storage bindings language: ${outLang}`);
+		},
+	);
+});

@@ -1,4 +1,4 @@
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import {
 	getEffectStatements,
 	getEmitStatements,
@@ -8,6 +8,13 @@ import {
 
 import { ByPassAction } from '../constants.js';
 import { TStateDiagramMatrixIncludeNotes } from '../types/common.js';
+
+export function resolveEventBusOrder(order: TEventBusOrder = 'fifo'): TEventBusOrder {
+	if (order !== 'fifo' && order !== 'lifo') {
+		throw new TypeError('eventBusOrder must be either "fifo" or "lifo"');
+	}
+	return order;
+}
 
 export function fillDictionaries(
 	diagram: TStateDiagramMatrixIncludeNotes,
@@ -40,10 +47,10 @@ export function fillDictionaries(
 		for (const state of diagram.states) {
 			if (!state.notes) continue;
 
-			const emittedEventsKeys = [
+			const emittedEventsKeys = Array.from(new Set([
 				...getEmitStatements(state.notes).map(emit => emit.identifier),
 				...getEffectStatements(state.notes).map(effect => effect.identifier),
-			];
+			]));
 			if (emittedEventsKeys.length > 0) {
 				const uniqueKeys = emittedEventsKeys.filter(
 					e => eventDictionary.getEventValues({ keys: [e] })[0] == null,
@@ -52,9 +59,11 @@ export function fillDictionaries(
 			}
 
 			const subscribeStatements = getSubscribeStatements(state.notes);
-			const subscribedEventsKeys = subscribeStatements.map(sub => sub.identifier);
+			const subscribedEventsKeys = Array.from(new Set(subscribeStatements.map(sub => sub.identifier)));
 			if (subscribedEventsKeys.length > 0) {
-				const uniqueKeys = subscribedEventsKeys.filter(e => eventDictionary.getEventValues({ keys: [e] })[0] == null);
+				const uniqueKeys = subscribedEventsKeys.filter(
+					e => eventDictionary.getEventValues({ keys: [e] })[0] == null,
+				);
 				eventDictionary.addEvents({ keys: uniqueKeys });
 			}
 		}
@@ -70,7 +79,7 @@ export function fillDictionaries(
  * If state is not found in the dictionary then error is thrown.
  * @param {TStateDiagramMatrixIncludeNotes} diagram
  * @param {BasicStateDictionary} stateDictionary
- * @returns {number[]}
+ * @returns {number[]} IDs of the bypassed `States`.
  */
 export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateDictionary: BasicStateDictionary) {
 	const byPassed: number[] = [];
@@ -105,7 +114,7 @@ export function getStatesByPass(diagram: TStateDiagramMatrixIncludeNotes, stateD
 /**
  * Reference type to path mapping for code generation.
  */
-export const pathRecord: Record<string, string> = {
+export const pathRecord = {
 	constant: 'constant',
 	context: 'prevContext',
 	payload: '_payload',

@@ -3,12 +3,16 @@ import {
 	allModelPredicates,
 	anyModelPredicates,
 	composeModelTransformers,
+	createModelFunctions,
 	createModelPredicate,
 	createModelTransformer,
+	EffectScheduler,
+	ModelStore,
 	notModelPredicate,
 	TModelPredicate,
 	TModelSlicePredicate,
 	TModelSliceTransformer,
+	TReadonlyModel,
 	whenModel,
 } from '../src';
 
@@ -17,7 +21,7 @@ enum TestEvent {
 	Rename = 2,
 }
 
-interface ITestEventMeta extends Record<TestEvent, unknown> {
+interface ITestEventMeta {
 	[TestEvent.Add]: { amount: number };
 	[TestEvent.Rename]: { name: string };
 }
@@ -33,8 +37,52 @@ interface ITestModel {
 }
 
 const event = { event: TestEvent.Add, meta: { amount: 2 } } as const;
+const fx = createModelFunctions<ITestModel, TestEvent, ITestEventMeta>();
+const onAdd = fx.forEvent<TestEvent.Add>();
 
 describe('model functions', () => {
+	it('shares one frozen set of standalone helpers across bindings', () => {
+		expect(Object.isFrozen(fx)).toBe(true);
+		expect(createModelFunctions<ITestModel>()).toBe(fx);
+		expect(onAdd).toBe(fx);
+		expect(fx.predicate).toBe(createModelPredicate);
+		expect(fx.transformer).toBe(createModelTransformer);
+		expect(fx.compose).toBe(composeModelTransformers);
+		expect(fx.all).toBe(allModelPredicates);
+		expect(fx.any).toBe(anyModelPredicates);
+		expect(fx.not).toBe(notModelPredicate);
+		expect(fx.when).toBe(whenModel);
+	});
+
+	it('exposes the metadata union for a Predicate bound to all Events', () => {
+		const hasMeta = fx.predicate(model => model.name, (currentEvent, name) => {
+			expectTypeOf(currentEvent.meta).toEqualTypeOf<ITestEventMeta[TestEvent] | null>();
+			return currentEvent.meta !== null && name.length > 0;
+		});
+		const model = { counter: { value: 1, limit: 5 }, name: 'test' };
+		expect(hasMeta(event, model)).toBe(true);
+		expect(hasMeta({ event: TestEvent.Rename, meta: null }, model)).toBe(false);
+	});
+
+	it('defaults standalone Event Meta to unknown without contextual types', () => {
+		const hasMeta = createModelPredicate(model => model, (currentEvent) => {
+			expectTypeOf(currentEvent.meta).toBeUnknown();
+			return currentEvent.meta !== null;
+		});
+		const unchanged = createModelTransformer(
+			model => model,
+			model => model,
+			(currentEvent, slice) => {
+				expectTypeOf(currentEvent.meta).toBeUnknown();
+				return slice;
+			},
+		);
+
+		const model = { name: 'test' };
+		expect(hasMeta(event, model)).toBe(true);
+		expect(unchanged(event, model)).toBe(model);
+	});
+
 	it('lifts a typed slice Predicate into a Model Predicate', () => {
 		const predicate: TModelSlicePredicate<ICounterSlice, TestEvent.Add, ITestEventMeta> = (
 			currentEvent,
@@ -74,27 +122,66 @@ describe('model functions', () => {
 		const unchanged = createModelTransformer(
 			(current: Readonly<ITestModel>) => current.counter,
 			replace,
-			(_currentEvent, counter) => counter as ICounterSlice,
+			(_currentEvent, counter) => counter,
 		);
 		expect(unchanged(event, model)).toBe(model);
 		expect(replace).toHaveBeenCalledOnce();
 	});
 
-	it('composes Model Transformers from left to right', () => {
-		const add = createModelTransformer(
-			(model: Readonly<ITestModel>) => model.counter,
-			(model, counter) => ({ ...model, counter }),
-			(currentEvent, counter) => ({
-				...counter,
-				value: counter.value + (currentEvent.meta?.amount ?? 0),
-			}),
+	it('preserves a read-only list selection through a no-op and a subsequent commit', () => {
+		type TShop = { cart: { skus: string[] } };
+		const initial: TShop = { cart: { skus: ['first'] } };
+		const replace = vi.fn((model: TReadonlyModel<TShop>, skus: readonly string[]) => ({
+			...model,
+			cart: { ...model.cart, skus },
+		}));
+		const shop = createModelFunctions<TShop, TestEvent, ITestEventMeta>().forEvent<TestEvent.Add>();
+		const keep = shop.transformer(model => model.cart.skus, replace, (_event, skus) => skus);
+		expect(keep(event, initial)).toBe(initial);
+		const append = shop.transformer(
+			model => model.cart.skus,
+			replace,
+			(currentEvent, skus) => {
+				expectTypeOf(skus).toEqualTypeOf<readonly string[]>();
+				return currentEvent.meta?.amount ? [...skus, 'next'] : skus;
+			},
 		);
-		const capAtLimit = createModelTransformer(
-			(model: Readonly<ITestModel>) => model.counter,
+		const store = new ModelStore(initial);
+		const notify = vi.fn();
+		store.subscribe(notify);
+		const scheduler = new EffectScheduler<TShop, TestEvent.Add, ITestEventMeta>({
+			store,
+			matrices: [{ [TestEvent.Add]: [append] }],
+		});
+
+		scheduler.enqueue({ event: TestEvent.Add, meta: { amount: 0 } });
+		expect(scheduler.flush().changed).toBe(false);
+		expect(store.get()).toBe(initial);
+		expect(replace).not.toHaveBeenCalled();
+		expect(notify).not.toHaveBeenCalled();
+
+		scheduler.enqueue(event);
+		expect(scheduler.flush().changed).toBe(true);
+		expect(store.get().cart.skus).toEqual(['first', 'next']);
+		expect(initial.cart.skus).toEqual(['first']);
+		expect(notify).toHaveBeenCalledOnce();
+	});
+
+	it('composes Model Transformers from left to right', () => {
+		const add = onAdd.transformer(
+			model => model.counter,
+			(model, counter) => ({ ...model, counter }),
+			(currentEvent, counter) => {
+				expectTypeOf(counter).toEqualTypeOf<TReadonlyModel<ICounterSlice>>();
+				return { ...counter, value: counter.value + (currentEvent.meta?.amount ?? 0) };
+			},
+		);
+		const capAtLimit = onAdd.transformer(
+			model => model.counter,
 			(model, counter) => ({ ...model, counter }),
 			(_currentEvent, counter) => ({ ...counter, value: Math.min(counter.value, counter.limit) }),
 		);
-		const composed = composeModelTransformers(add, capAtLimit);
+		const composed = onAdd.compose(add, capAtLimit);
 
 		expect(composed(
 			{ event: TestEvent.Add, meta: { amount: 10 } },
@@ -115,19 +202,23 @@ describe('model functions', () => {
 
 	it('creates an Effect by guarding a Model Transformer with a Predicate', () => {
 		const model = { counter: { value: 4, limit: 5 }, name: 'test' };
-		const canAdd = createModelPredicate(
-			(current: Readonly<ITestModel>) => current.counter,
-			(currentEvent, counter) => counter.value + (currentEvent.meta?.amount ?? 0) <= counter.limit,
+		const canAdd = onAdd.predicate(
+			current => current.counter,
+			(currentEvent, counter) => {
+				expectTypeOf(currentEvent.meta).toEqualTypeOf<ITestEventMeta[TestEvent.Add] | null>();
+				expectTypeOf(counter).toEqualTypeOf<TReadonlyModel<ICounterSlice>>();
+				return counter.value + (currentEvent.meta?.amount ?? 0) <= counter.limit;
+			},
 		);
-		const add = createModelTransformer(
-			(current: Readonly<ITestModel>) => current.counter,
+		const add = onAdd.transformer(
+			current => current.counter,
 			(current, counter) => ({ ...current, counter }),
 			(currentEvent, counter) => ({
 				...counter,
 				value: counter.value + (currentEvent.meta?.amount ?? 0),
 			}),
 		);
-		const effect = whenModel(canAdd, add);
+		const effect = onAdd.when(canAdd, add);
 
 		expect(effect(event, model)).toBe(model);
 		expect(effect(

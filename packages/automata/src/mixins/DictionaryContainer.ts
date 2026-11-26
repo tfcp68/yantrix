@@ -5,7 +5,7 @@
  */
 import { TAbstractConstructor } from '../types/index.js';
 
-export default function DictionaryContainer<ItemType>() {
+export function DictionaryContainer<ItemType>() {
 	return <TBase extends TAbstractConstructor = TAbstractConstructor>(base: TBase) =>
 		class AbstractDictionaryContainer extends base {
 			_dictionary: Record<string, ItemType> = {};
@@ -47,7 +47,7 @@ export default function DictionaryContainer<ItemType>() {
 				const k = this._getItemKey(itemKey, namespace);
 				const v = this._dictionary[k];
 
-				if (v && this._dictionaryIndex.has(v))
+				if (v != null && this._dictionaryIndex.has(v))
 					return v;
 				delete this._dictionary[k];
 
@@ -69,14 +69,16 @@ export default function DictionaryContainer<ItemType>() {
 				if (!itemKey?.length)
 					throw new Error(`item key is empty`);
 				let value = this._stringHash(this._getItemKey(itemKey, namespace));
-				if (Object.values(this._dictionary).includes(value as ItemType))
-					value = value + this._stringHash(JSON.stringify(this._dictionary));
+				if (this._dictionaryIndex.has(value as ItemType)) {
+					value += this._stringHash(JSON.stringify(this._dictionary));
+					while (this._dictionaryIndex.has(value as ItemType)) value++;
+				}
 				return value as ItemType;
 			}
 
 			_deleteItemKey(itemKey: string): this {
 				const item = this?._dictionary[itemKey];
-				if (!item)
+				if (item == null)
 					return this;
 				const meta = this._dictionaryIndex.get(item);
 				delete this._dictionary[itemKey];
@@ -98,7 +100,7 @@ export default function DictionaryContainer<ItemType>() {
 
 			_addItemKey(itemKey: string, namespace?: string): ItemType {
 				const k = this._getItemKey(itemKey, namespace);
-				if (this._dictionary[k]) {
+				if (Object.hasOwn(this._dictionary, k)) {
 					throw new Error(
 						`Item key ${itemKey} is taken within ${
 							namespace == null ? 'default namespace' : `namespace "${namespace}"`
@@ -106,7 +108,12 @@ export default function DictionaryContainer<ItemType>() {
 					);
 				}
 				const value = this._getItemValue(itemKey, namespace);
-				this._dictionary[k] = value;
+				Object.defineProperty(this._dictionary, k, {
+					value,
+					configurable: true,
+					enumerable: true,
+					writable: true,
+				});
 				if (namespace) {
 					if (!this._namespaceIndex[namespace])
 						this._namespaceIndex[namespace] = [];
@@ -131,3 +138,5 @@ export default function DictionaryContainer<ItemType>() {
 			}
 		};
 }
+
+export default DictionaryContainer;

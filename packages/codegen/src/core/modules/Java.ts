@@ -37,6 +37,9 @@ export class JavaCodegen implements ICodegen<typeof ModuleNames.Java> {
 	}
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Java]): string {
+		if (options.eventBusOrder !== undefined) {
+			throw new TypeError('eventBusOrder is unavailable for Java because this dialect does not generate an event bus');
+		}
 		return `
 			${this.getImports()}
 			${this.getClassTemplate(options.className)}

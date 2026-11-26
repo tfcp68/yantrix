@@ -1,8 +1,6 @@
 <% for (const eventCode of it.emitter.events) { %>
 eventAdapter.addEventEmitter(
   statesDictionary["<%~ it.emitter.stateId %>"],
-  ({ context }) => {
-    return <%~ include('code', { eventCode }) %>;
-  },
+  ({ context: prevContext }) => (<%~ include('code', { eventCode }) %>),
 );
 <% } %>

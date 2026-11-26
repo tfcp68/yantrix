@@ -33,11 +33,25 @@ $ npx nypm install @yantrix/automata
 
 > We suggest using `pnpm`
 
-### Data Model and Effects
+The package declarations require TypeScript >= 5.4.
 
-`ModelStore` owns the current application snapshot. `EffectScheduler` collects
-Events during a Main Loop iteration and applies all matching Effects with at
-most one model commit when the iteration is flushed:
+### Package ownership
+
+`@yantrix/automata` owns the shared contracts, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. Each implementation package owns its connector-specific options and protocols. The public mixins are available from the Automata index and their named module paths. `@yantrix/core` re-exports the agnostic API.
+
+Concrete implementations extend the agnostic classes through their factories. Import the interval timer and HTTP providers from `@yantrix/providers`. Import the in-memory, Web Storage, and IndexedDB connectors from `@yantrix/storage`. Both packages can be used independently.
+
+```typescript
+import type { IStorageAdapter } from '@yantrix/automata/types';
+import { AbstractAgnosticDataSource, createDataSourceAdapter } from '@yantrix/automata/DataSource';
+```
+
+### `Data Model` and `Effects`
+
+`ModelStore` owns the current `Data Model` snapshot. `EffectScheduler` collects
+`Events` across an entire `Event Bus` cascade, including follow-up `Events`. When the
+`Event Bus` becomes idle, `CoreLoop` flushes the batch and commits one `Data Model` snapshot if
+any changes remain.
 
 ```typescript
 import { CoreLoop, EffectScheduler, ModelStore } from '@yantrix/automata';
@@ -69,11 +83,17 @@ const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
 
 effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
 effects.flush();
+console.log(model.get().count); // 2
 ```
 
-For application wiring, pass the scheduler to `CoreLoop`. The loop enqueues only
-Events emitted by registered FSM Event Adapters, waits for the full EventBus
-cascade, and flushes the batch before updating Data Destinations:
+For application wiring, pass the `EffectScheduler` to `CoreLoop`. Built-in `FSMs`
+notify the `Main Loop` when a transition commits, including a self-transition or a
+queued `Action` consumed on resume. The `Main Loop` collects the `Events` emitted
+by the `Event Adapter`, waits for the `Event` cascade, and flushes the batch before
+updating matching `Destinations` with the committed snapshot. Custom `FSMs` can
+provide `onEmittedEvents` for the same behavior. For an `FSM` without that hook,
+the `Main Loop` asks its `Event Adapter` for `Events` after dispatching an `Action`
+while the `FSM` is enabled and unpaused.
 
 ```typescript
 const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effects });
@@ -83,51 +103,78 @@ const loop = new CoreLoop<AppEvent, IEventMeta, IModel>({ effectScheduler: effec
 await loop.whenIdle();
 ```
 
-Direct `enqueue()` and `flush()` remain available for custom Main Loop drivers.
+Direct `enqueue()` and `flush()` remain available for custom `Main Loop` drivers.
+A batch processes `Events` from `Event Adapters` in the order the `EffectScheduler`
+received them. Each `Event` matches against the `Effect Matrix` of every registered
+`Slice`. The `Effect Matrices` run in registration order, and the `Effects` within
+each run in declaration order. Each `Effect` receives the `Data Model` returned by
+the previous `Effect`. Return the same reference for a no-op so `ModelStore` can
+skip notifying its subscribers. If a pure `Effect` throws, `flush()` discards that
+batch and `ModelStore` retains its previous snapshot.
 
-For the exact lifecycle, Effect ordering, failure guarantees and the scope of
+For the exact lifecycle, `Effect` ordering, failure guarantees and the scope of
 `CoreLoop.whenIdle()`, see the
 [Core Runtime API](https://tfcp68.github.io/yantrix/integrations/180_core_runtime.html).
 
-Model Predicates and Model Transformers can be scoped to a selected model value
-and composed into an Effect without exposing the whole application model to a
-domain operation:
+With the built-in `AutomataSlice`, `registerSlice(slice)` connects the `Slice`'s
+`FSMs` and `Effect Matrix` to the `Main Loop`. Adding or removing an `FSM` on that
+`Slice` updates its `Event` subscriptions. `unregisterSlice(slice.id)` disconnects
+the `Slice`'s current `FSMs` and removes its `Effect Matrix`. A custom `Slice`
+with mutable membership can implement `IAutomataSlice.onMachinesChanged` to
+notify the `Main Loop` of additions and removals. Without that hook the `Main Loop`
+wires the `FSMs` returned by `getMachines()` at registration.
+
+`Model Predicates` and `Model Transformers` can select one value from the `Data Model`. The following `Effect` checks the counter's limit before applying an increment.
+
+<!-- eslint ts/naming-convention: off -- Use the application's type names in this example. -->
 
 ```typescript
-import {
-	createModelPredicate,
-	createModelTransformer,
-	whenModel,
-} from '@yantrix/automata';
+import type { TEffectMatrix } from '@yantrix/automata';
+import { createModelFunctions } from '@yantrix/automata';
 
-interface ICounterModel {
-	counter: { value: number; limit: number };
+enum AppEvent {
+	Increment = 1,
+	Reset = 2,
 }
 
-const canIncrement = createModelPredicate<
-	ICounterModel,
-	ICounterModel['counter'],
-	AppEvent.Increment,
-	IEventMeta
->(
-	(current: Readonly<ICounterModel>) => current.counter,
+type App = { counter: { value: number; limit: number } };
+type AppEventMeta = {
+	[AppEvent.Increment]: { amount: number };
+	[AppEvent.Reset]: { reason: string };
+};
+
+const fx = createModelFunctions<App, AppEvent, AppEventMeta>();
+const add = fx.forEvent<AppEvent.Increment>();
+
+const canIncrement = add.predicate(
+	model => model.counter,
 	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
 );
-const increment = createModelTransformer<
-	ICounterModel,
-	ICounterModel['counter'],
-	AppEvent.Increment,
-	IEventMeta
->(
-	(current: Readonly<ICounterModel>) => current.counter,
-	(current, counter) => ({ ...current, counter }),
-	(event, counter) => ({ ...counter, value: counter.value + (event.meta?.amount ?? 0) }),
+const increment = add.transformer(
+	model => model.counter.value,
+	(model, value) => ({ ...model, counter: { ...model.counter, value } }),
+	(event, value) => value + (event.meta?.amount ?? 0),
 );
-const incrementWhenAllowed = whenModel(canIncrement, increment);
+const effects = {
+	[AppEvent.Increment]: [add.when(canIncrement, increment)],
+} satisfies TEffectMatrix<App, AppEvent, AppEventMeta>;
 ```
 
-`ModelStore` can also enable opt-in development diagnostics. They are disabled
-by default and do not add work to production commits:
+`forEvent<AppEvent.Increment>()` binds the key at compile time, so `add` receives `AppEventMeta[AppEvent.Increment] | null` as `Event Meta`. On `fx`, `Event Meta` is the union `AppEventMeta[AppEvent] | null`. The `Effect Matrix` key decides when the handler runs. Supply all three type arguments to `TEffectMatrix`. Omitting the `Event Meta` map supplies `any` as the contextual type for `event.meta`.
+
+An annotated result also gives the standalone helper its `Event` key and `Event Meta` map. The selector determines the selected type. If you annotate its parameter, use `TReadonlyModel<App>`. A mutable `App` parameter is too narrow when the `Data Model` contains arrays.
+
+```typescript
+import type { TModelPredicate, TReadonlyModel } from '@yantrix/automata';
+import { createModelPredicate } from '@yantrix/automata';
+
+const withinLimit: TModelPredicate<App, AppEvent.Increment, AppEventMeta> = createModelPredicate(
+	(model: TReadonlyModel<App>) => model.counter,
+	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
+);
+```
+
+`ModelStore` can also enable opt-in development diagnostics. Both checks are disabled by default.
 
 ```typescript
 const model = new ModelStore(initialModel, {
@@ -138,22 +185,26 @@ const model = new ModelStore(initialModel, {
 });
 ```
 
-### Storage and persistence
+### `Storage` and persistence
 
 `Storage` is separate from `ModelStore`: adapters load and save serializable
-snapshots, `hydrateModel()` builds the initial Data Model, and an independent
-`StorageSyncLoop` persists committed changes without blocking the Main Loop.
+snapshots, `hydrateModel()` builds the initial `Data Model`, and an independent
+`StorageSyncLoop` persists committed changes without blocking the `Main Loop`.
+
+Pass the session returned by `hydrateModel()` to the `Sync Loop`. If a `Storage` fails to load or hydrate, the loop reports the failure through `onError` and keeps saving to healthy connectors. Pass `session: null` for a write-only loop.
+
+Call `storageSync.hydrate()` to retry the loop’s registered bindings in its own session. It starts from the current `Data Model` and returns the hydrated model for the caller to commit.
 
 ```typescript
 import {
 	hydrateModel,
-	LocalStorageAdapter,
 	ModelStore,
 	StorageSyncLoop,
 } from '@yantrix/automata';
+import { LocalStorageAdapter } from '@yantrix/storage';
 
 interface IModel {
-	count: number;
+	counter: { count: number };
 	transientMessage: string | null;
 }
 
@@ -163,20 +214,21 @@ const counterStorage = new LocalStorageAdapter<{ count: number }>({
 });
 const storageBindings = [{
 	storage: counterStorage,
-	select: (model: Readonly<IModel>) => ({ count: model.count }),
+	select: (model: Readonly<IModel>) => model.counter,
 	hydrate: (model: Readonly<IModel>, snapshot: { count: number }) => ({
 		...model,
-		count: snapshot.count,
+		counter: snapshot,
 	}),
 }];
 
 const hydration = await hydrateModel<IModel>(
-	{ count: 0, transientMessage: null },
+	{ counter: { count: 0 }, transientMessage: null },
 	storageBindings,
 );
 const model = new ModelStore(hydration.model);
 const storageSync = new StorageSyncLoop({
 	store: model,
+	session: hydration.session,
 	bindings: storageBindings,
 	debounceMs: 250,
 	onError: failure => console.error(failure),
@@ -187,10 +239,15 @@ storageSync.requestSync();
 await storageSync.whenIdle();
 ```
 
-`InMemoryStorageAdapter` is the reference/test adapter.
-`IndexedDBStorageAdapter` stores structured-clone-compatible snapshots, while
+The `Sync Loop` compares projections with `Object.is`. Changing only `transientMessage` preserves the `counter` reference and skips the write.
+
+During continuous commits, `maxWaitMs` bounds how long the `Sync Loop` waits to start a save. With a positive `debounceMs`, the default is the greater of one second and `debounceMs`. If a save is already running, the next one starts when it finishes.
+
 `VersionedStorageAdapter` decorates any adapter with ordered schema migrations.
-Multiple bindings may project and hydrate independent subsets of one Data Model;
+
+[Connector options and write guarantees](https://www.npmjs.com/package/@yantrix/storage#connector-options-and-write-guarantees).
+
+Multiple bindings may project and hydrate independent subsets of one `Data Model`;
 loads happen concurrently and successful snapshots are composed in registration
 order.
 

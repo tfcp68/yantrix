@@ -1,6 +1,9 @@
 import { IAutomataFunctionRegistry } from './interfaces';
 
-export * from './internalsContext';
+export * from './dictionaries.js';
+export * from './interfaces.js';
+export * from './internalsContext.js';
+export * from './storage.js';
 
 /**
  * Represents the base state type for the automata.
@@ -157,7 +160,10 @@ export type TAutomataReducer<
 	NewStateType extends StateType = StateType,
 > = (
 	params: TAutomataEvent<StateType, ActionType, ContextType, PayloadType>,
-) => TAutomataStateContext<NewStateType, ContextType>;
+) => TAutomataStateContext<NewStateType, ContextType> & {
+	/** Set to false when the action does not match a transition, including a failed guard. */
+	transitioned?: boolean;
+};
 
 /**
  * Represents a dispatch function for an automata,
@@ -250,8 +256,16 @@ export type TAutomataEventStack<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = Array<TAutomataEventMetaType<EventType, EventMetaType>>;
 
+/** The recursively read-only view of a `Data Model` snapshot or selected value. */
+export type TReadonlyModel<Value> = Value extends object
+	? { readonly [Key in keyof Value]: TReadonlyModel<Value[Key]> }
+	: Value;
+
 /**
- * Effect function for automata model.
+ * A pure `Effect` projects the current `Data Model` into its next snapshot.
+ *
+ * For compatibility, `TAutomataEffect` uses TypeScript's shallow `Readonly<ModelType>`.
+ * Implementations must treat nested values as read-only too. `TModelTransformer` enforces this recursively.
  */
 export type TAutomataEffect<
 	ModelType extends object,
@@ -262,27 +276,36 @@ export type TAutomataEffect<
 	model: Readonly<ModelType>,
 ) => ModelType;
 
+/** An `Effect Matrix` accepts an `Effect` or a pure projection returning a read-only snapshot. */
+export type TEffectMatrixEntry<
+	ModelType extends object,
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any },
+> = (
+	...args: Parameters<TAutomataEffect<ModelType, EventType, EventMetaType>>
+) => ModelType | TReadonlyModel<ModelType>;
+
 /**
- * Maps each event to the ordered Effects it triggers.
+ * Maps each `Event` to the ordered `Effects` it triggers.
  *
- * A matrix usually belongs to a Slice. Multiple matrices can be registered in
- * an Effect Scheduler and are evaluated in registration order.
+ * An `Effect Matrix` usually belongs to a `Slice`. Multiple `Effect Matrices` can be registered in
+ * an `Effect Scheduler` and are evaluated in registration order.
  */
 export type TEffectMatrix<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = {
-	readonly [Event in EventType]?: ReadonlyArray<TAutomataEffect<ModelType, Event, EventMetaType>>;
+	readonly [Event in EventType]?: ReadonlyArray<TEffectMatrixEntry<ModelType, Event, EventMetaType>>;
 };
 
-/** Listener notified after the Data Model snapshot has changed. */
+/** Listener notified after the `Data Model` snapshot has changed. */
 export type TModelListener<ModelType extends object> = (
 	model: ModelType,
 	previousModel: ModelType,
 ) => void;
 
-/** Summary of one Effect Scheduler batch. */
+/** Summary of one `Effect Scheduler` batch. */
 export type TEffectFlushResult<ModelType extends object> = {
 	model: ModelType;
 	previousModel: ModelType;
@@ -316,23 +339,15 @@ export type TContextPredicate<
 	} = Record<StateType, any>,
 > = (context: TAutomataStateContext<StateType, ContextType>) => THighOrderPredicate;
 
-/** A condition whose explicit runtime dependencies are an Event and current Data Model. */
+/** A `Model Predicate` reads an `Event` and the current `Data Model` snapshot. */
 export type TModelPredicate<
-	ModelType extends object = Record<string, any>,
+	ModelType extends object = Record<string, unknown>,
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
-	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, unknown>,
 > = (
 	event: TAutomataEventMetaType<EventType, EventMetaType>,
-	model: Readonly<ModelType>,
+	model: TReadonlyModel<ModelType>,
 ) => boolean;
-
-/**
- * Pre-P2 placeholder signature retained under an explicit name for migrations.
- * @deprecated Use `TModelPredicate` and the Model Predicate composition helpers.
- */
-export type TLegacyModelPredicate<ModelType extends object = Record<string, any>> = (
-	model: ModelType,
-) => THighOrderPredicate;
 
 export type THighOrderPredicate = (...predicates: Array<(...args: any[]) => boolean>) => boolean;
 

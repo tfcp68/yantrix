@@ -7,7 +7,7 @@ import {
 } from '../types/index.js';
 import BasicActionContainer from './BasicActionContainer.js';
 
-export default function ExtendedActionContainer<
+export function ExtendedActionContainer<
 	ActionType extends TAutomataBaseActionType,
 	PayloadType extends { [K in ActionType]: any },
 >() {
@@ -38,3 +38,5 @@ export default function ExtendedActionContainer<
 				&& (p?.payload === null || typeof p.payload === 'object');
 		};
 }
+
+export default ExtendedActionContainer;

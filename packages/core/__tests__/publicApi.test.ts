@@ -6,7 +6,7 @@ describe('@yantrix/core MVP facade', () => {
 		'AutomataSlice',
 		'CoreLoop',
 		'EffectScheduler',
-		'LocalStorageAdapter',
+		'createStorageAdapter',
 		'ModelStore',
 		'StorageSyncLoop',
 		'createModelPredicate',

@@ -7,7 +7,7 @@ import {
 } from '../types/index.js';
 import BasicEventContainer from './BasicEventContainer.js';
 
-export default function ExtendedEventContainer<
+export function ExtendedEventContainer<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
 >() {
@@ -38,3 +38,5 @@ export default function ExtendedEventContainer<
 				this.validateEvent(p?.event) && (p?.meta === null || typeof p.meta === 'object');
 		};
 }
+
+export default ExtendedEventContainer;

@@ -7,7 +7,7 @@ import {
 } from '../types/index.js';
 import BasicStateContainer from './BasicStateContainer.js';
 
-export default function ExtendedStateContainer<
+export function ExtendedStateContainer<
 	StateType extends TAutomataBaseStateType,
 	ContextType extends { [K in StateType]: any },
 >() {
@@ -34,3 +34,5 @@ export default function ExtendedStateContainer<
 				this.validateState(p?.state) && (p?.context === null || typeof p.context === 'object');
 		};
 }
+
+export default ExtendedStateContainer;

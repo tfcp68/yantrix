@@ -1,11 +1,11 @@
 import { isPositiveInteger } from '@yantrix/utils';
 import {
 	TAutomataBaseEventType,
-	TAutomataEffect,
 	TAutomataEventMetaType,
 	TAutomataEventStack,
 	TAutomataStateContext,
 	TEffectMatrix,
+	TEffectMatrixEntry,
 	TValidator,
 } from './types/index.js';
 import { IAutomata, IAutomataSlice } from './types/interfaces.js';
@@ -21,13 +21,13 @@ export type TAutomataSliceProps<
 	eventValidator?: TValidator<EventType>;
 };
 
-/** FSM contract accepted by an {@link AutomataSlice}. */
+/** An `FSM` that shares its `Slice`'s `Event` IDs and `Event Meta`. */
 export type TSliceMachine<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
 > = IAutomata<any, any, EventType, any, any, EventMetaType>;
 
-/** Independent unit of Yantrix business logic: FSMs plus an Effect Matrix. */
+/** Independent unit of Yantrix business logic: `FSMs` plus an `Effect Matrix`. */
 export class AutomataSlice<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
@@ -35,9 +35,14 @@ export class AutomataSlice<
 > implements IAutomataSlice<EventType, EventMetaType, ModelType> {
 	public readonly id: string;
 	readonly #machines = new Map<string, TSliceMachine<EventType, EventMetaType>>();
+	readonly #machineListeners = new Set<{
+		onAdded: (machine: TSliceMachine<EventType, EventMetaType>) => void;
+		onRemoved: (machine: TSliceMachine<EventType, EventMetaType>) => void;
+	}>();
+
 	readonly #effectMatrix = new Map<
 		EventType,
-		ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>
+		ReadonlyArray<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>
 	>();
 
 	#eventStack: TAutomataEventStack<EventType, EventMetaType> = [];
@@ -56,7 +61,7 @@ export class AutomataSlice<
 			}
 			this.#effectMatrix.set(
 				Number(eventKey) as EventType,
-				[...effects] as Array<TAutomataEffect<ModelType, EventType, EventMetaType>>,
+				[...effects] as Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>,
 			);
 		}
 	}
@@ -82,6 +87,15 @@ export class AutomataSlice<
 		return Object.fromEntries(this.#machines);
 	}
 
+	public onMachinesChanged(
+		onAdded: (machine: TSliceMachine<EventType, EventMetaType>) => void,
+		onRemoved: (machine: TSliceMachine<EventType, EventMetaType>) => void,
+	): () => void {
+		const listener = { onAdded, onRemoved };
+		this.#machineListeners.add(listener);
+		return () => this.#machineListeners.delete(listener);
+	}
+
 	/** Adds one FSM; a running Slice enables and resumes it immediately. */
 	public addMachine<
 		StateType extends number,
@@ -95,9 +109,20 @@ export class AutomataSlice<
 		if (!machineId) throw new Error('Slice machine must provide a non-empty string id');
 		if (this.#machines.has(machineId)) throw new Error(`Machine with id "${machineId}" already registered`);
 		this.#machines.set(machineId, automata);
-		if (this.#running) {
-			automata.enable();
-			automata.resume();
+		const notified = [];
+		try {
+			for (const listener of this.#machineListeners) {
+				listener.onAdded(automata);
+				notified.push(listener);
+			}
+			if (this.#running) {
+				automata.enable();
+				automata.resume();
+			}
+		} catch (error) {
+			this.#machines.delete(machineId);
+			for (const listener of notified) listener.onRemoved(automata);
+			throw error;
 		}
 		return this;
 	}
@@ -105,8 +130,10 @@ export class AutomataSlice<
 	/** Removes one FSM and pauses it first when the Slice is running. */
 	public removeMachine(machineId: string): this {
 		const machine = this.#machines.get(machineId);
-		if (machine && this.#running) machine.pause();
+		if (!machine) return this;
+		if (this.#running) machine.pause();
 		this.#machines.delete(machineId);
+		for (const listener of this.#machineListeners) listener.onRemoved(machine);
 		return this;
 	}
 
@@ -142,13 +169,13 @@ export class AutomataSlice<
 
 	/** Returns a copy of the Slice Effect Matrix. */
 	public getEventMatrix(): TEffectMatrix<ModelType, EventType, EventMetaType> {
-		const matrix: Record<number, ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>> = {};
+		const matrix: Record<number, ReadonlyArray<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>> = {};
 		for (const [event, effects] of this.#effectMatrix) matrix[event] = [...effects];
 		return matrix as TEffectMatrix<ModelType, EventType, EventMetaType>;
 	}
 
 	/** Returns the ordered Effects declared for one Event. */
-	public getEventEffects(event: EventType): Array<TAutomataEffect<ModelType, EventType, EventMetaType>> {
+	public getEventEffects(event: EventType): Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>> {
 		return [...(this.#effectMatrix.get(event) ?? [])];
 	}
 
@@ -203,7 +230,7 @@ export class AutomataSlice<
 	 */
 	public consumeEvent(): {
 		events: TAutomataEventStack<EventType, EventMetaType>;
-		effects: Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
+		effects: Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>;
 	} {
 		if (!this.#running) return { events: [], effects: [] };
 

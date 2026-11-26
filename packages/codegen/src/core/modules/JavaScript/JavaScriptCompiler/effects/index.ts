@@ -1,8 +1,9 @@
-import { getEffectDeclarations } from './core';
+import { getEffectDeclarations, validateEffectProducers } from './core';
 
 export const effects = {
 	functions: {
 		getEffectDeclarations,
+		validateEffectProducers,
 	},
 };
 

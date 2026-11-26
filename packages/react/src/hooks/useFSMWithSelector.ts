@@ -3,10 +3,10 @@ import {
 	TAutomataBaseActionType,
 	TStaticMethods,
 } from '@yantrix/core';
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useMemo, useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { setInitialStaticMethods } from '../helpers';
-import { automatasList, fsm_context, getSnapshotWithSelector } from '../store/store';
+import { automatasList, getSnapshotWithSelector } from '../store/store';
 import {
 	TAutomata,
 	TExtractAutomataContext,
@@ -15,6 +15,7 @@ import {
 	TUseFSMOptions,
 	TUseFsmReturnWithSelection,
 } from '../types';
+import { useFSMRegistration } from './useFSMRegistration';
 
 type TGenericAction = TAutomataActionPayload<
 	TAutomataBaseActionType,
@@ -26,21 +27,14 @@ type TGenericAction = TAutomataActionPayload<
  * Re-renders only when the selection changes (shallow or custom equality).
  */
 export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext<TAutomata>>(
-	inst: TUseFSMInput,
+	instance: TUseFSMInput,
 	options: TUseFSMOptions<TAutomata, Selection>,
 ): TUseFsmReturnWithSelection<Selection, TContext> {
 	const selectorFn = options.selector;
 	const isEqualFn = options.isEqual;
 
-	const idRef = useRef<string>('');
-	if (!idRef.current || !automatasList[idRef.current]) {
-		idRef.current = fsm_context.initializeFSM(inst);
-	}
-	const id = idRef.current;
-	const store = fsm_context.getStore(id);
-	const instance = store.getSnapshot();
-
-	const staticsRef = useRef<TStaticMethods>(setInitialStaticMethods(inst));
+	const store = useFSMRegistration(instance, options.name);
+	const staticsRef = useMemo(() => ({ current: setInitialStaticMethods(instance) }), [instance]);
 
 	const previousContextRef = useRef<TPreviousContext>({ state: null, context: {} });
 	const lastActionRef = useRef<TGenericAction>({ action: null, payload: {} });
@@ -54,8 +48,8 @@ export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext
 		instance.dispatch(action);
 	};
 
-	const lastVersionRef = useRef<number>(-1);
-	const lastSelectionRef = useRef<Selection | null>(null);
+	const lastVersionRef = useMemo(() => ({ current: -1 }), [instance]);
+	const lastSelectionRef = useMemo(() => ({ current: null as Selection | null }), [instance]);
 
 	const getSnapshot = (): Selection =>
 		getSnapshotWithSelector<Selection, TStaticMethods>(
@@ -69,10 +63,6 @@ export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext
 
 	const selection = useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
 
-	useEffect(() => {
-		return () => fsm_context.destroyFSM(idRef.current);
-	}, []);
-
 	const getAutomatasList = () => automatasList;
 
 	return {
@@ -80,7 +70,7 @@ export function useFSMWithSelector<Selection, TContext = TExtractAutomataContext
 		getContext: instance.getContext.bind(instance),
 		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
-		getInstanceAutomata: () => ({ id, Automata: store.getSnapshot() }),
+		getInstanceAutomata: () => ({ id: store.route, Automata: instance }),
 		getAutomatasList,
 		...staticsRef.current,
 		selection,

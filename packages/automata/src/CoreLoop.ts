@@ -39,8 +39,7 @@ type TRegisteredDestination = {
 type TRegisteredSlice<EventType extends TAutomataBaseEventType, EventMetaType extends { [K in EventType]: any }> = {
 	id: string;
 	slice: IAutomataSlice<EventType, EventMetaType, any>;
-	machineIds: string[];
-	removeEffectMatrix: TUnsub;
+	detach: TUnsub;
 };
 
 /** Constructor props for {@link CoreLoop}. Subclasses extend this (e.g. {@link TimedCoreLoop}). */
@@ -79,8 +78,9 @@ export class CoreLoop<
 
 	private readonly bus: IAutomataEventBus<EventType, EventMetaType>;
 	private readonly effectScheduler: IEffectScheduler<ModelType, EventType, EventMetaType> | null;
-	private pendingEffectEvents: TAutomataEventStack<EventType, EventMetaType> = [];
-	private effectFlushScheduled = false;
+	// Insertion order follows committed transitions, even when a direct dispatch triggers another machine synchronously.
+	private readonly pendingEmissions = new Map<TAutomataEventStack<EventType, EventMetaType>, boolean>();
+	private scheduledFlush: Promise<void> | null = null;
 	private effectFlushPromise: Promise<void> | null = null;
 	private readonly automata: Map<string, TRegisteredAutomata> = new Map();
 	private readonly destinations: Map<string, TRegisteredDestination> = new Map();
@@ -116,12 +116,7 @@ export class CoreLoop<
 		return this.effectScheduler;
 	}
 
-	/**
-	 * Resolves after the current FIFO EventBus cascade and its automatic Effect
-	 * batch have completed. A failed Effect rejects this Promise. Synchronous
-	 * model-bound Destination updates have been invoked before it resolves, but
-	 * external Destination I/O and Storage writes have their own idle boundaries.
-	 */
+	/** Resolves after the `Event` cascade and its `Effect` batch have both completed. */
 	public async whenIdle(): Promise<void> {
 		await this.bus.whenIdle();
 		const flushPromise = this.effectFlushPromise;
@@ -133,28 +128,49 @@ export class CoreLoop<
 		}
 	}
 
-	private enqueueEffectEvent(event: TAutomataEventMetaType<EventType, EventMetaType>): void {
-		if (!this.effectScheduler) return;
+	private deliverEmissions(
+		events: TAutomataEventStack<EventType, EventMetaType>,
+		busTask: TAutomataEventStack<EventType, EventMetaType> | null,
+	): void {
+		if (!events.length) return;
+		const pending = this.effectScheduler ? events.slice() : null;
+		if (pending) this.pendingEmissions.set(pending, false);
+		try {
+			if (busTask) busTask.push(...events);
+			else this.bus.dispatch(...events);
+		} finally {
+			// A direct dispatch must enter the bus before we can wait for its whole cascade.
+			if (pending) this.awaitEffectBatch(pending);
+		}
+	}
 
-		this.effectScheduler.enqueue(event);
-		this.pendingEffectEvents.push(event);
-		if (this.effectFlushScheduled) return;
-
-		this.effectFlushScheduled = true;
+	private awaitEffectBatch(events: TAutomataEventStack<EventType, EventMetaType>): void {
 		this.effectFlushPromise = this.bus.whenIdle().then(() => {
-			this.flushEffects();
+			this.pendingEmissions.set(events, true);
+			// All emissions in a drain become ready together. Flush them as one transaction.
+			this.scheduledFlush ??= Promise.resolve().then(() => {
+				this.scheduledFlush = null;
+				this.flushEffects();
+			});
+			return this.scheduledFlush;
+		}, () => {
+			// The bus reports the error through whenIdle. Discard only emissions from that failed drain.
+			this.pendingEmissions.delete(events);
 		});
-		// Keep automatic Effect errors observable through CoreLoop.whenIdle while
-		// preventing an unhandled rejection when the loop is used reactively.
+		// CoreLoop.whenIdle exposes scheduler failures to callers.
 		void this.effectFlushPromise.catch(() => {});
 	}
 
 	private flushEffects(): TEffectFlushResult<ModelType> | null {
 		if (!this.effectScheduler) return null;
 
-		this.effectFlushScheduled = false;
-		const events = this.pendingEffectEvents;
-		this.pendingEffectEvents = [];
+		const events: TAutomataEventStack<EventType, EventMetaType> = [];
+		for (const [group, ready] of this.pendingEmissions) {
+			if (!ready) continue;
+			events.push(...group);
+			this.pendingEmissions.delete(group);
+		}
+		for (const event of events) this.effectScheduler.enqueue(event);
 		const result = this.effectScheduler.flush();
 
 		if (result.changed) {
@@ -186,38 +202,49 @@ export class CoreLoop<
 		return result;
 	}
 
-	/** Registers a Slice's machines and Effect Matrix as one composition unit. */
+	/** Registers a `Slice`'s `FSMs` and `Effect Matrix` as one composition unit. */
 	public registerSlice(slice: IAutomataSlice<EventType, EventMetaType, ModelType>): this {
 		if (!this.effectScheduler) throw new Error('CoreLoop requires an Effect Scheduler to register a Slice');
 		if (!slice.id) throw new Error('Slice must provide a non-empty string id');
 		if (this.slices.has(slice.id)) throw new Error(`Slice with id "${slice.id}" already registered`);
 
-		const machineIds: string[] = [];
+		const registrations = new Map<string, TRegisteredAutomata>();
+		const register = (machine: IAutomata<any, any, EventType, any, any, EventMetaType>) => {
+			this.registerAutomata(machine);
+			registrations.set(machine.correlationId, this.automata.get(machine.correlationId)!);
+		};
+		const unregister = (machineId: string) => {
+			const registration = registrations.get(machineId);
+			if (registration && registration === this.automata.get(machineId)) this.unregisterAutomata(machineId);
+			registrations.delete(machineId);
+		};
+		let stopObserving: TUnsub | undefined;
 		let removeEffectMatrix: TUnsub = () => {};
+		const detach = () => {
+			stopObserving?.();
+			for (const machineId of registrations.keys()) unregister(machineId);
+			removeEffectMatrix();
+		};
 		try {
-			for (const machine of Object.values(slice.getMachines())) {
-				this.registerAutomata(machine);
-				machineIds.push(machine.correlationId);
-			}
+			for (const machine of Object.values(slice.getMachines())) register(machine);
+			stopObserving = slice.onMachinesChanged?.(register, machine => unregister(machine.correlationId));
 			removeEffectMatrix = this.effectScheduler.addMatrix(slice.getEventMatrix());
 			slice.start();
-			this.slices.set(slice.id, { id: slice.id, slice, machineIds, removeEffectMatrix });
+			this.slices.set(slice.id, { id: slice.id, slice, detach });
 		} catch (error) {
-			for (const machineId of machineIds) this.unregisterAutomata(machineId);
-			removeEffectMatrix();
+			detach();
 			throw error;
 		}
 
 		return this;
 	}
 
-	/** Removes a Slice's machines and Effect Matrix together. */
+	/** Removes a `Slice`'s `FSMs` and `Effect Matrix` together. */
 	public unregisterSlice(id: string): this {
 		const registered = this.slices.get(id);
 		if (!registered) return this;
 
-		for (const machineId of registered.machineIds) this.unregisterAutomata(machineId);
-		registered.removeEffectMatrix();
+		registered.detach();
 		registered.slice.stop(false);
 		this.slices.delete(id);
 		return this;
@@ -269,6 +296,11 @@ export class CoreLoop<
 		// Subscribe to the Event Bus for events observed by the adapter
 		const observed = bridge.getObservedEvents();
 		const unsubs: TUnsub[] = [];
+		let currentBatch: TAutomataEventStack<EventType, EventMetaType> | null = null;
+		const deliverEmissions = (events: TAutomataEventStack<EventType, EventMetaType>) =>
+			this.deliverEmissions(events, currentBatch);
+		const unsubscribeEmissions = machine.onEmittedEvents?.(deliverEmissions);
+		if (unsubscribeEmissions) unsubs.push(unsubscribeEmissions);
 
 		for (const evt of observed) {
 			const handler = ({ event, meta }: TAutomataEventMetaType<EventType, EventMetaType>) => {
@@ -278,13 +310,18 @@ export class CoreLoop<
 				const actions = bridge.handleEvent({ event, meta });
 
 				// 2) Actions -> FSM -> Transition -> Emitted Events
-				for (const a of actions) {
-					machine.dispatch(a);
-					const emitted = bridge.handleTransition(machine.getContext()) ?? [];
-					if (emitted?.length) {
-						for (const event of emitted) this.enqueueEffectEvent(event);
-						nextEventsToProcess.push(...emitted);
+				const previousBatch = currentBatch;
+				currentBatch = nextEventsToProcess;
+				try {
+					for (const a of actions) {
+						machine.dispatch(a);
+						// Older IAutomata implementations delegate transition mapping to the loop.
+						if (!unsubscribeEmissions && machine.isEnabled() && !machine.isPaused()) {
+							deliverEmissions(bridge.handleTransition(machine.getContext()) ?? []);
+						}
 					}
+				} finally {
+					currentBatch = previousBatch;
 				}
 
 				return {
