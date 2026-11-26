@@ -47,7 +47,9 @@ describe('modelStore', () => {
 		const next = { count: 1 };
 		const failure = new Error('subscriber failed');
 		const later = vi.fn();
-		store.subscribe(() => { throw failure; });
+		store.subscribe(() => {
+			throw failure;
+		});
 		store.subscribe(later);
 
 		expect(() => store.commit(next)).toThrow(failure);

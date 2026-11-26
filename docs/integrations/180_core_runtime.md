@@ -10,9 +10,9 @@ The TypeScript runtime is available from `@yantrix/core`. The lower-level
 
 ```ts
 import {
-  CoreLoop,
-  EffectScheduler,
-  ModelStore,
+	CoreLoop,
+	EffectScheduler,
+	ModelStore,
 } from '@yantrix/core';
 ```
 
@@ -68,8 +68,8 @@ discarding its queued state.
 JavaScript and TypeScript codegen supply a `Slice` factory.
 
 ```ts
-const slice = createCheckoutSlice<ApplicationModel>({
-  orderSubmitted: submitOrderTransformer,
+const slice = createCheckoutSlice<IApplicationModel>({
+	orderSubmitted: submitOrderTransformer,
 });
 
 coreLoop.registerSlice(slice);
@@ -123,7 +123,7 @@ coreLoop.getBus().dispatch(command);
 await coreLoop.whenIdle();
 
 // The Data Model and synchronous Destinations now reflect this command.
-console.log(modelStore.get());
+console.info(modelStore.get());
 ```
 
 ## Development checks
@@ -132,14 +132,13 @@ Enable development-only mutation and serialization checks when creating `ModelSt
 
 ```ts
 const store = new ModelStore(initialModel, {
-  development: {
-    freeze: true,
-    validateSerializable: true,
-  },
+	development: {
+		freeze: true,
+		validateSerializable: true,
+	},
 });
 ```
 
 `freeze` recursively freezes accepted snapshots. `validateSerializable` enforces
 Yantrix's lossless JSON-safe `Data Model` subset. Neither option is inferred from
 `NODE_ENV`, and both are disabled by default.
-

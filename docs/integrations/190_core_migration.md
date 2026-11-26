@@ -29,18 +29,18 @@ control state and transient values needed for the next transition.
 ```ts
 import { CoreLoop, createModelFunctions, EffectScheduler, ModelStore } from '@yantrix/core';
 import {
-  createCartSlice,
-  eventDictionary,
-  type TCartEffectEvent,
-  type TCartEventMeta,
+	createCartSlice,
+	eventDictionary,
+	type TCartEffectEvent,
+	type TCartEventMeta,
 } from './generated/Cart.js';
 
-interface ApplicationModel {
-  cart: { productIds: string[] };
+interface IApplicationModel {
+	cart: { productIds: string[] };
 }
 
-const modelStore = new ModelStore<ApplicationModel>({
-  cart: { productIds: [] },
+const modelStore = new ModelStore<IApplicationModel>({
+	cart: { productIds: [] },
 });
 ```
 
@@ -50,15 +50,15 @@ A pure `Effect` returns a new snapshot when the `Data Model` changes. Use a `Mod
 the part of the `Data Model` the domain operation needs.
 
 ```ts
-const fx = createModelFunctions<ApplicationModel, TCartEffectEvent, TCartEventMeta>();
+const fx = createModelFunctions<IApplicationModel, TCartEffectEvent, TCartEventMeta>();
 const productAdded = fx.forEvent<typeof eventDictionary.productAdded>();
 const addProduct = productAdded.transformer(
-  model => model.cart.productIds,
-  (model, productIds) => ({ ...model, cart: { ...model.cart, productIds } }),
-  (event, productIds) => {
-    const productId = event.meta?.productId;
-    return typeof productId === 'string' ? [...productIds, productId] : productIds;
-  },
+	model => model.cart.productIds,
+	(model, productIds) => ({ ...model, cart: { ...model.cart, productIds } }),
+	(event, productIds) => {
+		const productId = event.meta?.productId;
+		return typeof productId === 'string' ? [...productIds, productId] : productIds;
+	},
 );
 ```
 
@@ -71,8 +71,8 @@ For generated TypeScript/JavaScript, add `effect/<NAME>` to the `State` that
 represents a completed operation and use the generated factory.
 
 ```ts
-const cartSlice = createCartSlice<ApplicationModel>({
-  productAdded: addProduct,
+const cartSlice = createCartSlice<IApplicationModel>({
+	productAdded: addProduct,
 });
 ```
 
@@ -94,8 +94,8 @@ coreLoop.registerSlice(cartSlice).start();
 
 ```ts
 coreLoop.getBus().dispatch({
-  event: eventDictionary.addProduct,
-  meta: { productId: 'coffee' },
+	event: eventDictionary.addProduct,
+	meta: { productId: 'coffee' },
 });
 
 await coreLoop.whenIdle();
@@ -118,4 +118,3 @@ Hydrate before constructing the store, then start `StorageSyncLoop` with the hyd
 - `Storage` errors do not roll back the model and are not retried implicitly.
 - `Slice`, `Source`, `Destination` and `Storage` identifiers are stable and unique.
 - Tests await both `coreLoop.whenIdle()` and, when relevant, `storageSync.whenIdle()`.
-

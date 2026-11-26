@@ -34,56 +34,56 @@ Generate TypeScript with class name `CounterFlow`. The generated module exports
 
 ```ts
 import {
-  CoreLoop,
-  createModelFunctions,
-  EffectScheduler,
-  ModelStore,
+	CoreLoop,
+	createModelFunctions,
+	EffectScheduler,
+	ModelStore,
 } from '@yantrix/core';
 import {
-  createCounterFlowSlice,
-  eventDictionary,
-  type TCounterFlowEffectEvent,
-  type TCounterFlowEventMeta,
+	createCounterFlowSlice,
+	eventDictionary,
+	type TCounterFlowEffectEvent,
+	type TCounterFlowEventMeta,
 } from './generated/CounterFlow.js';
 
-interface CounterModel {
-  score: number;
-  maximum: number;
+interface ICounterModel {
+	score: number;
+	maximum: number;
 }
 
-const initialModel: CounterModel = { score: 0, maximum: 10 };
+const initialModel: ICounterModel = { score: 0, maximum: 10 };
 const modelStore = new ModelStore(initialModel, {
-  development: { freeze: true, validateSerializable: true },
+	development: { freeze: true, validateSerializable: true },
 });
 
-const fx = createModelFunctions<CounterModel, TCounterFlowEffectEvent, TCounterFlowEventMeta>();
+const fx = createModelFunctions<ICounterModel, TCounterFlowEffectEvent, TCounterFlowEventMeta>();
 const scoreChanged = fx.forEvent<typeof eventDictionary.scoreChanged>();
 const belowMaximum = scoreChanged.predicate(
-  model => model,
-  (_event, model) => model.score < model.maximum,
+	model => model,
+	(_event, model) => model.score < model.maximum,
 );
 
 const addScore = scoreChanged.transformer(
-  model => model.score,
-  (model, score) => ({ ...model, score: Math.min(model.maximum, score) }),
-  (event, score) => {
-    const amount = event.meta?.amount;
-    if (typeof amount !== 'number') return score;
-    const nextScore = score + amount;
-    return Number.isFinite(nextScore) ? nextScore : score;
-  },
+	model => model.score,
+	(model, score) => ({ ...model, score: Math.min(model.maximum, score) }),
+	(event, score) => {
+		const amount = event.meta?.amount;
+		if (typeof amount !== 'number') return score;
+		const nextScore = score + amount;
+		return Number.isFinite(nextScore) ? nextScore : score;
+	},
 );
 
-const counterSlice = createCounterFlowSlice<CounterModel>({
-  scoreChanged: scoreChanged.when(belowMaximum, addScore),
+const counterSlice = createCounterFlowSlice<ICounterModel>({
+	scoreChanged: scoreChanged.when(belowMaximum, addScore),
 });
 const effectScheduler = new EffectScheduler({ store: modelStore });
 const coreLoop = new CoreLoop({ effectScheduler });
 coreLoop.registerSlice(counterSlice).start();
 
 coreLoop.getBus().dispatch({
-  event: eventDictionary.increment,
-  meta: { amount: 3 },
+	event: eventDictionary.increment,
+	meta: { amount: 3 },
 });
 await coreLoop.whenIdle();
 
@@ -101,13 +101,13 @@ import assert from 'node:assert/strict';
 
 assert.equal(modelStore.get().score, 3);
 modelStore.subscribe((next, previous) => {
-  // One command may run several `Effects`, but the batch commits once.
-  console.info({ next, previous });
+	// One command may run several `Effects`, but the batch commits once.
+	console.info({ next, previous });
 });
 
 coreLoop.getBus().dispatch({
-  event: eventDictionary.increment,
-  meta: { amount: 100 },
+	event: eventDictionary.increment,
+	meta: { amount: 100 },
 });
 await coreLoop.whenIdle();
 

@@ -47,7 +47,9 @@ async function runGuide(file: string, machine: string, inspect: string[], fixtur
 
 it('runs the documented counter commands and preserves the snapshot for a no-op', async () => {
 	const { coreLoop, eventDictionary, modelStore } = await runGuide(
-		'examples/500_effect_counter.md', 'CounterFlow', ['coreLoop', 'eventDictionary', 'modelStore'],
+		'examples/500_effect_counter.md',
+		'CounterFlow',
+		['coreLoop', 'eventDictionary', 'modelStore'],
 	);
 	const increment = async (amount: number) => {
 		coreLoop.getBus().dispatch({ event: eventDictionary.increment, meta: { amount } });
@@ -102,7 +104,9 @@ it('keeps the stored Todo list intact after a failed hydration', async () => {
 	const { values, localStorage } = todoStorage();
 	const original = '{"items":{"existing":{"id":"existing","text":"Saved before startup"}}}';
 	values.set(todoKey, original);
-	localStorage.getItem.mockImplementationOnce(() => { throw new Error('Temporary read failure'); });
+	localStorage.getItem.mockImplementationOnce(() => {
+		throw new Error('Temporary read failure');
+	});
 	const { shutdown } = await runGuide(todoFile, 'TodoFlow', ['shutdown']);
 	await shutdown();
 	expect(localStorage.getItem).toHaveBeenCalledWith(todoKey);
@@ -113,7 +117,10 @@ it('keeps the stored Todo list intact after a failed hydration', async () => {
 it('runs the migration guide against a generated Cart', async () => {
 	const diagram = fs.readFileSync(path.join(dirname, 'fixtures/migrationCart.mermaid'), 'utf8');
 	const { modelStore, coreLoop, eventDictionary } = await runGuide(
-		'integrations/190_core_migration.md', 'Cart', ['modelStore', 'coreLoop', 'eventDictionary'], diagram,
+		'integrations/190_core_migration.md',
+		'Cart',
+		['modelStore', 'coreLoop', 'eventDictionary'],
+		diagram,
 	);
 	const afterAdd = modelStore.get();
 	expect(afterAdd.cart.productIds).toEqual(['coffee']);

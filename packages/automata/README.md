@@ -83,7 +83,7 @@ const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
 
 effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
 effects.flush();
-console.log(model.get().count); // 2
+console.info(model.get().count); // 2
 ```
 
 For application wiring, pass the `EffectScheduler` to `CoreLoop`. Built-in `FSMs`

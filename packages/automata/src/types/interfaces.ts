@@ -428,7 +428,16 @@ export interface IAutomata<
 	 * @returns {this}
 	 * Returns the current instance for method chaining.
 	 */
-	setEventAdapter: (adapter: IAutomataEventAdapter<StateType, ActionType, EventType, ContextType, PayloadType, EventMetaType> | null) => this;
+	setEventAdapter: (
+		adapter: IAutomataEventAdapter<
+			StateType,
+			ActionType,
+			EventType,
+			ContextType,
+			PayloadType,
+			EventMetaType
+		> | null,
+	) => this;
 }
 
 /**
