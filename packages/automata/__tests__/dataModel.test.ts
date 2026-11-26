@@ -38,6 +38,21 @@ describe('modelStore', () => {
 		store.commit(initial);
 
 		expect(listener).not.toHaveBeenCalled();
+		store.commit({ ...initial });
+		expect(listener).toHaveBeenCalledOnce();
+	});
+
+	it('keeps the committed snapshot when a subscriber throws and skips later subscribers', () => {
+		const store = new ModelStore({ count: 0 });
+		const next = { count: 1 };
+		const failure = new Error('subscriber failed');
+		const later = vi.fn();
+		store.subscribe(() => { throw failure; });
+		store.subscribe(later);
+
+		expect(() => store.commit(next)).toThrow(failure);
+		expect(store.get()).toBe(next);
+		expect(later).not.toHaveBeenCalled();
 	});
 
 	it('returns an idempotent unsubscribe function', () => {

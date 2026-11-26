@@ -24,8 +24,8 @@ For the generated API of pure dialects and Python, see [Pure Dialects & Python A
 
 | Guide | Description |
 | ---- | ----------- |
-| [Core Runtime API](180_core_runtime.html) | Data Model, Effects, Slices, persistence and lifecycle |
-| [Core Runtime Migration Guide](190_core_migration.html) | Migrating FSM-only applications to the MVP runtime |
+| [Core Runtime API](180_core_runtime.html) | `Data Model`, `Effects`, `Slices`, persistence and lifecycle |
+| [Core Runtime Migration Guide](190_core_migration.html) | Migrating `FSM`-only applications to the MVP runtime |
 
 ## Library integrations
 

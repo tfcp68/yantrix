@@ -2,11 +2,10 @@
 title: Data Model and Effects Counter
 ---
 
-# Data Model and Effects Counter
+# `Data Model` and `Effects` Counter
 
-This minimal end-to-end example uses generated FSM code, a Slice, the Main Loop,
-an Effect and the Data Model. It intentionally has no persistence; the
-[Todo example](1000_todo.html) adds the Storage lifecycle.
+This minimal end-to-end example uses generated `FSM` code, a `Slice`, the `Main Loop`,
+an `Effect` and the `Data Model`. The [Todo example](1000_todo.html) adds the `Storage` lifecycle.
 
 ## Diagram
 
@@ -36,15 +35,14 @@ Generate TypeScript with class name `CounterFlow`. The generated module exports
 ```ts
 import {
   CoreLoop,
-  createModelPredicate,
-  createModelTransformer,
+  createModelFunctions,
   EffectScheduler,
   ModelStore,
-  whenModel,
 } from '@yantrix/core';
 import {
   createCounterFlowSlice,
   eventDictionary,
+  type TCounterFlowEffectEvent,
   type TCounterFlowEventMeta,
 } from './generated/CounterFlow.js';
 
@@ -58,39 +56,30 @@ const modelStore = new ModelStore(initialModel, {
   development: { freeze: true, validateSerializable: true },
 });
 
-const belowMaximum = createModelPredicate<
-  CounterModel,
-  CounterModel,
-  typeof eventDictionary.scoreChanged,
-  TCounterFlowEventMeta
->(
+const fx = createModelFunctions<CounterModel, TCounterFlowEffectEvent, TCounterFlowEventMeta>();
+const scoreChanged = fx.forEvent<typeof eventDictionary.scoreChanged>();
+const belowMaximum = scoreChanged.predicate(
   model => model,
   (_event, model) => model.score < model.maximum,
 );
 
-const addScore = createModelTransformer<
-  CounterModel,
-  CounterModel,
-  typeof eventDictionary.scoreChanged,
-  TCounterFlowEventMeta
->(
-  model => model,
-  (_model, nextModel) => nextModel,
-  (event, model) => ({
-    ...model,
-    score: Math.min(
-      model.maximum,
-      model.score + Number(event.meta?.amount ?? 0),
-    ),
-  }),
+const addScore = scoreChanged.transformer(
+  model => model.score,
+  (model, score) => ({ ...model, score: Math.min(model.maximum, score) }),
+  (event, score) => {
+    const amount = event.meta?.amount;
+    if (typeof amount !== 'number') return score;
+    const nextScore = score + amount;
+    return Number.isFinite(nextScore) ? nextScore : score;
+  },
 );
 
 const counterSlice = createCounterFlowSlice<CounterModel>({
-  scoreChanged: whenModel(belowMaximum, addScore),
+  scoreChanged: scoreChanged.when(belowMaximum, addScore),
 });
 const effectScheduler = new EffectScheduler({ store: modelStore });
 const coreLoop = new CoreLoop({ effectScheduler });
-coreLoop.registerSlice(counterSlice);
+coreLoop.registerSlice(counterSlice).start();
 
 coreLoop.getBus().dispatch({
   event: eventDictionary.increment,
@@ -98,19 +87,22 @@ coreLoop.getBus().dispatch({
 });
 await coreLoop.whenIdle();
 
-console.log(modelStore.get()); // { score: 3, maximum: 10 }
+console.info(modelStore.get()); // { score: 3, maximum: 10 }
 ```
 
-The external `increment` Event only causes an FSM transition. Entering `UPDATED`
-emits `scoreChanged`; that emitted Event selects the generated Effect Matrix and
-updates the Data Model. `whenIdle()` covers both steps and the Effect commit.
+The external `increment` `Event` drives an `FSM` transition. Entering `UPDATED`
+emits `scoreChanged`. Its entry in the generated `Effect Matrix` updates the `Data Model`.
+`whenIdle()` covers both steps and the `Effect` commit.
 
 ## What to test
 
 ```ts
+import assert from 'node:assert/strict';
+
+assert.equal(modelStore.get().score, 3);
 modelStore.subscribe((next, previous) => {
-  // One command may run several Effects, but the batch commits once.
-  console.log({ next, previous });
+  // One command may run several `Effects`, but the batch commits once.
+  console.info({ next, previous });
 });
 
 coreLoop.getBus().dispatch({
@@ -119,9 +111,8 @@ coreLoop.getBus().dispatch({
 });
 await coreLoop.whenIdle();
 
-expect(modelStore.get().score).toBe(10);
+assert.equal(modelStore.get().score, 10);
 ```
 
-The Predicate prevents later increments after the maximum is reached. A no-op
-Transformer preserves the model reference, so subscribers and model-bound
-Destinations are not called unnecessarily.
+The `Model Predicate` guards the score limit. Adding zero also preserves the snapshot, so neither case
+notifies subscribers.

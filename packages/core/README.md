@@ -41,9 +41,8 @@ $ npx nypm install @yantrix/core
 
 ## MVP runtime
 
-`@yantrix/core` re-exports the complete TypeScript runtime. A typical
-application hydrates its persisted projections, then composes one Data Model,
-Effect Scheduler, Main Loop and one or more generated Slices:
+A typical application hydrates its persisted projections, then composes one `Data Model`,
+`Effect Scheduler`, `Main Loop` and one or more generated `Slices`:
 
 ```typescript
 import {
@@ -63,9 +62,9 @@ coreLoop.getBus().dispatch(command);
 await coreLoop.whenIdle();
 ```
 
-The Data Model is a plain serializable snapshot. `ModelStore` only owns that
-snapshot in memory; persistence belongs to Storage Adapters and
-`StorageSyncLoop`. Only Events emitted by FSM Event Adapters trigger Effects.
+The `Data Model` is a plain serializable snapshot. `ModelStore` only owns that
+snapshot in memory. Persistence belongs to `Storage Adapters` and
+`StorageSyncLoop`. Only `Events` emitted by `FSM` `Event Adapters` trigger `Effects`.
 
 See the [Core Runtime API](https://tfcp68.github.io/yantrix/integrations/180_core_runtime.html)
 and [migration guide](https://tfcp68.github.io/yantrix/integrations/190_core_migration.html).

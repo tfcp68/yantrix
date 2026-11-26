@@ -97,10 +97,10 @@ _Figure 1: Runtime event flow in Yantrix: external events are dispatched to the 
 processed by the CoreLoop through the EventAdapter into actions, reduced by the generated
 automaton and its RootReducer, and finally emitted to destinations such as UI or external I/O_
 
-When `CoreLoop` has an Effect Scheduler, model-bound Destinations are not subscribed directly
-to the EventBus. They are selected by emitted Event type and invoked only after the complete
-Effect batch commits a changed Data Model. A failed or structurally unchanged batch does not
-update those Destinations. See [Core Runtime API](../integrations/180_core_runtime.html).
+When `CoreLoop` has an `Effect Scheduler`, each emitted `Event` selects the matching model-bound
+`Destinations`. The `Main Loop` invokes them after the complete `Effect` batch commits a new
+`Data Model` root reference. Returning the original snapshot skips these updates. A fresh object
+with identical fields still triggers a commit and updates the matching `Destinations`. See [Core Runtime API](../integrations/180_core_runtime.html).
 
 ## How event processing works
 

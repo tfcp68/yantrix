@@ -44,12 +44,12 @@ of `FSMs`. `Slices` are a suggested way to chop the App logic into independent s
 
 ## Data abstractions
 
-### Data Model
+### `Data Model`
 
-Durable application state is described by one global anemic object contract called the `Data Model`. A concrete Data
-Model value is a serializable snapshot; it has no methods, subscriptions or persistence behavior. `ModelStore` owns the
-current in-memory snapshot, while independent Storage Adapters can persist selected projections between runs. Designing
-the Data Model is the essential first step before laying out logic using `Events` and `Slices`.
+Durable application state is described by one global anemic object contract called the `Data Model`. A concrete
+`Data Model` value is a serializable snapshot. It has no methods, subscriptions or persistence behavior. `ModelStore` owns the
+current in-memory snapshot, while independent `Storage Adapters` can persist selected projections between runs. Designing
+the `Data Model` is the essential first step before laying out logic using `Events` and `Slices`.
 
 `Data Model` contract can be composited from `Slices`, much like [Redux Toolkit](https://redux-toolkit.js.org/) does
 

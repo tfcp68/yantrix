@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> READY: Init
+    READY --> ADDED: ADD
+    ADDED --> ADDED: ADD
+
+    note right of READY
+        +Init
+        subscribe/addProduct ADD ($productId) <= ($productId)
+    end note
+
+    note right of ADDED
+        #{productId} <= $productId
+        effect/productAdded <= (productId)
+    end note

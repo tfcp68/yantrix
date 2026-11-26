@@ -4,12 +4,12 @@ title: Data Flow
 
 # Data Flow
 
-## Data Model
+## `Data Model`
 
 Regardless of what's happening in the outside world, there is a global serializable application snapshot called the
 `Data Model`. It is an anemic object value, not a runtime store or persistence transport. Like a savegame, it can be
-serialized and later used to restore durable application state. Transient control details may remain inside FSM
-Contexts instead.
+serialized and later used to restore durable application state. Transient control details may remain inside `FSM`
+`Contexts` instead.
 
 In the TypeScript runtime, `ModelStore` owns the current in-memory snapshot and subscriptions. The `Sync Loop` persists committed snapshots through separate `Storage` adapters. Optional `development.freeze` and
 `development.validateSerializable` checks can detect accidental mutation and values outside the strict JSON-safe,

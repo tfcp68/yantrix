@@ -4,14 +4,14 @@ import { TStorageAdapterProps } from './types/storage.js';
 
 export type TStorageOperationPhase = 'load' | 'hydrate' | 'select' | 'save';
 
-/** One isolated failure reported by hydration or the Storage Sync Loop. */
+/** One isolated failure reported by hydration or the `Storage` `Sync Loop`. */
 export type TStorageFailure = {
 	storageId: string;
 	phase: TStorageOperationPhase;
 	error: unknown;
 };
 
-/** Maps one Storage snapshot to and from its owned Data Model projection. */
+/** Maps one `Storage` snapshot to and from its owned `Data Model` projection. */
 export type TStorageBinding<ModelType extends object, SnapshotType = unknown> = {
 	storage: IStorageAdapter<SnapshotType>;
 	select: (model: Readonly<ModelType>) => SnapshotType;
