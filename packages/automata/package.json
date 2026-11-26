@@ -184,6 +184,39 @@
 				"default": "./dist/IOPromiseAdapter.cjs"
 			}
 		},
+		"./ModelFunctions": {
+			"import": {
+				"types": "./dist/ModelFunctions.d.ts",
+				"default": "./dist/ModelFunctions.js"
+			},
+			"require": {
+				"types": "./dist/ModelFunctions.d.cts",
+				"module-sync": "./dist/ModelFunctions.js",
+				"default": "./dist/ModelFunctions.cjs"
+			}
+		},
+		"./ModelUpdates": {
+			"import": {
+				"types": "./dist/ModelUpdates.d.ts",
+				"default": "./dist/ModelUpdates.js"
+			},
+			"require": {
+				"types": "./dist/ModelUpdates.d.cts",
+				"module-sync": "./dist/ModelUpdates.js",
+				"default": "./dist/ModelUpdates.cjs"
+			}
+		},
+		"./ModelValidation": {
+			"import": {
+				"types": "./dist/ModelValidation.d.ts",
+				"default": "./dist/ModelValidation.js"
+			},
+			"require": {
+				"types": "./dist/ModelValidation.d.cts",
+				"module-sync": "./dist/ModelValidation.js",
+				"default": "./dist/ModelValidation.cjs"
+			}
+		},
 		"./StateDictionary": {
 			"import": {
 				"types": "./dist/StateDictionary.d.ts",

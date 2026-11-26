@@ -255,8 +255,16 @@ export type TAutomataEventStack<
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = Array<TAutomataEventMetaType<EventType, EventMetaType>>;
 
+/** The recursively read-only view of a `Data Model` snapshot or selected value. */
+export type TReadonlyModel<Value> = Value extends object
+	? { readonly [Key in keyof Value]: TReadonlyModel<Value[Key]> }
+	: Value;
+
 /**
- * Effect function for automata model.
+ * A pure `Effect` projects the current `Data Model` into its next snapshot.
+ *
+ * For compatibility, `TAutomataEffect` uses TypeScript's shallow `Readonly<ModelType>`.
+ * Implementations must treat nested values as read-only too. `TModelTransformer` enforces this recursively.
  */
 export type TAutomataEffect<
 	ModelType extends object,
@@ -266,6 +274,15 @@ export type TAutomataEffect<
 	event: TAutomataEventMetaType<EventType, EventMetaType>,
 	model: Readonly<ModelType>,
 ) => ModelType;
+
+/** An `Effect Matrix` accepts an `Effect` or a pure projection returning a read-only snapshot. */
+export type TEffectMatrixEntry<
+	ModelType extends object,
+	EventType extends TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any },
+> = (
+	...args: Parameters<TAutomataEffect<ModelType, EventType, EventMetaType>>
+) => ModelType | TReadonlyModel<ModelType>;
 
 /**
  * Maps each `Event` to the ordered `Effects` it triggers.
@@ -278,7 +295,7 @@ export type TEffectMatrix<
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any } = Record<EventType, any>,
 > = {
-	readonly [Event in EventType]?: ReadonlyArray<TAutomataEffect<ModelType, Event, EventMetaType>>;
+	readonly [Event in EventType]?: ReadonlyArray<TEffectMatrixEntry<ModelType, Event, EventMetaType>>;
 };
 
 /** Listener notified after the `Data Model` snapshot has changed. */
@@ -321,7 +338,15 @@ export type TContextPredicate<
 	} = Record<StateType, any>,
 > = (context: TAutomataStateContext<StateType, ContextType>) => THighOrderPredicate;
 
-export type TModelPredicate<ModelType extends object = Record<string, any>> = (model: ModelType) => THighOrderPredicate;
+/** A `Model Predicate` reads an `Event` and the current `Data Model` snapshot. */
+export type TModelPredicate<
+	ModelType extends object = Record<string, unknown>,
+	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
+	EventMetaType extends { [K in EventType]: any } = Record<EventType, unknown>,
+> = (
+	event: TAutomataEventMetaType<EventType, EventMetaType>,
+	model: TReadonlyModel<ModelType>,
+) => boolean;
 
 export type THighOrderPredicate = (...predicates: Array<(...args: any[]) => boolean>) => boolean;
 

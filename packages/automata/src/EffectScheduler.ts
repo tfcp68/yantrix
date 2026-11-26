@@ -1,9 +1,9 @@
 import {
 	TAutomataBaseEventType,
-	TAutomataEffect,
 	TAutomataEventMetaType,
 	TEffectFlushResult,
 	TEffectMatrix,
+	TEffectMatrixEntry,
 	TSubscriptionCancelFunction,
 } from './types/index.js';
 import { IDataModelStore, IEffectScheduler } from './types/interfaces.js';
@@ -21,7 +21,7 @@ type TNormalizedEffectMatrix<
 	ModelType extends object,
 	EventType extends TAutomataBaseEventType,
 	EventMetaType extends { [K in EventType]: any },
-> = Map<EventType, ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>>;
+> = Map<EventType, ReadonlyArray<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>>;
 
 type TIndexedEffect<
 	ModelType extends object,
@@ -29,7 +29,7 @@ type TIndexedEffect<
 	EventMetaType extends { [K in EventType]: any },
 > = {
 	registration: symbol;
-	effect: TAutomataEffect<ModelType, EventType, EventMetaType>;
+	effect: TEffectMatrixEntry<ModelType, EventType, EventMetaType>;
 };
 
 function assertModel(model: unknown): asserts model is object {
@@ -78,7 +78,7 @@ export class EffectScheduler<
 	public addMatrix(
 		matrix: TEffectMatrix<ModelType, EventType, EventMetaType>,
 	): TSubscriptionCancelFunction {
-		const normalized = new Map<EventType, ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>>();
+		const normalized = new Map<EventType, ReadonlyArray<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>>();
 
 		for (const [eventKey, eventEffects] of Object.entries(matrix)) {
 			if (!eventEffects) continue;
@@ -86,7 +86,7 @@ export class EffectScheduler<
 				throw new TypeError(`Effects for Event ${eventKey} must be an array`);
 			}
 
-			const effects = eventEffects as Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
+			const effects = eventEffects as Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>;
 			if (effects.some(effect => typeof effect !== 'function')) {
 				throw new TypeError(`Every Effect for Event ${eventKey} must be a function`);
 			}

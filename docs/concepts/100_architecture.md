@@ -124,19 +124,19 @@ See [Code Generation](500_codegen.html#event-bus-order).
 
 ## Data operations
 
-### Predicates
+### `Predicates`
 
-`Predicates` are functions that return a Boolean value and are used to fork the flow of operations inside `FSMs`.
-All `Predicates` are high-order functions that allow compositing them. They come in three flavors:
+`Predicates` return a boolean. `Built-in Predicates` and `Context Predicates` can select a branch inside an `FSM`.
 
 -   `Built-in Predicates` are used to combine other `Predicates` and implement logical operations like `not`, `and` and so
     on.
--   `Model Predicates` have a `Data Model` as a dependency and are supposed to implement conditions that rely on the
-    current state of `Application`
+-   `Model Predicates` evaluate the current `Data Model`. They can guard an `Effect` through `whenModel` or run in a `Source` that produces an `Event`.
 -   `Context Predicates` are bound to a certain `Slice` and its `State Dictionary`, and have a `State`/`Context` pair as a
     dependency. It's designed to create decision branching inside a `Transition Matrix`
 
-### Transformers
+An `FSM` makes decisions from its `State`, `Context`, and `Action Payload`. It never reads the `Data Model`. A `Source` can evaluate a `Model Predicate` and put a model-derived value in `Event Meta`. The `Event Adapter` maps that value into the `Action Payload`.
+
+### `Transformers`
 
 `Transformers` are projection-type functions that come with `Slice` and translate the same types between each other.
 They can be:
@@ -144,8 +144,8 @@ They can be:
 -   `Context Transformers` translate `Contexts` between each other. They are used inside `Transition Matrix` to update the
     internal data of the `FSM` when changing `States`. They are defined as a part of `State Dictionary`
 -   `Reducer Transformers` translate from `State`+`Action/Payload` to `State/Context`
--   `Model Transformers` are a subtype of `Effects` which is context-free and is basically a function that mutates
-    the `Data Model`. They can be composed with `Predicates` to produce `Effects`
+-   `Model Transformers` are a context-free subtype of `Effects`. They project the current
+    `Data Model` snapshot into a new snapshot. They can be composed with `Predicates` to produce conditional `Effects`
 -   `Generic Transformers` are built-in and user-defined pure functions that operate on any contract type and map the
     values. They are the basic building blocks of data manipulation.
 

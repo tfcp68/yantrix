@@ -1,11 +1,11 @@
 import { isPositiveInteger } from '@yantrix/utils';
 import {
 	TAutomataBaseEventType,
-	TAutomataEffect,
 	TAutomataEventMetaType,
 	TAutomataEventStack,
 	TAutomataStateContext,
 	TEffectMatrix,
+	TEffectMatrixEntry,
 	TValidator,
 } from './types/index.js';
 import { IAutomata, IAutomataSlice } from './types/interfaces.js';
@@ -41,7 +41,7 @@ export class AutomataSlice<
 
 	readonly #effectMatrix = new Map<
 		EventType,
-		ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>
+		ReadonlyArray<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>
 	>();
 
 	#eventStack: TAutomataEventStack<EventType, EventMetaType> = [];
@@ -60,7 +60,7 @@ export class AutomataSlice<
 			}
 			this.#effectMatrix.set(
 				Number(eventKey) as EventType,
-				[...effects] as Array<TAutomataEffect<ModelType, EventType, EventMetaType>>,
+				[...effects] as Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>,
 			);
 		}
 	}
@@ -159,12 +159,12 @@ export class AutomataSlice<
 	}
 
 	public getEventMatrix(): TEffectMatrix<ModelType, EventType, EventMetaType> {
-		const matrix: Record<number, ReadonlyArray<TAutomataEffect<ModelType, EventType, EventMetaType>>> = {};
+		const matrix: Record<number, ReadonlyArray<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>> = {};
 		for (const [event, effects] of this.#effectMatrix) matrix[event] = [...effects];
 		return matrix as TEffectMatrix<ModelType, EventType, EventMetaType>;
 	}
 
-	public getEventEffects(event: EventType): Array<TAutomataEffect<ModelType, EventType, EventMetaType>> {
+	public getEventEffects(event: EventType): Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>> {
 		return [...(this.#effectMatrix.get(event) ?? [])];
 	}
 
@@ -208,7 +208,7 @@ export class AutomataSlice<
 
 	public consumeEvent(): {
 		events: TAutomataEventStack<EventType, EventMetaType>;
-		effects: Array<TAutomataEffect<ModelType, EventType, EventMetaType>>;
+		effects: Array<TEffectMatrixEntry<ModelType, EventType, EventMetaType>>;
 	} {
 		if (!this.#running) return { events: [], effects: [] };
 

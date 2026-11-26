@@ -1,5 +1,16 @@
-import { TModelListener, TSubscriptionCancelFunction } from './types/index.js';
+import { assertSerializableModel, deepFreezeModel } from './ModelValidation.js';
+import { TModelListener, TReadonlyModel, TSubscriptionCancelFunction } from './types/index.js';
 import { IDataModelStore } from './types/interfaces.js';
+
+export type TModelStoreOptions = {
+	/** Opt-in diagnostics intended for development and tests only. */
+	development?: {
+		/** Freeze every accepted snapshot recursively. */
+		freeze?: boolean;
+		/** Reject values outside Yantrix's strict JSON-safe `Data Model` subset. */
+		validateSerializable?: boolean;
+	};
+};
 
 function assertModel(model: unknown): asserts model is object {
 	if (typeof model !== 'object' || model === null) {
@@ -17,10 +28,11 @@ function assertModel(model: unknown): asserts model is object {
 export class ModelStore<ModelType extends object> implements IDataModelStore<ModelType> {
 	#model: ModelType;
 	readonly #listeners = new Set<TModelListener<ModelType>>();
+	readonly #options: TModelStoreOptions;
 
-	constructor(initialModel: ModelType) {
-		assertModel(initialModel);
-		this.#model = initialModel;
+	constructor(initialModel: ModelType, options: TModelStoreOptions = {}) {
+		this.#options = options;
+		this.#model = this.#prepare(initialModel);
 	}
 
 	/** Returns the current `Data Model` snapshot. */
@@ -32,17 +44,17 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 	 * Atomically replaces the snapshot and notifies subscribers once.
 	 * Re-committing the same reference is a no-op.
 	 */
-	public commit(model: ModelType): void {
-		assertModel(model);
+	public commit(model: ModelType | TReadonlyModel<ModelType>): void {
 		if (model === this.#model) return;
 
+		const nextModel = this.#prepare(model);
 		const previousModel = this.#model;
-		this.#model = model;
+		this.#model = nextModel;
 
 		// A stable snapshot prevents listeners added during notification from
 		// observing a commit that started before they subscribed.
 		for (const listener of [...this.#listeners]) {
-			listener(model, previousModel);
+			listener(nextModel, previousModel);
 		}
 	}
 
@@ -56,5 +68,12 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		return () => {
 			this.#listeners.delete(listener);
 		};
+	}
+
+	#prepare(model: ModelType | TReadonlyModel<ModelType>): ModelType {
+		assertModel(model);
+		if (this.#options.development?.validateSerializable) assertSerializableModel(model);
+		if (this.#options.development?.freeze) deepFreezeModel(model);
+		return model as ModelType;
 	}
 }

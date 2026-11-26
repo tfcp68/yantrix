@@ -10,8 +10,7 @@ another `Function`, leading to [composition](https://en.wikipedia.org/wiki/Funct
 for [higher-order functions](https://en.wikipedia.org/wiki/Higher-order_function), similar to most functional languages,
 Excel formulas included.
 
-Almost every `Function` used in Yantrix is a [pure function](https://en.wikipedia.org/wiki/Pure_function), i.e. it does
-not mutate its arguments or whatsoever, with the only exception being [`Model Transformers`](160_transformers.md).
+[`Model Transformers`](160_transformers.md#model-transformers) are pure. They return the next `Data Model` snapshot and preserve the current reference for a no-op.
 
 ## Function Types
 
@@ -49,7 +48,7 @@ Custom function can reference any type of functions, including itself, other inl
 
 Sometimes native syntax is just not enough. In this case you can implement certain functions in a target programming language (or few) or even use existing APIs in your system to plug the business logic into diagrams, allowing for fast and easy.
 
-To import a function, its signature must be explicitely defined with an `inject` directive
+Use `inject/` and `--functionFile` to supply pure functions over `Context` and `Action Payload`. Declare each function in the diagram with `inject/`.
 
 ```
 inject/<FUNCTION_NAME>

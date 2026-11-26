@@ -26,6 +26,7 @@ time.
 ### Examples
 
 -   `#{stepIndex} <= nextStep(#stepIndex)`
+-   `#{counter} <= add(#counter, increaseGlobalCounter($value))`
 -   `#{email, password, input_error} <= sanitize(#email), sanitize(#password), validate(#email, #password)}`
 
 ## Reducer Transformers
@@ -34,15 +35,75 @@ Function that translate from `State`+`Action/Payload` to `State/Context` can be 
 
 -   `#{propertyA, propertyB} = reducerA(#propertyA, $payloadA, reducerB(#propertyB, $payloadB)`
 
-## Model Transformers
+## `Model Transformers`
 
-Model transformers are a subtype of `Effects` that are context-free and are basically functions that mutates
-the `Data Model`.
+`Model Transformers` are the context-free subtype of `Effects`. They are pure projections from the current read-only
+`Data Model` and triggering `Event Meta` to a new model snapshot. They must not mutate their arguments. Returning the
+current snapshot reference denotes a no-op and lets `ModelStore` avoid an unnecessary commit.
 
--   `#{counter} <= add(№counter, increaseGlobalCounter($value))`
+Compose the condition at the `Effect` so the condition and change stay in one place.
 
-They can be composed with `Predicates` to create conditional mutations, but this approach is not recommended, since it
-splits the responsibility of `Effects`.
+The selector in `add.transformer` determines the type of the value to update. In this example it selects the counter's numeric value. If the transform returns the same value, the updater is skipped and the current snapshot is reused.
+
+<!-- eslint ts/naming-convention: off -- Use the application's type names in this example. -->
+
+```typescript
+import type { TEffectMatrix } from '@yantrix/automata';
+import { createModelFunctions } from '@yantrix/automata';
+
+enum AppEvent {
+	Increment = 1,
+	Reset = 2,
+}
+
+type App = { counter: { value: number; limit: number } };
+type AppEventMeta = {
+	[AppEvent.Increment]: { amount: number };
+	[AppEvent.Reset]: { reason: string };
+};
+
+const fx = createModelFunctions<App, AppEvent, AppEventMeta>();
+const add = fx.forEvent<AppEvent.Increment>();
+
+const canIncrement = add.predicate(
+	model => model.counter,
+	(event, counter) => counter.value + (event.meta?.amount ?? 0) <= counter.limit,
+);
+const increment = add.transformer(
+	model => model.counter.value,
+	(model, value) => ({ ...model, counter: { ...model.counter, value } }),
+	(event, value) => value + (event.meta?.amount ?? 0),
+);
+const effects = {
+	[AppEvent.Increment]: [add.when(canIncrement, increment)],
+} satisfies TEffectMatrix<App, AppEvent, AppEventMeta>;
+```
+
+`forEvent<AppEvent.Increment>()` binds the key at compile time, so `add` receives `AppEventMeta[AppEvent.Increment] | null` as `Event Meta`. On `fx`, `Event Meta` is the union `AppEventMeta[AppEvent] | null`. The `Effect Matrix` key decides when the handler runs.
+
+Use `add.compose` to apply multiple `Model Transformers` in declaration order. If the condition passed to `add.when` fails, the `Effect` returns the current snapshot.
+
+A standalone `createModelTransformer` call written directly in a typed `Effect Matrix` gets its types from the entry. Supply all three type arguments to `TEffectMatrix`. Omitting the `Event Meta` map supplies `any` as the contextual type for `event.meta`.
+
+```typescript
+import { createModelTransformer } from '@yantrix/automata';
+
+const incrementEffects = {
+	[AppEvent.Increment]: [
+		createModelTransformer(
+			model => model.counter.value,
+			(model, value) => ({ ...model, counter: { ...model.counter, value } }),
+			(event, value) => value + (event.meta?.amount ?? 0),
+		),
+	],
+} satisfies TEffectMatrix<App, AppEvent, AppEventMeta>;
+```
+
+If you annotate the selector parameter, use `TReadonlyModel<App>`. A mutable `App` parameter is too narrow when the `Data Model` contains arrays.
+
+For common immutable operations, `setModelProperty`, `updateModelProperty`, `mergeModelObject`,
+`removeModelProperty`, `appendModelItem`, `updateModelItem`, and `removeModelItem` preserve the source object/list and
+reuse its reference for a no-op where possible.
 
 ## Built-Ins: Arithmetics
 
@@ -110,7 +171,7 @@ splits the responsibility of `Effects`.
 | `pick`      | **List**, **List** | - Source List<br/>- Keys | **List**    | returns new **List** containing values from `Source List` with indeces in `Keys`, in order of appearance in original `List` |
 | `pick`      | **List**, **Number** | - Source List<br/>- Index | **any**    | returns a value from `Source List` at position `Index` |
 | `reverse`      | **List** | - Source List<br/> | **List**  | returns a new **List** comprised of `Source List` elements in reverse order |
-| `sort` | **List** | - Source List | **List** | returns a new **List** comprised of `Source List` elements in ascending order | 
+| `sort` | **List** | - Source List | **List** | returns a new **List** comprised of `Source List` elements in ascending order |
 
 ## Built-Ins: String Transformers
 
@@ -136,9 +197,9 @@ splits the responsibility of `Effects`.
 | `values`       | **Object**              | - Object<br/>                      | **List**  | a **List** containing all defined values of `Object` in enumeration order
 | `zip`       | **List**, **List**              | - Keys list<br/>- Value list                      | **Object**  | new **Object** which keys are created from the `Key list` and values - from the `Value list`. Both **Lists** should be of equal length and contain only **String** and/or **Number** values (or none) |
 | `setAttr`       | **Object**, **String**, **any**              | - Object<br/>- Key string<br/>- Value                      | **Object**  | a clone of `Object`, but with its `Key string` property set to `Value` |
-| `unsetAttr`       | **Object**, **String**              | - Object<br/>- Key string                      | **Object**  | a clone of `Object`, but with its `Key string` property removed | 
-| `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source objectы` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority | 
-| `intersect`       | **Object**, [**Object**...]              | - Source Objects                      | **Object**  | new **Object** that contains only properties that exist in all provided `Source Objects`. Eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority | 
+| `unsetAttr`       | **Object**, **String**              | - Object<br/>- Key string                      | **Object**  | a clone of `Object`, but with its `Key string` property removed |
+| `merge`       | **Object**, [**Object**...]              | - Destination<br/>- Source objects                      | **Object**  | new **Object** that clones `Destination` with all keys from all `Source Objects` and their respective values copied. When multiple `Source Objects` are passed, eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
+| `intersect`       | **Object**, [**Object**...]              | - Source Objects                      | **Object**  | new **Object** that contains only properties that exist in all provided `Source Objects`. Eponymous properties are overwritten from right to left, i.e. the latest `Source Object` with given property name takes priority |
 | `pick`      | **Object**, **List** | - Source Object<br/>- Keys<br/> | **Object**    | returns new **Object** containing values from `Source List` with keys listed in `Keys`, in order of appearance in original `Object` |
 | `pick`      | **Object**, **String** | - Source Object<br/>- Key<br/> | **any**    | returns a single value from `Source Object` with key  `Key` |
 
@@ -154,4 +215,3 @@ splits the responsibility of `Effects`.
 | `find`      | **Collection**, **String**, **any** | - Collection<br/>- property name<br/>- seek value | **Object**    | returns new the first item from the `Collection`, which have the `property name` attribute equal to `seek value`. `Null` is returned if none is found |
 | `pluck`      | **Collection**, **String** | - Collection<br/>- property name<br/> | **List**    | returns new **List**, that is comprised of all `property name` attribute values of items in the  `Collection`, in the order of appearance |
 | `sort` | **Collection**, [**String**], [**any**] | - Collection<br/>- Key Name = `id`<br/>- Default Value = `Null` | **Collection** | returns a new **Collection** comprised of `Collection` elements, sorted ascendingly by `Key Name` field. If the field is absent, it fallbacks to `Default Value` |
-
