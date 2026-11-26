@@ -151,4 +151,71 @@ describe('collection Transformers', () => {
 			expect(shuffle([])).toStrictEqual([]);
 		});
 	});
+
+	describe('setAttr()', () => {
+		const { setAttr } = Transformers;
+
+		it('returns a clone with the key set and leaves the input untouched', () => {
+			const obj = { a: 1 };
+			const r = setAttr(obj, 'b', 2);
+			expect(r).toStrictEqual({ a: 1, b: 2 });
+			expect(r).not.toBe(obj);
+			expect(obj).toStrictEqual({ a: 1 });
+		});
+
+		it('copies along a nested path and shares untouched branches', () => {
+			const obj = { x: { y: 1 }, z: { w: 2 } };
+			const r = setAttr(obj, 'x.y', 5);
+			expect(r).toStrictEqual({ x: { y: 5 }, z: { w: 2 } });
+			expect(obj.x.y).toBe(1);
+			expect(r.x).not.toBe(obj.x);
+			expect(r.z).toBe(obj.z);
+		});
+
+		it('creates missing containers without touching the input', () => {
+			const obj = {};
+			expect(setAttr(obj, 'a[0].b', 1)).toStrictEqual({ a: [{ b: 1 }] });
+			expect(obj).toStrictEqual({});
+		});
+
+		it('clones arrays along the path', () => {
+			const obj = { list: [1, 2] };
+			const r = setAttr(obj, 'list[1]', 9);
+			expect(r.list).toStrictEqual([1, 9]);
+			expect(Array.isArray(r.list)).toBe(true);
+			expect(obj.list).toStrictEqual([1, 2]);
+		});
+
+		it('returns null input as is', () => {
+			expect(setAttr(null, 'a', 1)).toBeNull();
+		});
+	});
+
+	describe('unsetAttr()', () => {
+		const { unsetAttr } = Transformers;
+
+		it('returns a clone without the key and leaves the input untouched', () => {
+			const obj = { a: 1, b: 2 };
+			const r = unsetAttr(obj, 'b');
+			expect(r).toStrictEqual({ a: 1 });
+			expect(obj).toStrictEqual({ a: 1, b: 2 });
+		});
+
+		it('removes a nested key by copying along the path', () => {
+			const obj = { x: { y: 1, k: 2 }, z: { w: 3 } };
+			const r = unsetAttr(obj, 'x.k');
+			expect(r).toStrictEqual({ x: { y: 1 }, z: { w: 3 } });
+			expect(obj.x).toStrictEqual({ y: 1, k: 2 });
+			expect(r.z).toBe(obj.z);
+		});
+
+		it('returns the input when the path does not exist', () => {
+			const obj = { a: 1 };
+			expect(unsetAttr(obj, 'b.c')).toStrictEqual({ a: 1 });
+		});
+
+		it('returns null input as is', () => {
+			expect(unsetAttr(null, 'a')).toBeNull();
+		});
+	});
 });

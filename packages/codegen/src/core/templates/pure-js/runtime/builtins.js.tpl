@@ -55,6 +55,25 @@ function _sampleSize(arr, n) {
   }
   return a.slice(0, size);
 }
+const _setIn = (c, ps, i, val) => {
+  const k = ps[i];
+  const r = Array.isArray(c) ? [...c] : { ...c };
+  if (i === ps.length - 1) {
+    r[k] = val;
+    return r;
+  }
+  const next = c[k] != null && typeof c[k] === "object" ? c[k] : /^\d+$/.test(ps[i + 1]) ? [] : {};
+  r[k] = _setIn(next, ps, i + 1, val);
+  return r;
+};
+const _unsetIn = (c, ps, i) => {
+  const k = ps[i];
+  if (c == null || typeof c !== "object" || !(k in c)) return c;
+  const r = Array.isArray(c) ? [...c] : { ...c };
+  if (i === ps.length - 1) delete r[k];
+  else r[k] = _unsetIn(c[k], ps, i + 1);
+  return r;
+};
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 function unifyObjectKey(key) {
@@ -602,30 +621,14 @@ builtInFunctions['pick'] = pick;
 // @@begin: setAttr
 const setAttr = (obj, path, val) => {
   if (obj == null) return obj;
-  const ps = _parsePath(path);
-  const cur = obj;
-  let c = cur;
-  for (let i = 0; i < ps.length - 1; i++) {
-    const k = ps[i];
-    if (c[k] == null || typeof c[k] !== "object") c[k] = /^\d+$/.test(ps[i + 1]) ? [] : {};
-    c = c[k];
-  }
-  c[ps[ps.length - 1]] = val;
-  return obj;
+  return _setIn(obj, _parsePath(path), 0, val);
 };
 builtInFunctions['setAttr'] = setAttr;
 // @@end: setAttr
 // @@begin: unsetAttr
 const unsetAttr = (obj, path) => {
-  if (obj == null) return true;
-  const ps = _parsePath(path);
-  let c = obj;
-  for (let i = 0; i < ps.length - 1; i++) {
-    c = c[ps[i]];
-    if (c == null) return true;
-  }
-  delete c[ps[ps.length - 1]];
-  return true;
+  if (obj == null) return obj;
+  return _unsetIn(obj, _parsePath(path), 0);
 };
 builtInFunctions['unsetAttr'] = unsetAttr;
 // @@end: unsetAttr
