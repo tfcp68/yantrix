@@ -118,6 +118,16 @@ if (store.get() !== next || next.cart.skus[1] !== 'B' || commits.length !== 1 ||
 	throw new Error('Expected one commit of the exact transformer result');
 
 export function checkModelFunctionInputs() {
+	const selectUnknown = (model: TReadonlyModel<IModel>): unknown => model.cart;
+	fx.predicate(selectUnknown, (_event, slice) => {
+		expectExactType<typeof slice, unknown>(true);
+		return slice !== null;
+	});
+	fx.transformer(selectUnknown, model => model, (_event, slice) => {
+		expectExactType<typeof slice, unknown>(true);
+		// @ts-expect-error An unknown slice must be narrowed before reading its properties.
+		return slice.skus;
+	});
 	// @ts-expect-error An Add handler cannot consume a Reset event.
 	const wrongKey: TEffectMatrix<IModel, CartEvent, IEventMeta> = { [CartEvent.Reset]: [guarded] };
 	// @ts-expect-error Only Reset metadata contains a reason.

@@ -207,17 +207,30 @@ export type TModelFunctions<
 	EventMetaType extends { [K in EventType]: any },
 > = {
 	/** Creates a `Model Predicate` for the value inferred from the selector. */
-	readonly predicate: <SliceType = any>(
-		select: TModelSliceSelector<ModelType, SliceType>,
-		predicate: NoInfer<TModelSlicePredicate<SliceType, EventType, EventMetaType>>,
-	) => TModelPredicate<ModelType, EventType, EventMetaType>;
+	readonly predicate: {
+		<Select extends TModelSliceSelector<ModelType, any>>(
+			select: Select,
+			predicate: NoInfer<TModelSlicePredicate<ReturnType<Select>, EventType, EventMetaType>>,
+		): TModelPredicate<ModelType, EventType, EventMetaType>;
+		<SliceType>(
+			select: TModelSliceSelector<ModelType, SliceType>,
+			predicate: NoInfer<TModelSlicePredicate<SliceType, EventType, EventMetaType>>,
+		): TModelPredicate<ModelType, EventType, EventMetaType>;
+	};
 
 	/** Creates a `Model Transformer` that replaces the selected value only when it changes. */
-	readonly transformer: <SliceType = any>(
-		select: TModelSliceSelector<ModelType, SliceType>,
-		update: NoInfer<TModelSliceUpdater<ModelType, SliceType>>,
-		transform: NoInfer<TModelSliceTransformer<SliceType, EventType, EventMetaType>>,
-	) => TModelTransformer<ModelType, EventType, EventMetaType>;
+	readonly transformer: {
+		<Select extends TModelSliceSelector<ModelType, any>>(
+			select: Select,
+			update: NoInfer<TModelSliceUpdater<ModelType, ReturnType<Select>>>,
+			transform: NoInfer<TModelSliceTransformer<ReturnType<Select>, EventType, EventMetaType>>,
+		): TModelTransformer<ModelType, EventType, EventMetaType>;
+		<SliceType>(
+			select: TModelSliceSelector<ModelType, SliceType>,
+			update: NoInfer<TModelSliceUpdater<ModelType, SliceType>>,
+			transform: NoInfer<TModelSliceTransformer<SliceType, EventType, EventMetaType>>,
+		): TModelTransformer<ModelType, EventType, EventMetaType>;
+	};
 
 	/** Runs the `Model Transformers` in declaration order. */
 	readonly compose: (
