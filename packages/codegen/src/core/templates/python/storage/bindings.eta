@@ -1,0 +1,16 @@
+<% for (const [i, { connector, mapper }] of it.bindings.entries()) { %>
+from <%~ connector.module %> import (<%~ connector.exportName %> as _connector_<%~ i %>)
+from <%~ mapper.module %> import (<%~ mapper.exportName %> as _mapper_<%~ i %>)
+<% } %>
+
+
+def create_storage_bindings(<% if (it.bindings.length) { %>args<% } %>):
+    return [
+<% for (const [i, binding] of it.bindings.entries()) { %>
+        {
+            'storage': _connector_<%~ i %>(*args[<%~ JSON.stringify(binding.name) %>]),
+            'select': _mapper_<%~ i %>.select,
+            'hydrate': _mapper_<%~ i %>.hydrate,
+        },
+<% } %>
+    ]

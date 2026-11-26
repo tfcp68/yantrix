@@ -1,30 +1,28 @@
-import {
-	TAutomataActionPayload,
-	TAutomataBaseActionType,
-	TStaticMethods,
-} from '@yantrix/core';
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { TAutomataActionPayload, TAutomataBaseActionType } from '@yantrix/core';
+import { useRef, useSyncExternalStore } from 'react';
 import { trace } from '../debug';
 import { readVersion, setInitialStaticMethods } from '../helpers';
-import { automatasList, fsm_context } from '../store/store';
-import { TAutomata, TExtractAutomataContext, TPreviousContext, TUseFSMInput, TUseFsmReturn } from '../types';
+import { automatasList } from '../store/store';
+import {
+	TAutomata,
+	TExtractAutomataContext,
+	TPreviousContext,
+	TUseFSMInput,
+	TUseFSMRegistrationOptions,
+	TUseFsmReturn,
+} from '../types';
+import { useFSMRegistration } from './useFSMRegistration';
 
 /**
  * Subscribes a React component to a Yantrix FSM instance.
  * Re-renders when state or context changes. Cleans up on unmount.
  */
 export const useFSM = <TContext = TExtractAutomataContext<TAutomata>>(
-	inst: TUseFSMInput,
+	instance: TUseFSMInput,
+	options: TUseFSMRegistrationOptions = {},
 ): TUseFsmReturn<TContext> => {
-	const idRef = useRef<string>('');
-	if (!idRef.current || !automatasList[idRef.current]) {
-		idRef.current = fsm_context.initializeFSM(inst);
-	}
-
-	const store = fsm_context.getStore(idRef.current);
-	const instance = store.getSnapshot();
-
-	const staticMethods = useRef<TStaticMethods>(setInitialStaticMethods(inst));
+	const store = useFSMRegistration(instance, options.name);
+	const staticMethods = setInitialStaticMethods(instance);
 
 	const getVersion = () => readVersion(store.getSnapshot());
 	useSyncExternalStore<number>(store.subscribe, getVersion, getVersion);
@@ -36,10 +34,6 @@ export const useFSM = <TContext = TExtractAutomataContext<TAutomata>>(
 		Record<TAutomataBaseActionType, unknown>
 	>;
 	const lastActionRef = useRef<TGenericAction>({ action: null, payload: {} });
-
-	useEffect(() => {
-		return () => fsm_context.destroyFSM(idRef.current);
-	}, []);
 
 	const getAutomatasList = () => automatasList;
 
@@ -57,8 +51,8 @@ export const useFSM = <TContext = TExtractAutomataContext<TAutomata>>(
 		getContext: instance.getContext.bind(instance),
 		dispatch,
 		trace: () => trace(lastActionRef.current, previousContextRef.current),
-		getInstanceAutomata: () => ({ id: idRef.current, Automata: store.getSnapshot() }),
+		getInstanceAutomata: () => ({ id: store.route, Automata: instance }),
 		getAutomatasList,
-		...staticMethods.current,
+		...staticMethods,
 	};
 };

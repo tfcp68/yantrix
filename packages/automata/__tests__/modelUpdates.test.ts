@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
 	appendModelItem,
 	mergeModelObject,
@@ -28,9 +28,40 @@ describe('immutable model update helpers', () => {
 
 		expect(mergeModelObject(source, { count: 2 })).toEqual({ count: 2, label: 'one' });
 		expect(mergeModelObject(source, { count: 1 })).toBe(source);
-		expect(removeModelProperty(source, 'label')).toEqual({ count: 1 });
-		expect(removeModelProperty(source, 'missing' as never)).toBe(source);
+		const removeKey = (key: string) => removeModelProperty(source, key);
+		expectTypeOf<ReturnType<typeof removeKey>>().not.toMatchTypeOf<{ label: string }>();
+		expect(removeKey('label')).toEqual({ count: 1 });
+		expect(removeModelProperty(source, 'missing')).toBe(source);
 		expect(source).toEqual({ count: 1, label: 'one' });
+	});
+
+	it('rejects arrays in Object helpers before attempting an update', () => {
+		const source = [10, 20];
+		const increment = vi.fn((n: number) => n + 1);
+
+		// @ts-expect-error An array is not an Object helper target.
+		expect(() => setModelProperty(source, 0, 12)).toThrow(TypeError);
+		// @ts-expect-error An array is not an Object helper target.
+		expect(() => updateModelProperty(source, 0, increment)).toThrow(TypeError);
+		// @ts-expect-error An array is not an Object helper target.
+		expect(() => mergeModelObject(source, [12])).toThrow(TypeError);
+		// @ts-expect-error An array is not an Object helper target.
+		expect(() => removeModelProperty(source, 0)).toThrow(TypeError);
+		expect(increment).not.toHaveBeenCalled();
+		expect(source).toEqual([10, 20]);
+	});
+
+	it('widens tuple results while preserving list mutability', () => {
+		const pair: [string, number] = ['ready', 4];
+		const readonlyPair: readonly [string, number] = pair;
+		const updated = updateModelItem(pair, 0, label => label.toUpperCase());
+		const removed = removeModelItem(readonlyPair, 0);
+
+		expectTypeOf(updated).toEqualTypeOf<Array<string | number>>();
+		expectTypeOf(removed).toEqualTypeOf<ReadonlyArray<string | number>>();
+		expect(updated).toEqual(['READY', 4]);
+		expect(removed).toEqual([4]);
+		expect(readonlyPair).toEqual(['ready', 4]);
 	});
 
 	it('appends, updates, and removes List items without mutating the source', () => {

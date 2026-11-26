@@ -1,12 +1,16 @@
-export function createEventBus(<% if (it.hasTypes) { %>_id: string, FSMs: Record<string, new () => GenericAutomata><% } else { %>id, FSMs<% } %>) {
-  const EventBus = new BasicEventBus();
+export function createEventBus(<% if (it.hasTypes) { %>_id: string, FSMs: Record<string, new () => GenericAutomata><% } else { %>id, FSMs<% } %>)<% if (it.hasTypes) { %>: [BasicEventBus, Record<string, GenericAutomata>, () => void]<% } %> {
+  const EventBus = new BasicEventBus(<% if (it.eventBusOrder === 'lifo') { %>'lifo'<% } %>);
 <% if (!it.hasTypes) { %>  EventBus.correlationId = id;
 <% } %>  const automatas<% if (it.hasTypes) { %>: Record<string, GenericAutomata><% } %> = <%~ include('factory', it) %>;
 
+  const unsubscribeEmissions = Object.values(automatas).map(machine =>
+    machine.onEmittedEvents(events => EventBus.dispatch(...events))
+  );
   const _subscriptions<% if (it.hasTypes) { %>: Array<[number, Parameters<BasicEventBus['subscribe']>[1]]><% } %> = [];
   <%~ include('subscriptions', it) %>
 
   const cleanup = () => {
+    unsubscribeEmissions.splice(0).forEach(unsubscribe => unsubscribe());
     _subscriptions.forEach(([eventId, fn]) => EventBus.unsubscribe(eventId, fn));
     _subscriptions.length = 0;
   };

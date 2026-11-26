@@ -68,10 +68,10 @@ Every particular kind of `Source` or `Destination` is represented by a correspon
 -   `IDataSource` for `Source` channels, which allows to declare rules of publishing `Events` from `Source`. That could
     be done via subscription, long and short polling or by exposing hook methods to be used directly throughout the App,
     notably in frontend `UI Components` and/or webserver routes.
--   `IDataDestionation` for `Destination` channels, which receives chosen `Events` and `Data Model` and propagates the required changes
+-   `IDataDestination` for `Destination` channels, which receives chosen `Events` and `Data Model` and propagates the required changes
     into the target endpoint based on them.
 
-### Storage
+### `Storage`
 
 `Storage` is an adapter class to persist the `Data Model` and to load its snapshot, like:
 
@@ -83,10 +83,16 @@ Every particular kind of `Source` or `Destination` is represented by a correspon
 
 The App can have multiple `Storages` which can store different subsets of `Data Model`. When the App starts, it polls
 all the Storages and integrates the received data into an initial `Data Model` snapshot, using composition of Selectors.
-Storage polling may run concurrently, but successful snapshots are composed in declaration order to keep hydration
+`Storage` polling may run concurrently, but successful snapshots are composed in declaration order to keep hydration
 deterministic. After launch, an independent `Sync Loop` observes committed `Data Model` snapshots, projects the subset
 owned by each `Storage`, and persists it asynchronously without blocking the `Main Loop`. Implementations may coalesce
 intermediate snapshots while a slower write is in flight, but must eventually persist the latest committed projection.
+
+### Package ownership
+
+`@yantrix/automata` owns the shared contracts, agnostic classes, and extension factories for `Sources`, `Destinations`, and `Storage`. Each implementation package owns its connector-specific options and protocols. The public mixins are available from the Automata index and their named module paths. `@yantrix/core` re-exports the agnostic API.
+
+Concrete implementations extend the agnostic classes through their factories. Import the interval timer and HTTP providers from `@yantrix/providers`. Import the in-memory, Web Storage, and IndexedDB connectors from `@yantrix/storage`. Both packages can be used independently.
 
 ## Event Model
 
@@ -108,27 +114,29 @@ which contains asymmetrical `Mapping Matrix`, that is responsible for:
 The reason `Event Adapter` is separated from `FSM` is reusability. If two `FSMs` share compatible contracts of `Actions`
 and `States`, they can use the same `Event Adapter` too, if needed.
 
-### Event Stack
+### `Event Stack`
 
-Input streams (`UI Components` and `Sources`) and `FSMs` are emitting `Events`, that are put into a FIFO queue known
-in Yantrix as `Event Stack`. It is processed continuously by the `Main Loop`, which handles them one by one, always
-taking the oldest queued `Event` and passing it to all connected `Slices`, and thus `FSMs`.
+`UI Components`, `Sources`, and `FSMs` publish `Events` to the `Application`'s shared `Event Bus`.
+By default, the `Event Bus` delivers the oldest pending `Event` in the `Event Stack` first (FIFO).
+A generated `Event Bus` configured with `eventBusOrder: 'lifo'` delivers the newest pending `Event`
+first. Both modes deliver each `Event` to its subscribers across all registered `Slices`.
+See [Code Generation](500_codegen.html#event-bus-order).
 
 ## Data operations
 
-### Predicates
+### `Predicates`
 
-`Predicates` are functions that return a Boolean value and are used to fork the flow of operations inside `FSMs`.
-All `Predicates` are high-order functions that allow compositing them. They come in three flavors:
+`Predicates` return a boolean. `Built-in Predicates` and `Context Predicates` can select a branch inside an `FSM`.
 
 -   `Built-in Predicates` are used to combine other `Predicates` and implement logical operations like `not`, `and` and so
     on.
--   `Model Predicates` have a `Data Model` as a dependency and are supposed to implement conditions that rely on the
-    current state of `Application`
+-   `Model Predicates` evaluate the current `Data Model`. They can guard an `Effect` through `whenModel` or run in a `Source` that produces an `Event`.
 -   `Context Predicates` are bound to a certain `Slice` and its `State Dictionary`, and have a `State`/`Context` pair as a
     dependency. It's designed to create decision branching inside a `Transition Matrix`
 
-### Transformers
+An `FSM` makes decisions from its `State`, `Context`, and `Action Payload`. It never reads the `Data Model`. A `Source` can evaluate a `Model Predicate` and put a model-derived value in `Event Meta`. The `Event Adapter` maps that value into the `Action Payload`.
+
+### `Transformers`
 
 `Transformers` are projection-type functions that come with `Slice` and translate the same types between each other.
 They can be:
@@ -136,20 +144,22 @@ They can be:
 -   `Context Transformers` translate `Contexts` between each other. They are used inside `Transition Matrix` to update the
     internal data of the `FSM` when changing `States`. They are defined as a part of `State Dictionary`
 -   `Reducer Transformers` translate from `State`+`Action/Payload` to `State/Context`
--   `Model Transformers` are a context-free subtype of `Effects`: pure functions that project the current
+-   `Model Transformers` are a context-free subtype of `Effects`. They project the current
     `Data Model` snapshot into a new snapshot. They can be composed with `Predicates` to produce conditional `Effects`
 -   `Generic Transformers` are built-in and user-defined pure functions that operate on any contract type and map the
     values. They are the basic building blocks of data manipulation.
 
-### Effects
+### `Effects`
 
-`Effects` are pure high-order functions that update `Data Model` based on its current state and emitted `Events`, very
-similar to the way `FSMs` operate (and Redux's _reducers_). However, `FSMs` cannot alter the `Data Model` directly,
-locked inside their local scope, they can emit `Events` through the `Event Adapter`, which is mapped to a
-particular `Effect` by the `Effect Matrix` of the owning slice.
+`Effects` are pure functions that compute the next `Data Model` from its current value and an
+emitted `Event`. When an `FSM`'s `Event Adapter` emits an `Event`, the `Effect Scheduler` looks it
+up in the `Effect Matrix` of every registered `Slice`. For example, a single `OrderPlaced` `Event`
+can update inventory in one `Slice` and accounting in another.
 
-All the `Effects` triggered by different slices are batched every iteration of `Main Loop`, yielding exactly one (or
-none) `Data Model` update regardless of how many `FSM` transitions were performed.
+The cascade includes all queued `Events` and any follow-up `Events` their handlers produce
+until the `Event Bus` becomes idle. The `Main Loop` then flushes the `Effects` as one batch.
+If the `Data Model` changed, the store commits one snapshot and matching `Destinations` receive it.
+If all `Effects` preserve the original `Data Model` reference, there is no update.
 
 ## APIs relation diagram
 

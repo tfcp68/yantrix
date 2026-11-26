@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary } from '@yantrix/automata';
+import { BasicActionDictionary, BasicEventDictionary, BasicStateDictionary, TEventBusOrder } from '@yantrix/automata';
 import { StartState } from '@yantrix/mermaid-parser';
 import {
 	ContextStatement,
@@ -10,14 +10,12 @@ import {
 	FunctionCall,
 	getContextStatements,
 	getDefineStatements,
-	getEmitStatements,
 	getFunctionArgs,
 	getFunctionName,
 	getNumberValue,
 	getReferenceIdentifier,
 	getReferenceType,
 	getStringValue,
-	getSubscribeStatements,
 	hasInitialState,
 	hasReducer,
 	isConstant,
@@ -32,8 +30,10 @@ import {
 import { ByPassAction } from '../../constants.js';
 import { ICodegen, TConstants, TExpressionRecord, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { eta, etaViewsPath } from '../eta.js';
-import { fillDictionaries, getStatesByPass } from '../shared.js';
+import { fillDictionaries, getStatesByPass, resolveEventBusOrder } from '../shared.js';
 import { ModuleNames } from './index.js';
+import { TReducerBoundValueVM } from './JavaScript/JavaScriptCompiler/context/serializer.js';
+import { getEventEmittersModel, getEventListenersModel } from './JavaScript/JavaScriptCompiler/events/core.js';
 import { getExpressionValue } from './JavaScript/JavaScriptCompiler/expressions/core.js';
 import { getPredicates } from './JavaScript/JavaScriptCompiler/forks/core.js';
 
@@ -454,88 +454,31 @@ function buildDefinesData(
 // Event model builders
 // ---------------------------------------------------------------------------
 
-type TPythonEmitterVM = {
-	stateId: string;
-	stateValue: number;
-	events: Array<{ eventIdentifier: string; metaLines: string[] }>;
-};
-
-type TPythonListenerVM = {
-	eventIdentifier: string;
-	actionName: string;
-	payloadLines: string[];
-};
-
-function pyNullMeta(identifier: string, fallback: string | null): string {
-	const path = '_meta_inner';
-	const val = `${path}.get('${identifier}')`;
-	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
-	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+function renderEventFields(entries: TReducerBoundValueVM[], sourcePath: 'prev_context' | 'payload'): string[] {
+	return entries.map(({ targetProperty, source }) => {
+		const value = source.kind === 'defaultProperty'
+			? pyNull(sourcePath, source.identifier, source.fallbackExpression)
+			: source.expressionValueRight;
+		return `'${targetProperty}': ${value}`;
+	});
 }
 
-function pyNullCtx(identifier: string, fallback: string | null): string {
-	const path = '_ctx_inner';
-	const val = `${path}.get('${identifier}')`;
-	const check = `${path} is not None and ${path}.get('${identifier}') is not None`;
-	return `(${val} if ${check} else ${fallback ?? 'None'})`;
+function buildEventEmittersData(diagram: TStateDiagramMatrixIncludeNotes, expressions: TExpressionRecord) {
+	return getEventEmittersModel({ diagram, expressions }).map(({ stateId, events }) => ({
+		stateId,
+		events: events.map(({ eventIdentifier, metaEntries }) => ({
+			eventIdentifier,
+			metaLines: renderEventFields(metaEntries, 'prev_context'),
+		})),
+	}));
 }
 
-function buildEventEmittersData(
-	diagram: TStateDiagramMatrixIncludeNotes,
-	stateDictionary: BasicStateDictionary,
-): TPythonEmitterVM[] {
-	const result: TPythonEmitterVM[] = [];
-	for (const state of diagram.states) {
-		if (!state.notes) continue;
-		const emits = getEmitStatements(state.notes);
-		if (emits.length === 0) continue;
-		const sv = stateDictionary.getStateValues({ keys: [state.id] })[0];
-		if (sv == null) continue;
-
-		const events = emits.map((emit) => {
-			const metaLines: string[] = [];
-			if ('meta' in emit && Array.isArray((emit as any).meta)) {
-				for (const item of (emit as any).meta as RawKeyItem[]) {
-					const val = pyNullCtx(item.identifier, null);
-					metaLines.push(`'${item.identifier}': ${val}`);
-				}
-			}
-			return { eventIdentifier: emit.identifier, metaLines };
-		});
-
-		result.push({ stateId: state.id, stateValue: sv, events });
-	}
-	return result;
-}
-
-function buildEventListenersData(
-	diagram: TStateDiagramMatrixIncludeNotes,
-): TPythonListenerVM[] {
-	const result: TPythonListenerVM[] = [];
-	for (const state of diagram.states) {
-		if (!state.notes) continue;
-		const subs = getSubscribeStatements(state.notes);
-		for (const sub of subs) {
-			const payloadLines: string[] = [];
-			if ('metaItems' in sub && Array.isArray((sub as any).metaItems)) {
-				const targets = 'payload' in sub && Array.isArray((sub as any).payload)
-					? (sub as any).payload as RawKeyItem[]
-					: (sub as any).metaItems as RawKeyItem[];
-				const sources = (sub as any).metaItems as RawKeyItem[];
-				sources.forEach((src: RawKeyItem, i: number) => {
-					const target = targets[i] ?? src;
-					const val = pyNullMeta(src.identifier, null);
-					payloadLines.push(`'${target.identifier}': ${val}`);
-				});
-			}
-			result.push({
-				eventIdentifier: sub.identifier,
-				actionName: sub.actionName,
-				payloadLines,
-			});
-		}
-	}
-	return result;
+function buildEventListenersData(diagram: TStateDiagramMatrixIncludeNotes, expressions: TExpressionRecord) {
+	return getEventListenersModel({ diagram, expressions }).map(({ eventIdentifier, actionName, payloadEntries }) => ({
+		eventIdentifier,
+		actionName,
+		payloadLines: renderEventFields(payloadEntries, 'payload'),
+	}));
 }
 
 // ---------------------------------------------------------------------------
@@ -563,7 +506,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		this.expressions = setupPythonExpressions(constants, this._usedFunctions);
 	}
 
-	private buildTemplateModel(className: string) {
+	private buildTemplateModel(className: string, eventBusOrder?: TEventBusOrder) {
 		this._usedFunctions = new Set<string>();
 		const expressions = setupPythonExpressions(this.constants, this._usedFunctions);
 		const pyFuncCall = makePyFuncCall(this._usedFunctions);
@@ -579,7 +522,6 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		const startStateValue = this.stateDictionary.getStateValues({ keys: [StartState] })[0] ?? null;
 
 		const rawBuiltins = readFileSync(resolve(etaViewsPath, 'python/runtime/builtins.py.tpl'), 'utf8');
-		const eventBusRuntime = readFileSync(resolve(etaViewsPath, 'python/runtime/event_bus.py.tpl'), 'utf8');
 		const injectedCode = this.injectedFunctionPath
 			? readFileSync(this.injectedFunctionPath, 'utf8')
 			: null;
@@ -597,8 +539,8 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 		const defaultContextLines = buildDefaultContextLines(startStateValue, this.diagram, expressions);
 		const defines = buildDefinesData(this.diagram, expressions, pyFuncCall);
 
-		const emitters = buildEventEmittersData(this.diagram, this.stateDictionary);
-		const listeners = buildEventListenersData(this.diagram);
+		const emitters = buildEventEmittersData(this.diagram, expressions);
+		const listeners = buildEventListenersData(this.diagram, expressions);
 
 		const builtins = injectedCode
 			? rawBuiltins
@@ -612,13 +554,13 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 
 		return {
 			className,
+			eventBusOrder: resolveEventBusOrder(eventBusOrder),
 			initialStateValue,
 			stateDictionary: this.stateDictionary,
 			actionDictionary: this.actionDictionary,
 			eventDictionary: this.eventDictionary,
 			python: {
 				builtins,
-				eventBusRuntime,
 				functionDict: filteredFunctionDict,
 				snakeName: `create_${camelToSnake(className)}`,
 				initialContext,
@@ -640,7 +582,7 @@ export class PythonCodegen implements ICodegen<typeof ModuleNames.Python> {
 	}
 
 	public getCode(options: TGetCodeOptionsMap[typeof ModuleNames.Python]): string {
-		const it = this.buildTemplateModel(options.className);
+		const it = this.buildTemplateModel(options.className, options.eventBusOrder);
 		const rendered = eta.render('python/module.eta', it);
 		if (rendered == null) throw new Error('Eta render returned null/undefined for python/module');
 		return rendered;

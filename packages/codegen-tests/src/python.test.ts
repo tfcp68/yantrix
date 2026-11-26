@@ -1,9 +1,11 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ModuleNames } from '@yantrix/codegen';
+import { generateStorageBindings, ModuleNames } from '@yantrix/codegen';
 import { describe, expect, it } from 'vitest';
+import templates from './fixtures/eventsTemplates.js';
 import { generateAndSave, generateAutomata } from './fixtures/utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -41,6 +43,60 @@ function isPythonAvailable(): string | null {
 
 const pythonCmd = isPythonAvailable();
 const describeExec = pythonCmd ? describe : describe.skip;
+
+function pythonStorageBinding(module: string) {
+	return {
+		name: 'user-preferences',
+		connector: { module, exportName: 'connect' },
+		mapper: { module: '.preferences', exportName: 'preferences_mapper' },
+	};
+}
+
+describeExec('python storage bindings', () => {
+	it.each(['memory', 'sqlite'])('round-trips the projection through the selected %s connector', (backend) => {
+		const output = generateStorageBindings({
+			outLang: ModuleNames.Python,
+			bindings: [pythonStorageBinding(`.${backend}_connector`)],
+		});
+		const other = backend === 'memory' ? 'sqlite' : 'memory';
+		expect(output).not.toContain(`${other}_connector`);
+
+		const directory = fs.mkdtempSync(path.join(tmpdir(), 'yantrix-storage-'));
+		try {
+			const pkg = path.join(directory, 'storage_example');
+			fs.mkdirSync(pkg);
+			// Only the selected connector is installed in the consuming Python package.
+			for (const file of ['preferences.py', 'round_trip.py', `${backend}_connector.py`]) {
+				fs.copyFileSync(path.join(dirname, 'fixtures/storage/python', file), path.join(pkg, file));
+			}
+			fs.writeFileSync(path.join(pkg, 'bindings.py'), output);
+			execFileSync(pythonCmd!, ['-B', '-m', 'storage_example.round_trip', backend], { cwd: directory, timeout: 10000 });
+		} finally {
+			fs.rmSync(directory, { recursive: true, force: true });
+		}
+	});
+
+	it('can create an empty binding list without imports or arguments', () => {
+		const output = generateStorageBindings({ outLang: ModuleNames.Python, bindings: [] });
+		expect(output).not.toMatch(/\bimport\b/);
+		execFileSync(pythonCmd!, ['-c', `${output}\nassert create_storage_bindings() == []`], { timeout: 10000 });
+	});
+});
+
+describe('python storage module references', () => {
+	it.each(['.drivers..sqlite', './memory.py', 'pkg.class', 'pkg\nimport sys'])('rejects invalid module %j', (module) => {
+		expect(() => generateStorageBindings({
+			outLang: ModuleNames.Python,
+			bindings: [pythonStorageBinding(module)],
+		})).toThrow(/connector/i);
+	});
+
+	it('rejects Python keywords as imported exports', () => {
+		const binding = pythonStorageBinding('drivers.memory');
+		binding.mapper.exportName = 'class';
+		expect(() => generateStorageBindings({ outLang: ModuleNames.Python, bindings: [binding] })).toThrow(/mapper/i);
+	});
+});
 
 describe('python codegen - structural validation', async () => {
 	const code = await generateAutomata({
@@ -656,6 +712,44 @@ print('ok')
 		expect(out.trim()).toBe('ok');
 	});
 
+	it('maps incoming Event Meta into the Action Payload used by the receiver', async () => {
+		const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Active: Move
+note right of Idle
++Init
+subscribe/mapped Move ($value, $label) <= ($original=$alternate, $text='default')
+subscribe/sameName Move ($value)
+subscribe/bare Move
+end note
+note right of Active
+#{count, label} <= $value, $label
+end note
+`;
+		await generateAndSave({ input, automataName: 'Receiver', lang: ModuleNames.Python }, 'py_subscribe_meta');
+		const script = `
+from py_subscribe_meta_generated import actions_dictionary, create_event_bus, create_receiver, event_dictionary
+bus, machines, cleanup = create_event_bus('test', {'receiver': create_receiver})
+receiver = machines['receiver']
+adapter = receiver['event_adapter']
+
+def payload(name, meta):
+    action, = adapter.handle_event({'event': event_dictionary[name], 'meta': meta})
+    assert action['action'] == actions_dictionary['Move']
+    return action['payload']
+
+assert payload('mapped', {'original': 0, 'alternate': 99, 'text': ''}) == {'value': 0, 'label': ''}
+assert payload('mapped', {'original': None, 'alternate': 2}) == {'value': 2, 'label': 'default'}
+assert payload('mapped', None) == {'value': None, 'label': 'default'}
+assert payload('sameName', {'value': False})['value'] is False
+assert payload('bare', {'unused': 1}) == {}
+bus.dispatch({'event': event_dictionary['mapped'], 'meta': {'original': 3, 'text': 'ready'}})
+assert receiver['context']() == {'count': 3, 'label': 'ready'}
+cleanup()
+`;
+		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });
+	});
+
 	it('cleanup unsubscribes all handlers - dispatch after cleanup has no effect', () => {
 		const script = `
 import sys
@@ -669,6 +763,24 @@ print('ok')
 `.trim();
 		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
+	});
+
+	it('starts listeners registered during delivery on the next Event', () => {
+		const script = `
+from py_receiver_generated import actions_dictionary, create_receiver, event_dictionary
+adapter = create_receiver()['event_adapter']
+event = {'event': event_dictionary['FsmSignal'], 'meta': {}}
+trigger = actions_dictionary['Trigger']
+
+def register_late(_event):
+    adapter.add_event_listener(event['event'], lambda ev: {'action': trigger, 'payload': {'late': True}})
+
+adapter.add_event_listener(event['event'], register_late)
+generated = {'action': trigger, 'payload': {}}
+assert adapter.handle_event(event) == [generated]
+assert adapter.handle_event(event) == [generated, {'action': trigger, 'payload': {'late': True}}]
+`;
+		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });
 	});
 });
 
@@ -688,6 +800,63 @@ print('ok')
 `.trim();
 		const out = execFileSync(pythonCmd!, ['-c', script.replace(/\n/g, '; ')], { encoding: 'utf8', timeout: 10000 });
 		expect(out.trim()).toBe('ok');
+	});
+});
+
+describeExec('python codegen - multiple emit declarations', () => {
+	it('delivers each declaration in order with its own metadata', async () => {
+		await generateAndSave({ input: templates.multipleEmits, automataName: 'Emitter', lang: ModuleNames.Python }, 'py_multi_emit');
+		const script = `
+from py_multi_emit_generated import create_event_bus, create_emitter, event_dictionary, states_dictionary
+bus, machines, cleanup = create_event_bus('multi-emit', {'emitter': create_emitter})
+machine = machines['emitter']
+seen = []
+for name in ('First', 'Second'):
+    bus.subscribe(event_dictionary[name], lambda event, name=name: seen.append((name, event['meta'])))
+adapter = machine['event_adapter']
+def runtime(transition):
+    adapter.add_event_emitter(transition['state'], lambda next_transition: {'event': event_dictionary['First'], 'meta': {'value': 'late'}})
+    return [{'event': event_dictionary['Second'], 'meta': {'value': 'runtime'}}]
+adapter.add_event_emitter(states_dictionary['Active'], runtime)
+bus.dispatch({'event': event_dictionary['begin'], 'meta': {}})
+assert machine['state']() == states_dictionary['Active']
+assert adapter.handle_transition(machine['get_context']())[-1]['meta'] == {'value': 'late'}
+bus.dispatch({'event': event_dictionary['finish'], 'meta': {}})
+assert machine['state']() == states_dictionary['Done']
+assert seen == [('First', {'value': 0}), ('Second', {'value': 'second'}), ('First', {'value': 3, 'copied': 0}), ('Second', {'value': 'runtime'})], seen
+cleanup()
+`;
+		execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, timeout: 10000 });
+	});
+});
+
+describeExec('python codegen - event bus order', () => {
+	it.each([
+		{ order: undefined, expected: [1, 2, 3] },
+		{ order: 'lifo' as const, expected: [2, 3, 1] },
+	])('delivers pending and nested events in $order order', async ({ order, expected }) => {
+		const file = `py_order_${order ?? 'default'}`;
+		await generateAndSave({
+			input: trafficInput,
+			automataName: 'TrafficLight',
+			lang: ModuleNames.Python,
+			eventBusOrder: order,
+		}, file);
+		const script = `
+from ${file}_generated import create_event_bus
+bus, _, _ = create_event_bus('order', {})
+seen = []
+def capture(event):
+    seen.append(event['event'])
+    if len(seen) == 1:
+        bus.dispatch({'event': 3})
+for event_id in (1, 2, 3):
+    bus.subscribe(event_id, capture)
+bus.dispatch({'event': 1}, {'event': 2})
+print(seen)
+`;
+		const output = execFileSync(pythonCmd!, ['-c', script], { cwd: generatedDir, encoding: 'utf8', timeout: 10000 });
+		expect(JSON.parse(output)).toEqual(expected);
 	});
 });
 

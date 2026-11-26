@@ -9,6 +9,11 @@ These dialects emit self-contained output with no `@yantrix/core` or `@yantrix/a
 The `javascript` and `typescript` class-based API is documented in [Javascript API](150_JSAPI.html).
 The `python` dialect API is documented in [Python API](170_pythonAPI.html).
 
+## Behavioral parity
+
+Parity with class-based TypeScript applies to the observable behavior of the generated `FSM`.
+Given the same diagram and the same sequence of `Actions` and `Events`, the committed `State`, local `Context`, and emitted `Events` should agree across all three targets.
+
 ---
 
 ## `generateAutomataFiles`

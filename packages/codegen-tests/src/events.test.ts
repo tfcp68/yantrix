@@ -1,14 +1,168 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
-import { AutomataEventAdapter } from '@yantrix/core';
+import { AutomataEventAdapter, BasicEventBus } from '@yantrix/core';
+import ts from 'typescript';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import templates from './fixtures/eventsTemplates';
-import { generateAndSave, generateAutomata } from './fixtures/utils';
+import { generateAndSave, generateAndSaveFiles, generateAutomata, saveFile } from './fixtures/utils';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const getGeneratedFixturePath = (name: string) => path.resolve(dirname, 'fixtures/generated', name);
+
+describe.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+] as const)('generated %s event bus', (lang, extension) => {
+	it.each([
+		[undefined, [1, 2]],
+		['fifo', [1, 2]],
+		['lifo', [2, 1]],
+	] as const)('delivers buffered events with order %s', async (eventBusOrder, expected) => {
+		const fixture = `event_order_${extension}_${eventBusOrder ?? 'default'}`;
+		await generateAndSave({ input: templates.basicSubscribe, automataName: 'Ordered', lang, eventBusOrder }, fixture);
+		const { createEventBus } = await import(getGeneratedFixturePath(`${fixture}_generated.${extension}`));
+		const [bus, , cleanup] = createEventBus('ordered', {});
+		const seen: Array<number | null> = [];
+		const record: Parameters<BasicEventBus['subscribe']>[1] = (entry) => {
+			seen.push(entry.event);
+			return { ...entry, task_id: 'record', result: null };
+		};
+		bus.subscribe(1, record).subscribe(2, record);
+		bus.pause().dispatch({ event: 1, meta: null }, { event: 2, meta: null });
+		expect(seen).toEqual([]);
+		bus.resume();
+		await bus.whenIdle();
+		expect(seen).toEqual(expected);
+		cleanup();
+	});
+});
+
+it.each([
+	[ModuleNames.JavaScript, 'js', false],
+	[ModuleNames.TypeScript, 'ts', false],
+	[ModuleNames.PureJavaScript, 'js', false],
+	[ModuleNames.PureJavaScript, 'js', true],
+	[ModuleNames.PureTypeScript, 'js', false],
+	[ModuleNames.PureTypeScript, 'js', true],
+] as const)('delivers every emit/ on state entry in %s (%s, split: %s)', async (lang, extension, split) => {
+	const options = { input: templates.multipleEmits, automataName: 'Emitter', lang };
+	const fixture = `multi_emit_${lang}_${split}`;
+	let entryPath = getGeneratedFixturePath(`${fixture}_generated.${extension}`);
+	if (split) {
+		entryPath = await generateAndSaveFiles(options, fixture);
+	} else {
+		await generateAndSave(options, fixture);
+	}
+	const mod = await import(entryPath);
+	const { First, Second, begin, finish } = mod.eventDictionary;
+	const [bus, machines, cleanup] = mod.createEventBus('multi-emit', { emitter: mod.Emitter ?? mod.createEmitter });
+	const seen: unknown[] = [];
+	const record: Parameters<BasicEventBus['subscribe']>[1] = (entry) => {
+		seen.push([entry.event, entry.meta]);
+		return { ...entry, task_id: 'record', result: null };
+	};
+	bus.subscribe(First, record);
+	bus.subscribe(Second, record);
+	machines.emitter.eventAdapter.addEventEmitter(mod.statesDictionary.Active, () => ({
+		event: Second,
+		meta: { value: 'runtime' },
+	}));
+	bus.dispatch({ event: begin, meta: {} });
+	await bus.whenIdle?.();
+	expect(machines.emitter.state).toBe(mod.statesDictionary.Active);
+	bus.dispatch({ event: finish, meta: {} });
+	await bus.whenIdle?.();
+	expect(machines.emitter.state).toBe(mod.statesDictionary.Done);
+	expect(seen).toEqual([
+		[First, { value: 0 }],
+		[Second, { value: 'second' }],
+		[First, { value: 3, copied: 0 }],
+		[Second, { value: 'runtime' }],
+	]);
+	cleanup();
+});
+
+it.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+	[ModuleNames.PureJavaScript, 'js'],
+	[ModuleNames.PureTypeScript, 'js'],
+] as const)('reads subscribe/ fallback fields from incoming meta in %s', async (lang, extension) => {
+	const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Done: Move
+note right of Idle
++Init
+subscribe/renamed Move ($value) <= ($original=$alternate)
+subscribe/shorthand Move ($value=$alternate)
+end note`;
+	const fixture = `subscribe_fallback_${lang}`;
+	await generateAndSave({ input, automataName: 'Receiver', lang }, fixture);
+	const mod = await import(getGeneratedFixturePath(`${fixture}_generated.${extension}`));
+	const adapter = mod.createReceiverEventAdapter();
+	for (const [event, key] of [[mod.eventDictionary.renamed, 'original'], [mod.eventDictionary.shorthand, 'value']] as const) {
+		for (const [meta, expected] of [
+			[{ [key]: false, alternate: 9 }, false],
+			[{ [key]: null, alternate: 0 }, 0],
+			[{ alternate: '' }, ''],
+			[{}, null],
+		] as const) {
+			expect(adapter.handleEvent({ event, meta })).toEqual([
+				{ action: mod.actionsDictionary.Move, payload: { value: expected } },
+			]);
+		}
+	}
+});
+
+it('types a generated ordered bus and cleanup for TypeScript consumers', async () => {
+	const machine = await generateAutomata({
+		input: templates.basicSubscribe,
+		automataName: 'Ordered',
+		lang: ModuleNames.TypeScript,
+		eventBusOrder: 'lifo',
+	});
+	saveFile('event_order_types', machine, 'ts');
+	saveFile('event_order_consumer', `
+		import { createEventBus } from './event_order_types_generated.js';
+		const [bus, , cleanup] = createEventBus('example', {});
+		bus.pause().dispatch({ event: 1, meta: null }, { event: 2, meta: null }).resume();
+		await bus.whenIdle();
+		cleanup();
+	`, 'ts');
+
+	const program = ts.createProgram([getGeneratedFixturePath('event_order_consumer_generated.ts')], {
+		module: ts.ModuleKind.NodeNext,
+		target: ts.ScriptTarget.ES2022,
+		strict: true,
+		skipLibCheck: true,
+	});
+	const diagnostics = ts.getPreEmitDiagnostics(program);
+	expect(diagnostics.map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n'))).toEqual([]);
+}, 20000);
+
+describe('event bus order option validation', () => {
+	it('rejects an unknown order from a JavaScript caller', async () => {
+		await expect(generateAutomata({
+			input: templates.basicEvents,
+			automataName: 'Ordered',
+			lang: ModuleNames.JavaScript,
+			// @ts-expect-error Exercise the untyped API boundary.
+			eventBusOrder: 'random',
+		})).rejects.toThrow(/eventBusOrder.*fifo.*lifo/);
+	});
+
+	it.each(['fifo', 'lifo'] as const)('rejects an explicit %s order on Java', async (eventBusOrder) => {
+		await expect(generateAutomata({
+			input: templates.defaultTemplate,
+			automataName: 'Ordered',
+			lang: ModuleNames.Java,
+			eventBusOrder,
+		})).rejects.toThrow(/eventBusOrder.*Java/);
+	});
+});
 
 describe('automata Events', () => {
 	describe('per-instance event adapter factory', async () => {
@@ -147,6 +301,72 @@ describe('automata Events', () => {
 	});
 
 	describe('event interactions', () => {
+		it.each([
+			[ModuleNames.JavaScript, 'js'],
+			[ModuleNames.TypeScript, 'ts'],
+		] as const)('delivers one event for each committed %s transition', async (lang, extension) => {
+			const input = `stateDiagram-v2
+[*] --> Idle
+Idle --> Ready: LOGIN
+Ready --> Ready: REFRESH
+note right of Idle
+  +Init
+  subscribe/login LOGIN
+  subscribe/refresh REFRESH
+end note
+note right of Ready
+  emit/sessionStarted
+end note`;
+			const fixture = `event_committed_${extension}`;
+			await generateAndSave({ input, automataName: 'Session', lang }, fixture);
+			const { Session, createEventBus, eventDictionary, statesDictionary } = await import(
+				getGeneratedFixturePath(`${fixture}_generated.${extension}`),
+			);
+			const [bus, machines, cleanup] = createEventBus('sessions', { session: Session });
+			const machine = machines.session;
+			const emit = vi.spyOn(machine.eventAdapter, 'handleTransition');
+			const delivered = vi.fn();
+			bus.subscribe(eventDictionary.sessionStarted, delivered);
+			const send = async (event: number) => {
+				bus.dispatch({ event, meta: {} });
+				await setImmediate();
+			};
+
+			await send(eventDictionary.login);
+			expect(machine.state).toBe(statesDictionary.Ready);
+			expect(emit).toHaveBeenCalledTimes(1);
+			expect(delivered).toHaveBeenCalledTimes(1);
+
+			await send(eventDictionary.login); // LOGIN is unavailable in Ready.
+			expect(emit).toHaveBeenCalledTimes(1);
+			expect(delivered).toHaveBeenCalledTimes(1);
+
+			await send(eventDictionary.refresh); // An explicit Ready → Ready transition.
+			expect(emit).toHaveBeenCalledTimes(2);
+			expect(delivered).toHaveBeenCalledTimes(2);
+
+			machine.pause();
+			await send(eventDictionary.refresh);
+			expect(emit).toHaveBeenCalledTimes(2);
+			expect(delivered).toHaveBeenCalledTimes(2);
+			machine.resume();
+			await setImmediate();
+			expect(emit).toHaveBeenCalledTimes(3);
+			expect(delivered).toHaveBeenCalledTimes(3);
+
+			machine.disable();
+			await send(eventDictionary.refresh);
+			expect(emit).toHaveBeenCalledTimes(3);
+			expect(delivered).toHaveBeenCalledTimes(3);
+
+			cleanup();
+			machine.enable();
+			machine.dispatch(Session.createAction('REFRESH', {}));
+			await setImmediate();
+			expect(emit).toHaveBeenCalledTimes(4);
+			expect(delivered).toHaveBeenCalledTimes(3);
+		});
+
 		it('automata can listen to events dispatched by event bus', async () => {
 			await generateAndSave({ input: templates.basicSubscribe, automataName: 'BasicSubscribeAutomata', lang: ModuleNames.JavaScript }, `event_basicSubscribe`);
 			const { BasicSubscribeAutomata, createEventBus, statesDictionary, eventDictionary } = await import(

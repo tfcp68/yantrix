@@ -1,15 +1,13 @@
 import { isPositiveInteger } from '@yantrix/utils';
 import { TAbstractConstructor, TAutomataBaseActionType, TValidator } from '../types/index.js';
 
-export default function BasicActionContainer<ActionType extends TAutomataBaseActionType>() {
+export function BasicActionContainer<ActionType extends TAutomataBaseActionType>() {
 	return <T extends TAbstractConstructor>(Base: T) =>
 		class AbstractBasicActionContainer extends Base {
-			#_defaultActionValidator = isPositiveInteger as TValidator<ActionType>;
-
 			#_actionValidator: TValidator<ActionType> | undefined;
 
 			get validateAction(): TValidator<ActionType> {
-				return this.#_actionValidator ?? this.#_defaultActionValidator;
+				return this.#_actionValidator ?? (isPositiveInteger as TValidator<ActionType>);
 			}
 
 			setActionValidator(actionValidator: TValidator<ActionType> | null = null): this {
@@ -24,3 +22,5 @@ export default function BasicActionContainer<ActionType extends TAutomataBaseAct
 			}
 		};
 }
+
+export default BasicActionContainer;

@@ -1,0 +1,96 @@
+{
+	"$schema": "https://json.schemastore.org/package.json",
+	"name": "@yantrix/providers",
+	"type": "module",
+	"version": "0.6.0",
+	"description": "Timer and HTTP providers for Yantrix Data Sources and Data Destinations",
+	"contributors": [
+		"Alexander Uskov <https://github.com/octaharon>",
+		"Noktomezo <https://github.com/Noktomezo>",
+		"Denis Perevertov <https://github.com/denis-perevertov>",
+		"Nikita Beliaew <https://github.com/Nekitech>",
+		"Sin <https://github.com/Volshebnik09>",
+		"Alexey Geraim <https://github.com/obl1v1onZzz>",
+		"Саша <https://github.com/22sasha>"
+	],
+	"license": "MIT",
+	"homepage": "https://tfcp68.github.io/yantrix",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tfcp68/yantrix.git",
+		"directory": "packages/providers"
+	},
+	"bugs": {
+		"url": "https://github.com/tfcp68/yantrix/issues"
+	},
+	"keywords": [
+		"yantrix",
+		"data-source",
+		"data-destination",
+		"http",
+		"timer"
+	],
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"module-sync": "./dist/index.js",
+				"default": "./dist/index.cjs"
+			}
+		},
+		"./HTTPRequestAdapter": {
+			"import": {
+				"types": "./dist/HTTPRequestAdapter.d.ts",
+				"default": "./dist/HTTPRequestAdapter.js"
+			},
+			"require": {
+				"types": "./dist/HTTPRequestAdapter.d.cts",
+				"module-sync": "./dist/HTTPRequestAdapter.js",
+				"default": "./dist/HTTPRequestAdapter.cjs"
+			}
+		},
+		"./IntervalTimerDataSource": {
+			"import": {
+				"types": "./dist/IntervalTimerDataSource.d.ts",
+				"default": "./dist/IntervalTimerDataSource.js"
+			},
+			"require": {
+				"types": "./dist/IntervalTimerDataSource.d.cts",
+				"module-sync": "./dist/IntervalTimerDataSource.js",
+				"default": "./dist/IntervalTimerDataSource.cjs"
+			}
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"directories": {
+		"lib": "src",
+		"test": "__tests__"
+	},
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"build": "tsc --noEmit && tsup",
+		"format": "eslint --fix .",
+		"lint": "eslint .",
+		"test": "vitest run --outputFile=../../test_reports/providers.md"
+	},
+	"dependencies": {
+		"@yantrix/automata": "workspace:^",
+		"@yantrix/utils": "workspace:^"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	}
+}

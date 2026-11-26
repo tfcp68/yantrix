@@ -15,20 +15,20 @@ Command-line interface for [Yantrix](https://github.com/tfcp68/yantrix/) framewo
 
 ## 📖 Usage
 
-Install both `@yantrix/cli` and `@yantrix/codegen` using your prefered package manager. All the secondary dependencies will be installed automatically.
+Install `@yantrix/cli`. Your package manager installs `@yantrix/codegen` automatically as a dependency of the CLI.
 
 ```bash
 # Via NPM
-$ npm install @yantrix/codegen @yantrix/cli
+$ npm install @yantrix/cli
 
 # Via Yarn
-$ yarn add @yantrix/codegen @yantrix/cli
+$ yarn add @yantrix/cli
 
 # Via PNPM
-$ pnpm install @yantrix/codegen @yantrix/cli
+$ pnpm add @yantrix/cli
 
 # ✨ Auto-detection
-$ npx nypm install @yantrix/codegen @yantrix/cli
+$ npx nypm add @yantrix/cli
 ```
 
 > We suggest using `pnpm`
@@ -53,6 +53,7 @@ Options:
                       escript, python, java                             [string]
   -o, --outfile       Output Automata file path                         [string]
   -c, --className     Name of the generated Automata class              [string]
+      --eventBusOrder Queued event delivery order (default: fifo)   [fifo, lifo]
   -j, --constants     Stringified JSON with constants to be used in generated Au
                       tomata                                            [string]
   -J, --constantFile  Path to JSON file with constants to be used in generated A

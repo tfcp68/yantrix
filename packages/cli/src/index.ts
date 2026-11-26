@@ -60,6 +60,7 @@ Options:
                                                                         [string]
   -o, --outfile       Output Automata file path                         [string]
   -c, --className     Name of the generated Automata class              [string]
+      --eventBusOrder Queued event delivery order (default: fifo)   [fifo, lifo]
   -j, --constants     Stringified JSON with constants to be used in generated Au
                       tomata                                            [string]
   -J, --constantFile  Path to JSON file with constants to be used in generated A
@@ -118,7 +119,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import pkg from '../package.json';
 import { codegen } from './commands/codegen/codegen';
-import { LANGUAGES } from './utils/constants';
+import { EVENT_BUS_ORDERS, LANGUAGES } from './utils/constants';
 
 export * from './types/common';
 
@@ -152,6 +153,12 @@ yargs(hideBin(process.argv))
 					describe: 'Name of the generated Automata class',
 					type: 'string',
 
+				})
+				.option('eventBusOrder', {
+					describe: 'Queued event delivery order in the generated bus (default: fifo)',
+					type: 'string',
+					choices: EVENT_BUS_ORDERS,
+					requiresArg: true,
 				})
 				.option('constants', {
 					alias: 'j',

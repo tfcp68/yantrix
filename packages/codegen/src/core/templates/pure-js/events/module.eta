@@ -8,6 +8,8 @@ return eventAdapter;
 export function createEventBus(id, FSMs) {
   const _listeners = {};
   const _stack = [];
+  const _pending = [];
+  let _processing = false;
   const EventBus = {
     correlationId: id,
     subscribe(eventId, fn) {
@@ -20,9 +22,17 @@ export function createEventBus(id, FSMs) {
       }
     },
     dispatch(...events) {
-      for (const ev of events) {
-        (_listeners[ev.event] ?? []).forEach(fn => fn(ev));
-        _stack.push(ev);
+      _pending.push(...events);
+      if (_processing) return;
+      _processing = true;
+      try {
+        while (_pending.length) {
+          const ev = _pending.<%~ it.eventBusOrder === 'lifo' ? 'pop' : 'shift' %>();
+          (_listeners[ev.event] ?? []).forEach(fn => fn(ev));
+          _stack.push(ev);
+        }
+      } finally {
+        _processing = false;
       }
     },
     getEventStack() { return _stack; },

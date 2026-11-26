@@ -49,10 +49,10 @@ The generated TypeScript API includes the Effect Event, Event Meta, Model Transf
 types. Yantrix syntax does not currently declare the complete application Data Model schema, so the generated Data
 Model type defaults to `Record<string, unknown>` and the factory is generic over the application's concrete model.
 
-In the TypeScript runtime an Effect has the `(event, readonlyModel) => nextModel` contract. A
-[`Model Transformer`](160_transformers.html#model-transformers) already has that shape; `whenModel` combines one with a
-[`Model Predicate`](150_predicates.html#model-predicates) when a conditional Effect is required. The Effect Scheduler
-applies matching Effects in order and commits at most one resulting snapshot for the complete Main Loop batch.
+In the TypeScript runtime an `Effect` has the `(event, readonlyModel) => nextModel` contract. A
+[`Model Transformer`](160_transformers.html#model-transformers) has that shape. `whenModel` combines one with a
+[`Model Predicate`](150_predicates.html#model-predicates) when a conditional `Effect` is required. The `Effect Scheduler`
+applies matching `Effects` in order and commits at most one resulting snapshot for the complete `Main Loop` batch.
 
 Side Effects codegen currently targets the `javascript` and `typescript` dialects. Other output dialects reject a
 diagram containing `effect/` instead of silently generating code without its Effect Matrix.

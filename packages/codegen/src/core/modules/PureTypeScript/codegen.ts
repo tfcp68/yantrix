@@ -10,7 +10,7 @@ export class PureTypeScriptCodegen extends PureJavaScriptCodegen implements ICod
 
 	// pure-ts .js output is identical to pure-js
 	public override getCode(options: TGetCodeOptionsMap[typeof ModuleNames.PureTypeScript]): string {
-		const it = this.buildTemplateModel(options.className);
+		const it = this.buildTemplateModel(options.className, options.eventBusOrder);
 		const rendered = eta.render('pure-js/module.eta', it);
 		if (rendered == null) throw new Error('Eta render returned null/undefined for pure-js/module');
 		return rendered;
@@ -19,7 +19,7 @@ export class PureTypeScriptCodegen extends PureJavaScriptCodegen implements ICod
 	public override getFiles(options: TGetCodeOptionsMap[typeof ModuleNames.PureTypeScript]): TCodegenFiles {
 		const jsFiles = super.getFiles(options);
 
-		const it = { ...this.buildTemplateModel(options.className), hasTypes: true };
+		const it = { ...this.buildTemplateModel(options.className, options.eventBusOrder), hasTypes: true };
 		const dtsContent = eta.render('pure-ts/declarations.eta', it);
 		if (dtsContent == null) throw new Error('Eta render returned null/undefined for pure-ts/declarations');
 

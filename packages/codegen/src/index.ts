@@ -16,6 +16,7 @@ import { formatByDialect, formatByFilename } from './postprocess.js';
 import { IGenerateOptions, TCodegenFiles, TOutLang, TStateIncludingNotes } from './types/common.js';
 
 export * from './core/modules/index.js';
+export * from './core/storageBindings.js';
 export * from './types/common.js';
 
 function assertEffectsSupported(states: TStateIncludingNotes[], language: TOutLang): void {

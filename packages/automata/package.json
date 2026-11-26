@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@yantrix/automata",
 	"type": "module",
-	"version": "0.5.4",
+	"version": "0.6.0",
 	"description": "Yantrix framework core: reference Typescript implementation of finite state machine",
 	"contributors": [
 		"Alexander Uskov <https://github.com/octaharon>",
@@ -37,7 +37,338 @@
 			},
 			"require": {
 				"types": "./dist/index.d.cts",
+				"module-sync": "./dist/index.js",
 				"default": "./dist/index.cjs"
+			}
+		},
+		"./ActionDictionary": {
+			"import": {
+				"types": "./dist/ActionDictionary.d.ts",
+				"default": "./dist/ActionDictionary.js"
+			},
+			"require": {
+				"types": "./dist/ActionDictionary.d.cts",
+				"module-sync": "./dist/ActionDictionary.js",
+				"default": "./dist/ActionDictionary.cjs"
+			}
+		},
+		"./Automata": {
+			"import": {
+				"types": "./dist/Automata.d.ts",
+				"default": "./dist/Automata.js"
+			},
+			"require": {
+				"types": "./dist/Automata.d.cts",
+				"module-sync": "./dist/Automata.js",
+				"default": "./dist/Automata.cjs"
+			}
+		},
+		"./AutomataSlice": {
+			"import": {
+				"types": "./dist/AutomataSlice.d.ts",
+				"default": "./dist/AutomataSlice.js"
+			},
+			"require": {
+				"types": "./dist/AutomataSlice.d.cts",
+				"module-sync": "./dist/AutomataSlice.js",
+				"default": "./dist/AutomataSlice.cjs"
+			}
+		},
+		"./CoreLoop": {
+			"import": {
+				"types": "./dist/CoreLoop.d.ts",
+				"default": "./dist/CoreLoop.js"
+			},
+			"require": {
+				"types": "./dist/CoreLoop.d.cts",
+				"module-sync": "./dist/CoreLoop.js",
+				"default": "./dist/CoreLoop.cjs"
+			}
+		},
+		"./DataDestination": {
+			"import": {
+				"types": "./dist/DataDestination.d.ts",
+				"default": "./dist/DataDestination.js"
+			},
+			"require": {
+				"types": "./dist/DataDestination.d.cts",
+				"module-sync": "./dist/DataDestination.js",
+				"default": "./dist/DataDestination.cjs"
+			}
+		},
+		"./DataModel": {
+			"import": {
+				"types": "./dist/DataModel.d.ts",
+				"default": "./dist/DataModel.js"
+			},
+			"require": {
+				"types": "./dist/DataModel.d.cts",
+				"module-sync": "./dist/DataModel.js",
+				"default": "./dist/DataModel.cjs"
+			}
+		},
+		"./DataSource": {
+			"import": {
+				"types": "./dist/DataSource.d.ts",
+				"default": "./dist/DataSource.js"
+			},
+			"require": {
+				"types": "./dist/DataSource.d.cts",
+				"module-sync": "./dist/DataSource.js",
+				"default": "./dist/DataSource.cjs"
+			}
+		},
+		"./EffectScheduler": {
+			"import": {
+				"types": "./dist/EffectScheduler.d.ts",
+				"default": "./dist/EffectScheduler.js"
+			},
+			"require": {
+				"types": "./dist/EffectScheduler.d.cts",
+				"module-sync": "./dist/EffectScheduler.js",
+				"default": "./dist/EffectScheduler.cjs"
+			}
+		},
+		"./EventAdapter": {
+			"import": {
+				"types": "./dist/EventAdapter.d.ts",
+				"default": "./dist/EventAdapter.js"
+			},
+			"require": {
+				"types": "./dist/EventAdapter.d.cts",
+				"module-sync": "./dist/EventAdapter.js",
+				"default": "./dist/EventAdapter.cjs"
+			}
+		},
+		"./EventBus": {
+			"import": {
+				"types": "./dist/EventBus.d.ts",
+				"default": "./dist/EventBus.js"
+			},
+			"require": {
+				"types": "./dist/EventBus.d.cts",
+				"module-sync": "./dist/EventBus.js",
+				"default": "./dist/EventBus.cjs"
+			}
+		},
+		"./EventDictionary": {
+			"import": {
+				"types": "./dist/EventDictionary.d.ts",
+				"default": "./dist/EventDictionary.js"
+			},
+			"require": {
+				"types": "./dist/EventDictionary.d.cts",
+				"module-sync": "./dist/EventDictionary.js",
+				"default": "./dist/EventDictionary.cjs"
+			}
+		},
+		"./FunctionDictionary": {
+			"import": {
+				"types": "./dist/FunctionDictionary.d.ts",
+				"default": "./dist/FunctionDictionary.js"
+			},
+			"require": {
+				"types": "./dist/FunctionDictionary.d.cts",
+				"module-sync": "./dist/FunctionDictionary.js",
+				"default": "./dist/FunctionDictionary.cjs"
+			}
+		},
+		"./IOPromiseAdapter": {
+			"import": {
+				"types": "./dist/IOPromiseAdapter.d.ts",
+				"default": "./dist/IOPromiseAdapter.js"
+			},
+			"require": {
+				"types": "./dist/IOPromiseAdapter.d.cts",
+				"module-sync": "./dist/IOPromiseAdapter.js",
+				"default": "./dist/IOPromiseAdapter.cjs"
+			}
+		},
+		"./ModelFunctions": {
+			"import": {
+				"types": "./dist/ModelFunctions.d.ts",
+				"default": "./dist/ModelFunctions.js"
+			},
+			"require": {
+				"types": "./dist/ModelFunctions.d.cts",
+				"module-sync": "./dist/ModelFunctions.js",
+				"default": "./dist/ModelFunctions.cjs"
+			}
+		},
+		"./ModelUpdates": {
+			"import": {
+				"types": "./dist/ModelUpdates.d.ts",
+				"default": "./dist/ModelUpdates.js"
+			},
+			"require": {
+				"types": "./dist/ModelUpdates.d.cts",
+				"module-sync": "./dist/ModelUpdates.js",
+				"default": "./dist/ModelUpdates.cjs"
+			}
+		},
+		"./ModelValidation": {
+			"import": {
+				"types": "./dist/ModelValidation.d.ts",
+				"default": "./dist/ModelValidation.js"
+			},
+			"require": {
+				"types": "./dist/ModelValidation.d.cts",
+				"module-sync": "./dist/ModelValidation.js",
+				"default": "./dist/ModelValidation.cjs"
+			}
+		},
+		"./StateDictionary": {
+			"import": {
+				"types": "./dist/StateDictionary.d.ts",
+				"default": "./dist/StateDictionary.js"
+			},
+			"require": {
+				"types": "./dist/StateDictionary.d.cts",
+				"module-sync": "./dist/StateDictionary.js",
+				"default": "./dist/StateDictionary.cjs"
+			}
+		},
+		"./Storage": {
+			"import": {
+				"types": "./dist/Storage.d.ts",
+				"default": "./dist/Storage.js"
+			},
+			"require": {
+				"types": "./dist/Storage.d.cts",
+				"module-sync": "./dist/Storage.js",
+				"default": "./dist/Storage.cjs"
+			}
+		},
+		"./TimedCoreLoop": {
+			"import": {
+				"types": "./dist/TimedCoreLoop.d.ts",
+				"default": "./dist/TimedCoreLoop.js"
+			},
+			"require": {
+				"types": "./dist/TimedCoreLoop.d.cts",
+				"module-sync": "./dist/TimedCoreLoop.js",
+				"default": "./dist/TimedCoreLoop.cjs"
+			}
+		},
+		"./mixins/BaseClass": {
+			"import": {
+				"types": "./dist/mixins/BaseClass.d.ts",
+				"default": "./dist/mixins/BaseClass.js"
+			},
+			"require": {
+				"types": "./dist/mixins/BaseClass.d.cts",
+				"module-sync": "./dist/mixins/BaseClass.js",
+				"default": "./dist/mixins/BaseClass.cjs"
+			}
+		},
+		"./mixins/BasicActionContainer": {
+			"import": {
+				"types": "./dist/mixins/BasicActionContainer.d.ts",
+				"default": "./dist/mixins/BasicActionContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/BasicActionContainer.d.cts",
+				"module-sync": "./dist/mixins/BasicActionContainer.js",
+				"default": "./dist/mixins/BasicActionContainer.cjs"
+			}
+		},
+		"./mixins/BasicEventContainer": {
+			"import": {
+				"types": "./dist/mixins/BasicEventContainer.d.ts",
+				"default": "./dist/mixins/BasicEventContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/BasicEventContainer.d.cts",
+				"module-sync": "./dist/mixins/BasicEventContainer.js",
+				"default": "./dist/mixins/BasicEventContainer.cjs"
+			}
+		},
+		"./mixins/BasicStateContainer": {
+			"import": {
+				"types": "./dist/mixins/BasicStateContainer.d.ts",
+				"default": "./dist/mixins/BasicStateContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/BasicStateContainer.d.cts",
+				"module-sync": "./dist/mixins/BasicStateContainer.js",
+				"default": "./dist/mixins/BasicStateContainer.cjs"
+			}
+		},
+		"./mixins/BasicValidatorContainer": {
+			"import": {
+				"types": "./dist/mixins/BasicValidatorContainer.d.ts",
+				"default": "./dist/mixins/BasicValidatorContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/BasicValidatorContainer.d.cts",
+				"module-sync": "./dist/mixins/BasicValidatorContainer.js",
+				"default": "./dist/mixins/BasicValidatorContainer.cjs"
+			}
+		},
+		"./mixins/DictionaryContainer": {
+			"import": {
+				"types": "./dist/mixins/DictionaryContainer.d.ts",
+				"default": "./dist/mixins/DictionaryContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/DictionaryContainer.d.cts",
+				"module-sync": "./dist/mixins/DictionaryContainer.js",
+				"default": "./dist/mixins/DictionaryContainer.cjs"
+			}
+		},
+		"./mixins/ExtendedActionContainer": {
+			"import": {
+				"types": "./dist/mixins/ExtendedActionContainer.d.ts",
+				"default": "./dist/mixins/ExtendedActionContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/ExtendedActionContainer.d.cts",
+				"module-sync": "./dist/mixins/ExtendedActionContainer.js",
+				"default": "./dist/mixins/ExtendedActionContainer.cjs"
+			}
+		},
+		"./mixins/ExtendedEventContainer": {
+			"import": {
+				"types": "./dist/mixins/ExtendedEventContainer.d.ts",
+				"default": "./dist/mixins/ExtendedEventContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/ExtendedEventContainer.d.cts",
+				"module-sync": "./dist/mixins/ExtendedEventContainer.js",
+				"default": "./dist/mixins/ExtendedEventContainer.cjs"
+			}
+		},
+		"./mixins/ExtendedStateContainer": {
+			"import": {
+				"types": "./dist/mixins/ExtendedStateContainer.d.ts",
+				"default": "./dist/mixins/ExtendedStateContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/ExtendedStateContainer.d.cts",
+				"module-sync": "./dist/mixins/ExtendedStateContainer.js",
+				"default": "./dist/mixins/ExtendedStateContainer.cjs"
+			}
+		},
+		"./mixins/ExtendedValidatorContainer": {
+			"import": {
+				"types": "./dist/mixins/ExtendedValidatorContainer.d.ts",
+				"default": "./dist/mixins/ExtendedValidatorContainer.js"
+			},
+			"require": {
+				"types": "./dist/mixins/ExtendedValidatorContainer.d.cts",
+				"module-sync": "./dist/mixins/ExtendedValidatorContainer.js",
+				"default": "./dist/mixins/ExtendedValidatorContainer.cjs"
+			}
+		},
+		"./types": {
+			"import": {
+				"types": "./dist/types.d.ts",
+				"default": "./dist/types.js"
+			},
+			"require": {
+				"types": "./dist/types.d.cts",
+				"module-sync": "./dist/types.js",
+				"default": "./dist/types.cjs"
 			}
 		}
 	},

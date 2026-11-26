@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generateAutomataFiles, generateAutomataFromStateDiagram, ModuleNames, TOutLang } from '@yantrix/codegen';
+import { generateAutomataFiles, generateAutomataFromStateDiagram, IGenerateOptions, ModuleNames, TOutLang } from '@yantrix/codegen';
 import { createStateDiagram, parseStateDiagram } from '@yantrix/mermaid-parser';
 
 const filename = fileURLToPath(import.meta.url);
@@ -54,6 +54,7 @@ type TGenerateAutomataParams = {
 	automataName: string;
 	constants?: string;
 	injects?: string;
+	eventBusOrder?: IGenerateOptions['eventBusOrder'];
 };
 
 export function saveFile(fileName: string, content: string, ext: string) {
@@ -72,6 +73,7 @@ export async function generateAutomata(options: TGenerateAutomataParams) {
 		outLang: options.lang,
 		constants: options.constants!,
 		functionFilePath: options.injects,
+		eventBusOrder: options.eventBusOrder,
 	});
 
 	return generatedAutomataOutput;
@@ -86,6 +88,7 @@ export async function generateAndSave(options: TGenerateAutomataParams, fileName
 		outLang: options.lang,
 		constants: options.constants!,
 		functionFilePath: options.injects,
+		eventBusOrder: options.eventBusOrder,
 	};
 
 	const automata = await generateAutomataFromStateDiagram(stateDiagram, codegenOptions);
@@ -107,6 +110,7 @@ export async function generateAndSaveFiles(options: TGenerateAutomataParams, fil
 		outLang: options.lang,
 		constants: options.constants!,
 		functionFilePath: options.injects,
+		eventBusOrder: options.eventBusOrder,
 	});
 
 	const dir = path.resolve(pathSave, 'generated', fileName);

@@ -1,3 +1,4 @@
+import { TEventBusOrder } from '@yantrix/automata';
 import { TDiagramState, TStateDiagramMatrix } from '@yantrix/mermaid-parser';
 import { TNullable } from '@yantrix/utils';
 import { ArrayLiteral,	DataObject,	Document,	FunctionCall,	NumberLiteral,	StringLiteral } from '@yantrix/yantrix-parser';
@@ -32,6 +33,9 @@ export interface IGenerateOptions {
 	 */
 	className: string;
 
+	/** Order in which the generated `Event Bus` delivers pending `Events`. Defaults to `'fifo'`. */
+	eventBusOrder?: TEventBusOrder;
+
 	/**
 	 * The output language for the generated code.
 	 * You can check the supported languages and features [here](/integrations/100_language_support.html).
@@ -58,19 +62,13 @@ export interface ITypedObject extends ITypedObjectProps {
 	codeBlock: string;
 }
 
-export interface IGetCodeJSOptions {
-	className: string;
-}
+export interface IGetCodeJSOptions extends Pick<IGenerateOptions, 'className' | 'eventBusOrder'> {}
 
 export interface IGetCodeTSOptions extends IGetCodeJSOptions {}
 
-export interface IGetCodePythonOptions {
-	className: string;
-}
+export interface IGetCodePythonOptions extends Pick<IGenerateOptions, 'className' | 'eventBusOrder'> {}
 
-export interface IGetCodeJavaOptions {
-	className: string;
-}
+export interface IGetCodeJavaOptions extends Pick<IGenerateOptions, 'className' | 'eventBusOrder'> {}
 
 export type TGetCodeOptionsMap = {
 	[ModuleNames.JavaScript]: IGetCodeJSOptions;

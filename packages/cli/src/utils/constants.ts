@@ -1,7 +1,9 @@
-import { Modules } from '@yantrix/codegen';
+import { IGenerateOptions, Modules } from '@yantrix/codegen';
 import { TLanguage } from '../types/common';
 
 export const LANGUAGES = Object.keys(Modules) as TLanguage[];
+
+export const EVENT_BUS_ORDERS: ReadonlyArray<NonNullable<IGenerateOptions['eventBusOrder']>> = ['fifo', 'lifo'];
 
 export const DISABLE_FLAGS = ['/* eslint-disable */', '// @ts-nocheck'];
 

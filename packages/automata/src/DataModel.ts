@@ -1,5 +1,5 @@
 import { assertSerializableModel, deepFreezeModel } from './ModelValidation.js';
-import { TModelListener, TSubscriptionCancelFunction } from './types/index.js';
+import { TModelListener, TReadonlyModel, TSubscriptionCancelFunction } from './types/index.js';
 import { IDataModelStore } from './types/interfaces.js';
 
 export type TModelStoreOptions = {
@@ -7,7 +7,7 @@ export type TModelStoreOptions = {
 	development?: {
 		/** Freeze every accepted snapshot recursively. */
 		freeze?: boolean;
-		/** Reject values outside Yantrix's strict JSON-safe Data Model subset. */
+		/** Reject values outside Yantrix's strict JSON-safe `Data Model` subset. */
 		validateSerializable?: boolean;
 	};
 };
@@ -19,10 +19,10 @@ function assertModel(model: unknown): asserts model is object {
 }
 
 /**
- * In-memory store for the application-global Data Model.
+ * In-memory store for the application-global `Data Model`.
  *
  * The store deliberately remains anemic: it owns a snapshot and subscriptions,
- * while all business changes are calculated by pure Effects. A commit is based
+ * while all business changes are calculated by pure `Effects`. A commit is based
  * on reference identity, matching Yantrix's immutable data flow.
  */
 export class ModelStore<ModelType extends object> implements IDataModelStore<ModelType> {
@@ -35,7 +35,7 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		this.#model = this.#prepare(initialModel);
 	}
 
-	/** Returns the current model snapshot. */
+	/** Returns the current `Data Model` snapshot. */
 	public get(): ModelType {
 		return this.#model;
 	}
@@ -44,21 +44,21 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 	 * Atomically replaces the snapshot and notifies subscribers once.
 	 * Re-committing the same reference is a no-op.
 	 */
-	public commit(model: ModelType): void {
-		model = this.#prepare(model);
+	public commit(model: ModelType | TReadonlyModel<ModelType>): void {
 		if (model === this.#model) return;
 
+		const nextModel = this.#prepare(model);
 		const previousModel = this.#model;
-		this.#model = model;
+		this.#model = nextModel;
 
 		// A stable snapshot prevents listeners added during notification from
 		// observing a commit that started before they subscribed.
 		for (const listener of [...this.#listeners]) {
-			listener(model, previousModel);
+			listener(nextModel, previousModel);
 		}
 	}
 
-	/** Subscribes to committed model changes. */
+	/** Subscribes to committed `Data Model` changes. */
 	public subscribe(listener: TModelListener<ModelType>): TSubscriptionCancelFunction {
 		if (typeof listener !== 'function') {
 			throw new TypeError('Data Model listener must be a function');
@@ -70,10 +70,10 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		};
 	}
 
-	#prepare(model: ModelType): ModelType {
+	#prepare(model: ModelType | TReadonlyModel<ModelType>): ModelType {
 		assertModel(model);
 		if (this.#options.development?.validateSerializable) assertSerializableModel(model);
 		if (this.#options.development?.freeze) deepFreezeModel(model);
-		return model;
+		return model as ModelType;
 	}
 }
