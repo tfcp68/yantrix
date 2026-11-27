@@ -44,13 +44,16 @@ it = {
     createEventBus,                 // { resultVarName }
   },
   dictionaries: {
-    actionToStateFromState,         // Record<stateId, Record<actionId, { state, withPredicate }>>
+    actionToStateFromState,         // Record<stateId, Record<actionId, { state, withPredicate, sourceStateId }>>
     byPassedList,                   // number[]
     actionsMap,                     // Record<string, number>
     statesMap,                      // Record<string, number>
   },
 }
 ```
+
+`sourceStateId` identifies the row that declares the `Action`. An inherited `Action` uses the `[*]` row's
+`Fork` predicate. If the current `State` declares the same `Action`, its local transition takes precedence.
 
 ### Full template hierarchy diagram
 

@@ -16,8 +16,8 @@ const preds = it.python.predicates ?? {};
 action_to_state_from_state_dict = {
 <%~ it.python.transitions.map(t => {
   const actionLines = t.actions.map(a => {
-    const hasPred = preds[t.fromStateValue] && preds[t.fromStateValue][a.actionValue];
-    const predStr = hasPred ? `, 'predicate': predicates[${t.fromStateValue}][${a.actionValue}]` : '';
+    const hasPred = preds[a.sourceStateId] && preds[a.sourceStateId][a.actionValue];
+    const predStr = hasPred ? `, 'predicate': predicates[${a.sourceStateId}][${a.actionValue}]` : '';
     return `        ${a.actionValue}: {'state': [${a.targetStateValues.join(', ')}]${predStr}},`;
   }).join('\n');
   return `    ${t.fromStateValue}: {\n${actionLines}\n    },`;

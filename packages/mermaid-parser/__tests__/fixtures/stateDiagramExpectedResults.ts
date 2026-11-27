@@ -1169,6 +1169,13 @@ export const stateDiagramDoublePathExpectedResult = {
 					},
 					{
 						chain: [
+							'predicate1($value)',
+							'ChoiceState2, B, 5',
+						],
+						state: 'B',
+					},
+					{
+						chain: [
 							'ChoiceState1, B, 3',
 						],
 						state: 'B',

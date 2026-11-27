@@ -463,9 +463,8 @@ function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramS
 		const chain: Record<string, TActionChainParams> = {};
 		const reachableChoices = getReachableChoices(state, stateDiagramStructure, choicesId);
 
-		for (const transition in stateTransitions) {
-			const actions: string[] | undefined = stateTransitions[transition]?.actionsPath[0]?.action;
-			if (actions) {
+		for (const [transition, { actionsPath }] of Object.entries(stateTransitions)) {
+			for (const { action: actions } of actionsPath) {
 				const actionName = actions[0]!;
 				const actionInStructure = allActions.find(a => a.id === actionName);
 				if (!chain[actionName]) {
