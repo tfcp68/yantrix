@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createStateDiagram, parseStateDiagram } from '../src/index.js';
+import { createStateDiagram, parseStateDiagram, StartState } from '../src/index.js';
 import {
 	blankDiagram,
 	emptyStateDiagram,
@@ -84,6 +84,20 @@ describe('state Diagram Parser', () => {
 			const stateDiagram = await createStateDiagram(parsedDiagram);
 			const expectedResult = stateDiagramWithChoiceExpectedResult;
 			expect(JSON.stringify(stateDiagram)).toEqual(JSON.stringify(expectedResult));
+		});
+		it('keeps both action chains when a direct transition and a choice share a target', async () => {
+			const parsed = await parseStateDiagram(`stateDiagram-v2
+				[*] --> Zero: Reset
+				[*] --> route: Route(value)
+				state route <<choice>>
+				route --> Zero: isZero($value)
+				route --> Other`);
+			const { actionChains } = await createStateDiagram(parsed);
+			expect(actionChains[StartState]?.Reset?.chains).toEqual([{ state: 'Zero', chain: [] }]);
+			expect(actionChains[StartState]?.Route?.chains).toEqual([
+				{ state: 'Zero', chain: ['isZero($value)'] },
+				{ state: 'Other', chain: [expect.any(String)] },
+			]);
 		});
 		it('stateDiagramWithFork', async () => {
 			// forks doesnt supported right now

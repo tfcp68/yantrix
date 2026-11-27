@@ -53,18 +53,20 @@ export type TCoreLoopProps<
 };
 
 /**
- * CoreLoop is the main loop that connects:
- * - an Event Bus (pub/sub for Events),
- * - one or more FSMs (IAutomata) through an Event Adapter,
- * - Sources (`IDataSource`, producers of Events),
- * - Destinations (`IDataDestination`, consumers of Events).
+ * `CoreLoop` is the `Main Loop` that connects:
+ * - an `Event Bus` (pub/sub for `Events`),
+ * - `Slices` or individual `FSMs` (`IAutomata`) through `Event Adapters`,
+ * - an optional `Effect Scheduler` and global `Data Model`,
+ * - `Sources` (`IDataSource`, producers of `Events`),
+ * - `Destinations` (`IDataDestination`, consumers of `Events` and committed models).
  *
- * Driver-agnostic: the loop only knows how to drain Sources on a `tick()`. *When* to tick is left to a
+ * Driver-agnostic: the loop only knows how to drain `Sources` on a `tick()`. *When* to tick is left to a
  * driver — call `tick()` manually, from a reactive observer, or use {@link TimedCoreLoop} for a clock.
  *
  * Generics:
- * - EventType: enum/number of Events
- * - EventMetaType: a map EventType -> meta payload shape
+ * - `EventType`: enum/number of `Events`
+ * - `EventMetaType`: a map from `EventType` to `Event Meta` shape
+ * - `ModelType`: the application-global `Data Model` snapshot
  */
 export class CoreLoop<
 	EventType extends TAutomataBaseEventType = TAutomataBaseEventType,
@@ -432,16 +434,17 @@ export class CoreLoop<
 	}
 
 	/**
-	 * Registers a Destination (`IDataDestination`). The loop subscribes each of the Destination's
-	 * bound events (`getBoundEvents()`) to the bus and forwards matching events through
-	 * `update(event)`, where the Destination's selector + resolver pipeline takes over.
+	 * Registers a `Destination` (`IDataDestination`). Without an `Effect Scheduler`,
+	 * explicit bindings subscribe directly to the `Event Bus` for backwards compatibility.
+	 * With a scheduler, explicit and wildcard bindings are indexed and invoked only
+	 * after a successful `Data Model` change, in `Destination` registration order.
 	 *
-	 * Follow-up events (if any) are emitted by a paired Data Source (see `createPromiseDataAdapter`),
+	 * Follow-up `Events` (if any) are emitted by a paired `Source` (see `createPromiseDataAdapter`),
 	 * which the loop pumps on its tick — not via the bus handler's `result`.
 	 *
-	 * @param dst Destination to register; must expose a non-empty string id.
+	 * @param dst - `Destination` to register with a non-empty string ID.
 	 * @throws Error if id is empty or already registered.
-	 * @returns This CoreLoop instance for chaining.
+	 * @returns This `CoreLoop` instance for chaining.
 	 */
 	public registerDestination<
 		DataModel extends object | null = object | null,

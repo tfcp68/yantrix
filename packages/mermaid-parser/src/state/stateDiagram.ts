@@ -438,7 +438,11 @@ function checkValidStates(states: TDiagramStatesArray) {
 	this structure binds action paths with the exact state that the automata should transition to,
 	when every single segment in the chain resolves to TRUE
 */
-function getReachableChoices(sourceState: string, stateDiagramStructure: TStateDiagramStructure, choicesId: string[]): Set<string> {
+function getReachableChoices(
+	sourceState: string,
+	stateDiagramStructure: TStateDiagramStructure,
+	choicesId: string[],
+): Set<string> {
 	const reachable = new Set<string>();
 	const queue = [sourceState];
 	while (queue.length > 0) {
@@ -453,7 +457,10 @@ function getReachableChoices(sourceState: string, stateDiagramStructure: TStateD
 	return reachable;
 }
 
-function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramStructure, transitions: TDiagramTransitions): TDiagramActionChains {
+function createActionChainsFromTransitions(
+	stateDiagramStructure: TStateDiagramStructure,
+	transitions: TDiagramTransitions,
+): TDiagramActionChains {
 	const chains: TDiagramActionChains = {};
 	const choicesId = getChoicesId(stateDiagramStructure);
 	const allActions = stateDiagramStructure.actions as TActionWithParams[];
@@ -463,9 +470,8 @@ function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramS
 		const chain: Record<string, TActionChainParams> = {};
 		const reachableChoices = getReachableChoices(state, stateDiagramStructure, choicesId);
 
-		for (const transition in stateTransitions) {
-			const actions: string[] | undefined = stateTransitions[transition]?.actionsPath[0]?.action;
-			if (actions) {
+		for (const [transition, { actionsPath }] of Object.entries(stateTransitions)) {
+			for (const { action: actions } of actionsPath) {
 				const actionName = actions[0]!;
 				const actionInStructure = allActions.find(a => a.id === actionName);
 				if (!chain[actionName]) {
@@ -477,7 +483,8 @@ function createActionChainsFromTransitions(stateDiagramStructure: TStateDiagramS
 				chain[actionName].chains.push({
 					chain: actions.slice(1).map((actionId) => {
 						const specific = allActions.find(
-							a => a.id === actionId && a.predicate === true && a.to === transition && reachableChoices.has(a.from),
+							a => a.id === actionId && a.predicate === true
+								&& a.to === transition && reachableChoices.has(a.from),
 						);
 						if (specific) {
 							return `${specific.id}(${specific.params})`;

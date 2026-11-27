@@ -82,9 +82,8 @@ sequenceDiagram
 		end
 	end
 
-	note over BUS,DST: Event → DataPacket → I/O
-	BUS ->> DST: bind(bus) (subscription is created)
-	BUS ->> DST: update(event, model?)
+	note over BUS,DST: Legacy event-only Destination path
+	BUS ->> DST: update(event) when no Effect Scheduler is configured
 	DST ->> DST: send(dataPacket) via resolver
 	DST ->> DST: requestEmitter() yields {data, result, error}
 	note over DST,SRC: External effects: HTTP, UI, FS, API...
@@ -97,6 +96,11 @@ sequenceDiagram
 _Figure 1: Runtime event flow in Yantrix: external events are dispatched to the EventBus,
 processed by the CoreLoop through the EventAdapter into actions, reduced by the generated
 automaton and its RootReducer, and finally emitted to destinations such as UI or external I/O_
+
+When `CoreLoop` has an `Effect Scheduler`, each emitted `Event` selects the matching model-bound
+`Destinations`. The `Main Loop` invokes them after the complete `Effect` batch commits a new
+`Data Model` root reference. Returning the original snapshot skips these updates. A fresh object
+with identical fields still triggers a commit and updates the matching `Destinations`. See [Core Runtime API](../integrations/180_core_runtime.html).
 
 ## How event processing works
 

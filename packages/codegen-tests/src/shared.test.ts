@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleNames } from '@yantrix/codegen';
@@ -138,6 +138,70 @@ function isPythonAvailable(): string | null {
 const pythonCmd = isPythonAvailable();
 const describeExec = pythonCmd ? describe : describe.skip;
 const generatedDir = genPath('');
+
+// Only Active has a local outgoing transition. Idle and Parked still accept global actions.
+const globalActionsDiagram = `stateDiagram-v2
+  [*] --> Idle: Reset
+  [*] --> Parked: Park
+  [*] --> Parked: Stop
+  [*] --> Active: Start
+  Active --> Idle: Finish
+  Active --> Idle: Park
+  [*] --> Zero: ZeroOut
+  state route <<choice>>
+  [*] --> route: Route(value)
+  route --> Zero: isEqual($value, 0)
+  route --> Other
+  note right of Idle
+    +Init
+  end note`;
+
+const globalActionSteps = [
+	['Park', {}, 'Parked'],
+	['Finish', {}, 'Parked'],
+	['Start', {}, 'Active'],
+	['Finish', {}, 'Idle'],
+	['Start', {}, 'Active'],
+	['Park', {}, 'Idle'],
+	['Start', {}, 'Active'],
+	['Route', { value: 1 }, 'Other'],
+	['Start', {}, 'Active'],
+	['Stop', {}, 'Parked'],
+	['Route', { value: 0 }, 'Zero'],
+	['Route', { value: 1 }, 'Other'],
+	['ZeroOut', {}, 'Zero'],
+	['Reset', {}, 'Idle'],
+] as const;
+
+it.each([
+	[ModuleNames.JavaScript, 'js'],
+	[ModuleNames.TypeScript, 'ts'],
+	[ModuleNames.PureJavaScript, 'js'],
+	[ModuleNames.PureTypeScript, 'js'],
+] as const)('dispatches every global action from target-only states in %s', async (lang, extension) => {
+	const fixture = `global_actions_${lang}`;
+	await generateAndSave({ input: globalActionsDiagram, automataName: 'GlobalActions', lang }, fixture);
+	const mod = await import(genPath(`${fixture}_generated.${extension}`));
+	const machine = mod.GlobalActions ? new mod.GlobalActions() : mod.createGlobalActions();
+	expect(machine.state).toBe(mod.statesDictionary.Idle);
+	for (const [action, payload, expected] of globalActionSteps) {
+		machine.dispatch({ action: mod.actionsDictionary[action], payload });
+		expect(machine.state, action).toBe(mod.statesDictionary[expected]);
+	}
+});
+
+it.runIf(pythonCmd)('dispatches every global action from target-only states in Python', async () => {
+	await generateAndSave({ input: globalActionsDiagram, automataName: 'GlobalActions', lang: ModuleNames.Python }, 'global_actions_py');
+	const program = `
+from global_actions_py_generated import create_global_actions, actions_dictionary, states_dictionary
+machine = create_global_actions()
+assert machine['state']() == states_dictionary['Idle']
+for action, payload, expected in ${JSON.stringify(globalActionSteps)}:
+    machine['dispatch']({'action': actions_dictionary[action], 'payload': payload})
+    assert machine['state']() == states_dictionary[expected], action
+`;
+	execFileSync(pythonCmd!, ['-c', program], { cwd: generatedDir, timeout: 10000 });
+});
 
 describeExec('shared behavior - Python', async () => {
 	await generateAndSave({ input: diagram, automataName: AUTOMATA_NAME, lang: ModuleNames.Python }, 'shared_py');

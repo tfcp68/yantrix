@@ -20,12 +20,14 @@ import {
 	ModelStore,
 	NamedDataDestination,
 	NamedDataSource,
+	StorageSyncLoop,
 	TAutomataActionPayload,
 	TAutomataBaseEventType,
 	TAutomataEventMetaType,
 	TAutomataStateContext,
 	TimedCoreLoop,
 } from '../../automata/src';
+import { createTestStorage } from './fixtures/storage';
 
 /**
  * Minimal event set for unit tests
@@ -863,6 +865,52 @@ describe('coreLoop Effect batches', () => {
 		effectLoop.getBus().dispatch(toEvent<UEvents, TMeta>(UEvents.EVT_IN, {}));
 		await effectLoop.whenIdle();
 		expect(existing.lastAction).toBe(UActions.DO);
+	});
+
+	it('persists a committed batch after a subscriber throws and resumes Destination updates on the next batch', async () => {
+		const { store, effectLoop, adapter } = createEffectLoop();
+		const failure = new Error('subscriber failed');
+		store.subscribe(vi.fn().mockImplementationOnce(() => {
+			throw failure;
+		}));
+		const storage = createTestStorage<number>({ id: 'counter' });
+		const sync = new StorageSyncLoop({ store, session: null });
+		sync.addStorage({
+			storage,
+			select: model => model.count,
+			hydrate: (_model, count) => ({ count }),
+		});
+		sync.start();
+		const laterSubscriber = vi.fn();
+		store.subscribe(laterSubscriber);
+		const Dst = createDataDestinationAdapter<UEvents, TMeta, ITestModel, ITestModel, void>()(
+			NamedDataDestination<ITestModel, void>,
+		);
+		const destination = new Dst({ id: 'counter', resolver: async () => undefined });
+		destination.createTrigger(null, (_event, model) => model ?? null);
+		const update = vi.spyOn(destination, 'update');
+		effectLoop.registerDestination(destination);
+		adapter.addEventEmitter(UStates.S2, () => ({ event: UEvents.EVT_OUT, meta: {} }));
+		effectLoop.registerAutomata(new AutomataStub(), adapter);
+		const input = toEvent<UEvents, TMeta>(UEvents.EVT_IN, {});
+
+		effectLoop.getBus().dispatch(input);
+		const firstBatch = effectLoop.whenIdle();
+		await expect(firstBatch).rejects.toBeInstanceOf(AggregateError);
+		await expect(firstBatch).rejects.toMatchObject({ errors: [failure] });
+		expect(store.get()).toEqual({ count: 1 });
+		expect(laterSubscriber).toHaveBeenCalledWith(store.get(), { count: 0 });
+		expect(update).not.toHaveBeenCalled();
+		await sync.whenIdle();
+		await expect(storage.load()).resolves.toBe(1);
+
+		effectLoop.getBus().dispatch(input);
+		await effectLoop.whenIdle();
+		expect(store.get()).toEqual({ count: 2 });
+		expect(update).toHaveBeenCalledOnce();
+		expect(update).toHaveBeenCalledWith(expect.objectContaining({ event: UEvents.EVT_OUT }), store.get());
+		await sync.stop();
+		await expect(storage.load()).resolves.toBe(2);
 	});
 
 	it('exposes Effect failures through whenIdle without a partial commit', async () => {

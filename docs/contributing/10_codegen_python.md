@@ -10,7 +10,7 @@ only Python standard library (`math`, `random`, `typing`) is used.
 
 **`it.python` object** (built in `PythonCodegen.buildTemplateModel()`):
 
-```typescript
+```text
 python: {
   builtins: string,            // filtered builtins from builtins.py.tpl (only functions used in diagram;
                                // unfiltered when inject file is provided)
@@ -30,6 +30,7 @@ python: {
     actions: Array<{
       actionValue: number;
       targetStateValues: number[];
+      sourceStateId: number;
     }>;
   }>,
   defaultContextLines: string[],  // Python lines for _get_default_context body
@@ -54,6 +55,9 @@ python: {
   },
 }
 ```
+
+`sourceStateId` identifies the row that declares the `Action`. An inherited `Action` uses the `[*]` row's
+`Fork` predicate. If the current `State` declares the same `Action`, its local transition takes precedence.
 
 **Entry: `python/module.eta`** (7 includes in order):
 

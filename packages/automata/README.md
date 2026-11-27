@@ -83,7 +83,7 @@ const effects = new EffectScheduler<IModel, AppEvent, IEventMeta>({
 
 effects.enqueue({ event: AppEvent.Increment, meta: { amount: 2 } });
 effects.flush();
-console.log(model.get().count); // 2
+console.info(model.get().count); // 2
 ```
 
 For application wiring, pass the `EffectScheduler` to `CoreLoop`. Built-in `FSMs`
@@ -111,6 +111,10 @@ each run in declaration order. Each `Effect` receives the `Data Model` returned 
 the previous `Effect`. Return the same reference for a no-op so `ModelStore` can
 skip notifying its subscribers. If a pure `Effect` throws, `flush()` discards that
 batch and `ModelStore` retains its previous snapshot.
+
+For the exact lifecycle, `Effect` ordering, failure guarantees and the scope of
+`CoreLoop.whenIdle()`, see the
+[Core Runtime API](https://tfcp68.github.io/yantrix/integrations/180_core_runtime.html).
 
 With the built-in `AutomataSlice`, `registerSlice(slice)` connects the `Slice`'s
 `FSMs` and `Effect Matrix` to the `Main Loop`. Adding or removing an `FSM` on that

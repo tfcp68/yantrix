@@ -65,6 +65,8 @@ In the TypeScript runtime an `Effect` has the `(event, readonlyModel) => nextMod
 [`Model Transformer`](160_transformers.html#model-transformers) has that shape. `whenModel` combines one with a
 [`Model Predicate`](150_predicates.html#model-predicates) when a conditional `Effect` is required. The `Effect Scheduler`
 applies matching `Effects` in order and commits at most one resulting snapshot for the complete `Main Loop` batch.
+The normative ordering, batch boundary and failure behavior are documented in
+[Core Runtime API](../integrations/180_core_runtime.html#effect-batch-contract).
 
 See [Language support](../integrations/100_language_support.html) for the dialects that generate `effect/` declarations.
 Generating a diagram that uses `effect/` with an unsupported dialect reports an error.

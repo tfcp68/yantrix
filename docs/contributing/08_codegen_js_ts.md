@@ -44,13 +44,16 @@ it = {
     createEventBus,                 // { resultVarName }
   },
   dictionaries: {
-    actionToStateFromState,         // Record<stateId, Record<actionId, { state, withPredicate }>>
+    actionToStateFromState,         // Record<stateId, Record<actionId, { state, withPredicate, sourceStateId }>>
     byPassedList,                   // number[]
     actionsMap,                     // Record<string, number>
     statesMap,                      // Record<string, number>
   },
 }
 ```
+
+`sourceStateId` identifies the row that declares the `Action`. An inherited `Action` uses the `[*]` row's
+`Fork` predicate. If the current `State` declares the same `Action`, its local transition takes precedence.
 
 ### Full template hierarchy diagram
 
@@ -285,7 +288,7 @@ At the top level, `getStateReducerCode` produces the `reducer` definition:
 
 ```ts
 function getStateReducerCode(props) {
-  return `const reducer = {
+	return `const reducer = {
     ${getStateToContext(props).join(',\n\t')}
   }`;
 }
@@ -295,23 +298,23 @@ function getStateReducerCode(props) {
 
 ```ts
 function getStateToContext(props) {
-  return props.diagram.states.map((state) => {
-    const stateValue = props.stateDictionary.getStateValues({ keys: [state.id] })[0];
+	return props.diagram.states.map((state) => {
+		const stateValue = props.stateDictionary.getStateValues({ keys: [state.id] })[0];
 
-    if (!stateValue) {
-      throw new Error('Invalid state');
-    }
+		if (!stateValue) {
+			throw new Error('Invalid state');
+		}
 
-    return `${stateValue}: (prevContext, payload, functionDictionary, automata) => {
+		return `${stateValue}: (prevContext, payload, functionDictionary, automata) => {
 
       return ${getContextTransition({
-        value: stateValue,
-        stateDictionary: props.stateDictionary,
-        diagram: props.diagram,
-        expressions: props.expressions,
-      })}
+			value: stateValue,
+			stateDictionary: props.stateDictionary,
+			diagram: props.diagram,
+			expressions: props.expressions,
+		})}
     }`;
-  });
+	});
 }
 ```
 
@@ -327,15 +330,15 @@ The result is a reducer object of the form:
 
 ```ts
 const reducer = {
-  // expression reducer: prevContext used; other params unused (body uses module-level functionDictionary)
-  1: (prevContext, _payload, _functionDictionary, _automata) => {
-    return { /* compiled context for state 1 */ };
-  },
-  // identity reducer: all non-context params unused
-  2: (prevContext, _payload, _functionDictionary, _automata) => {
-    return prevContext;
-  },
-  // ...
+	// expression reducer: prevContext used; other params unused (body uses module-level functionDictionary)
+	1: (prevContext, _payload, _functionDictionary, _automata) => {
+		return { /* compiled context for state 1 */ };
+	},
+	// identity reducer: all non-context params unused
+	2: (prevContext, _payload, _functionDictionary, _automata) => {
+		return prevContext;
+	},
+	// ...
 };
 ```
 
@@ -343,34 +346,34 @@ const reducer = {
 
 ```ts
 function getContextTransition(props) {
-  const stateFromDict = props.stateDictionary.getStateKeys({ states: [props.value] })[0];
+	const stateFromDict = props.stateDictionary.getStateKeys({ states: [props.value] })[0];
 
-  if (stateFromDict === null) {
-    throw new Error(`Invalid state - ${props.value}`);
-  }
+	if (stateFromDict === null) {
+		throw new Error(`Invalid state - ${props.value}`);
+	}
 
-  const diagramState = props.diagram.states.find((diagramState) => {
-    return diagramState.id === stateFromDict;
-  });
+	const diagramState = props.diagram.states.find((diagramState) => {
+		return diagramState.id === stateFromDict;
+	});
 
-  if (!diagramState) {
-    throw new Error(`Invalid state - ${props.value}`);
-  }
+	if (!diagramState) {
+		throw new Error(`Invalid state - ${props.value}`);
+	}
 
-  const ctxRes: string[] = [];
+	const ctxRes: string[] = [];
 
-  diagramState.notes?.contextDescription.forEach((ctx) => {
-    const newContext = getContextItem({
-      ctx,
-      expressions: props.expressions,
-    });
+	diagramState.notes?.contextDescription.forEach((ctx) => {
+		const newContext = getContextItem({
+			ctx,
+			expressions: props.expressions,
+		});
 
-    ctxRes.push(...newContext);
-  });
+		ctxRes.push(...newContext);
+	});
 
-  if (ctxRes.length === 0) return 'prevContext';
+	if (ctxRes.length === 0) return 'prevContext';
 
-  return `{${ctxRes.join(',\n\t')}}`;
+	return `{${ctxRes.join(',\n\t')}}`;
 };
 ```
 
@@ -386,7 +389,7 @@ Steps:
 
 The final reducer function for a state then effectively looks like:
 
-```ts
+```text
 stateValue: (prevContext, _payload, _functionDictionary, _automata) => {
   return {
     foo: (function(){ ... }()),
@@ -401,31 +404,31 @@ stateValue: (prevContext, _payload, _functionDictionary, _automata) => {
 `notes.contextDescription`) into an array of `"key: expression"` strings:
 
 ```ts
-function getContextItem(props: { ctx: TContextItem; expressions: TExpressionRecord; }) {
-  if (isContextWithReducer(props.ctx)) {
-    const { context, reducer } = props.ctx;
+function getContextItem(props: { ctx: TContextItem; expressions: TExpressionRecord }) {
+	if (isContextWithReducer(props.ctx)) {
+		const { context, reducer } = props.ctx;
 
-    return getBoundValues({
-      expressions: props.expressions,
-      arr: mapReducerItems({ reducer, expressions: props.expressions }),
-      context,
-    });
-  } else {
-    const { context } = props.ctx;
-    return context.map(({ keyItem }) => {
-      const { identifier } = keyItem;
-      if (isKeyItemWithExpression(keyItem)) {
-        const expressionValue = expressions.functions.getExpressionValue({
-          expression: keyItem.expression,
-          expressionRecord: props.expressions,
-        });
+		return getBoundValues({
+			expressions: props.expressions,
+			arr: mapReducerItems({ reducer, expressions: props.expressions }),
+			context,
+		});
+	} else {
+		const { context } = props.ctx;
+		return context.map(({ keyItem }) => {
+			const { identifier } = keyItem;
+			if (isKeyItemWithExpression(keyItem)) {
+				const expressionValue = expressions.functions.getExpressionValue({
+					expression: keyItem.expression,
+					expressionRecord: props.expressions,
+				});
 
-        return `${identifier}: ${expressions.serializer.getDefaultPropertyContext('prevContext', identifier, expressionValue)}`;
-      } else {
-        return `${identifier}: ${expressions.serializer.getDefaultPropertyContext('prevContext', identifier)}`;
-      }
-    });
-  }
+				return `${identifier}: ${expressions.serializer.getDefaultPropertyContext('prevContext', identifier, expressionValue)}`;
+			} else {
+				return `${identifier}: ${expressions.serializer.getDefaultPropertyContext('prevContext', identifier)}`;
+			}
+		});
+	}
 };
 ```
 
@@ -437,7 +440,7 @@ There are two major branches:
      then `getBoundValues` zips these with the `context` definitions to produce final
      `"targetProperty: expression"` pairs.
    - Output example:
-     ```ts
+     ```text
      [
        "foo: (function(){ const boundValue = ...; return boundValue; }())",
        "bar: (function(){ const boundValue = ...; if(boundValue !== null) return boundValue; else return <fallback>; }())",
@@ -459,50 +462,54 @@ expressions (`arr: string[]`), which are later bound to target context propertie
 
 ```ts
 function mapReducerItems(props: {
-  reducer: TKeyItems<'reducer'>;
-  sourcePath?: string;
-  expressions: TExpressionRecord;
+	reducer: TKeyItems<'reducer'>;
+	sourcePath?: string;
+	expressions: TExpressionRecord;
 }) {
-  return props.reducer
-    .map(({ keyItem }) => {
-      if (isKeyItemReference(keyItem)) {
-        const { expressionType, identifier: boundIdentifier } = keyItem;
-        const path = props.sourcePath ?? pathRecord[expressionType];
+	return props.reducer
+		.map(({ keyItem }) => {
+			if (isKeyItemReference(keyItem)) {
+				const { expressionType, identifier: boundIdentifier } = keyItem;
+				const path = props.sourcePath ?? pathRecord[expressionType];
 
-        if (keyItem.expressionType === ExpressionTypes.Constant) {
-          const expressionValueRight = expressions.functions.getExpressionValue({
-            expression: keyItem,
-            expressionRecord: props.expressions,
-          });
-          return `(function(){
+				if (keyItem.expressionType === ExpressionTypes.Constant) {
+					const expressionValueRight = expressions.functions.getExpressionValue({
+						expression: keyItem,
+						expressionRecord: props.expressions,
+					});
+					return `(function(){
             return ${expressionValueRight}
           }())`;
-        }
+				}
 
-        if (isKeyItemWithExpression(keyItem)) {
-          const { expression } = keyItem;
+				if (isKeyItemWithExpression(keyItem)) {
+					const { expression } = keyItem;
 
-          const expressionValueRight = expressions.functions.getExpressionValue({
-            expression,
-            expressionRecord: props.expressions,
-          });
+					const expressionValueRight = expressions.functions.getExpressionValue({
+						expression,
+						expressionRecord: props.expressions,
+					});
 
-          return expressions.serializer.getDefaultPropertyContext(path, boundIdentifier, expressionValueRight);
-        }
+					return expressions.serializer.getDefaultPropertyContext(
+						path,
+						boundIdentifier,
+						expressionValueRight,
+					);
+				}
 
-        return expressions.serializer.getDefaultPropertyContext(path, boundIdentifier);
-      } else {
-        const { expression } = keyItem;
+				return expressions.serializer.getDefaultPropertyContext(path, boundIdentifier);
+			} else {
+				const { expression } = keyItem;
 
-        const expressionValueRight = expressions.functions.getExpressionValue({
-          expression,
-          expressionRecord: props.expressions,
-        });
-        return `(function(){
+				const expressionValueRight = expressions.functions.getExpressionValue({
+					expression,
+					expressionRecord: props.expressions,
+				});
+				return `(function(){
           return ${expressionValueRight}
         }())`;
-      }
-    });
+			}
+		});
 }
 ```
 
@@ -526,28 +533,28 @@ context description) and produces final `"targetProperty: expression"` strings:
 
 ```ts
 function getBoundValues(props: {
-  expressions: TExpressionRecord;
-  arr: string[];
-  context: any;
+	expressions: TExpressionRecord;
+	arr: string[];
+	context: any;
 }) {
-  return props.arr
-    .map((el, index) => {
-      const item = props.context[index];
-      if (!item) {
-        throw new Error('Unexpected index bound property');
-      }
-      const { keyItem } = item;
-      const { identifier: targetProperty } = keyItem;
+	return props.arr
+		.map((el, index) => {
+			const item = props.context[index];
+			if (!item) {
+				throw new Error('Unexpected index bound property');
+			}
+			const { keyItem } = item;
+			const { identifier: targetProperty } = keyItem;
 
-      if (isKeyItemWithExpression(keyItem)) {
-        const { expression } = keyItem;
+			if (isKeyItemWithExpression(keyItem)) {
+				const { expression } = keyItem;
 
-        const expressionValueRight = expressions.functions.getExpressionValue({
-          expression,
-          expressionRecord: props.expressions,
-        });
+				const expressionValueRight = expressions.functions.getExpressionValue({
+					expression,
+					expressionRecord: props.expressions,
+				});
 
-        return `${targetProperty}: (function(){
+				return `${targetProperty}: (function(){
           const boundValue = ${el}
           if(boundValue !== null){
             return boundValue
@@ -557,15 +564,15 @@ function getBoundValues(props: {
           }
 
         }())`;
-      } else {
-        return `${targetProperty}: (function(){
+			} else {
+				return `${targetProperty}: (function(){
           const boundValue = ${el}
 
           return boundValue
 
         }())`;
-      }
-    });
+			}
+		});
 }
 ```
 
@@ -579,24 +586,24 @@ Logic:
 
 ```ts
 function getDefaultContext(props) {
-  const state = props.stateDictionary.getStateValues({ keys: [StartState] })[0];
+	const state = props.stateDictionary.getStateValues({ keys: [StartState] })[0];
 
-  if (state) {
-    const ctx = getContextTransition({
-      diagram: props.diagram,
-      expressions: props.expressions,
-      stateDictionary: props.stateDictionary,
-      value: state,
-    });
+	if (state) {
+		const ctx = getContextTransition({
+			diagram: props.diagram,
+			expressions: props.expressions,
+			stateDictionary: props.stateDictionary,
+			value: state,
+		});
 
-    return `const getDefaultContext = (prevContext, _payload) => {
+		return `const getDefaultContext = (prevContext, _payload) => {
       const ctx = ${ctx}
       return  Object.assign({}, prevContext, ctx);
     }
     `;
-  }
+	}
 
-  return `const getDefaultContext = (prevContext, payload) => {
+	return `const getDefaultContext = (prevContext, payload) => {
     return prevContext
   }`;
 }
@@ -615,8 +622,8 @@ Reuses `getContextTransition` for the start state. If no start state, falls back
 
 ```ts
 expressions.functions.getExpressionValue({
-  expression,
-  expressionRecord: props.expressions,
+	expression,
+	expressionRecord: props.expressions,
 });
 ```
 

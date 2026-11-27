@@ -31,6 +31,7 @@ import { ByPassAction } from '../../constants.js';
 import { ICodegen, TConstants, TExpressionRecord, TGetCodeOptionsMap, TModuleParams, TStateDiagramMatrixIncludeNotes } from '../../types/common.js';
 import { eta, etaViewsPath } from '../eta.js';
 import { fillDictionaries, getStatesByPass, resolveEventBusOrder } from '../shared.js';
+import { getActionToStateFromStateModel } from '../transitions.js';
 import { ModuleNames } from './index.js';
 import { TReducerBoundValueVM } from './JavaScript/JavaScriptCompiler/context/serializer.js';
 import { getEventEmittersModel, getEventListenersModel } from './JavaScript/JavaScriptCompiler/events/core.js';
@@ -271,7 +272,10 @@ function renderContextStatement(ctx: ContextStatement, expressions: TExpressionR
 				if (isConstant(keyItem.reference)) {
 					sourceExpr = getExpressionValue({ expressionRecord: expressions, expression: keyItem });
 				} else if (keyItem.assignedExpression) {
-					const fallback = getExpressionValue({ expressionRecord: expressions, expression: keyItem.assignedExpression });
+					const fallback = getExpressionValue({
+						expressionRecord: expressions,
+						expression: keyItem.assignedExpression,
+					});
 					sourceExpr = pyNull(path, id, fallback);
 				} else {
 					sourceExpr = pyNull(path, id, null);
@@ -318,7 +322,10 @@ function getInitialContextShape(diagram: TStateDiagramMatrixIncludeNotes, stateN
 }
 
 function camelToSnake(name: string): string {
-	return name.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+	return name
+		.replace(/([A-Z])/g, '_$1')
+		.toLowerCase()
+		.replace(/^_/, '');
 }
 
 // ---------------------------------------------------------------------------
@@ -348,57 +355,16 @@ function buildTransitionData(
 	diagram: TStateDiagramMatrixIncludeNotes,
 	stateDictionary: BasicStateDictionary,
 	actionDictionary: BasicActionDictionary,
-): Array<{ fromStateValue: number; actions: Array<{ actionValue: number; targetStateValues: number[] }> }> {
-	const actionToStartStateMatrix: Record<string, { actionsPath: { action: string[]; note: string[][] }[] }> = {};
-	Object.entries(diagram.transitions).forEach(([fromState, toStates]) => {
-		if (fromState === StartState) {
-			Object.entries(toStates).forEach(([targetState, action]) => {
-				action.actionsPath.forEach(({ action: act }) => {
-					actionToStartStateMatrix[targetState] = { actionsPath: [{ action: act, note: [] }] };
-				});
-			});
-		}
-	});
-
-	const result: Array<{ fromStateValue: number; actions: Array<{ actionValue: number; targetStateValues: number[] }> }> = [];
-
-	Object.entries(diagram.transitions).forEach(([fromState, toStates]) => {
-		const fromStateValue = stateDictionary.getStateValues({ keys: [fromState] })[0];
-		if (fromStateValue == null) return;
-
-		const merged = { ...toStates };
-		for (const [targetState, startAction] of Object.entries(actionToStartStateMatrix)) {
-			if (merged[targetState]) {
-				merged[targetState] = {
-					actionsPath: [...merged[targetState]!.actionsPath, ...startAction.actionsPath],
-				};
-			} else {
-				merged[targetState] = startAction;
-			}
-		}
-
-		const actionMap: Record<number, number[]> = {};
-		Object.entries(merged).forEach(([targetState, action]) => {
-			const targetValue = stateDictionary.getStateValues({ keys: [targetState] })[0];
-			if (targetValue == null) return;
-			action.actionsPath.forEach(({ action: act }) => {
-				const actionValue = actionDictionary.getActionValues({ keys: act })[0];
-				if (actionValue == null) return;
-				if (!actionMap[actionValue]) actionMap[actionValue] = [];
-				if (!actionMap[actionValue]!.includes(targetValue)) actionMap[actionValue]!.push(targetValue);
-			});
-		});
-
-		result.push({
-			fromStateValue,
-			actions: Object.entries(actionMap).map(([actionValue, states]) => ({
-				actionValue: Number(actionValue),
-				targetStateValues: states,
-			})),
-		});
-	});
-
-	return result;
+) {
+	const model = getActionToStateFromStateModel({ diagram, stateDictionary, actionDictionary });
+	return Object.entries(model).map(([fromStateValue, row]) => ({
+		fromStateValue: Number(fromStateValue),
+		actions: Object.entries(row).map(([actionValue, entry]) => ({
+			actionValue: Number(actionValue),
+			targetStateValues: entry.state,
+			sourceStateId: entry.sourceStateId,
+		})),
+	}));
 }
 
 function buildDefaultContextLines(
@@ -418,7 +384,11 @@ function buildDefaultContextLines(
 	return lines;
 }
 
-function renderDefineBody(expr: any, expressions: TExpressionRecord, pyFuncCall: (n: string, a: string[]) => string): string {
+function renderDefineBody(
+	expr: any,
+	expressions: TExpressionRecord,
+	pyFuncCall: (n: string, a: string[]) => string,
+): string {
 	if (defineExpressionIsFunction(expr)) {
 		const fn = expr as DefineFunction;
 		const args = fn.args.map((a: any) => renderDefineBody(a, expressions, pyFuncCall));
