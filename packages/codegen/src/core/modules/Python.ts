@@ -272,7 +272,10 @@ function renderContextStatement(ctx: ContextStatement, expressions: TExpressionR
 				if (isConstant(keyItem.reference)) {
 					sourceExpr = getExpressionValue({ expressionRecord: expressions, expression: keyItem });
 				} else if (keyItem.assignedExpression) {
-					const fallback = getExpressionValue({ expressionRecord: expressions, expression: keyItem.assignedExpression });
+					const fallback = getExpressionValue({
+						expressionRecord: expressions,
+						expression: keyItem.assignedExpression,
+					});
 					sourceExpr = pyNull(path, id, fallback);
 				} else {
 					sourceExpr = pyNull(path, id, null);
@@ -319,7 +322,10 @@ function getInitialContextShape(diagram: TStateDiagramMatrixIncludeNotes, stateN
 }
 
 function camelToSnake(name: string): string {
-	return name.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+	return name
+		.replace(/([A-Z])/g, '_$1')
+		.toLowerCase()
+		.replace(/^_/, '');
 }
 
 // ---------------------------------------------------------------------------
@@ -378,7 +384,11 @@ function buildDefaultContextLines(
 	return lines;
 }
 
-function renderDefineBody(expr: any, expressions: TExpressionRecord, pyFuncCall: (n: string, a: string[]) => string): string {
+function renderDefineBody(
+	expr: any,
+	expressions: TExpressionRecord,
+	pyFuncCall: (n: string, a: string[]) => string,
+): string {
 	if (defineExpressionIsFunction(expr)) {
 		const fn = expr as DefineFunction;
 		const args = fn.args.map((a: any) => renderDefineBody(a, expressions, pyFuncCall));

@@ -10,7 +10,7 @@ only Python standard library (`math`, `random`, `typing`) is used.
 
 **`it.python` object** (built in `PythonCodegen.buildTemplateModel()`):
 
-```typescript
+```text
 python: {
   builtins: string,            // filtered builtins from builtins.py.tpl (only functions used in diagram;
                                // unfiltered when inject file is provided)
