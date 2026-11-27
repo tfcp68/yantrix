@@ -1,0 +1,11 @@
+{
+	"version": 1,
+	"data": {
+		"cells": [
+			{ "x": -2, "y": 5, "player": "umbra" }
+		],
+		"currentPlayer": "aurora",
+		"scores": { "aurora": 1, "umbra": 3 },
+		"turn": 9
+	}
+}

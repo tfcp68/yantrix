@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="theme-color" content="#090b16">
+		<meta name="description" content="Infinite Constellations — a Yantrix MVP reference game">
+		<title>Infinite Constellations · Yantrix</title>
+	</head>
+	<body>
+		<div class="stars stars-a"></div>
+		<div class="stars stars-b"></div>
+		<main class="shell">
+			<header class="hero">
+				<div>
+					<p class="eyebrow">Yantrix MVP reference game</p>
+					<h1>Infinite <span>Constellations</span></h1>
+					<p class="lede">Draw five stars in a row, clear the line, then spend Nova to collapse a nearby rival star.</p>
+				</div>
+				<div class="runtime-status" id="runtimeStatus" aria-live="polite">Booting runtime…</div>
+			</header>
+
+			<section class="scoreboard" aria-label="Scoreboard">
+				<article class="player-card aurora" id="auroraCard">
+					<div class="player-mark">✦</div>
+					<div><span>Aurora</span><strong id="auroraScore">0</strong></div>
+					<p>Nova <b id="auroraNova">0</b></p>
+				</article>
+				<div class="turn-orbit">
+					<span>Turn</span>
+					<strong id="turnNumber">0</strong>
+					<small id="currentPlayer">Aurora moves</small>
+				</div>
+				<article class="player-card umbra" id="umbraCard">
+					<div class="player-mark">◆</div>
+					<div><span>Umbra</span><strong id="umbraScore">0</strong></div>
+					<p>Nova <b id="umbraNova">0</b></p>
+				</article>
+			</section>
+
+			<section class="game-panel">
+				<div class="toolbar">
+					<div class="mode-switch" role="group" aria-label="Move mode">
+						<button class="mode active" id="placeMode" type="button"><span>✦</span> Place star</button>
+						<button class="mode" id="novaMode" type="button"><span>✺</span> Cast Nova</button>
+					</div>
+					<div class="coordinates">
+						<label>X <input id="coordinateX" inputmode="numeric" type="number" value="0" step="1"></label>
+						<label>Y <input id="coordinateY" inputmode="numeric" type="number" value="0" step="1"></label>
+						<button id="jumpTo" type="button">Center</button>
+					</div>
+					<button class="reset" id="resetGame" type="button">New universe</button>
+				</div>
+
+				<div class="board-wrap">
+					<div class="axis axis-y">Y</div>
+					<div class="axis axis-x">X</div>
+					<div id="board" class="board" role="grid" aria-label="Infinite constellation board"></div>
+					<div class="pan-controls" aria-label="Pan board">
+						<button data-pan="0,-1" aria-label="Pan up">↑</button>
+						<button data-pan="-1,0" aria-label="Pan left">←</button>
+						<button data-pan="0,0" aria-label="Center on last move">◎</button>
+						<button data-pan="1,0" aria-label="Pan right">→</button>
+						<button data-pan="0,1" aria-label="Pan down">↓</button>
+					</div>
+				</div>
+
+				<div class="message-row">
+					<p id="gameNotice" aria-live="polite">Charting the universe…</p>
+					<p class="camera">Viewport center <code id="cameraPosition">0:0</code></p>
+				</div>
+				<div id="storageErrors" class="storage-errors" hidden></div>
+			</section>
+
+			<footer>
+				<span>Click a cell to act · hold the mouse wheel and drag to pan · Shift + arrows pans by 5</span>
+				<a href="https://tfcp68.github.io/yantrix/integrations/180_core_runtime.html">Runtime guide ↗</a>
+			</footer>
+		</main>
+		<script type="module" src="/src/index.ts"></script>
+	</body>
+</html>

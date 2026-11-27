@@ -1,0 +1,39 @@
+stateDiagram-v2
+	[*] --> READY: Init
+
+	READY --> PLACED: PLACE
+	READY --> NOVA_CAST: NOVA
+	READY --> RESET: RESET_GAME
+
+	PLACED --> PLACED: PLACE
+	PLACED --> NOVA_CAST: NOVA
+	PLACED --> RESET: RESET_GAME
+
+	NOVA_CAST --> PLACED: PLACE
+	NOVA_CAST --> NOVA_CAST: NOVA
+	NOVA_CAST --> RESET: RESET_GAME
+
+	RESET --> PLACED: PLACE
+	RESET --> NOVA_CAST: NOVA
+	RESET --> RESET: RESET_GAME
+
+	note right of READY
+		+Init
+		subscribe/placeRequested PLACE ($x, $y) <= ($x, $y)
+		subscribe/novaRequested NOVA ($x, $y) <= ($x, $y)
+		subscribe/resetRequested RESET_GAME
+	end note
+
+	note right of PLACED
+		#{x, y} <= $x, $y
+		effect/stonePlaced <= (x, y)
+	end note
+
+	note right of NOVA_CAST
+		#{x, y} <= $x, $y
+		effect/novaCast <= (x, y)
+	end note
+
+	note right of RESET
+		effect/gameReset
+	end note
