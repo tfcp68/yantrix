@@ -108,7 +108,9 @@ it('finishes a Todo command dispatched immediately before shutdown and persists 
 it('re-enters Todo command states and ignores malformed metadata without committing', async () => {
 	todoStorage();
 	const guide = await runGuide(
-		todoFile, 'TodoFlow', ['coreLoop', 'createTodoStore', 'eventDictionary', 'modelStore', 'shutdown', 'todoSlice'],
+		todoFile,
+		'TodoFlow',
+		['coreLoop', 'createTodoStore', 'eventDictionary', 'modelStore', 'shutdown', 'todoSlice'],
 	);
 	const { addTodo, removeTodo, clearTodos, createTodoStore, eventDictionary, modelStore, coreLoop } = guide;
 	const added = modelStore.get();
