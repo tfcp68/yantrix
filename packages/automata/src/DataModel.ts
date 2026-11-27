@@ -42,8 +42,10 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 	}
 
 	/**
-	 * Atomically replaces the snapshot and notifies subscribers once.
 	 * Re-committing the same reference is a no-op.
+	 * `ModelStore.commit()` installs the new `Data Model` and calls every subscriber in registration order.
+	 * If subscribers throw, `commit()` finishes notifying the others, then throws an `AggregateError`
+	 * containing the original errors in that order.
 	 */
 	public commit(model: ModelType | TReadonlyModel<ModelType>): void {
 		if (model === this.#model) return;
@@ -52,11 +54,17 @@ export class ModelStore<ModelType extends object> implements IDataModelStore<Mod
 		const previousModel = this.#model;
 		this.#model = nextModel;
 
+		const errors: unknown[] = [];
 		// A stable snapshot prevents listeners added during notification from
 		// observing a commit that started before they subscribed.
 		for (const listener of [...this.#listeners]) {
-			listener(nextModel, previousModel);
+			try {
+				listener(nextModel, previousModel);
+			} catch (error) {
+				errors.push(error);
+			}
 		}
+		if (errors.length > 0) throw new AggregateError(errors, 'Data Model subscribers failed');
 	}
 
 	/** Subscribes to committed `Data Model` changes. */

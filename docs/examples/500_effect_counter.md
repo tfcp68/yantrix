@@ -32,6 +32,9 @@ Generate TypeScript with class name `CounterFlow`. The generated module exports
 
 ## Composition root
 
+Pass `true` as the store factory's second argument during development to freeze
+snapshots and validate their contents.
+
 ```ts
 import {
 	CoreLoop,
@@ -51,10 +54,14 @@ interface ICounterModel {
 	maximum: number;
 }
 
+function createCounterStore(initial: ICounterModel, development = false) {
+	return new ModelStore(initial, {
+		development: { freeze: development, validateSerializable: development },
+	});
+}
+
 const initialModel: ICounterModel = { score: 0, maximum: 10 };
-const modelStore = new ModelStore(initialModel, {
-	development: { freeze: true, validateSerializable: true },
-});
+const modelStore = createCounterStore(initialModel);
 
 const fx = createModelFunctions<ICounterModel, TCounterFlowEffectEvent, TCounterFlowEventMeta>();
 const scoreChanged = fx.forEvent<typeof eventDictionary.scoreChanged>();

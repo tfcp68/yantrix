@@ -33,7 +33,6 @@ and the [Todo example](../examples/1000_todo.html).
 
 `ModelStore.commit(nextModel)` compares snapshots by reference. Committing the
 same reference is a no-op. A new reference is installed before subscribers receive `(nextModel, previousModel)`.
-If a subscriber throws after commit, the new snapshot stays installed and later subscribers miss that notification.
 
 ## Application lifecycle
 
@@ -100,6 +99,15 @@ removing an `Effect Matrix` during a flush also affects only subsequent batches.
 If a pure `Effect` throws before commit, the previous snapshot is retained. Returning a non-object value
 also fails the batch before commit. In either case the scheduler consumes the failed batch and skips
 model-bound `Destination` updates.
+
+`ModelStore.commit()` installs the new `Data Model` and calls every subscriber in registration order.
+If subscribers throw, `commit()` finishes notifying the others, then throws an `AggregateError` containing
+the original errors in that order. A running `StorageSyncLoop` still receives the snapshot if an earlier
+subscriber throws.
+
+During an `Effect` batch, the error propagates through `EffectScheduler.flush()`. `coreLoop.whenIdle()`
+rejects, and the `Main Loop` skips model-bound `Destination` updates for that batch. The snapshot stays
+committed, and later batches can run.
 
 `Storage` failures are independent. `StorageSyncLoop` collects them and reports them through `onError`.
 A successful `Data Model` commit stands and the `Main Loop` continues.

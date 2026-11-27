@@ -1,5 +1,5 @@
+import * as publicApi from '@yantrix/core';
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import * as publicApi from '../src/index';
 
 describe('@yantrix/core MVP facade', () => {
 	it.each([
@@ -9,6 +9,7 @@ describe('@yantrix/core MVP facade', () => {
 		'createStorageAdapter',
 		'ModelStore',
 		'StorageSyncLoop',
+		'createModelFunctions',
 		'createModelPredicate',
 		'createModelTransformer',
 		'hydrateModel',

@@ -386,7 +386,7 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"build": "tsc --noEmit && tsup",
+		"build": "tsup && tsc --noEmit",
 		"format": "eslint --fix .",
 		"lint": "eslint .",
 		"test": "vitest run --outputFile=../../test_reports/automata.md"

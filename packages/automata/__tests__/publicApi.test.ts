@@ -1,5 +1,5 @@
+import * as publicApi from '@yantrix/automata';
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import * as publicApi from '../src/index';
 
 describe('public MVP API', () => {
 	it.each([
@@ -14,6 +14,7 @@ describe('public MVP API', () => {
 		'anyModelPredicates',
 		'appendModelItem',
 		'composeModelTransformers',
+		'createModelFunctions',
 		'createModelPredicate',
 		'createModelTransformer',
 		'hydrateModel',

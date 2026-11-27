@@ -46,10 +46,10 @@ async function runGuide(file: string, machine: string, inspect: string[], fixtur
 }
 
 it('runs the documented counter commands and preserves the snapshot for a no-op', async () => {
-	const { coreLoop, eventDictionary, modelStore } = await runGuide(
+	const { coreLoop, createCounterStore, eventDictionary, modelStore } = await runGuide(
 		'examples/500_effect_counter.md',
 		'CounterFlow',
-		['coreLoop', 'eventDictionary', 'modelStore'],
+		['coreLoop', 'createCounterStore', 'eventDictionary', 'modelStore'],
 	);
 	const increment = async (amount: number) => {
 		coreLoop.getBus().dispatch({ event: eventDictionary.increment, meta: { amount } });
@@ -58,6 +58,11 @@ it('runs the documented counter commands and preserves the snapshot for a no-op'
 
 	const atMaximum = modelStore.get();
 	expect(atMaximum.score).toBe(10);
+	expect(Object.isFrozen(atMaximum)).toBe(false);
+	expect(Object.isFrozen(createCounterStore({ score: 0, maximum: 10 }, true).get())).toBe(true);
+	const invalidCounter = { score: Number.NaN, maximum: 10 };
+	expect(createCounterStore(invalidCounter).get()).toBe(invalidCounter);
+	expect(() => createCounterStore(invalidCounter, true)).toThrow(/numbers must be finite/);
 	const notify = vi.fn();
 	modelStore.subscribe(notify);
 	await increment(1);
@@ -98,6 +103,55 @@ it('finishes a Todo command dispatched immediately before shutdown and persists 
 	expect(modelStore.get().items.last).toEqual({ id: 'last', text: 'Finish before shutdown' });
 	expect(modelStore.get().items.late).toBeUndefined();
 	expect(saved).toEqual(modelStore.get());
+}, 30000);
+
+it('re-enters Todo command states and ignores malformed metadata without committing', async () => {
+	todoStorage();
+	const guide = await runGuide(
+		todoFile, 'TodoFlow', ['coreLoop', 'createTodoStore', 'eventDictionary', 'modelStore', 'shutdown', 'todoSlice'],
+	);
+	const { addTodo, removeTodo, clearTodos, createTodoStore, eventDictionary, modelStore, coreLoop } = guide;
+	const added = modelStore.get();
+	expect(Object.isFrozen(added.items)).toBe(false);
+	expect(Object.isFrozen(createTodoStore({ items: {} }, true).get().items)).toBe(true);
+	const invalidTodos = { items: { invalid: { id: 'invalid', text: undefined } } };
+	expect(createTodoStore(invalidTodos).get()).toBe(invalidTodos);
+	expect(() => createTodoStore(invalidTodos, true)).toThrow(/not serializable/);
+	expect(added.items.first).toBeDefined();
+
+	await addTodo('42', 'Keep the numeric-looking ID');
+	await addTodo('[object Object]', 'Keep the object-looking ID');
+	const beforeMalformed = modelStore.get();
+	for (const bad of [42, {}]) {
+		for (const [event, meta] of [
+			[eventDictionary.addTodo, { id: bad, text: 'Invalid ID' }],
+			[eventDictionary.addTodo, { id: 'invalid', text: bad }],
+			[eventDictionary.removeTodo, { id: bad }],
+		]) {
+			coreLoop.getBus().dispatch({ event, meta });
+			await coreLoop.whenIdle();
+			expect(modelStore.get()).toBe(beforeMalformed);
+		}
+	}
+
+	await removeTodo('42');
+	await removeTodo('first');
+	expect(Object.keys(modelStore.get().items)).toEqual(['[object Object]']);
+	await addTodo('again', 'After remove');
+	expect(modelStore.get().items.again.text).toBe('After remove');
+	const emissions = vi.fn();
+	guide.todoSlice.getMachines().TodoFlow.onEmittedEvents(emissions);
+	await clearTodos();
+	const cleared = modelStore.get();
+	expect(cleared.items).toEqual({});
+	await clearTodos();
+	expect(modelStore.get()).toBe(cleared);
+	expect(emissions).toHaveBeenCalledTimes(2);
+	expect(emissions).toHaveBeenNthCalledWith(1, [expect.objectContaining({ event: eventDictionary.todosCleared })]);
+	expect(emissions).toHaveBeenNthCalledWith(2, [expect.objectContaining({ event: eventDictionary.todosCleared })]);
+	await addTodo('last', 'After clear');
+	expect(modelStore.get().items.last.text).toBe('After clear');
+	await guide.shutdown();
 }, 30000);
 
 it('keeps the stored Todo list intact after a failed hydration', async () => {

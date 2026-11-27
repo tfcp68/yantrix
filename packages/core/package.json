@@ -51,7 +51,7 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"build": "tsc --noEmit && tsup",
+		"build": "tsup && tsc --noEmit",
 		"test": "vitest run --outputFile=../../test_reports/core.md",
 		"lint": "eslint .",
 		"format": "eslint --fix ."

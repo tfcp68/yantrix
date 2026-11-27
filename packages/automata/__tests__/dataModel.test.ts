@@ -42,19 +42,36 @@ describe('modelStore', () => {
 		expect(listener).toHaveBeenCalledOnce();
 	});
 
-	it('keeps the committed snapshot when a subscriber throws and skips later subscribers', () => {
-		const store = new ModelStore({ count: 0 });
+	it.each([1, 2])('notifies all subscribers and aggregates %i failure(s) in order', (failureCount) => {
+		const initial = { count: 0 };
+		const store = new ModelStore(initial);
 		const next = { count: 1 };
-		const failure = new Error('subscriber failed');
-		const later = vi.fn();
-		store.subscribe(() => {
+		const failures = Array.from({ length: failureCount }, (_, index) => new Error(`subscriber ${index} failed`));
+		const unsubscribes = failures.map(failure => store.subscribe(() => {
 			throw failure;
-		});
+		}));
+		const later = vi.fn();
 		store.subscribe(later);
 
-		expect(() => store.commit(next)).toThrow(failure);
+		let thrown: unknown;
+		try {
+			store.commit(next);
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(AggregateError);
+		const { errors } = thrown as AggregateError;
+		expect(errors).toHaveLength(failureCount);
+		failures.forEach((failure, index) => expect(errors[index]).toBe(failure));
 		expect(store.get()).toBe(next);
-		expect(later).not.toHaveBeenCalled();
+		expect(later).toHaveBeenCalledWith(next, initial);
+
+		store.commit(next);
+		expect(later).toHaveBeenCalledOnce();
+		unsubscribes.forEach(unsubscribe => unsubscribe());
+		const last = { count: 2 };
+		store.commit(last);
+		expect(later).toHaveBeenLastCalledWith(last, next);
 	});
 
 	it('returns an idempotent unsubscribe function', () => {
